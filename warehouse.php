@@ -18,14 +18,6 @@ include 'components/header.php';
                     <!-- Page Heading just like inbound -->
                     <div class="d-sm-flex align-items-center justify-content-between mb-4">
                         <h1 class="h3 mb-0 text-gray-800 font-weight-bold">Warehouse Management</h1>
-                        <div>
-                            <button class="btn btn-success mr-2" data-toggle="modal" data-target="#uploadExcelModal">
-                                <i class="fas fa-file-excel mr-1"></i> Upload Excel
-                            </button>
-                            <button class="btn btn-danger" data-toggle="modal" data-target="#deleteDataModal">
-                                <i class="fas fa-trash-alt mr-1"></i> Hapus Data
-                            </button>
-                        </div>
                     </div>
                     <div class="row">
                         <div class="col-xl-3 col-md-6 mb-4">
@@ -255,110 +247,7 @@ include 'components/header.php';
                             </div>
                         </div>
                     </div>
-                </div>
 <?php include 'components/footer.php'; ?>
-
-        <!-- Delete Data Modal-->
-        <div class="modal fade" id="deleteDataModal" tabindex="-1" role="dialog" aria-labelledby="deleteDataModalLabel"
-            aria-hidden="true">
-            <div class="modal-dialog" role="document">
-                <div class="modal-content">
-                    <div class="modal-header bg-danger text-white">
-                        <h5 class="modal-title" id="deleteDataModalLabel">Hapus Data</h5>
-                        <button class="close text-white" type="button" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">×</span>
-                        </button>
-                    </div>
-                    <div class="modal-body p-4">
-                        <div class="text-center text-gray-600 mb-4">
-                            <h1 class="text-danger font-weight-bold mb-3"><i class="fas fa-exclamation-triangle mr-2"></i>Peringatan</h1>
-                            <p class="mb-0" style="font-size: 1.1rem;">Data yang Anda pilih akan dihapus secara permanen dari sistem dan tidak dapat dikembalikan.</p>
-                        </div>
-                        <div class="form-group">
-                            <label for="deleteMonthSelect">Bulan</label>
-                            <select class="form-control" id="deleteMonthSelect">
-                                <option value="">-- Pilih Bulan --</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="deleteYearSelect">Tahun</label>
-                            <select class="form-control" id="deleteYearSelect">
-                                <option value="">-- Pilih Tahun --</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
-                        <button class="btn btn-danger" type="button" id="btn-confirm-delete">Hapus Data</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="modal fade" id="uploadExcelModal" tabindex="-1" role="dialog"
-            aria-labelledby="uploadExcelModalLabel" aria-hidden="true">
-            <div class="modal-dialog modal-md modal-dialog-centered" role="document" id="uploadExcelModalDialog">
-                <div class="modal-content upload-modal-content">
-                    <div class="modal-header upload-modal-header">
-                        <h5 class="modal-title" id="uploadExcelModalLabel">
-                            <i class="fas fa-file-excel mr-2"></i>Upload Excel Data
-                        </h5>
-                        <button class="close" type="button" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                    <div class="modal-body upload-modal-body">
-                        <div class="row">
-                            <div class="col-lg-12" id="uploadModalLeftCol">
-                                <div class="form-group mb-3">
-                                    <label for="upload-data-type" class="small font-weight-bold text-gray-600">Tipe Data</label>
-                                    <select class="form-control form-control-sm" id="upload-data-type">
-                                        <option value="asset">Data Asset</option>
-                                        <option value="rack">Data Utilisasi Rack</option>
-                                    </select>
-                                </div>
-                                <div class="upload-drop-zone" id="upload-drop-zone">
-                                    <input type="file" id="excel-file-input" accept=".xlsx,.xls,.csv"
-                                        style="display:none" />
-                                    <div class="upload-icon">
-                                        <i class="fas fa-cloud-upload-alt"></i>
-                                    </div>
-                                    <h5>Drag &amp; Drop Excel File</h5>
-                                    <p>or click to browse your computer</p>
-                                    <button class="btn-browse" id="btn-browse-file" type="button">
-                                        <i class="fas fa-folder-open mr-1"></i> Browse Files
-                                    </button>
-                                    <div class="file-types">
-                                        Supported: .xlsx, .xls, .csv &bull; Max 100MB
-                                    </div>
-                                </div>
-
-                                <div class="upload-progress-container" id="upload-progress">
-                                    <div class="upload-progress-bar">
-                                        <div class="progress-fill" id="upload-progress-fill"></div>
-                                    </div>
-                                    <div class="upload-file-info">
-                                        <span class="file-name" id="upload-file-name"></span>
-                                        <span class="file-size" id="upload-file-size"></span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-lg-6" id="uploadModalRightCol" style="display: none;">
-                                <div class="upload-controls" id="upload-controls">
-                                    <div class="form-group">
-                                        <label for="sheet-select">Select Sheet</label>
-                                        <select class="form-control" id="sheet-select"></select>
-                                    </div>
-                                    <button class="btn-generate" id="btn-generate-charts" type="button" disabled>
-                                        <i class="fas fa-check "></i> Submit
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
 
         <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
             aria-hidden="true">
@@ -395,24 +284,8 @@ include 'components/header.php';
 
         <!-- Page level custom scripts -->
         <script src="js/formula-controller.js?v=6"></script>
-        <script src="js/excel-upload.js?v=6"></script>
         <script src="js/demo/chart-bar-demo.js?v=6"></script>
         <script src="js/demo/chart-horizontal-bar-demo.js?v=5"></script>
-
-        <!-- Close modal after chart generation -->
-        <script>
-            (function () {
-                var genBtn = document.getElementById('btn-generate-charts');
-                if (genBtn) {
-                    genBtn.addEventListener('click', function () {
-                        // Small delay so charts render, then close modal
-                        setTimeout(function () {
-                            $('#uploadExcelModal').modal('hide');
-                        }, 400);
-                    });
-                }
-            })();
-        </script>
 
         <!-- Fetch data from database on load -->
         <script>

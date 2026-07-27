@@ -363,4 +363,96 @@ $(document).ready(function() {
         });
     });
 
+    // ═══════════════════════════════════════════════════════════════
+    // 4. EXPORT EXCEL HANDLER
+    // ═══════════════════════════════════════════════════════════════
+    $('#btn-export-excel').on('click', function() {
+        if (typeof XLSX === 'undefined') {
+            if (typeof Swal !== 'undefined') {
+                Swal.fire('Error', 'SheetJS (XLSX) library tidak ditemukan.', 'error');
+            }
+            return;
+        }
+
+        var activeTab = $('#masterDataTabs a.active').attr('id');
+        var wb = XLSX.utils.book_new();
+        var dateStr = new Date().toISOString().slice(0, 10);
+
+        if (activeTab === 'asset-tab') {
+            var data = assetTable.rows({ search: 'applied' }).data().toArray();
+            if (data.length === 0) {
+                if (typeof Swal !== 'undefined') Swal.fire('Info', 'Tidak ada data Asset untuk di-export.', 'info');
+                return;
+            }
+            var exportData = data.map(function(row) {
+                return {
+                    'Spec Code': row.spec_code || '',
+                    'Spec Name': row.spec_name || '',
+                    'Reg No': row.reg_no || '',
+                    'Asset Planner Org': row.asset_planner_organization || '',
+                    'NBV': parseFloat(row.nbv) || 0,
+                    'SO Result': row.so_result || '',
+                    'SO Location': row.so_location || '',
+                    'Range': row.range || '',
+                    'Sub Location': row.sub_location || '',
+                    'Category': row.category || '',
+                    'Periode': row.periode_group || '',
+                    'Status': row.status || ''
+                };
+            });
+            var ws = XLSX.utils.json_to_sheet(exportData);
+            XLSX.utils.book_append_sheet(wb, ws, "Data Asset");
+            XLSX.writeFile(wb, "Master_Data_Asset_" + dateStr + ".xlsx");
+
+        } else if (activeTab === 'rack-tab') {
+            var data = rackTable.rows({ search: 'applied' }).data().toArray();
+            if (data.length === 0) {
+                if (typeof Swal !== 'undefined') Swal.fire('Info', 'Tidak ada data Rack untuk di-export.', 'info');
+                return;
+            }
+            var exportData = data.map(function(row) {
+                return {
+                    'Label': row.label || '',
+                    'Rack Group': row.rack || '',
+                    'Category': row.category || ''
+                };
+            });
+            var ws = XLSX.utils.json_to_sheet(exportData);
+            XLSX.utils.book_append_sheet(wb, ws, "Utilisasi Rack");
+            XLSX.writeFile(wb, "Master_Data_Rack_" + dateStr + ".xlsx");
+
+        } else if (activeTab === 'utilisasi-tab') {
+            var tbody = document.getElementById('utilisasi-table-body');
+            if (!tbody || tbody.children.length === 0) {
+                if (typeof Swal !== 'undefined') Swal.fire('Info', 'Tampilkan data Utilisasi Area/Rack terlebih dahulu sebelum export.', 'info');
+                return;
+            }
+            var exportData = [];
+            var trs = tbody.getElementsByTagName('tr');
+            for (var i = 0; i < trs.length; i++) {
+                var tds = trs[i].getElementsByTagName('td');
+                if (tds.length >= 5) {
+                    var label = tds[0].textContent.trim();
+                    var rackGroup = tds[1].textContent.trim();
+                    var category = tds[2].textContent.trim();
+                    var qtyInput = trs[i].querySelector('.utilisasi-qty-input');
+                    var capInput = trs[i].querySelector('.utilisasi-cap-input');
+                    exportData.push({
+                        'Label Area/Rack': label,
+                        'Rack Group': rackGroup,
+                        'Category': category,
+                        'Qty': qtyInput ? parseInt(qtyInput.value) || 0 : 0,
+                        'Capacity (%)': capInput ? parseFloat(capInput.value) || 0 : 0
+                    });
+                }
+            }
+            var ws = XLSX.utils.json_to_sheet(exportData);
+            var m = document.getElementById('utilisasi-month-select');
+            var y = document.getElementById('utilisasi-year-select');
+            var periodName = (m && m.value && y && y.value) ? (m.value + "_" + y.value) : dateStr;
+            XLSX.utils.book_append_sheet(wb, ws, "Utilisasi Area");
+            XLSX.writeFile(wb, "Utilisasi_Area_Rack_" + periodName + ".xlsx");
+        }
+    });
+
 });
