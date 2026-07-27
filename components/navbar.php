@@ -32,9 +32,15 @@ $shouldHideNavbarUl = isset($hideNavbarUl) && $hideNavbarUl;
     </button>
     <form class="d-none d-sm-inline-block form-inline mr-auto ml-md-3 my-2 my-md-0 mw-100 navbar-search">
         <div class="input-group">
-            <a href="wms_select.php" title="Kembali ke Dashboard WMS">
-                <img src="img/Lintasarta.png" alt="Lintasarta Logo" width="150px">
-            </a>
+            <?php if (!empty($navUser['is_logged_in'])): ?>
+                <span style="cursor: default;">
+                    <img src="img/Lintasarta.png" alt="Lintasarta Logo" width="150px">
+                </span>
+            <?php else: ?>
+                <a href="wms_select.php" title="Kembali ke Dashboard WMS">
+                    <img src="img/Lintasarta.png" alt="Lintasarta Logo" width="150px">
+                </a>
+            <?php endif; ?>
         </div>
     </form>
     <?php if (!$shouldHideNavbarUl): ?>

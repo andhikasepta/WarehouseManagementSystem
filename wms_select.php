@@ -1,4 +1,23 @@
 <?php
+require_once __DIR__ . '/auth.php';
+
+// wms_select.php is only accessible before login or after session is destroyed
+if (isLoggedIn()) {
+    $user = getCurrentUser();
+    if ($user['role'] === 'superadmin') {
+        header("Location: user_management.php");
+        exit;
+    }
+    $allowed = $user['allowed_modules'] ?? [];
+    if (in_array('warehouse', $allowed)) {
+        header("Location: warehouse.php");
+        exit;
+    } elseif (!empty($allowed)) {
+        header("Location: " . $allowed[0] . ".php");
+        exit;
+    }
+}
+
 $pageTitle = 'Pilih Dashboard WMS - Lintasarta';
 include 'components/header.php';
 ?>

@@ -1,5 +1,5 @@
 // js/master-data.js
-$(document).ready(function() {
+$(document).ready(function () {
 
     var tablesLoaded = 0;
     var totalTables = 2; // Asset + Rack (Utilisasi is loaded on demand)
@@ -39,9 +39,9 @@ $(document).ready(function() {
             { data: 'sub_location' },
             { data: 'category' },
             { data: 'periode_group' },
-            { 
+            {
                 data: 'status',
-                render: function(data, type, row) {
+                render: function (data, type, row) {
                     if (data === 'IN') {
                         return '<span class="badge badge-success px-2 py-1">IN</span>';
                     } else if (data === 'OUT') {
@@ -55,20 +55,20 @@ $(document).ready(function() {
         ],
         initComplete: function () {
             var api = this.api();
-            var periodes = api.column(10).data().unique().toArray().sort(function(a, b) {
+            var periodes = api.column(10).data().unique().toArray().sort(function (a, b) {
                 if (!a) return 1;
                 if (!b) return -1;
                 return new Date("01 " + a) - new Date("01 " + b);
             });
             var $periodeSelect = $('#filterAssetPeriode');
             $.each(periodes, function (i, d) {
-                if(d) $periodeSelect.append('<option value="'+d+'">'+d+'</option>');
+                if (d) $periodeSelect.append('<option value="' + d + '">' + d + '</option>');
             });
 
             var subLocations = api.column(8).data().unique().sort();
             var $subLocSelect = $('#filterAssetSubLocation');
             subLocations.each(function (d) {
-                if(d) $subLocSelect.append('<option value="'+d+'">'+d+'</option>');
+                if (d) $subLocSelect.append('<option value="' + d + '">' + d + '</option>');
             });
 
             $('#filterAssetPeriode, #filterAssetSubLocation').select2({ width: '100%' });
@@ -83,14 +83,14 @@ $(document).ready(function() {
         }
     });
 
-    $('#filterAssetPeriode').on('change', function(){
+    $('#filterAssetPeriode').on('change', function () {
         var val = $.fn.dataTable.util.escapeRegex($(this).val());
-        assetTable.column(10).search(val ? '^'+val+'$' : '', true, false).draw();
+        assetTable.column(10).search(val ? '^' + val + '$' : '', true, false).draw();
     });
 
-    $('#filterAssetSubLocation').on('change', function(){
+    $('#filterAssetSubLocation').on('change', function () {
         var val = $.fn.dataTable.util.escapeRegex($(this).val());
-        assetTable.column(8).search(val ? '^'+val+'$' : '', true, false).draw();
+        assetTable.column(8).search(val ? '^' + val + '$' : '', true, false).draw();
     });
 
     // 2. Initialize Rack DataTable
@@ -104,17 +104,17 @@ $(document).ready(function() {
         ],
         initComplete: function () {
             var api = this.api();
-            
+
             var categories = api.column(2).data().unique().sort();
             var $categorySelect = $('#filterRackCategory');
             categories.each(function (d) {
-                if(d) $categorySelect.append('<option value="'+d+'">'+d+'</option>');
+                if (d) $categorySelect.append('<option value="' + d + '">' + d + '</option>');
             });
 
             var racks = api.column(1).data().unique().sort();
             var $rackSelect = $('#filterRackName');
             racks.each(function (d) {
-                if(d) $rackSelect.append('<option value="'+d+'">'+d+'</option>');
+                if (d) $rackSelect.append('<option value="' + d + '">' + d + '</option>');
             });
 
             $('#filterRackCategory, #filterRackName').select2({ width: '100%' });
@@ -129,14 +129,14 @@ $(document).ready(function() {
         }
     });
 
-    $('#filterRackCategory').on('change', function(){
+    $('#filterRackCategory').on('change', function () {
         var val = $.fn.dataTable.util.escapeRegex($(this).val());
-        rackTable.column(2).search(val ? '^'+val+'$' : '', true, false).draw();
+        rackTable.column(2).search(val ? '^' + val + '$' : '', true, false).draw();
     });
 
-    $('#filterRackName').on('change', function(){
+    $('#filterRackName').on('change', function () {
         var val = $.fn.dataTable.util.escapeRegex($(this).val());
-        rackTable.column(1).search(val ? '^'+val+'$' : '', true, false).draw();
+        rackTable.column(1).search(val ? '^' + val + '$' : '', true, false).draw();
     });
 
     // ═══════════════════════════════════════════════════════════════
@@ -169,7 +169,7 @@ $(document).ready(function() {
     $('#utilisasi-month-select, #utilisasi-year-select').on('change', updateLoadUtilisasiButton);
 
     // Load data for selected period
-    $('#btn-load-utilisasi').on('click', function() {
+    $('#btn-load-utilisasi').on('click', function () {
         var month = document.getElementById('utilisasi-month-select').value;
         var year = document.getElementById('utilisasi-year-select').value;
         if (!month || !year) return;
@@ -190,13 +190,13 @@ $(document).ready(function() {
                 title: 'Memuat Data...',
                 allowOutsideClick: false,
                 allowEscapeKey: false,
-                didOpen: function() { Swal.showLoading(); }
+                didOpen: function () { Swal.showLoading(); }
             });
         }
 
         fetch('api/get_rack_utilisasi.php?month=' + encodeURIComponent(month) + '&year=' + encodeURIComponent(year))
-            .then(function(r) { return r.json(); })
-            .then(function(result) {
+            .then(function (r) { return r.json(); })
+            .then(function (result) {
                 // Clear table body
                 while (tbody.firstChild) {
                     tbody.removeChild(tbody.firstChild);
@@ -271,7 +271,7 @@ $(document).ready(function() {
 
                 if (typeof Swal !== 'undefined') Swal.close();
             })
-            .catch(function(err) {
+            .catch(function (err) {
                 if (typeof Swal !== 'undefined') {
                     Swal.fire('Error', 'Gagal memuat data utilisasi.', 'error');
                 }
@@ -279,7 +279,7 @@ $(document).ready(function() {
     }
 
     // Save All button
-    $('#btn-save-utilisasi-all').on('click', function() {
+    $('#btn-save-utilisasi-all').on('click', function () {
         var month = document.getElementById('utilisasi-month-select').value;
         var year = document.getElementById('utilisasi-year-select').value;
 
@@ -331,7 +331,7 @@ $(document).ready(function() {
                 title: 'Menyimpan...',
                 allowOutsideClick: false,
                 allowEscapeKey: false,
-                didOpen: function() { Swal.showLoading(); }
+                didOpen: function () { Swal.showLoading(); }
             });
         }
 
@@ -344,29 +344,29 @@ $(document).ready(function() {
                 rows: rows
             })
         })
-        .then(function(r) { return r.json(); })
-        .then(function(res) {
-            if (res.status === 'success') {
-                if (typeof Swal !== 'undefined') {
-                    Swal.fire('Berhasil!', res.message || 'Data utilisasi berhasil disimpan.', 'success');
+            .then(function (r) { return r.json(); })
+            .then(function (res) {
+                if (res.status === 'success') {
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire('Berhasil!', res.message || 'Data utilisasi berhasil disimpan.', 'success');
+                    }
+                } else {
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire('Error', 'Gagal menyimpan: ' + (res.message || 'Unknown error'), 'error');
+                    }
                 }
-            } else {
+            })
+            .catch(function (err) {
                 if (typeof Swal !== 'undefined') {
-                    Swal.fire('Error', 'Gagal menyimpan: ' + (res.message || 'Unknown error'), 'error');
+                    Swal.fire('Error', 'Terjadi kesalahan saat menyimpan data.', 'error');
                 }
-            }
-        })
-        .catch(function(err) {
-            if (typeof Swal !== 'undefined') {
-                Swal.fire('Error', 'Terjadi kesalahan saat menyimpan data.', 'error');
-            }
-        });
+            });
     });
 
     // ═══════════════════════════════════════════════════════════════
     // 4. EXPORT EXCEL HANDLER
     // ═══════════════════════════════════════════════════════════════
-    $('#btn-export-excel').on('click', function() {
+    $('#btn-export-excel').on('click', function () {
         if (typeof XLSX === 'undefined') {
             if (typeof Swal !== 'undefined') {
                 Swal.fire('Error', 'SheetJS (XLSX) library tidak ditemukan.', 'error');
@@ -384,7 +384,7 @@ $(document).ready(function() {
                 if (typeof Swal !== 'undefined') Swal.fire('Info', 'Tidak ada data Asset untuk di-export.', 'info');
                 return;
             }
-            var exportData = data.map(function(row) {
+            var exportData = data.map(function (row) {
                 return {
                     'Spec Code': row.spec_code || '',
                     'Spec Name': row.spec_name || '',
@@ -410,7 +410,7 @@ $(document).ready(function() {
                 if (typeof Swal !== 'undefined') Swal.fire('Info', 'Tidak ada data Rack untuk di-export.', 'info');
                 return;
             }
-            var exportData = data.map(function(row) {
+            var exportData = data.map(function (row) {
                 return {
                     'Label': row.label || '',
                     'Rack Group': row.rack || '',
@@ -453,6 +453,40 @@ $(document).ready(function() {
             XLSX.utils.book_append_sheet(wb, ws, "Utilisasi Area");
             XLSX.writeFile(wb, "Utilisasi_Area_Rack_" + periodName + ".xlsx");
         }
+    });
+
+    $('#btn-template-asset').on('click', function () {
+        if (typeof XLSX === 'undefined') return;
+        var wb = XLSX.utils.book_new();
+        var sampleData = [{
+            'SPEC CODE': 'AST-001',
+            'SPEC NAME': 'Server Rack Unit A1',
+            'REG NO': 'REG-2026-001',
+            'ASSET PLANNER ORGANIZATION': 'IT Infrastructure',
+            'NBV': 15000000,
+            'SO RESULT': 'FOUND',
+            'SO LOCATION': 'DC Jakarta',
+            'RANGE': 'RACK-01',
+            'SUB LOCATION': 'DC Jakarta Tier 3',
+            'CATEGORY': 'IT Equipment',
+            'PERIODE': 'January 2026'
+        }];
+        var ws = XLSX.utils.json_to_sheet(sampleData);
+        XLSX.utils.book_append_sheet(wb, ws, "January 2026");
+        XLSX.writeFile(wb, "Template_Import_Data_Asset.xlsx");
+    });
+
+    $('#btn-template-rack').on('click', function () {
+        if (typeof XLSX === 'undefined') return;
+        var wb = XLSX.utils.book_new();
+        var sampleData = [{
+            'LABEL': 'RACK-A1',
+            'RACK': 'Rack Group A',
+            'CATEGORY': 'Server'
+        }];
+        var ws = XLSX.utils.json_to_sheet(sampleData);
+        XLSX.utils.book_append_sheet(wb, ws, "Rack Master");
+        XLSX.writeFile(wb, "Template_Import_Data_Rack.xlsx");
     });
 
 });

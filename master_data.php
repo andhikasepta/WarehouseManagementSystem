@@ -45,8 +45,8 @@ include 'components/header.php';
                     <div class="d-flex align-items-center justify-content-between mb-4">
                         <h1 class="h3 mb-0 text-gray-800">Master Data</h1>
                         <div>
-                            <button class="btn btn-success mr-2" id="btn-export-excel">
-                                <i class="fas fa-file-excel mr-1"></i> Export Excel
+                            <button class="btn btn-success mr-2" data-toggle="modal" data-target="#uploadExcelModal">
+                                <i class="fas fa-file-import mr-1"></i> Import Excel
                             </button>
                             <button class="btn btn-danger" data-toggle="modal" data-target="#deleteDataModal">
                                 <i class="fas fa-trash-alt mr-1"></i> Hapus Data
@@ -289,6 +289,86 @@ include 'components/header.php';
         </div>
     </div>
 
+    <div class="modal fade" id="uploadExcelModal" tabindex="-1" role="dialog"
+        aria-labelledby="uploadExcelModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-md modal-dialog-centered" role="document" id="uploadExcelModalDialog">
+            <div class="modal-content upload-modal-content">
+                <div class="modal-header upload-modal-header bg-success text-white">
+                    <h5 class="modal-title font-weight-bold" id="uploadExcelModalLabel">
+                        <i class="fas fa-file-excel mr-2"></i>Import Excel Data
+                    </h5>
+                    <button class="close text-white" type="button" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body upload-modal-body">
+                    <!-- Download Template Section -->
+                    <div class="alert alert-light border mb-3 p-2 d-flex align-items-center justify-content-between">
+                        <span class="small font-weight-bold text-gray-700">
+                            <i class="fas fa-download mr-1 text-success"></i> Download Template:
+                        </span>
+                        <div>
+                            <button type="button" class="btn btn-sm btn-outline-success font-weight-bold mr-1" id="btn-template-asset">
+                                <i class="fas fa-file-excel mr-1"></i> Template Asset
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-info font-weight-bold" id="btn-template-rack">
+                                <i class="fas fa-file-excel mr-1"></i> Template Rack
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-lg-12" id="uploadModalLeftCol">
+                            <div class="form-group mb-3">
+                                <label for="upload-data-type" class="small font-weight-bold text-gray-600">Tipe Data</label>
+                                <select class="form-control form-control-sm" id="upload-data-type">
+                                    <option value="asset">Data Asset</option>
+                                    <option value="rack">Data Utilisasi Rack</option>
+                                </select>
+                            </div>
+                            <div class="upload-drop-zone" id="upload-drop-zone">
+                                <input type="file" id="excel-file-input" accept=".xlsx,.xls,.csv"
+                                    style="display:none" />
+                                <div class="upload-icon">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                </div>
+                                <h5>Drag &amp; Drop Excel File</h5>
+                                <p>or click to browse your computer</p>
+                                <button class="btn-browse" id="btn-browse-file" type="button">
+                                    <i class="fas fa-folder-open mr-1"></i> Browse Files
+                                </button>
+                                <div class="file-types">
+                                    Supported: .xlsx, .xls, .csv &bull; Max 100MB
+                                </div>
+                            </div>
+
+                            <div class="upload-progress-container" id="upload-progress">
+                                <div class="upload-progress-bar">
+                                    <div class="progress-fill" id="upload-progress-fill"></div>
+                                </div>
+                                <div class="upload-file-info">
+                                    <span class="file-name" id="upload-file-name"></span>
+                                    <span class="file-size" id="upload-file-size"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-6" id="uploadModalRightCol" style="display: none;">
+                            <div class="upload-controls" id="upload-controls">
+                                <div class="form-group">
+                                    <label for="sheet-select">Pilih Sheet</label>
+                                    <select class="form-control" id="sheet-select"></select>
+                                </div>
+                                <button class="btn-generate" id="btn-generate-charts" type="button" disabled>
+                                    <i class="fas fa-check"></i> Submit Upload
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Scripts -->
     <script src="vendor/jquery/jquery.min.js"></script>
     <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
@@ -299,10 +379,11 @@ include 'components/header.php';
     <script src="vendor/datatables/jquery.dataTables.min.js"></script>
     <script src="vendor/datatables/dataTables.bootstrap4.min.js"></script>
     
-    <!-- SheetJS (xlsx) for Excel export -->
+    <!-- SheetJS (xlsx) for Excel import/export -->
     <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="js/excel-upload.js?v=<?= time() ?>"></script>
     <script src="js/formula-controller.js?v=<?= time() ?>"></script>
     <script src="js/master-data.js?v=<?= time() ?>"></script>
     
