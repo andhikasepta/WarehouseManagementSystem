@@ -2,11 +2,15 @@
 // api/get_master_assets.php
 ini_set('memory_limit', '2048M');
 set_time_limit(0);
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-require_once '../config/database.php';
-
+ini_set('display_errors', 0);
 header('Content-Type: application/json');
+require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../auth.php';
+
+if (!isLoggedIn()) {
+    echo json_encode(['data' => [], 'error' => 'Unauthorized']);
+    exit;
+}
 
 try {
     // We want to fetch data for the Master Data table.

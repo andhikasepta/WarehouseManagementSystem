@@ -1,8 +1,13 @@
 <?php
 // api/get_rack_data.php
-require_once '../config/database.php';
-
 header('Content-Type: application/json');
+require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../auth.php';
+
+if (!isLoggedIn()) {
+    echo json_encode(['status' => 'error', 'message' => 'Unauthorized']);
+    exit;
+}
 
 try {
     $stmt = $pdo->query("SELECT label, rack, category FROM rack_master");

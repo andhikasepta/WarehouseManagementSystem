@@ -1,21 +1,10 @@
-<!DOCTYPE html>
-<html lang="en">
+<?php
+require_once __DIR__ . '/auth.php';
+checkModuleAccess('master_data');
 
-<head>
-
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta name="description" content="Master Data view for Dashboard Warehouse">
-    <meta name="author" content="">
-
-    <title>Master Data - Dashboard Warehouse</title>
-
-    <link rel="icon" href="img/LogoLintas.png">
-    <link href="vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
-    <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet">
-    <link href="css/sb-admin-2.min.css" rel="stylesheet">
-    <link href="css/excel-upload.css?v=<?= time() ?>" rel="stylesheet">
+$pageTitle = 'Master Data - Dashboard Warehouse';
+include 'components/header.php';
+?>
     
     <!-- DataTables CSS -->
     <link href="vendor/datatables/dataTables.bootstrap4.min.css" rel="stylesheet">
@@ -44,39 +33,11 @@
             <div id="content" class="flex-grow-1">
                 
                 <!-- Topbar -->
-                <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 fixed-top shadow" style="z-index: 1020;">
-                    <form class="d-none d-sm-inline-block form-inline mr-auto ml-md-3 my-2 my-md-0 mw-100 navbar-search">
-                        <div class="input-group">
-                            <a href="index.php"><img src="img/Lintasarta.png" alt="" width="150px"></a>
-                        </div>
-                    </form>
-                    <ul class="navbar-nav ml-auto">
-                        <!-- Navigation Links -->
-                        <li class="nav-item">
-                            <a class="nav-link" href="index.php">
-                                <span class="mr-2 d-none d-lg-inline text-gray-600 font-weight-bold">
-                                    <i class="fas fa-th-large mr-1"></i> Dashboard
-                                </span>
-                            </a>
-                        </li>
-                        <li class="nav-item active">
-                            <a class="nav-link" href="master_data.php">
-                                <span class="mr-2 d-none d-lg-inline text-primary font-weight-bold">
-                                    <i class="fas fa-database mr-1"></i> Master Data
-                                </span>
-                            </a>
-                        </li>
-
-                        <div class="topbar-divider d-none d-sm-block"></div>
-
-                        <!-- User Information (Static) -->
-                        <li class="nav-item d-flex align-items-center">
-                            <span class="nav-link pr-0">
-                                <span class="mr-2 d-none d-lg-inline text-gray-600 small"><i class="fa fa-user mr-2 text-gray-400"></i>LISKA DWI NURYATI</span>
-                            </span>
-                        </li>
-                    </ul>
-                </nav>
+                <?php 
+                $activePage = 'master_data'; 
+                $hidePeriodSelector = true;
+                include 'components/navbar.php'; 
+                ?>
                 <!-- End of Topbar -->
 
                 <!-- Begin Page Content -->
@@ -283,16 +244,7 @@
             </div>
             <!-- End of Main Content -->
 
-            <!-- Footer -->
-            <footer class="sticky-footer bg-white mt-auto">
-                <div class="container my-auto">
-                    <div class="copyright text-center my-auto">
-                        <span>Copyright &copy; 2026</span>
-                    </div>
-                </div>
-            </footer>
-        </div>
-    </div>
+<?php include 'components/footer.php'; ?>
 
     <!-- Delete Data Modal-->
     <div class="modal fade" id="deleteDataModal" tabindex="-1" role="dialog" aria-labelledby="deleteDataModalLabel"

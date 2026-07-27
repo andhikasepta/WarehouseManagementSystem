@@ -1,11 +1,14 @@
 <?php
 // api/save_rack_utilisasi.php
-require_once '../config/database.php';
-
 header('Content-Type: application/json');
+require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../auth.php';
 
-// TODO(security): Add authentication/authorization checks before allowing data modification.
-// TODO(security): Implement CSRF token validation for this state-changing endpoint.
+if (!isLoggedIn()) {
+    http_response_code(401);
+    echo json_encode(['status' => 'error', 'message' => 'Unauthorized']);
+    exit;
+}
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);

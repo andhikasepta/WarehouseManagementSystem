@@ -1,8 +1,13 @@
 <?php
 // api/save_rack_data.php
-require_once '../config/database.php';
-
 header('Content-Type: application/json');
+require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../auth.php';
+
+if (!isLoggedIn()) {
+    echo json_encode(['status' => 'error', 'message' => 'Unauthorized']);
+    exit;
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $input = file_get_contents('php://input');

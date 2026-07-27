@@ -1,10 +1,14 @@
 <?php
 // api/get_rack_utilisasi.php
-require_once '../config/database.php';
-
 header('Content-Type: application/json');
+require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../auth.php';
 
-// TODO(security): Add authentication/authorization checks.
+if (!isLoggedIn()) {
+    http_response_code(401);
+    echo json_encode(['status' => 'error', 'message' => 'Unauthorized']);
+    exit;
+}
 
 try {
     // Ensure rack_utilisasi table exists

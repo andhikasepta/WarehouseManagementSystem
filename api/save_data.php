@@ -1,11 +1,13 @@
 <?php
 // api/save_data.php
-require_once '../config/database.php';
-
-// Set timezone to match local time so UTC dates from JS are formatted correctly
-date_default_timezone_set('Asia/Jakarta');
-
 header('Content-Type: application/json');
+require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../auth.php';
+
+if (!isLoggedIn()) {
+    echo json_encode(['status' => 'error', 'message' => 'Unauthorized']);
+    exit;
+}
 
 function formatPeriode($rawDate) {
     if (!$rawDate) return 'Unknown Period';
