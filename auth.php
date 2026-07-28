@@ -133,16 +133,34 @@ function renderAccessDeniedPage($requiredModule, $user, $customMessage = '') {
                                         <div class="alert alert-warning text-left small mb-4">
                                             <i class="fas fa-exclamation-circle mr-1"></i> <?php echo !empty($customMessage) ? htmlspecialchars($customMessage) : 'Silakan hubungi Super Admin untuk meminta penambahan hak akses modul ini.'; ?>
                                         </div>
-                                        <div class="d-flex flex-wrap justify-content-center gap-2">
-                                            <?php if ($user['role'] === 'superadmin'): ?>
-                                                <a href="user_management.php" class="btn btn-primary px-4 py-2 mr-2">
-                                                    <i class="fas fa-users-cog mr-1"></i> Buka User Management
-                                                </a>
-                                            <?php else: ?>
-                                                <a href="wms_select.php" class="btn btn-primary px-4 py-2 mr-2">
-                                                    <i class="fas fa-th mr-1"></i> Pilih Modul Lain
-                                                </a>
-                                            <?php endif; ?>
+                                         <div class="d-flex flex-wrap justify-content-center gap-2">
+                                             <?php if ($user['role'] === 'superadmin'): ?>
+                                                 <a href="user_management.php" class="btn btn-primary px-4 py-2 mr-2">
+                                                     <i class="fas fa-users-cog mr-1"></i> Buka User Management
+                                                 </a>
+                                             <?php else: 
+                                                 $role = $user['role'] ?? '';
+                                                 $modules = is_array($user['allowed_modules'] ?? null) ? $user['allowed_modules'] : [];
+                                                 $targetUrl = 'wms_select.php';
+
+                                                 if ($role === 'inbound_admin') {
+                                                     $targetUrl = 'inbound.php';
+                                                 } elseif ($role === 'warehouse_admin' || $role === 'head_warehouse_admin') {
+                                                     $targetUrl = 'warehouse.php';
+                                                 } elseif ($role === 'outbound_admin') {
+                                                     $targetUrl = 'outbound.php';
+                                                 } elseif (!empty($modules)) {
+                                                     if (in_array('warehouse', $modules)) {
+                                                         $targetUrl = 'warehouse.php';
+                                                     } else {
+                                                         $targetUrl = $modules[0] . '.php';
+                                                     }
+                                                 }
+                                             ?>
+                                                 <a href="<?php echo htmlspecialchars($targetUrl); ?>" class="btn btn-primary px-4 py-2 mr-2">
+                                                     <i class="fas fa-arrow-left mr-1"></i> Kembali Ke Modul
+                                                 </a>
+                                             <?php endif; ?>
                                             <a href="login.php?action=logout" class="btn btn-outline-danger px-4 py-2">
                                                 <i class="fas fa-sign-out-alt mr-1"></i> Logout
                                             </a>

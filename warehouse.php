@@ -420,25 +420,34 @@ include 'components/header.php';
                         });
                     }
                     
-                    fetch('api/get_data.php?periode=' + encodeURIComponent(period))
-                        .then(function (response) { return response.json(); })
-                        .then(function (result) {
-                            if (result.status === 'success' && result.data && result.data.length > 0) {
+                    var parts = period.split(' ');
+                    var yr = parts.length > 1 ? parts[parts.length - 1] : '';
+
+                    var fetchDashboard = fetch('api/get_data.php?periode=' + encodeURIComponent(period))
+                        .then(function (response) { return response.json(); });
+
+                    var fetchYearly = yr
+                        ? fetch('api/get_yearly_in_out.php?year=' + encodeURIComponent(yr)).then(function (response) { return response.json(); })
+                        : Promise.resolve(null);
+
+                    // Execute both requests in parallel for maximum speed
+                    Promise.all([fetchDashboard, fetchYearly])
+                        .then(function (results) {
+                            var result = results[0];
+                            var resData = results[1];
+
+                            // 1. Synchronously update dashboard cards & main charts (Bar, Horizontal, Aging)
+                            if (result && result.status === 'success' && result.data && result.data.length > 0) {
                                 console.log("Loaded data from database:", result.data.length, "rows for", period);
                                 var headers = Object.keys(result.data[0]);
                                 window.currentDashboardData = result.data;
                                 window.currentDashboardHeaders = headers;
                                 if (window.FormulaController) {
-                                    setTimeout(function () {
-                                        window.FormulaController.updateDashboardCards(result.data, headers);
-                                        var cardUpdate = document.getElementById('card-last-update');
-                                        if (cardUpdate) {
-                                            cardUpdate.textContent = period.toUpperCase();
-                                        }
-                                        if (typeof Swal !== 'undefined') Swal.close();
-                                    }, 100);
-                                } else {
-                                    if (typeof Swal !== 'undefined') Swal.close();
+                                    window.FormulaController.updateDashboardCards(result.data, headers);
+                                    var cardUpdate = document.getElementById('card-last-update');
+                                    if (cardUpdate) {
+                                        cardUpdate.textContent = period.toUpperCase();
+                                    }
                                 }
                             } else {
                                 if (window.FormulaController) {
@@ -448,36 +457,28 @@ include 'components/header.php';
                                     Swal.fire('Empty', 'No data found for ' + period, 'info');
                                 }
                             }
+
+                            // 2. Synchronously update Yearly IN & OUT charts at the exact same moment
+                            if (resData && resData.status === 'success' && resData.data) {
+                                var mLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                                if (window.perangkatInChart && window.perangkatInChart.data) {
+                                    window.perangkatInChart.data.labels = mLabels;
+                                    window.perangkatInChart.data.datasets[0].data = resData.data.in;
+                                    window.perangkatInChart.update(0);
+                                }
+                                if (window.perangkatOutChart && window.perangkatOutChart.data) {
+                                    window.perangkatOutChart.data.labels = mLabels;
+                                    window.perangkatOutChart.data.datasets[0].data = resData.data.out;
+                                    window.perangkatOutChart.update(0);
+                                }
+                            }
+
+                            if (typeof Swal !== 'undefined') Swal.close();
                         })
                         .catch(function (error) { 
                             console.error('Error fetching data:', error);
                             if (typeof Swal !== 'undefined') {
                                 Swal.fire('Error', 'Failed to load data. Please try again.', 'error');
-                            }
-                        })
-                        .finally(function() {
-                            // Fetch yearly IN/OUT for the charts
-                            var parts = period.split(' ');
-                            var yr = parts.length > 1 ? parts[parts.length - 1] : '';
-                            if (yr) {
-                                fetch('api/get_yearly_in_out.php?year=' + encodeURIComponent(yr))
-                                    .then(function(res) { return res.json(); })
-                                    .then(function(resData) {
-                                        if (resData.status === 'success' && resData.data) {
-                                            var mLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-                                            if (window.perangkatInChart && window.perangkatInChart.data) {
-                                                window.perangkatInChart.data.labels = mLabels;
-                                                window.perangkatInChart.data.datasets[0].data = resData.data.in;
-                                                window.perangkatInChart.update();
-                                            }
-                                            if (window.perangkatOutChart && window.perangkatOutChart.data) {
-                                                window.perangkatOutChart.data.labels = mLabels;
-                                                window.perangkatOutChart.data.datasets[0].data = resData.data.out;
-                                                window.perangkatOutChart.update();
-                                            }
-                                        }
-                                    })
-                                    .catch(function(err) { console.error('Error fetching yearly data:', err); });
                             }
                         });
                 }
