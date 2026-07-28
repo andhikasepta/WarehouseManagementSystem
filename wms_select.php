@@ -107,20 +107,20 @@ include 'components/header.php';
                             </div>
                         </div>
 
-                        <!-- Warehouse Card -->
+                        <!-- Storage Card -->
                         <div class="col-lg-4 col-md-6 mb-4">
                             <div class="card module-card shadow h-100" onclick="window.location.href='warehouse.php'">
                                 <div class="module-icon-bg bg-gradient-warehouse text-white">
                                     <i class="fas fa-warehouse fa-4x"></i>
                                 </div>
                                 <div class="card-body p-4 text-center d-flex flex-column">
-                                    <h4 class="font-weight-bold text-gray-800 mb-2">WAREHOUSE</h4>
+                                    <h4 class="font-weight-bold text-gray-800 mb-2">STORAGE</h4>
                                     <p class="text-muted small flex-grow-1">
-                                        Modul Warehouse
+                                        Modul Storage
                                     </p>
                                     <div class="mt-3">
                                         <a href="warehouse.php" class="btn btn-primary btn-module btn-block shadow-sm">
-                                            Akses Warehouse <i class="fas fa-arrow-right ml-2"></i>
+                                            Akses Storage <i class="fas fa-arrow-right ml-2"></i>
                                         </a>
                                     </div>
                                 </div>

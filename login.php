@@ -10,7 +10,7 @@ $moduleSubtitle = '';
 if (strpos($redirect, 'inbound') !== false) {
     $moduleSubtitle = 'Inbound Management';
 } elseif (strpos($redirect, 'warehouse') !== false) {
-    $moduleSubtitle = 'Warehouse Management';
+    $moduleSubtitle = 'Storage Management';
 } elseif (strpos($redirect, 'outbound') !== false) {
     $moduleSubtitle = 'Outbound Management';
 } elseif (strpos($redirect, 'master_data') !== false) {
@@ -102,7 +102,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta name="description" content="Login - Warehouse Management System Lintasarta">
+    <meta name="description" content="Login - Storage Management System Lintasarta">
     <meta name="author" content="Lintasarta">
 
     <title>Login - WMS Lintasarta</title>

@@ -2,7 +2,7 @@
 require_once __DIR__ . '/auth.php';
 checkModuleAccess('warehouse');
 
-$pageTitle = 'Warehouse - Dashboard Warehouse';
+$pageTitle = 'Storage - Dashboard Warehouse';
 include 'components/header.php';
 ?>
 
@@ -17,7 +17,7 @@ include 'components/header.php';
                 <div class="container-fluid" style="padding-top: 100px;">
                     <!-- Page Heading just like inbound -->
                     <div class="d-sm-flex align-items-center justify-content-between mb-4">
-                        <h1 class="h3 mb-0 text-gray-800 font-weight-bold">Warehouse Management</h1>
+                        <h1 class="h3 mb-0 text-gray-800 font-weight-bold">Storage Management</h1>
                     </div>
                     <div class="row">
                         <div class="col-xl-3 col-md-6 mb-4">

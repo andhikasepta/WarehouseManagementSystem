@@ -97,7 +97,7 @@ $shouldHideNavbarUl = isset($hideNavbarUl) && $hideNavbarUl;
             <li class="nav-item <?php echo ($activePage == 'warehouse') ? 'active' : ''; ?>">
                 <a class="nav-link text-nowrap" href="warehouse.php">
                     <span class="mr-2 d-none d-lg-inline text-nowrap <?php echo ($activePage == 'warehouse') ? 'text-primary font-weight-bold' : 'text-gray-600 font-weight-bold'; ?>">
-                        <i class="fas fa-warehouse mr-1"></i> Warehouse
+                        <i class="fas fa-warehouse mr-1"></i> Storage
                     </span>
                 </a>
             </li>
