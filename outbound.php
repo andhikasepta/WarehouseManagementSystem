@@ -13,7 +13,6 @@ include 'components/header.php';
 
                 <?php 
                 $activePage = 'outbound'; 
-                $hidePeriodSelector = true;
                 include 'components/navbar.php'; 
                 ?>
 

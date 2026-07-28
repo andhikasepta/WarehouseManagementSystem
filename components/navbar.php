@@ -87,6 +87,20 @@ $shouldHideNavbarUl = isset($hideNavbarUl) && $hideNavbarUl;
                 </a>
             </li>
         <?php else: ?>
+            <?php 
+            $navRole = $navUser['role'] ?? '';
+            $isHeadRoleNav = (strpos($navRole, 'head_') === 0) || ($navRole === 'head_warehouse_admin');
+            if ($isHeadRoleNav): 
+            ?>
+            <li class="nav-item <?php echo ($activePage == 'dashboard') ? 'active' : ''; ?>">
+                <a class="nav-link text-nowrap" href="dashboard.php">
+                    <span class="mr-2 d-none d-lg-inline text-nowrap <?php echo ($activePage == 'dashboard') ? 'text-primary font-weight-bold' : 'text-gray-600 font-weight-bold'; ?>">
+                        <i class="fas fa-th-large mr-1"></i> Dashboard
+                    </span>
+                </a>
+            </li>
+            <?php endif; ?>
+
             <li class="nav-item <?php echo ($activePage == 'inbound') ? 'active' : ''; ?>">
                 <a class="nav-link text-nowrap" href="inbound.php">
                     <span class="mr-2 d-none d-lg-inline text-nowrap <?php echo ($activePage == 'inbound') ? 'text-primary font-weight-bold' : 'text-gray-600 font-weight-bold'; ?>">
@@ -137,12 +151,12 @@ $shouldHideNavbarUl = isset($hideNavbarUl) && $hideNavbarUl;
                 aria-labelledby="userDropdown" style="min-width: 180px;">
                 <div class="dropdown-item-text small text-muted font-weight-bold border-bottom pb-2 mb-2 text-nowrap">
                     <?php 
-                    $navRoleTitle = 'Admin Operasional';
+                    $navRoleTitle = 'Admin Warehouse';
                     if ($navUser['role'] === 'superadmin') $navRoleTitle = 'Super Admin';
                     elseif ($navUser['role'] === 'head_warehouse_admin') $navRoleTitle = 'Head-Warehouse Management';
                     elseif ($navUser['role'] === 'inbound_admin') $navRoleTitle = 'Inbound Administrator';
                     elseif ($navUser['role'] === 'outbound_admin') $navRoleTitle = 'Outbound Administrator';
-                    elseif ($navUser['role'] === 'warehouse_admin') $navRoleTitle = 'Warehouse Administrator';
+                    elseif ($navUser['role'] === 'warehouse_admin') $navRoleTitle = 'Storage Administrator';
                     ?>
                     Role: <?php echo htmlspecialchars($navRoleTitle); ?>
                 </div>

@@ -81,6 +81,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 if ($user['role'] === 'superadmin') {
                     header("Location: user_management.php");
+                } elseif ($user['role'] === 'head_warehouse_admin') {
+                    header("Location: dashboard.php");
                 } elseif ($redirect === 'wms_select.php') {
                     if ($user['role'] === 'inbound_admin') {
                         header("Location: inbound.php");
@@ -89,7 +91,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     } elseif ($user['role'] === 'outbound_admin') {
                         header("Location: outbound.php");
                     } else {
-                        header("Location: " . $redirect);
+                        header("Location: dashboard.php");
                     }
                 } else {
                     header("Location: " . $redirect);

@@ -21,7 +21,7 @@ if ($userRole === 'head_warehouse_admin' || $userRole === 'superadmin') {
 } elseif ($userRole === 'outbound_admin') {
     $canAccessOutboundMaster = true;
 } else {
-    // Custom / Admin Operasional
+    // Custom / Admin Warehouse
     $canAccessInboundMaster = in_array('inbound', $userModules);
     $canAccessStorageMaster = in_array('warehouse', $userModules);
     $canAccessOutboundMaster = in_array('outbound', $userModules);
@@ -112,7 +112,7 @@ include 'components/header.php';
                                     <i class="fas fa-warehouse mr-2"></i> Storage Master Data
                                 </a>
                             <?php else: ?>
-                                <a class="nav-link font-weight-bold text-uppercase py-2 disabled text-muted" id="seg-storage-tab" href="javascript:void(0)" style="cursor: not-allowed; opacity: 0.55; background-color: #f1f3f9;" title="Modul ini terkunci (Khusus Hak Akses Warehouse Administrator)">
+                                <a class="nav-link font-weight-bold text-uppercase py-2 disabled text-muted" id="seg-storage-tab" href="javascript:void(0)" style="cursor: not-allowed; opacity: 0.55; background-color: #f1f3f9;" title="Modul ini terkunci (Khusus Hak Akses Storage Administrator)">
                                     <i class="fas fa-lock mr-2 text-secondary"></i> Storage Master Data
                                 </a>
                             <?php endif; ?>
@@ -406,11 +406,8 @@ include 'components/header.php';
                                     </div>
                                     <h4 class="font-weight-bold text-gray-800 mb-2">Master Data Outbound</h4>
                                     <p class="text-muted max-width-500 mx-auto mb-4" style="max-width: 500px;">
-                                        Belum ada data master untuk modul Outbound. Silakan gunakan tombol Import Excel di atas untuk mengunggah master data Outbound.
+                                        Belum ada data master untuk modul Outbound.
                                     </p>
-                                    <span class="badge badge-light border px-3 py-2 text-muted font-weight-bold" style="font-size: 0.85rem;">
-                                        <i class="fas fa-info-circle mr-1"></i> Segmen Active Menu: Outbound Master Data
-                                    </span>
                                 </div>
                             </div>
                         </div>

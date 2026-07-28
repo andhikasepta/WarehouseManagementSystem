@@ -43,17 +43,17 @@ include 'components/header.php';
                             <span class="badge badge-primary px-2 py-1">Super Admin Access</span>
                         </div>
                         <div class="card-body">
-                            <div class="table-responsive">
-                                <table class="table table-bordered table-striped" id="usersTable" width="100%" cellspacing="0">
-                                    <thead class="thead-light">
+                            <div class="table-responsive" style="max-height: 480px; overflow-y: auto; border: 1px solid #e3e6f0; border-radius: 6px;">
+                                <table class="table table-bordered table-striped mb-0" id="usersTable" width="100%" cellspacing="0">
+                                    <thead class="thead-light" style="position: sticky; top: 0; z-index: 2; background-color: #f8f9fc;">
                                         <tr>
-                                            <th style="width: 50px;">ID</th>
-                                            <th>Username</th>
-                                            <th>Nama Lengkap</th>
-                                            <th>Role</th>
-                                            <th>Hak Akses Modul</th>
-                                            <th>Tanggal Registrasi</th>
-                                            <th style="width: 220px;" class="text-center text-nowrap">Aksi</th>
+                                            <th style="width: 50px; position: sticky; top: 0; background-color: #eaecf4; z-index: 3;">No.</th>
+                                            <th style="position: sticky; top: 0; background-color: #eaecf4; z-index: 3;">Username</th>
+                                            <th style="position: sticky; top: 0; background-color: #eaecf4; z-index: 3;" class="text-nowrap">Nama Lengkap</th>
+                                            <th style="position: sticky; top: 0; background-color: #eaecf4; z-index: 3;">Role</th>
+                                            <th style="position: sticky; top: 0; background-color: #eaecf4; z-index: 3;">Hak Akses Modul</th>
+                                            <th style="position: sticky; top: 0; background-color: #eaecf4; z-index: 3;" class="text-nowrap">Tanggal Registrasi</th>
+                                            <th style="width: 220px; position: sticky; top: 0; background-color: #eaecf4; z-index: 3;" class="text-center text-nowrap">Aksi</th>
                                         </tr>
                                     </thead>
                                     <tbody id="users-table-body">
@@ -103,7 +103,7 @@ include 'components/header.php';
                                         <option value="head_warehouse_admin">Head-Warehouse Management</option>
                                         <option value="inbound_admin">Inbound Administrator</option>
                                         <option value="outbound_admin">Outbound Administrator</option>
-                                        <option value="warehouse_admin">Warehouse Administrator</option>
+                                        <option value="warehouse_admin">Storage Administrator</option>
                                     </select>
                                 </div>
                                 <div class="form-group mb-2">
@@ -118,7 +118,7 @@ include 'components/header.php';
                                         <div class="custom-control custom-checkbox mb-2">
                                             <input type="checkbox" class="custom-control-input module-checkbox" id="mod_warehouse" value="warehouse">
                                             <label class="custom-control-label font-weight-bold text-gray-800" for="mod_warehouse">
-                                                <i class="fas fa-warehouse text-primary mr-1"></i> Warehouse Management
+                                                <i class="fas fa-warehouse text-primary mr-1"></i> Storage Management
                                             </label>
                                         </div>
                                         <div class="custom-control custom-checkbox mb-2">
@@ -256,8 +256,9 @@ include 'components/header.php';
                 return;
             }
 
-            users.forEach(function (u) {
+            users.forEach(function (u, index) {
                 var tr = document.createElement('tr');
+                var rowNum = index + 1;
 
                 var roleBadge = '';
                 if (u.role === 'superadmin') {
@@ -269,9 +270,9 @@ include 'components/header.php';
                 } else if (u.role === 'outbound_admin') {
                     roleBadge = '<span class="badge badge-warning text-white px-2 py-1"><i class="fas fa-user mr-1"></i>Outbound Administrator</span>';
                 } else if (u.role === 'warehouse_admin') {
-                    roleBadge = '<span class="badge badge-info px-2 py-1"><i class="fas fa-user mr-1"></i>Warehouse Administrator</span>';
+                    roleBadge = '<span class="badge badge-info px-2 py-1"><i class="fas fa-user mr-1"></i>Storage Administrator</span>';
                 } else {
-                    roleBadge = '<span class="badge badge-secondary px-2 py-1"><i class="fas fa-user mr-1"></i>Admin Operasional</span>';
+                    roleBadge = '<span class="badge badge-secondary px-2 py-1"><i class="fas fa-user mr-1"></i>Admin Warehouse</span>';
                 }
 
                 var modulesBadges = '';
@@ -302,12 +303,12 @@ include 'components/header.php';
                     btnDelete = '<button class="btn btn-sm btn-light text-muted ml-1" disabled title="Akun Anda"><i class="fas fa-lock"></i></button>';
                 }
 
-                tr.innerHTML = '<td>' + u.id + '</td>' +
+                tr.innerHTML = '<td>' + rowNum + '</td>' +
                     '<td class="font-weight-bold">' + escapeHtml(u.username) + '</td>' +
-                    '<td>' + escapeHtml(u.name) + '</td>' +
+                    '<td class="text-nowrap">' + escapeHtml(u.name) + '</td>' +
                     '<td>' + roleBadge + '</td>' +
                     '<td>' + modulesBadges + '</td>' +
-                    '<td>' + u.created_at + '</td>' +
+                    '<td class="text-nowrap">' + u.created_at + '</td>' +
                     '<td class="text-center text-nowrap" style="white-space: nowrap;">' +
                         '<button class="btn btn-sm btn-info" onclick="editUser(' + u.id + ')"><i class="fas fa-edit"></i> Edit</button>' +
                         btnResetPass +
