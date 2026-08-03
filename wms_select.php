@@ -83,23 +83,23 @@ include 'components/header.php';
 
                 <div class="container" style="padding-top: 120px; padding-bottom: 60px;">
                     <div class="text-center mb-5">
-                        <h2 class="font-weight-bold text-gray-800 display-5 mb-2">Warehouse Management System</h2>
+                        <h2 class="font-weight-bold text-gray-800 display-5 mb-2">Warehouse Management System Module</h2>
                     </div>
 
                     <div class="row justify-content-center">
                         <!-- Inbound Card -->
                         <div class="col-lg-4 col-md-6 mb-4">
-                            <div class="card module-card shadow h-100" onclick="window.location.href='inbound.php'">
+                            <div class="card module-card shadow h-100" onclick="window.location.href='login.php?redirect=inbound.php'">
                                 <div class="module-icon-bg bg-gradient-inbound text-white">
                                     <i class="fas fa-box-open fa-4x"></i>
                                 </div>
                                 <div class="card-body p-4 text-center d-flex flex-column">
                                     <h4 class="font-weight-bold text-gray-800 mb-2">INBOUND</h4>
                                     <p class="text-muted small flex-grow-1">
-                                        Modul Inbound
+                                        Monitoring end-to-end Purchase Order — dari target kedatangan, Goods Receipt (GR), hingga registrasi barang di gudang.
                                     </p>
                                     <div class="mt-3">
-                                        <a href="inbound.php" class="btn btn-success btn-module btn-block shadow-sm">
+                                        <a href="login.php?redirect=inbound.php" class="btn btn-success btn-module btn-block shadow-sm">
                                             Akses Inbound <i class="fas fa-arrow-right ml-2"></i>
                                         </a>
                                     </div>
@@ -109,7 +109,7 @@ include 'components/header.php';
 
                         <!-- Storage Card -->
                         <div class="col-lg-4 col-md-6 mb-4">
-                            <div class="card module-card shadow h-100" onclick="window.location.href='warehouse.php'">
+                            <div class="card module-card shadow h-100" onclick="window.location.href='login.php?redirect=warehouse.php'">
                                 <div class="module-icon-bg bg-gradient-warehouse text-white">
                                     <i class="fas fa-warehouse fa-4x"></i>
                                 </div>
@@ -119,7 +119,7 @@ include 'components/header.php';
                                         Modul Storage
                                     </p>
                                     <div class="mt-3">
-                                        <a href="warehouse.php" class="btn btn-primary btn-module btn-block shadow-sm">
+                                        <a href="login.php?redirect=warehouse.php" class="btn btn-primary btn-module btn-block shadow-sm">
                                             Akses Storage <i class="fas fa-arrow-right ml-2"></i>
                                         </a>
                                     </div>
@@ -129,17 +129,17 @@ include 'components/header.php';
 
                         <!-- Outbound Card -->
                         <div class="col-lg-4 col-md-6 mb-4">
-                            <div class="card module-card shadow h-100" onclick="window.location.href='outbound.php'">
+                            <div class="card module-card shadow h-100" onclick="window.location.href='login.php?redirect=outbound.php'">
                                 <div class="module-icon-bg bg-gradient-outbound text-white">
                                     <i class="fas fa-truck-loading fa-4x"></i>
                                 </div>
                                 <div class="card-body p-4 text-center d-flex flex-column">
                                     <h4 class="font-weight-bold text-gray-800 mb-2">OUTBOUND</h4>
                                     <p class="text-muted small flex-grow-1">
-                                        Modul Outbound
+                                        Monitoring pemenuhan Material Request (MR) — dari approval, packing (PCK), penerbitan Delivery Note (DN), penunjukan Mover/Forwarder, hingga perangkat tiba di site.
                                     </p>
                                     <div class="mt-3">
-                                        <a href="outbound.php" class="btn btn-warning btn-module btn-block text-white shadow-sm">
+                                        <a href="login.php?redirect=outbound.php" class="btn btn-warning btn-module btn-block text-white shadow-sm">
                                             Akses Outbound <i class="fas fa-arrow-right ml-2"></i>
                                         </a>
                                     </div>

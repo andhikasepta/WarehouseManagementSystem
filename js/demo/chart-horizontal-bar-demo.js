@@ -1,6 +1,6 @@
-// Set new default font family and font color to mimic Bootstrap's default styling
 Chart.defaults.global.defaultFontFamily = 'Nunito', '-apple-system,system-ui,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif';
 Chart.defaults.global.defaultFontColor = '#858796';
+Chart.defaults.global.defaultFontSize = 10;
 
 function number_format(number, decimals, dec_point, thousands_sep) {
   // *     example: number_format(1234.56, 2, ',', ' ');
@@ -53,9 +53,9 @@ var myHorizontalBarChart = new Chart(ctx, {
     maintainAspectRatio: false,
     layout: {
       padding: {
-        left: 10,
-        right: 25,
-        top: 25,
+        left: 5,
+        right: 70,
+        top: 20,
         bottom: 0
       }
     },
@@ -64,10 +64,14 @@ var myHorizontalBarChart = new Chart(ctx, {
         id: "x-axis-qty",
         position: "bottom",
         type: 'linear',
+        afterDataLimits: function(scale) {
+          if (scale.max > 0) scale.max = scale.max * 1.22;
+        },
         ticks: {
           min: 0,
           maxTicksLimit: 5,
-          padding: 10,
+          fontSize: 9,
+          padding: 6,
           callback: function (value, index, values) {
             return number_format(value);
           }
@@ -83,10 +87,14 @@ var myHorizontalBarChart = new Chart(ctx, {
         id: "x-axis-nbv",
         position: "top",
         type: 'linear',
+        afterDataLimits: function(scale) {
+          if (scale.max > 0) scale.max = scale.max * 1.22;
+        },
         ticks: {
           min: 0,
           maxTicksLimit: 5,
-          padding: 10,
+          fontSize: 9,
+          padding: 6,
           callback: function (value, index, values) {
             if (value >= 1000000) {
               return 'Rp ' + number_format(value / 1000000) + 'M';
@@ -104,31 +112,41 @@ var myHorizontalBarChart = new Chart(ctx, {
           drawBorder: false
         },
         ticks: {
-          fontSize: 11
+          fontSize: 9.5,
+          padding: 4,
+          callback: function (value) {
+            if (typeof value === 'string' && value.length > 20) {
+              return value.substring(0, 18) + '...';
+            }
+            return value;
+          }
         },
-        maxBarThickness: 25,
+        maxBarThickness: 22,
       }],
     },
     legend: {
       display: true,
       labels: {
-        usePointStyle: true
+        usePointStyle: true,
+        fontSize: 10,
+        boxWidth: 10
       }
     },
     tooltips: {
       mode: 'index',
       intersect: false,
-      titleMarginBottom: 10,
+      titleMarginBottom: 4,
       titleFontColor: '#6e707e',
-      titleFontSize: 14,
+      titleFontSize: 11,
+      bodyFontSize: 10,
       backgroundColor: "rgb(255,255,255)",
       bodyFontColor: "#858796",
       borderColor: '#dddfeb',
       borderWidth: 1,
-      xPadding: 15,
-      yPadding: 15,
+      xPadding: 8,
+      yPadding: 6,
       displayColors: false,
-      caretPadding: 10,
+      caretPadding: 6,
       callbacks: {
         label: function (tooltipItem, chart) {
           var datasetLabel = chart.datasets[tooltipItem.datasetIndex].label || '';

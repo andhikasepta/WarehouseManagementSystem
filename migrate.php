@@ -4,8 +4,10 @@ require_once __DIR__ . '/config/database.php';
 
 // Setup migrations table if it doesn't exist
 try {
+    $driver = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+    $idCol = ($driver === 'pgsql') ? "id SERIAL PRIMARY KEY" : "id INT AUTO_INCREMENT PRIMARY KEY";
     $pdo->exec("CREATE TABLE IF NOT EXISTS migrations (
-        id INT AUTO_INCREMENT PRIMARY KEY,
+        $idCol,
         migration VARCHAR(255) NOT NULL,
         executed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )");
@@ -68,22 +70,31 @@ function runMigrate($pdo) {
 function runRefresh($pdo) {
     echo "Refreshing database...\n";
     try {
-        // Warning: This drops all tables!
-        $stmt = $pdo->query("SHOW TABLES");
-        $tables = $stmt->fetchAll(PDO::FETCH_COLUMN);
-        
-        if (!empty($tables)) {
-            $pdo->exec('SET FOREIGN_KEY_CHECKS=0');
+        $driver = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+        if ($driver === 'pgsql') {
+            $stmt = $pdo->query("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'");
+            $tables = $stmt->fetchAll(PDO::FETCH_COLUMN);
             foreach ($tables as $table) {
-                $pdo->exec("DROP TABLE IF EXISTS `$table`");
+                $pdo->exec("DROP TABLE IF EXISTS \"$table\" CASCADE");
                 echo "Dropped table: $table\n";
             }
-            $pdo->exec('SET FOREIGN_KEY_CHECKS=1');
+        } else {
+            $stmt = $pdo->query("SHOW TABLES");
+            $tables = $stmt->fetchAll(PDO::FETCH_COLUMN);
+            if (!empty($tables)) {
+                $pdo->exec('SET FOREIGN_KEY_CHECKS=0');
+                foreach ($tables as $table) {
+                    $pdo->exec("DROP TABLE IF EXISTS `$table`");
+                    echo "Dropped table: $table\n";
+                }
+                $pdo->exec('SET FOREIGN_KEY_CHECKS=1');
+            }
         }
         
         // Re-create migrations table
+        $idCol = ($driver === 'pgsql') ? "id SERIAL PRIMARY KEY" : "id INT AUTO_INCREMENT PRIMARY KEY";
         $pdo->exec("CREATE TABLE migrations (
-            id INT AUTO_INCREMENT PRIMARY KEY,
+            $idCol,
             migration VARCHAR(255) NOT NULL,
             executed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )");

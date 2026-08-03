@@ -19,224 +19,181 @@ include 'components/header.php';
                     <div class="d-sm-flex align-items-center justify-content-between mb-4">
                         <h1 class="h3 mb-0 text-gray-800 font-weight-bold">Storage Management</h1>
                     </div>
-                    <div class="row">
-                        <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="row" style="margin-left: -4px; margin-right: -4px;">
+                        <!-- Total Asset -->
+                        <div class="col-xl-3 col-md-6 mb-4" style="padding-left: 4px; padding-right: 4px;">
                             <div class="card border-left-primary shadow h-100 py-2">
                                 <div class="card-body">
-                                    <div class="row no-gutters align-items-center">
-                                        <div class="col mr-2">
-                                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                                TOTAL ASSET</div>
-                                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="card-total-asset">0
-                                            </div>
-                                        </div>
-                                        <div class="col-auto">
-                                            <i class="fas fa-box fa-2x text-gray-300"></i>
-                                        </div>
-                                    </div>
+                                    <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                        TOTAL ASSET</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800" id="card-total-asset">0</div>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-xl-3 col-md-6 mb-4">
+
+                        <!-- Total NBV -->
+                        <div class="col-xl-3 col-md-6 mb-4" style="padding-left: 4px; padding-right: 4px;">
                             <div class="card border-left-success shadow h-100 py-2">
                                 <div class="card-body">
-                                    <div class="row no-gutters align-items-center">
-                                        <div class="col mr-2">
-                                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                                TOTAL NBV</div>
-                                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="card-total-nbv">Rp 0
-                                            </div>
-                                        </div>
-                                        <div class="col-auto">
-                                            <i class="fas fa-money-bill-wave fa-2x text-gray-300"></i>
-                                        </div>
-                                    </div>
+                                    <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                        TOTAL NBV</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800" id="card-total-nbv">Rp 0</div>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-xl-2 col-md-6 mb-4">
+
+                        <!-- Utilisasi Space -->
+                        <div class="col-xl-2 col-md-6 mb-4" style="padding-left: 4px; padding-right: 4px;">
                             <div class="card border-left-info shadow h-100 py-2">
                                 <div class="card-body">
-                                    <div class="row no-gutters align-items-center">
-                                        <div class="col mr-2">
-                                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                                                UTILISASI SPACE
-                                            </div>
-                                            <div class="row no-gutters align-items-center">
-                                                <div class="col-auto">
-                                                    <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800"
-                                                        id="card-utilisasi-space-text">0%</div>
-                                                </div>
-                                                <div class="col">
-                                                    <div class="progress progress-sm mr-2">
-                                                        <div class="progress-bar bg-danger" role="progressbar"
-                                                            id="card-utilisasi-space-bar" style="width: 0%"
-                                                            aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="col-auto">
-                                            <i class="fas fa-warehouse fa-2x text-gray-300"></i>
+                                    <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                        UTILISASI SPACE</div>
+                                     <div class="d-flex align-items-center w-100">
+                                        <div class="h5 mb-0 mr-2 font-weight-bold text-gray-800" id="card-utilisasi-space-text">0%</div>
+                                        <div class="progress progress-sm flex-grow-1" style="height: 6px; border-radius: 4px;">
+                                            <div class="progress-bar bg-danger" role="progressbar" id="card-utilisasi-space-bar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="col-xl-2 col-md-6 mb-4">
+                        <!-- Free Space -->
+                        <div class="col-xl-2 col-md-6 mb-4" style="padding-left: 4px; padding-right: 4px;">
                             <div class="card border-left-secondary shadow h-100 py-2">
                                 <div class="card-body">
-                                    <div class="row no-gutters align-items-center">
-                                        <div class="col mr-2">
-                                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                                                FREE SPACE
-                                            </div>
-                                            <div class="row no-gutters align-items-center">
-                                                <div class="col-auto">
-                                                    <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800"
-                                                        id="card-free-space-text">0%</div>
-                                                </div>
-                                                <div class="col">
-                                                    <div class="progress progress-sm mr-2">
-                                                        <div class="progress-bar bg-info" role="progressbar"
-                                                            id="card-free-space-bar" style="width: 0%" aria-valuenow="0"
-                                                            aria-valuemin="0" aria-valuemax="100"></div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="col-auto">
-                                            <i class="fas fa-chart-pie fa-2x text-gray-300"></i>
+                                    <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                        FREE SPACE</div>
+                                    <div class="d-flex align-items-center w-100">
+                                        <div class="h5 mb-0 mr-2 font-weight-bold text-gray-800" id="card-free-space-text">0%</div>
+                                        <div class="progress progress-sm flex-grow-1" style="height: 6px; border-radius: 4px;">
+                                            <div class="progress-bar bg-info" role="progressbar" id="card-free-space-bar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-xl-2 col-md-6 mb-4">
+
+                        <!-- Last Update -->
+                        <div class="col-xl-2 col-md-6 mb-4" style="padding-left: 4px; padding-right: 4px;">
                             <div class="card border-left-warning shadow h-100 py-2">
                                 <div class="card-body">
-                                    <div class="row no-gutters align-items-center">
-                                        <div class="col mr-2">
-                                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                                                LAST UPDATE</div>
-                                            <div class="mb-0 font-weight-bold text-gray-800" style="font-size: 0.9rem;" id="card-last-update">-
-                                            </div>
-                                        </div>
-                                        <div class="col-auto">
-                                            <i class="fas fa-calendar-alt fa-2x text-gray-300"></i>
+                                    <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                        LAST UPDATE</div>
+                                    <div class="mb-0 font-weight-bold text-gray-800" style="font-size: 0.72rem;" id="card-last-update">-</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Top Charts Row: Pergerakan Perangkat & Berdasarkan Asset Organization (6+6) -->
+                    <div class="row" style="margin-left: -4px; margin-right: -4px;">
+                        <!-- Pergerakan Perangkat (Bar Chart) -->
+                        <div class="col-xl-6 col-lg-6 mb-4" style="padding-left: 4px; padding-right: 4px;">
+                            <div class="card shadow h-100">
+                                <div class="card-header py-2 px-3 d-flex flex-row align-items-center justify-content-between">
+                                    <h6 class="m-0 font-weight-bold text-primary" style="font-size: 0.8rem;">PERGERAKAN PERANGKAT<br>
+                                        <span class="text-muted font-weight-normal" style="font-size: 0.7rem;">Berdasarkan Kategori</span>
+                                    </h6>
+                                </div>
+                                <div class="card-body" style="padding: 0.5rem;">
+                                    <div style="height: 320px; position: relative; width: 100%;">
+                                        <canvas id="myBarChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Berdasarkan Asset Organization (Horizontal Bar Chart) -->
+                        <div class="col-xl-6 col-lg-6 mb-4" style="padding-left: 4px; padding-right: 4px;">
+                            <div class="card shadow h-100">
+                                <div class="card-header py-2 px-3 d-flex flex-row align-items-center justify-content-between">
+                                    <h6 class="m-0 font-weight-bold text-primary" style="font-size: 0.8rem;">BERDASARKAN ASSET ORGANIZATION<br>
+                                        <span class="text-muted font-weight-normal" style="font-size: 0.7rem;">Department / Unit Pemilik Asset</span>
+                                    </h6>
+                                </div>
+                                <div class="card-body" style="padding: 0.5rem;">
+                                    <div id="horizontalBarScrollWrapper" style="max-height: 320px; overflow-y: auto; overflow-x: hidden;">
+                                        <div class="chart-bar" id="horizontalBarChartContainer" style="height: 320px; position: relative; width: 100%;">
+                                            <canvas id="myHorizontalBarChart"></canvas>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div class="row">
-                        <div class="col-xl-9 col-lg-8">
-                            <div class="row">
-                                <div class="col-xl-6 col-lg-6">
-                                    <div class="card shadow mb-4">
-                                        <div
-                                            class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                                            <h6 class="m-0 font-weight-bold text-primary">PERGERAKAN PERANGKAT<br>
-                                                <span style="font-size: small;">Berdasarkan Kategori</span>
-                                            </h6>
-                                        </div>
-                                        <div class="card-body" style="padding: 0.5rem;">
-                                            <div style="height: 450px; position: relative; width: 100%;">
-                                                <canvas id="myBarChart"></canvas>
-                                            </div>
-                                        </div>
-                                    </div>
+
+                    <!-- Middle Charts Row: Aging Perangkat, Perangkat IN, Perangkat OUT (4+4+4) -->
+                    <div class="row" style="margin-left: -4px; margin-right: -4px;">
+                        <!-- Aging Perangkat -->
+                        <div class="col-xl-4 col-lg-4 mb-4" style="padding-left: 4px; padding-right: 4px;">
+                            <div class="card shadow h-100">
+                                <div class="card-header py-2 px-3 d-flex flex-row align-items-center justify-content-between">
+                                    <h6 class="m-0 font-weight-bold text-primary" style="font-size: 0.8rem;">AGING PERANGKAT<br>
+                                        <span class="text-muted font-weight-normal" style="font-size: 0.7rem;">Berdasarkan Usia</span>
+                                    </h6>
                                 </div>
-                                <div class="col-xl-6 col-lg-6">
-                                    <div class="card shadow mb-4">
-                                        <div
-                                            class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                                            <h6 class="m-0 font-weight-bold text-primary">BERDASARKAN ASSET
-                                                ORGANIZATION<br>
-                                                <span style="font-size: small;">Department / Unit Pemilik Asset</span>
-                                            </h6>
-                                        </div>
-                                        <div class="card-body" style="padding: 0.5rem;">
-                                            <div id="horizontalBarScrollWrapper" style="max-height: 450px; overflow-y: auto; overflow-x: hidden;">
-                                                <div class="chart-bar" id="horizontalBarChartContainer" style="height: 450px; position: relative; width: 100%;">
-                                                    <canvas id="myHorizontalBarChart"></canvas>
-                                                </div>
-                                            </div>
-                                        </div>
+                                <div class="card-body">
+                                    <div class="chart-bar" style="height: 260px;">
+                                        <canvas id="agingBarChart"></canvas>
                                     </div>
                                 </div>
                             </div>
-                            <div class="row">
-                                <div class="col-xl-4 col-lg-4">
-                                    <div class="card shadow mb-4">
-                                        <div
-                                            class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                                            <h6 class="m-0 font-weight-bold text-primary">AGING PERANGKAT<br>
-                                                <span style="font-size: small;">Berdasarkan Usia</span>
-                                            </h6>
-                                        </div>
-                                        <div class="card-body">
-                                            <div class="chart-bar">
-                                                <canvas id="agingBarChart"></canvas>
-                                            </div>
-                                        </div>
-                                    </div>
+                        </div>
+
+                        <!-- Perangkat IN -->
+                        <div class="col-xl-4 col-lg-4 mb-4" style="padding-left: 4px; padding-right: 4px;">
+                            <div class="card shadow h-100">
+                                <div class="card-header py-2 px-3 d-flex flex-row align-items-center justify-content-between">
+                                    <h6 class="m-0 font-weight-bold text-primary" style="font-size: 0.8rem;">PERANGKAT IN<br>
+                                        <span id="perangkat-in-title-period" class="text-muted font-weight-normal" style="font-size: 0.7rem;">Bulan X</span>
+                                    </h6>
                                 </div>
-                                <div class="col-xl-4 col-lg-4">
-                                    <div class="card shadow mb-4">
-                                        <div
-                                            class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                                            <h6 class="m-0 font-weight-bold text-primary">PERANGKAT IN<br>
-                                                <span id="perangkat-in-title-period" style="font-size: small;">Bulan X</span>
-                                            </h6>
-                                        </div>
-                                        <div class="card-body">
-                                            <div class="chart-bar" style="overflow-x: auto; overflow-y: hidden;">
-                                                <div style="min-width: 600px; height: 100%;">
-                                                    <canvas id="perangkatInChart"></canvas>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-xl-4 col-lg-4">
-                                    <div class="card shadow mb-4">
-                                        <div
-                                            class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                                            <h6 class="m-0 font-weight-bold text-primary">PERANGKAT OUT<br>
-                                                <span id="perangkat-out-title-period" style="font-size: small;">Bulan X</span>
-                                            </h6>
-                                        </div>
-                                        <div class="card-body">
-                                            <div class="chart-bar" style="overflow-x: auto; overflow-y: hidden;">
-                                                <div style="min-width: 600px; height: 100%;">
-                                                    <canvas id="perangkatOutChart"></canvas>
-                                                </div>
-                                            </div>
+                                <div class="card-body">
+                                    <div class="chart-bar" style="height: 260px; overflow-x: auto; overflow-y: hidden;">
+                                        <div style="min-width: 500px; height: 100%;">
+                                            <canvas id="perangkatInChart"></canvas>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-xl-3 col-lg-4 mb-4">
-                            <div class="card shadow mb-4 h-100">
-                                <div
-                                    class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                                    <h6 class="m-0 font-weight-bold text-primary">UTILISASI AREA / RACK<br>
-                                        <span style="font-size: small;"><br></span>
+
+                        <!-- Perangkat OUT -->
+                        <div class="col-xl-4 col-lg-4 mb-4" style="padding-left: 4px; padding-right: 4px;">
+                            <div class="card shadow h-100">
+                                <div class="card-header py-2 px-3 d-flex flex-row align-items-center justify-content-between">
+                                    <h6 class="m-0 font-weight-bold text-primary" style="font-size: 0.8rem;">PERANGKAT OUT<br>
+                                        <span id="perangkat-out-title-period" class="text-muted font-weight-normal" style="font-size: 0.7rem;">Bulan X</span>
                                     </h6>
                                 </div>
-                                <div class="card-body d-flex flex-column">
+                                <div class="card-body">
+                                    <div class="chart-bar" style="height: 260px; overflow-x: auto; overflow-y: hidden;">
+                                        <div style="min-width: 500px; height: 100%;">
+                                            <canvas id="perangkatOutChart"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bottom Row: Utilisasi Area / Rack (Full Width 12) -->
+                    <div class="row">
+                        <div class="col-12 mb-4">
+                            <div class="card shadow">
+                                <div class="card-header py-2 px-3 d-flex flex-row align-items-center justify-content-between">
+                                    <h6 class="m-0 font-weight-bold text-primary" style="font-size: 0.8rem;">UTILISASI AREA / RACK<br>
+                                        <span class="text-muted font-weight-normal" style="font-size: 0.7rem;">Kapasitas Rack & Area Storage</span>
+                                    </h6>
+                                </div>
+                                <div class="card-body">
                                     <div id="rack-status-dots" class="d-flex justify-content-left mb-2"></div>
-                                    <div class="table-responsive flex-grow-1" style="overflow-y: auto; height: 0;">
-                                        <table class="table" width="100%" cellspacing="0">
-                                            <thead>
+                                    <div class="table-responsive" style="max-height: 320px; overflow-y: auto;">
+                                        <table class="table mb-0" width="100%" cellspacing="0" style="font-size: 0.78rem;">
+                                            <thead class="bg-light font-weight-bold">
                                                 <tr>
-                                                    <th>RACK / AREA</th>
-                                                    <th>CAPACITY</th>
+                                                    <th class="py-2 text-left">RACK / AREA</th>
+                                                    <th class="py-2 text-center">CAPACITY</th>
                                                 </tr>
                                             </thead>
                                             <tbody id="table-utilisasi-area-body">
@@ -337,7 +294,7 @@ include 'components/header.php';
                                 preselectPeriod(selectPeriod);
                                 loadDataForPeriod(selectPeriod);
                             } else {
-                                document.getElementById('selected-period-text').textContent = "PILIH DATA";
+                                document.getElementById('selected-period-text').textContent = "PILIH PERIODE DATA";
                                 if (window.FormulaController) {
                                     window.FormulaController.updateDashboardCards([], []);
                                 }
@@ -557,7 +514,7 @@ include 'components/header.php';
 
                                 var currentPeriodText = document.getElementById('selected-period-text').textContent;
                                 if (currentPeriodText.toLowerCase() === periodToDelete.toLowerCase()) {
-                                    document.getElementById('selected-period-text').textContent = "PILIH DATA";
+                                    document.getElementById('selected-period-text').textContent = "PILIH PERIODE DATA";
                                     if (window.FormulaController) {
                                         window.FormulaController.updateDashboardCards([], []);
                                     }

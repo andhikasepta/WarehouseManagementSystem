@@ -301,8 +301,8 @@
                 // Dynamically resize chart container based on number of labels
                 var chartContainer = document.getElementById('horizontalBarChartContainer');
                 if (chartContainer) {
-                    var minHeight = 450;
-                    var perLabelHeight = 40;
+                    var minHeight = 320;
+                    var perLabelHeight = 35;
                     var dynamicHeight = Math.max(minHeight, orgLabels.length * perLabelHeight);
                     chartContainer.style.height = dynamicHeight + 'px';
                 }
@@ -337,7 +337,7 @@
         
         // The month the user chose
         var periodText = document.getElementById('selected-period-text') ? document.getElementById('selected-period-text').textContent : "Bulan X";
-        if (!periodText || periodText === '-' || periodText === 'PILIH DATA' || periodText === 'Bulan X') {
+        if (!periodText || periodText === '-' || periodText === 'PILIH DATA' || periodText === 'PILIH PERIODE DATA' || periodText === 'Bulan X') {
             periodText = sheetData.length > 0 ? (sheetData[0]['periode_group'] || 'Unknown') : 'Unknown';
         }
         
@@ -411,7 +411,7 @@
             // Parse "JUNE 2026" or "June 2026" into month and year
             var periodMonth = '';
             var periodYear = '';
-            if (currentPeriodStr && currentPeriodStr !== 'PILIH DATA' && currentPeriodStr !== '-') {
+            if (currentPeriodStr && currentPeriodStr !== 'PILIH DATA' && currentPeriodStr !== 'PILIH PERIODE DATA' && currentPeriodStr !== '-') {
                 var periodParts = currentPeriodStr.split(' ');
                 if (periodParts.length >= 2) {
                     // Capitalize first letter, lowercase rest for API
@@ -493,6 +493,7 @@
                         // Rack/Area name
                         var tdName = document.createElement('td');
                         tdName.textContent = rName;
+                        tdName.className = 'text-left';
                         tdName.style.fontSize = '0.85rem';
                         tdName.style.whiteSpace = 'nowrap';
                         

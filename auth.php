@@ -16,6 +16,8 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+require_once __DIR__ . '/config/database.php';
+
 // Session inactivity timeout (30 minutes)
 $maxInactivity = 1800;
 if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity'] > $maxInactivity)) {
@@ -68,32 +70,55 @@ function checkModuleAccess($requiredModule = '') {
     }
 
     $user = getCurrentUser();
+    $currentPage = basename($_SERVER['PHP_SELF']);
 
     // 1. User Management Page Access (Strictly Super Admin Only)
-    if ($requiredModule === 'user_management') {
+    if ($requiredModule === 'user_management' || $currentPage === 'user_management.php') {
         if ($user['role'] !== 'superadmin') {
-            renderAccessDeniedPage('User Management', $user, 'Hanya akun Super Admin yang memiliki hak akses ke User Management.');
+            renderAccessDeniedPage('user_management', $user, 'Akun Anda tidak diberikan izin akses ke modul ini.');
             exit;
         }
         return true;
     }
 
-    // 2. Super Admin Role Restriction (Super Admin is dedicated exclusively to User Management)
+    // 2. Super Admin Role Restriction (Super Admin is dedicated exclusively to System Management)
     if ($user['role'] === 'superadmin') {
-        if (!empty($requiredModule)) {
-            renderAccessDeniedPage($requiredModule, $user, 'Akun Super Admin difokuskan khusus untuk pengelolaan User & Hak Akses Admin, dan tidak mengakses modul operasional.');
+        if ($currentPage !== 'user_management.php' && $currentPage !== 'announcements.php') {
+            header("Location: user_management.php");
             exit;
         }
         return true;
     }
 
-    // 3. Regular Admin Module Permission Check
-    if (!empty($requiredModule)) {
-        $allowedModules = is_array($user['allowed_modules']) ? $user['allowed_modules'] : [];
-        if (!in_array($requiredModule, $allowedModules)) {
+    // 3. Module Access Checks
+    $isHeadRole = (strpos($user['role'], 'head_') === 0) || ($user['role'] === 'head_warehouse_admin');
+    $allowedModules = is_array($user['allowed_modules']) ? $user['allowed_modules'] : [];
+
+    // Dashboard Overview is strictly for Head roles
+    if ($requiredModule === 'dashboard' || $currentPage === 'dashboard.php') {
+        if (!$isHeadRole) {
+            renderAccessDeniedPage('dashboard', $user, 'Halaman Dashboard Overview ini khusus untuk Pimpinan Head-Management.');
+            exit;
+        }
+        return true;
+    }
+
+    // Reports and Analytics permission checks
+    if ($requiredModule === 'reports' || $requiredModule === 'analytics') {
+        if (!$isHeadRole && !in_array($requiredModule, $allowedModules)) {
             renderAccessDeniedPage($requiredModule, $user, 'Akun Anda tidak diberikan izin akses ke modul ini.');
             exit;
         }
+        return true;
+    }
+
+    // Master Data permission check
+    if ($requiredModule === 'master_data' || $currentPage === 'master_data.php') {
+        if (!in_array('master_data', $allowedModules)) {
+            renderAccessDeniedPage('master_data', $user, 'Akun Anda tidak diberikan izin akses ke modul ini.');
+            exit;
+        }
+        return true;
     }
 
     return true;
@@ -102,7 +127,16 @@ function checkModuleAccess($requiredModule = '') {
 /**
  * Render clean access denied page when user lacks module permission.
  */
-function renderAccessDeniedPage($requiredModule, $user, $customMessage = '') {
+function renderAccessDeniedPage($requiredModule = '', $user = null, $customMessage = '') {
+    if (!is_array($user)) {
+        if (is_string($user) && !empty($user) && empty($customMessage)) {
+            $customMessage = $user;
+        }
+        $user = getCurrentUser();
+    }
+    if (empty($customMessage)) {
+        $customMessage = 'Akun Anda tidak diberikan izin akses ke modul ini.';
+    }
     $pageTitle = 'Akses Ditolak - Dashboard Warehouse';
     include 'components/header.php';
     ?>

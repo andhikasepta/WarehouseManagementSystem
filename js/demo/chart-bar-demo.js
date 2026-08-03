@@ -1,6 +1,6 @@
-// Set new default font family and font color to mimic Bootstrap's default styling
 Chart.defaults.global.defaultFontFamily = 'Nunito', '-apple-system,system-ui,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif';
 Chart.defaults.global.defaultFontColor = '#858796';
+Chart.defaults.global.defaultFontSize = 10;
 
 function number_format(number, decimals, dec_point, thousands_sep) {
   // *     example: number_format(1234.56, 2, ',', ' ');
@@ -53,9 +53,9 @@ var myBarChart = new Chart(ctx, {
     maintainAspectRatio: false,
     layout: {
       padding: {
-        left: 10,
-        right: 25,
-        top: 25,
+        left: 5,
+        right: 15,
+        top: 20,
         bottom: 0
       }
     },
@@ -69,17 +69,22 @@ var myBarChart = new Chart(ctx, {
           drawBorder: false
         },
         ticks: {
-          maxTicksLimit: 6
+          maxTicksLimit: 6,
+          fontSize: 9
         },
         maxBarThickness: 25,
       }],
       yAxes: [{
         id: "y-axis-qty",
         position: "left",
+        afterDataLimits: function(scale) {
+          if (scale.max > 0) scale.max = scale.max * 1.18;
+        },
         ticks: {
           min: 0,
           maxTicksLimit: 5,
-          padding: 10,
+          padding: 6,
+          fontSize: 9,
           callback: function (value, index, values) {
             return '' + number_format(value);
           }
@@ -94,10 +99,14 @@ var myBarChart = new Chart(ctx, {
       }, {
         id: "y-axis-nbv",
         position: "right",
+        afterDataLimits: function(scale) {
+          if (scale.max > 0) scale.max = scale.max * 1.18;
+        },
         ticks: {
           min: 0,
           maxTicksLimit: 5,
-          padding: 10,
+          padding: 6,
+          fontSize: 9,
           callback: function (value, index, values) {
             if (value >= 1000000) {
                 return 'Rp ' + number_format(value / 1000000) + 'M';
@@ -114,23 +123,26 @@ var myBarChart = new Chart(ctx, {
     legend: {
       display: true,
       labels: {
-        usePointStyle: true
+        usePointStyle: true,
+        fontSize: 10,
+        boxWidth: 10
       }
     },
     tooltips: {
       mode: 'index',
       intersect: false,
-      titleMarginBottom: 10,
+      titleMarginBottom: 4,
       titleFontColor: '#6e707e',
-      titleFontSize: 14,
+      titleFontSize: 11,
+      bodyFontSize: 10,
       backgroundColor: "rgb(255,255,255)",
       bodyFontColor: "#858796",
       borderColor: '#dddfeb',
       borderWidth: 1,
-      xPadding: 15,
-      yPadding: 15,
+      xPadding: 8,
+      yPadding: 6,
       displayColors: false,
-      caretPadding: 10,
+      caretPadding: 6,
       callbacks: {
         label: function (tooltipItem, chart) {
           var datasetLabel = chart.datasets[tooltipItem.datasetIndex].label || '';
@@ -188,11 +200,11 @@ if (ctxIn) {
       layout: { padding: { left: 10, right: 25, top: 25, bottom: 0 } },
       scales: {
         xAxes: [{ gridLines: { display: false, drawBorder: false }, ticks: { maxTicksLimit: 12, autoSkip: false }, maxBarThickness: 25 }],
-        yAxes: [{ ticks: { min: 0, maxTicksLimit: 5, padding: 10 }, gridLines: { color: "rgb(234, 236, 244)", zeroLineColor: "rgb(234, 236, 244)", drawBorder: false, borderDash: [2], zeroLineBorderDash: [2] } }],
+        yAxes: [{ afterDataLimits: function(scale) { if (scale.max > 0) scale.max = scale.max * 1.18; }, ticks: { min: 0, maxTicksLimit: 5, padding: 10 }, gridLines: { color: "rgb(234, 236, 244)", zeroLineColor: "rgb(234, 236, 244)", drawBorder: false, borderDash: [2], zeroLineBorderDash: [2] } }],
       },
       legend: { display: false },
       tooltips: {
-        titleMarginBottom: 10, titleFontColor: '#6e707e', titleFontSize: 14, backgroundColor: "rgb(255,255,255)", bodyFontColor: "#858796", borderColor: '#dddfeb', borderWidth: 1, xPadding: 15, yPadding: 15, displayColors: false, caretPadding: 10
+        titleMarginBottom: 4, titleFontColor: '#6e707e', titleFontSize: 11, bodyFontSize: 10, backgroundColor: "rgb(255,255,255)", bodyFontColor: "#858796", borderColor: '#dddfeb', borderWidth: 1, xPadding: 8, yPadding: 6, displayColors: false, caretPadding: 6
       },
       plugins: {
         datalabels: {
@@ -233,11 +245,11 @@ if (ctxOut) {
       layout: { padding: { left: 10, right: 25, top: 25, bottom: 0 } },
       scales: {
         xAxes: [{ gridLines: { display: false, drawBorder: false }, ticks: { maxTicksLimit: 12, autoSkip: false }, maxBarThickness: 25 }],
-        yAxes: [{ ticks: { min: 0, maxTicksLimit: 5, padding: 10 }, gridLines: { color: "rgb(234, 236, 244)", zeroLineColor: "rgb(234, 236, 244)", drawBorder: false, borderDash: [2], zeroLineBorderDash: [2] } }],
+        yAxes: [{ afterDataLimits: function(scale) { if (scale.max > 0) scale.max = scale.max * 1.18; }, ticks: { min: 0, maxTicksLimit: 5, padding: 10 }, gridLines: { color: "rgb(234, 236, 244)", zeroLineColor: "rgb(234, 236, 244)", drawBorder: false, borderDash: [2], zeroLineBorderDash: [2] } }],
       },
       legend: { display: false },
       tooltips: {
-        titleMarginBottom: 10, titleFontColor: '#6e707e', titleFontSize: 14, backgroundColor: "rgb(255,255,255)", bodyFontColor: "#858796", borderColor: '#dddfeb', borderWidth: 1, xPadding: 15, yPadding: 15, displayColors: false, caretPadding: 10
+        titleMarginBottom: 4, titleFontColor: '#6e707e', titleFontSize: 11, bodyFontSize: 10, backgroundColor: "rgb(255,255,255)", bodyFontColor: "#858796", borderColor: '#dddfeb', borderWidth: 1, xPadding: 8, yPadding: 6, displayColors: false, caretPadding: 6
       },
       plugins: {
         datalabels: {

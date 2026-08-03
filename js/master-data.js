@@ -242,7 +242,7 @@ $(document).ready(function () {
                         tdCat.style.fontSize = '0.85rem';
                         tr.appendChild(tdCat);
 
-                        // Qty (editable)
+                        // Qty (editable for admins, view-only for head_warehouse_admin)
                         var tdQty = document.createElement('td');
                         var inputQty = document.createElement('input');
                         inputQty.type = 'number';
@@ -251,10 +251,14 @@ $(document).ready(function () {
                         inputQty.value = parseInt(row.qty) || 0;
                         inputQty.style.textAlign = 'center';
                         inputQty.setAttribute('data-label', row.label || '');
+                        if (window.currentUserRole === 'head_warehouse_admin') {
+                            inputQty.disabled = true;
+                            inputQty.style.backgroundColor = '#eaecf4';
+                        }
                         tdQty.appendChild(inputQty);
                         tr.appendChild(tdQty);
 
-                        // Capacity (editable)
+                        // Capacity (editable for admins, view-only for head_warehouse_admin)
                         var tdCap = document.createElement('td');
                         var inputCap = document.createElement('input');
                         inputCap.type = 'number';
@@ -265,6 +269,10 @@ $(document).ready(function () {
                         inputCap.value = parseFloat(row.capacity) || 0;
                         inputCap.style.textAlign = 'center';
                         inputCap.setAttribute('data-label', row.label || '');
+                        if (window.currentUserRole === 'head_warehouse_admin') {
+                            inputCap.disabled = true;
+                            inputCap.style.backgroundColor = '#eaecf4';
+                        }
                         tdCap.appendChild(inputCap);
                         tr.appendChild(tdCap);
 

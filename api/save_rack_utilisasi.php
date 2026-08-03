@@ -10,6 +10,13 @@ if (!isLoggedIn()) {
     exit;
 }
 
+$currentUser = getCurrentUser();
+if (($currentUser['role'] ?? '') === 'head_warehouse_admin') {
+    http_response_code(403);
+    echo json_encode(['status' => 'error', 'message' => 'Hak akses Head Warehouse Admin hanya untuk melihat data (Read-Only).']);
+    exit;
+}
+
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
     echo json_encode(['status' => 'error', 'message' => 'Method not allowed']);

@@ -11,22 +11,30 @@ $canAccessStorageMaster = false;
 $canAccessOutboundMaster = false;
 
 if ($userRole === 'head_warehouse_admin' || $userRole === 'superadmin') {
-    $canAccessInboundMaster = true;
-    $canAccessStorageMaster = true;
-    $canAccessOutboundMaster = true;
+    // Head and Superadmin: check sub-permissions, default to all if none set
+    $canAccessInboundMaster = in_array('master_data_inbound', $userModules) || !in_array('master_data_inbound', $userModules) && !in_array('master_data_storage', $userModules) && !in_array('master_data_outbound', $userModules);
+    $canAccessStorageMaster = in_array('master_data_storage', $userModules) || !in_array('master_data_inbound', $userModules) && !in_array('master_data_storage', $userModules) && !in_array('master_data_outbound', $userModules);
+    $canAccessOutboundMaster = in_array('master_data_outbound', $userModules) || !in_array('master_data_inbound', $userModules) && !in_array('master_data_storage', $userModules) && !in_array('master_data_outbound', $userModules);
 } elseif ($userRole === 'inbound_admin') {
     $canAccessInboundMaster = true;
+    $canAccessStorageMaster = in_array('master_data_storage', $userModules);
+    $canAccessOutboundMaster = in_array('master_data_outbound', $userModules);
 } elseif ($userRole === 'warehouse_admin') {
+    $canAccessInboundMaster = in_array('master_data_inbound', $userModules);
     $canAccessStorageMaster = true;
+    $canAccessOutboundMaster = in_array('master_data_outbound', $userModules);
 } elseif ($userRole === 'outbound_admin') {
+    $canAccessInboundMaster = in_array('master_data_inbound', $userModules);
+    $canAccessStorageMaster = in_array('master_data_storage', $userModules);
     $canAccessOutboundMaster = true;
 } else {
-    // Custom / Admin Warehouse
-    $canAccessInboundMaster = in_array('inbound', $userModules);
-    $canAccessStorageMaster = in_array('warehouse', $userModules);
-    $canAccessOutboundMaster = in_array('outbound', $userModules);
+    // Custom roles: use sub-permissions from allowed_modules
+    $canAccessInboundMaster = in_array('master_data_inbound', $userModules);
+    $canAccessStorageMaster = in_array('master_data_storage', $userModules);
+    $canAccessOutboundMaster = in_array('master_data_outbound', $userModules);
     
-    if (!$canAccessInboundMaster && !$canAccessStorageMaster && !$canAccessOutboundMaster) {
+    // Fallback: if master_data granted but no sub-permissions set, allow all
+    if (in_array('master_data', $userModules) && !$canAccessInboundMaster && !$canAccessStorageMaster && !$canAccessOutboundMaster) {
         $canAccessInboundMaster = true;
         $canAccessStorageMaster = true;
         $canAccessOutboundMaster = true;
@@ -34,10 +42,10 @@ if ($userRole === 'head_warehouse_admin' || $userRole === 'superadmin') {
 }
 
 $defaultMasterSegment = '';
-if ($canAccessStorageMaster) {
-    $defaultMasterSegment = 'storage';
-} elseif ($canAccessInboundMaster) {
+if ($canAccessInboundMaster) {
     $defaultMasterSegment = 'inbound';
+} elseif ($canAccessStorageMaster) {
+    $defaultMasterSegment = 'storage';
 } elseif ($canAccessOutboundMaster) {
     $defaultMasterSegment = 'outbound';
 }
@@ -45,6 +53,9 @@ if ($canAccessStorageMaster) {
 $pageTitle = 'Master Data - Dashboard Warehouse';
 include 'components/header.php';
 ?>
+    <script>
+        window.currentUserRole = <?php echo json_encode($userRole); ?>;
+    </script>
     
     <!-- DataTables CSS -->
     <link href="vendor/datatables/dataTables.bootstrap4.min.css" rel="stylesheet">
@@ -65,6 +76,10 @@ include 'components/header.php';
         .table-responsive { overflow-x: auto; }
         #dataTableAsset th, #dataTableAsset td { white-space: nowrap; }
         #dataTableAsset td:nth-child(1) { white-space: normal !important; min-width: 200px; }
+        .custom-select {
+            background: #ffffff url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3e%3cpath fill='%235a5c69' d='M0 0l5 6 5-6z'/%3e%3c/svg%3e") no-repeat right 0.75rem center/10px 6px !important;
+            padding-right: 1.75rem;
+        }
     </style>
 
 </head>
@@ -138,7 +153,8 @@ include 'components/header.php';
                         <?php if ($canAccessInboundMaster): ?>
                         <!-- 1. INBOUND MASTER DATA -->
                         <div class="tab-pane fade <?php echo ($defaultMasterSegment === 'inbound') ? 'show active' : ''; ?>" id="seg-inbound" role="tabpanel" aria-labelledby="seg-inbound-tab">
-                            <div class="card shadow border-0 mb-4" style="border-radius: 12px;">
+                            <div class="card shadow border-0 mb-4" style="border-radius: 12px; min-height: calc(100vh - 320px); display: flex; flex-direction: column;">
+                                <?php if ($userRole !== 'head_warehouse_admin'): ?>
                                 <div class="card-header bg-white py-3 d-flex flex-column flex-sm-row align-items-sm-center justify-content-between border-bottom">
                                     <h6 class="m-0 font-weight-bold text-primary">
                                         <i class="fas fa-box-open mr-2"></i>Menu Master Data Inbound
@@ -152,17 +168,64 @@ include 'components/header.php';
                                         </button>
                                     </div>
                                 </div>
-                                <div class="card-body text-center py-5">
-                                    <div class="mb-3">
-                                        <span class="fa-stack fa-2x text-gray-400">
-                                            <i class="fas fa-circle fa-stack-2x text-light"></i>
-                                            <i class="fas fa-box-open fa-stack-1x text-secondary"></i>
-                                        </span>
+                                <?php endif; ?>
+                                <div class="card-body p-4" style="flex: 1;">
+                                    <!-- Filter Control Bar (Search & Dropdowns) -->
+                                    <div class="card shadow-sm border mb-4" style="border-radius: 8px;">
+                                        <div class="card-body py-3 px-4">
+                                            <div class="form-row align-items-center">
+                                                <!-- Search Bar (No. PO / Item) -->
+                                                <div class="col-md-3 col-sm-6 mb-2 mb-md-0">
+                                                    <label for="search-po-item" class="small font-weight-bold text-gray-700 mb-1">Cari No. PO / Item</label>
+                                                    <div class="input-group input-group-sm">
+                                                        <input type="text" class="form-control form-control-sm" id="search-po-item" placeholder="No. PO / Item...">
+                                                        <div class="input-group-append">
+                                                            <button class="btn btn-primary btn-sm" type="button" id="btn-search-po">
+                                                                <i class="fas fa-search"></i>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Bagian Dropdown -->
+                                                <div class="col-md-3 col-sm-6 mb-2 mb-md-0">
+                                                    <label for="filter-bagian" class="small font-weight-bold text-gray-700 mb-1">Bagian</label>
+                                                    <select class="form-control form-control-sm custom-select custom-select-sm" id="filter-bagian">
+                                                        <option value="">Semua Bagian</option>
+                                                    </select>
+                                                </div>
+
+                                                <!-- PIC PO Dropdown -->
+                                                <div class="col-md-3 col-sm-6 mb-2 mb-md-0">
+                                                    <label for="filter-pic-po" class="small font-weight-bold text-gray-700 mb-1">PIC PO</label>
+                                                    <select class="form-control form-control-sm custom-select custom-select-sm" id="filter-pic-po">
+                                                        <option value="">Semua PIC PO</option>
+                                                    </select>
+                                                </div>
+
+                                                <!-- Status Dropdown -->
+                                                <div class="col-md-3 col-sm-6 mb-2 mb-md-0">
+                                                    <label for="filter-status" class="small font-weight-bold text-gray-700 mb-1">Status</label>
+                                                    <select class="form-control form-control-sm custom-select custom-select-sm" id="filter-status">
+                                                        <option value="">Semua Status</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <h4 class="font-weight-bold text-gray-800 mb-2">Master Data Inbound</h4>
-                                    <p class="text-muted max-width-500 mx-auto mb-4" style="max-width: 500px;">
-                                        Belum ada data master untuk modul Inbound.
-                                    </p>
+
+                                    <div class="text-center py-4">
+                                        <div class="mb-3">
+                                            <span class="fa-stack fa-2x text-gray-400">
+                                                <i class="fas fa-circle fa-stack-2x text-light"></i>
+                                                <i class="fas fa-box-open fa-stack-1x text-secondary"></i>
+                                            </span>
+                                        </div>
+                                        <h4 class="font-weight-bold text-gray-800 mb-2">Master Data Inbound</h4>
+                                        <p class="text-muted max-width-500 mx-auto mb-0" style="max-width: 500px;">
+                                            Belum ada data master untuk modul Inbound.
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -173,6 +236,7 @@ include 'components/header.php';
                         <div class="tab-pane fade <?php echo ($defaultMasterSegment === 'storage') ? 'show active' : ''; ?>" id="seg-storage" role="tabpanel" aria-labelledby="seg-storage-tab">
                             
                             <!-- Storage Action Buttons Header Bar -->
+                            <?php if ($userRole !== 'head_warehouse_admin'): ?>
                             <div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between mb-3 bg-white p-3 rounded shadow-sm border">
                                 <h6 class="m-0 font-weight-bold text-primary">
                                     <i class="fas fa-warehouse mr-2"></i>Menu Master Data Storage
@@ -186,6 +250,7 @@ include 'components/header.php';
                                     </button>
                                 </div>
                             </div>
+                            <?php endif; ?>
 
                             <!-- Sub Master Data Tabs for Storage -->
                             <ul class="nav nav-tabs mb-4" id="masterDataTabs" role="tablist">
@@ -210,7 +275,7 @@ include 'components/header.php';
                                 
                                 <!-- Asset Data Tab -->
                                 <div class="tab-pane fade show active" id="asset-data" role="tabpanel" aria-labelledby="asset-tab">
-                                    <div class="card shadow mb-4">
+                                    <div class="card shadow mb-4" style="min-height: calc(100vh - 380px);">
                                         <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
                                             <h6 class="m-0 font-weight-bold text-primary">Tabel Data Asset</h6>
                                         </div>
@@ -263,7 +328,7 @@ include 'components/header.php';
                                 
                                 <!-- Rack Data Tab -->
                                 <div class="tab-pane fade" id="rack-data" role="tabpanel" aria-labelledby="rack-tab">
-                                    <div class="card shadow mb-4">
+                                    <div class="card shadow mb-4" style="min-height: calc(100vh - 380px);">
                                         <div class="card-header py-3">
                                             <h6 class="m-0 font-weight-bold text-primary">Tabel Master Utilisasi Rack</h6>
                                         </div>
@@ -307,12 +372,14 @@ include 'components/header.php';
 
                                 <!-- Utilisasi Area/Rack Tab -->
                                 <div class="tab-pane fade" id="utilisasi-data" role="tabpanel" aria-labelledby="utilisasi-tab">
-                                    <div class="card shadow mb-4">
+                                    <div class="card shadow mb-4" style="min-height: calc(100vh - 380px);">
                                         <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
                                             <h6 class="m-0 font-weight-bold text-primary">Data Utilisasi Area / Rack</h6>
+                                            <?php if ($userRole !== 'head_warehouse_admin'): ?>
                                             <button class="btn btn-success btn-sm" type="button" id="btn-save-utilisasi-all" disabled>
                                                 <i class="fas fa-save mr-1"></i> Simpan Semua
                                             </button>
+                                            <?php endif; ?>
                                         </div>
                                         <div class="card-body">
                                             
@@ -383,7 +450,8 @@ include 'components/header.php';
                         <?php if ($canAccessOutboundMaster): ?>
                         <!-- 3. OUTBOUND MASTER DATA -->
                         <div class="tab-pane fade <?php echo ($defaultMasterSegment === 'outbound') ? 'show active' : ''; ?>" id="seg-outbound" role="tabpanel" aria-labelledby="seg-outbound-tab">
-                            <div class="card shadow border-0 mb-4" style="border-radius: 12px;">
+                            <div class="card shadow border-0 mb-4" style="border-radius: 12px; min-height: calc(100vh - 320px); display: flex; flex-direction: column;">
+                                <?php if ($userRole !== 'head_warehouse_admin'): ?>
                                 <div class="card-header bg-white py-3 d-flex flex-column flex-sm-row align-items-sm-center justify-content-between border-bottom">
                                     <h6 class="m-0 font-weight-bold text-primary">
                                         <i class="fas fa-truck-loading mr-2"></i>Menu Master Data Outbound
@@ -397,17 +465,64 @@ include 'components/header.php';
                                         </button>
                                     </div>
                                 </div>
-                                <div class="card-body text-center py-5">
-                                    <div class="mb-3">
-                                        <span class="fa-stack fa-2x text-gray-400">
-                                            <i class="fas fa-circle fa-stack-2x text-light"></i>
-                                            <i class="fas fa-truck-loading fa-stack-1x text-secondary"></i>
-                                        </span>
+                                <?php endif; ?>
+                                <div class="card-body p-4" style="flex: 1;">
+                                    <!-- Filter Control Bar (Search & Dropdowns) -->
+                                    <div class="card shadow-sm border mb-4" style="border-radius: 8px;">
+                                        <div class="card-body py-3 px-4">
+                                            <div class="form-row align-items-center">
+                                                <!-- Search Bar (No. MR / Item) -->
+                                                <div class="col-md-3 col-sm-6 mb-2 mb-md-0">
+                                                    <label for="search-mr-item-outbound" class="small font-weight-bold text-gray-700 mb-1">Cari No. MR / Item</label>
+                                                    <div class="input-group input-group-sm">
+                                                        <input type="text" class="form-control form-control-sm" id="search-mr-item-outbound" placeholder="No. MR / Item...">
+                                                        <div class="input-group-append">
+                                                            <button class="btn btn-primary btn-sm" type="button" id="btn-search-mr-outbound">
+                                                                <i class="fas fa-search"></i>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Tujuan Site Dropdown -->
+                                                <div class="col-md-3 col-sm-6 mb-2 mb-md-0">
+                                                    <label for="filter-tujuan-site-outbound" class="small font-weight-bold text-gray-700 mb-1">Tujuan Site</label>
+                                                    <select class="form-control form-control-sm custom-select custom-select-sm" id="filter-tujuan-site-outbound">
+                                                        <option value="">Semua Tujuan Site</option>
+                                                    </select>
+                                                </div>
+
+                                                <!-- PIC MR Dropdown -->
+                                                <div class="col-md-3 col-sm-6 mb-2 mb-md-0">
+                                                    <label for="filter-pic-mr-outbound" class="small font-weight-bold text-gray-700 mb-1">PIC MR</label>
+                                                    <select class="form-control form-control-sm custom-select custom-select-sm" id="filter-pic-mr-outbound">
+                                                        <option value="">Semua PIC MR</option>
+                                                    </select>
+                                                </div>
+
+                                                <!-- Status Dropdown -->
+                                                <div class="col-md-3 col-sm-6 mb-2 mb-md-0">
+                                                    <label for="filter-status-outbound" class="small font-weight-bold text-gray-700 mb-1">Status</label>
+                                                    <select class="form-control form-control-sm custom-select custom-select-sm" id="filter-status-outbound">
+                                                        <option value="">Semua Status</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <h4 class="font-weight-bold text-gray-800 mb-2">Master Data Outbound</h4>
-                                    <p class="text-muted max-width-500 mx-auto mb-4" style="max-width: 500px;">
-                                        Belum ada data master untuk modul Outbound.
-                                    </p>
+
+                                    <div class="text-center py-4">
+                                        <div class="mb-3">
+                                            <span class="fa-stack fa-2x text-gray-400">
+                                                <i class="fas fa-circle fa-stack-2x text-light"></i>
+                                                <i class="fas fa-truck-loading fa-stack-1x text-secondary"></i>
+                                            </span>
+                                        </div>
+                                        <h4 class="font-weight-bold text-gray-800 mb-2">Master Data Outbound</h4>
+                                        <p class="text-muted max-width-500 mx-auto mb-0" style="max-width: 500px;">
+                                            Belum ada data master untuk modul Outbound.
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -622,36 +737,84 @@ include 'components/header.php';
     </div>
 
     <!-- Delete Data Inbound Modal -->
-    <div class="modal fade" id="deleteDataModalInbound" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal fade" id="deleteDataModalInbound" tabindex="-1" role="dialog" aria-labelledby="deleteDataModalInboundLabel" aria-hidden="true">
         <div class="modal-dialog modal-md modal-dialog-centered" role="document">
-            <div class="modal-content">
-                <div class="modal-header text-white" style="background: linear-gradient(135deg, #e74a3b 0%, #be2617 100%);">
-                    <h5 class="modal-title font-weight-bold"><i class="fas fa-trash-alt mr-2"></i>Hapus Master Data Inbound</h5>
-                    <button class="close text-white" type="button" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+            <div class="modal-content upload-modal-content">
+                <div class="modal-header upload-modal-header" style="background: linear-gradient(135deg, #e74a3b 0%, #be2617 100%);">
+                    <h5 class="modal-title text-white" id="deleteDataModalInboundLabel">
+                        <i class="fas fa-trash-alt mr-2 text-white"></i>Hapus Master Data Inbound
+                    </h5>
+                    <button class="close text-white" type="button" data-dismiss="modal" aria-label="Close" style="opacity: 0.8;">
+                        <span aria-hidden="true">×</span>
+                    </button>
                 </div>
-                <div class="modal-body p-4 text-center">
-                    <h4 class="text-danger font-weight-bold mb-2">Hapus Data Master Inbound</h4>
-                    <p class="text-muted mb-4">Apakah Anda yakin ingin menghapus data master Inbound?</p>
-                    <button class="btn btn-light px-4 mr-2" type="button" data-dismiss="modal">Batal</button>
-                    <button class="btn btn-danger px-4" type="button" onclick="alert('Data Master Inbound belum tersedia untuk dihapus.'); $('#deleteDataModalInbound').modal('hide');">Hapus</button>
+                <div class="modal-body upload-modal-body">
+                    <div class="p-3">
+                        <div class="text-center text-gray-600 mb-4">
+                            <h3 class="text-danger font-weight-bold mb-3"><i class="fas fa-exclamation-triangle mr-2"></i>Peringatan</h3>
+                            <p class="mb-0" style="font-size: 1.1rem;">Data Inbound untuk periode yang Anda pilih akan dihapus secara permanen dari sistem.</p>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="deleteInboundMonthSelect" class="small font-weight-bold text-gray-600">Bulan</label>
+                            <select class="form-control form-control-sm" id="deleteInboundMonthSelect">
+                                <option value="">-- Pilih Bulan --</option>
+                            </select>
+                        </div>
+                        <div class="form-group mb-4">
+                            <label for="deleteInboundYearSelect" class="small font-weight-bold text-gray-600">Tahun</label>
+                            <select class="form-control form-control-sm" id="deleteInboundYearSelect">
+                                <option value="">-- Pilih Tahun --</option>
+                            </select>
+                        </div>
+                        <div class="d-flex justify-content-end mt-4">
+                            <button class="btn btn-light px-4 mr-2" type="button" data-dismiss="modal" style="border-radius: 6px; font-weight: 600;">Cancel</button>
+                            <button class="btn btn-danger px-4" type="button" id="btn-confirm-delete-inbound" style="border-radius: 6px; font-weight: 600; box-shadow: 0 4px 10px rgba(231,74,59,0.3);">
+                                <i class="fas fa-trash mr-1"></i> Delete Data Inbound
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Delete Data Outbound Modal -->
-    <div class="modal fade" id="deleteDataModalOutbound" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal fade" id="deleteDataModalOutbound" tabindex="-1" role="dialog" aria-labelledby="deleteDataModalOutboundLabel" aria-hidden="true">
         <div class="modal-dialog modal-md modal-dialog-centered" role="document">
-            <div class="modal-content">
-                <div class="modal-header text-white" style="background: linear-gradient(135deg, #e74a3b 0%, #be2617 100%);">
-                    <h5 class="modal-title font-weight-bold"><i class="fas fa-trash-alt mr-2"></i>Hapus Master Data Outbound</h5>
-                    <button class="close text-white" type="button" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+            <div class="modal-content upload-modal-content">
+                <div class="modal-header upload-modal-header" style="background: linear-gradient(135deg, #e74a3b 0%, #be2617 100%);">
+                    <h5 class="modal-title text-white" id="deleteDataModalOutboundLabel">
+                        <i class="fas fa-trash-alt mr-2 text-white"></i>Hapus Master Data Outbound
+                    </h5>
+                    <button class="close text-white" type="button" data-dismiss="modal" aria-label="Close" style="opacity: 0.8;">
+                        <span aria-hidden="true">×</span>
+                    </button>
                 </div>
-                <div class="modal-body p-4 text-center">
-                    <h4 class="text-danger font-weight-bold mb-2">Hapus Data Master Outbound</h4>
-                    <p class="text-muted mb-4">Apakah Anda yakin ingin menghapus data master Outbound?</p>
-                    <button class="btn btn-light px-4 mr-2" type="button" data-dismiss="modal">Batal</button>
-                    <button class="btn btn-danger px-4" type="button" onclick="alert('Data Master Outbound belum tersedia untuk dihapus.'); $('#deleteDataModalOutbound').modal('hide');">Hapus</button>
+                <div class="modal-body upload-modal-body">
+                    <div class="p-3">
+                        <div class="text-center text-gray-600 mb-4">
+                            <h3 class="text-danger font-weight-bold mb-3"><i class="fas fa-exclamation-triangle mr-2"></i>Peringatan</h3>
+                            <p class="mb-0" style="font-size: 1.1rem;">Data Outbound untuk periode yang Anda pilih akan dihapus secara permanen dari sistem.</p>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="deleteOutboundMonthSelect" class="small font-weight-bold text-gray-600">Bulan</label>
+                            <select class="form-control form-control-sm" id="deleteOutboundMonthSelect">
+                                <option value="">-- Pilih Bulan --</option>
+                            </select>
+                        </div>
+                        <div class="form-group mb-4">
+                            <label for="deleteOutboundYearSelect" class="small font-weight-bold text-gray-600">Tahun</label>
+                            <select class="form-control form-control-sm" id="deleteOutboundYearSelect">
+                                <option value="">-- Pilih Tahun --</option>
+                            </select>
+                        </div>
+                        <div class="d-flex justify-content-end mt-4">
+                            <button class="btn btn-light px-4 mr-2" type="button" data-dismiss="modal" style="border-radius: 6px; font-weight: 600;">Cancel</button>
+                            <button class="btn btn-danger px-4" type="button" id="btn-confirm-delete-outbound" style="border-radius: 6px; font-weight: 600; box-shadow: 0 4px 10px rgba(231,74,59,0.3);">
+                                <i class="fas fa-trash mr-1"></i> Delete Data Outbound
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -671,10 +834,27 @@ include 'components/header.php';
     
     <script>
         $(document).ready(function() {
-            // Restore active segment tab from localStorage if available for current role
-            var activeSegment = localStorage.getItem('activeMasterSegmentTab');
-            if (activeSegment && $('#masterSegmentTabs a[href="' + activeSegment + '"]').length > 0) {
-                $('#masterSegmentTabs a[href="' + activeSegment + '"]').tab('show');
+            // Restore active segment tab on reload, or default to Inbound on fresh navigation
+            var isReload = false;
+            if (window.performance) {
+                if (performance.getEntriesByType) {
+                    var navEntries = performance.getEntriesByType('navigation');
+                    if (navEntries.length > 0 && navEntries[0].type === 'reload') {
+                        isReload = true;
+                    }
+                }
+                if (!isReload && performance.navigation && performance.navigation.type === 1) {
+                    isReload = true;
+                }
+            }
+
+            if (isReload) {
+                var activeSeg = localStorage.getItem('activeMasterSegmentTab');
+                if (activeSeg && $(activeSeg + '-tab').length && !$(activeSeg + '-tab').hasClass('disabled')) {
+                    $('#masterSegmentTabs a[href="' + activeSeg + '"]').tab('show');
+                }
+            } else {
+                localStorage.removeItem('activeMasterSegmentTab');
             }
 
             var currentSeg = $('#masterSegmentTabs a.active').attr('href');
@@ -719,45 +899,57 @@ include 'components/header.php';
         });
         
         // Delete Data Logic
-        // Load periods for the delete dropdown
+        function fillDeletePeriodDropdowns(mSelId, ySelId, periods) {
+            var mSel = document.getElementById(mSelId);
+            var ySel = document.getElementById(ySelId);
+            if (!mSel || !ySel) return;
+
+            var months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+            if (mSel.options.length <= 1) {
+                months.forEach(function (item) {
+                    var opt = document.createElement('option');
+                    opt.value = item; opt.textContent = item; mSel.appendChild(opt);
+                });
+            }
+
+            if (periods && Array.isArray(periods)) {
+                periods.forEach(function (item) {
+                    var parts = item.split(' ');
+                    if (parts.length >= 2) {
+                        var year = parts[1];
+                        var existing = Array.from(ySel.options).find(opt => opt.value === year);
+                        if (!existing) {
+                            var opt = document.createElement('option');
+                            opt.value = year; opt.textContent = year; ySel.appendChild(opt);
+                        }
+                    }
+                });
+            }
+        }
+
+        // Load periods for all delete dropdowns (Storage, Inbound, Outbound)
         fetch('api/get_periods.php')
             .then(response => response.json())
             .then(result => {
-                if(result.status === 'success' && result.data) {
-                    var mSel = document.getElementById('deleteMonthSelect');
-                    var ySel = document.getElementById('deleteYearSelect');
-                    if (mSel && ySel) {
-                        var months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-                        months.forEach(function (item) {
-                            var opt = document.createElement('option');
-                            opt.value = item; opt.textContent = item; mSel.appendChild(opt);
-                        });
-                        result.data.forEach(function (item) {
-                            var parts = item.split(' ');
-                            if(parts.length >= 2) {
-                                var year = parts[1];
-                                var existing = Array.from(ySel.options).find(opt => opt.value === year);
-                                if(!existing) {
-                                    var opt = document.createElement('option');
-                                    opt.value = year; opt.textContent = year; ySel.appendChild(opt);
-                                }
-                            }
-                        });
-                    }
+                if (result.status === 'success' && result.data) {
+                    fillDeletePeriodDropdowns('deleteMonthSelect', 'deleteYearSelect', result.data);
+                    fillDeletePeriodDropdowns('deleteInboundMonthSelect', 'deleteInboundYearSelect', result.data);
+                    fillDeletePeriodDropdowns('deleteOutboundMonthSelect', 'deleteOutboundYearSelect', result.data);
                 }
             });
 
+        // 1. Confirm Delete Storage Data
         var btnConfirmDelete = document.getElementById('btn-confirm-delete');
         if (btnConfirmDelete) {
             btnConfirmDelete.addEventListener('click', function () {
                 var delMonth = document.getElementById('deleteMonthSelect');
                 var delYear = document.getElementById('deleteYearSelect');
                 if (!delMonth || !delMonth.value || !delYear || !delYear.value) {
-                    alert('Please select both Month and Year to delete.');
+                    alert('Silakan pilih Bulan dan Tahun untuk menghapus data Storage.');
                     return;
                 }
                 var periodToDelete = delMonth.value + ' ' + delYear.value;
-                if (!confirm("Are you SURE you want to delete all data for " + periodToDelete.toUpperCase() + "? This cannot be undone.")) return;
+                if (!confirm("Apakah Anda YAKIN ingin menghapus semua data Storage untuk periode " + periodToDelete.toUpperCase() + "?")) return;
 
                 fetch('api/delete_data.php', {
                     method: 'POST',
@@ -767,11 +959,75 @@ include 'components/header.php';
                 .then(r => r.json())
                 .then(res => {
                     if (res.status === 'success') {
-                        alert('Data deleted successfully.');
+                        alert('Data Storage berhasil dihapus.');
                         $('#deleteDataModal').modal('hide');
-                        $('#dataTableAsset').DataTable().ajax.reload();
+                        if ($.fn.DataTable && $('#dataTableAsset').length) {
+                            $('#dataTableAsset').DataTable().ajax.reload();
+                        }
                     } else {
-                        alert('Failed to delete data: ' + res.message);
+                        alert('Gagal menghapus data: ' + res.message);
+                    }
+                });
+            });
+        }
+
+        // 2. Confirm Delete Inbound Data
+        var btnConfirmDeleteInbound = document.getElementById('btn-confirm-delete-inbound');
+        if (btnConfirmDeleteInbound) {
+            btnConfirmDeleteInbound.addEventListener('click', function () {
+                var delMonth = document.getElementById('deleteInboundMonthSelect');
+                var delYear = document.getElementById('deleteInboundYearSelect');
+                if (!delMonth || !delMonth.value || !delYear || !delYear.value) {
+                    alert('Silakan pilih Bulan dan Tahun untuk menghapus data Inbound.');
+                    return;
+                }
+                var periodToDelete = delMonth.value + ' ' + delYear.value;
+                if (!confirm("Apakah Anda YAKIN ingin menghapus semua data Inbound untuk periode " + periodToDelete.toUpperCase() + "?")) return;
+
+                fetch('api/delete_data.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ periode: periodToDelete, type: 'inbound' })
+                })
+                .then(r => r.json())
+                .then(res => {
+                    if (res.status === 'success') {
+                        alert('Data Inbound berhasil dihapus.');
+                        $('#deleteDataModalInbound').modal('hide');
+                        location.reload();
+                    } else {
+                        alert('Gagal menghapus data: ' + res.message);
+                    }
+                });
+            });
+        }
+
+        // 3. Confirm Delete Outbound Data
+        var btnConfirmDeleteOutbound = document.getElementById('btn-confirm-delete-outbound');
+        if (btnConfirmDeleteOutbound) {
+            btnConfirmDeleteOutbound.addEventListener('click', function () {
+                var delMonth = document.getElementById('deleteOutboundMonthSelect');
+                var delYear = document.getElementById('deleteOutboundYearSelect');
+                if (!delMonth || !delMonth.value || !delYear || !delYear.value) {
+                    alert('Silakan pilih Bulan dan Tahun untuk menghapus data Outbound.');
+                    return;
+                }
+                var periodToDelete = delMonth.value + ' ' + delYear.value;
+                if (!confirm("Apakah Anda YAKIN ingin menghapus semua data Outbound untuk periode " + periodToDelete.toUpperCase() + "?")) return;
+
+                fetch('api/delete_data.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ periode: periodToDelete, type: 'outbound' })
+                })
+                .then(r => r.json())
+                .then(res => {
+                    if (res.status === 'success') {
+                        alert('Data Outbound berhasil dihapus.');
+                        $('#deleteDataModalOutbound').modal('hide');
+                        location.reload();
+                    } else {
+                        alert('Gagal menghapus data: ' + res.message);
                     }
                 });
             });

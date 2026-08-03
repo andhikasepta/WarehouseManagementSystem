@@ -4,3 +4,4 @@ output.txt
 temp.json
 temp_rack.json
 test_output.json
+.env

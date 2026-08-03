@@ -2,7 +2,7 @@
 // user_management.php
 require_once __DIR__ . '/auth.php';
 
-checkModuleAccess(''); // Enforce login
+checkModuleAccess('user_management'); // Enforce login & superadmin access
 $user = getCurrentUser();
 
 if ($user['role'] !== 'superadmin') {
@@ -97,7 +97,7 @@ include 'components/header.php';
                                     <input type="password" class="form-control" id="modal_password" name="password" placeholder="Masukkan Password" autocomplete="new-password">
                                     <small id="pass-help" class="form-text text-muted d-none">Biarkan kosong jika tidak ingin mengubah password.</small>
                                 </div>
-                                <div class="form-group mb-3">
+                                <div class="form-group mb-3" id="modal_role_container">
                                     <label for="modal_role" class="small font-weight-bold text-gray-700">Role Sistem <span class="text-danger">*</span></label>
                                     <select class="form-control" id="modal_role" name="role">
                                         <option value="head_warehouse_admin">Head-Warehouse Management</option>
@@ -107,31 +107,76 @@ include 'components/header.php';
                                     </select>
                                 </div>
                                 <div class="form-group mb-2">
-                                    <label class="small font-weight-bold text-gray-700">Hak Akses Modul WMS <span class="text-danger">*</span></label>
+                                    <label class="small font-weight-bold text-gray-700">Hak Akses Modul WMS</label>
                                     <div class="card p-3 bg-light border-0 rounded">
+                                        <p class="small text-muted mb-2" style="line-height:1.3;"><i class="fas fa-info-circle mr-1"></i>Modul berikut dapat diakses oleh semua user untuk melihat data &amp; chart:</p>
                                         <div class="custom-control custom-checkbox mb-2">
-                                            <input type="checkbox" class="custom-control-input module-checkbox" id="mod_inbound" value="inbound">
-                                            <label class="custom-control-label font-weight-bold text-gray-800" for="mod_inbound">
-                                                <i class="fas fa-box-open text-primary mr-1"></i> Inbound Management
+                                            <input type="checkbox" class="custom-control-input module-checkbox" id="mod_inbound" value="inbound" checked disabled>
+                                            <label class="custom-control-label font-weight-bold text-gray-600" for="mod_inbound">
+                                                <i class="fas fa-box-open text-primary mr-1"></i> Inbound Management <span class="badge badge-light border text-muted ml-1" style="font-size:0.65rem;">Semua User</span>
                                             </label>
                                         </div>
                                         <div class="custom-control custom-checkbox mb-2">
-                                            <input type="checkbox" class="custom-control-input module-checkbox" id="mod_warehouse" value="warehouse">
-                                            <label class="custom-control-label font-weight-bold text-gray-800" for="mod_warehouse">
-                                                <i class="fas fa-warehouse text-primary mr-1"></i> Storage Management
+                                            <input type="checkbox" class="custom-control-input module-checkbox" id="mod_warehouse" value="warehouse" checked disabled>
+                                            <label class="custom-control-label font-weight-bold text-gray-600" for="mod_warehouse">
+                                                <i class="fas fa-warehouse text-primary mr-1"></i> Storage Management <span class="badge badge-light border text-muted ml-1" style="font-size:0.65rem;">Semua User</span>
                                             </label>
                                         </div>
                                         <div class="custom-control custom-checkbox mb-2">
-                                            <input type="checkbox" class="custom-control-input module-checkbox" id="mod_outbound" value="outbound">
-                                            <label class="custom-control-label font-weight-bold text-gray-800" for="mod_outbound">
-                                                <i class="fas fa-truck-loading text-primary mr-1"></i> Outbound Management
+                                            <input type="checkbox" class="custom-control-input module-checkbox" id="mod_outbound" value="outbound" checked disabled>
+                                            <label class="custom-control-label font-weight-bold text-gray-600" for="mod_outbound">
+                                                <i class="fas fa-truck-loading text-primary mr-1"></i> Outbound Management <span class="badge badge-light border text-muted ml-1" style="font-size:0.65rem;">Semua User</span>
                                             </label>
                                         </div>
+                                        <hr class="my-2">
+                                        <p class="small text-muted mb-2" style="line-height:1.3;"><i class="fas fa-th-large mr-1"></i>Modul Overview &amp; Laporan:</p>
+                                        <div class="custom-control custom-checkbox mb-2">
+                                            <input type="checkbox" class="custom-control-input module-checkbox" id="mod_dashboard" value="dashboard">
+                                            <label class="custom-control-label font-weight-bold text-gray-800" for="mod_dashboard">
+                                                <i class="fas fa-th-large text-primary mr-1"></i> Dashboard Overview <span class="badge badge-light border text-muted ml-1" style="font-size:0.65rem;">Khusus Head</span>
+                                            </label>
+                                        </div>
+                                        <div class="custom-control custom-checkbox mb-2">
+                                            <input type="checkbox" class="custom-control-input module-checkbox" id="mod_reports" value="reports">
+                                            <label class="custom-control-label font-weight-bold text-gray-800" for="mod_reports">
+                                                <i class="fas fa-file-alt text-primary mr-1"></i> Reports
+                                            </label>
+                                        </div>
+                                        <div class="custom-control custom-checkbox mb-2">
+                                            <input type="checkbox" class="custom-control-input module-checkbox" id="mod_analytics" value="analytics">
+                                            <label class="custom-control-label font-weight-bold text-gray-800" for="mod_analytics">
+                                                <i class="fas fa-chart-line text-primary mr-1"></i> Analytics
+                                            </label>
+                                        </div>
+                                        <hr class="my-2">
+                                        <p class="small text-muted mb-2" style="line-height:1.3;"><i class="fas fa-lock mr-1"></i>Modul Master Data:</p>
                                         <div class="custom-control custom-checkbox">
                                             <input type="checkbox" class="custom-control-input module-checkbox" id="mod_master_data" value="master_data">
                                             <label class="custom-control-label font-weight-bold text-gray-800" for="mod_master_data">
                                                 <i class="fas fa-database text-primary mr-1"></i> Master Data
                                             </label>
+                                        </div>
+                                        <!-- Master Data Sub-Checkboxes (visible when Master Data is checked) -->
+                                        <div id="master-data-sub-options" class="ml-4 mt-2 pl-2" style="border-left: 2px solid #d1d3e2; display: none;">
+                                            <p class="small text-muted mb-1" style="font-size:0.72rem;"><i class="fas fa-sitemap mr-1"></i>Akses Sub-Modul Master Data:</p>
+                                            <div class="custom-control custom-checkbox mb-1">
+                                                <input type="checkbox" class="custom-control-input module-checkbox" id="mod_master_data_inbound" value="master_data_inbound">
+                                                <label class="custom-control-label text-gray-700" for="mod_master_data_inbound" style="font-size:0.8rem;">
+                                                    <i class="fas fa-box-open text-success mr-1"></i> Inbound Master Data
+                                                </label>
+                                            </div>
+                                            <div class="custom-control custom-checkbox mb-1">
+                                                <input type="checkbox" class="custom-control-input module-checkbox" id="mod_master_data_storage" value="master_data_storage">
+                                                <label class="custom-control-label text-gray-700" for="mod_master_data_storage" style="font-size:0.8rem;">
+                                                    <i class="fas fa-warehouse text-primary mr-1"></i> Storage Master Data
+                                                </label>
+                                            </div>
+                                            <div class="custom-control custom-checkbox">
+                                                <input type="checkbox" class="custom-control-input module-checkbox" id="mod_master_data_outbound" value="master_data_outbound">
+                                                <label class="custom-control-label text-gray-700" for="mod_master_data_outbound" style="font-size:0.8rem;">
+                                                    <i class="fas fa-truck-loading text-warning mr-1"></i> Outbound Master Data
+                                                </label>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -162,42 +207,69 @@ include 'components/header.php';
         }
 
         function applyRolePreset(val) {
+            // Inbound, Warehouse, Outbound are ALWAYS accessible (checked + disabled)
+            setModuleCheckbox('mod_inbound', true, true);
+            setModuleCheckbox('mod_warehouse', true, true);
+            setModuleCheckbox('mod_outbound', true, true);
+
             if (val === 'head_warehouse_admin') {
-                // Head gets all modules (checked & restricted/locked)
-                setModuleCheckbox('mod_inbound', true, true);
-                setModuleCheckbox('mod_warehouse', true, true);
-                setModuleCheckbox('mod_outbound', true, true);
-                setModuleCheckbox('mod_master_data', true, true);
-            } else if (val === 'inbound_admin') {
-                // Inbound & Master Data checked; Warehouse & Outbound restricted (disabled)
-                setModuleCheckbox('mod_inbound', true, false);
+                // Dashboard Overview is strictly for Head role
+                setModuleCheckbox('mod_dashboard', true, true);
+                setModuleCheckbox('mod_reports', true, false);
+                setModuleCheckbox('mod_analytics', true, false);
+
                 setModuleCheckbox('mod_master_data', true, false);
-                setModuleCheckbox('mod_warehouse', false, true);
-                setModuleCheckbox('mod_outbound', false, true);
-            } else if (val === 'outbound_admin') {
-                // Outbound & Master Data checked; Inbound & Warehouse restricted (disabled)
-                setModuleCheckbox('mod_inbound', false, true);
-                setModuleCheckbox('mod_warehouse', false, true);
-                setModuleCheckbox('mod_outbound', true, false);
-                setModuleCheckbox('mod_master_data', true, false);
-            } else if (val === 'warehouse_admin') {
-                // Warehouse & Master Data checked; Inbound & Outbound restricted (disabled)
-                setModuleCheckbox('mod_inbound', false, true);
-                setModuleCheckbox('mod_warehouse', true, false);
-                setModuleCheckbox('mod_outbound', false, true);
-                setModuleCheckbox('mod_master_data', true, false);
+                setModuleCheckbox('mod_master_data_inbound', true, false);
+                setModuleCheckbox('mod_master_data_storage', true, false);
+                setModuleCheckbox('mod_master_data_outbound', true, false);
+                toggleMasterDataSub(true);
             } else if (val === 'superadmin') {
-                setModuleCheckbox('mod_inbound', true, true);
-                setModuleCheckbox('mod_warehouse', true, true);
-                setModuleCheckbox('mod_outbound', true, true);
+                setModuleCheckbox('mod_dashboard', true, true);
+                setModuleCheckbox('mod_reports', true, true);
+                setModuleCheckbox('mod_analytics', true, true);
+
                 setModuleCheckbox('mod_master_data', true, true);
+                setModuleCheckbox('mod_master_data_inbound', true, true);
+                setModuleCheckbox('mod_master_data_storage', true, true);
+                setModuleCheckbox('mod_master_data_outbound', true, true);
+                toggleMasterDataSub(true);
+            } else if (val === 'inbound_admin' || val === 'warehouse_admin' || val === 'outbound_admin') {
+                // Dashboard Overview is LOCKED (unchecked + disabled) for other administrator roles
+                setModuleCheckbox('mod_dashboard', false, true);
+                setModuleCheckbox('mod_reports', true, false);
+                setModuleCheckbox('mod_analytics', true, false);
+
+                setModuleCheckbox('mod_master_data', true, true);
+                if (val === 'inbound_admin') {
+                    setModuleCheckbox('mod_master_data_inbound', true, true);
+                    setModuleCheckbox('mod_master_data_storage', false, true);
+                    setModuleCheckbox('mod_master_data_outbound', false, true);
+                } else if (val === 'warehouse_admin') {
+                    setModuleCheckbox('mod_master_data_inbound', false, true);
+                    setModuleCheckbox('mod_master_data_storage', true, true);
+                    setModuleCheckbox('mod_master_data_outbound', false, true);
+                } else if (val === 'outbound_admin') {
+                    setModuleCheckbox('mod_master_data_inbound', false, true);
+                    setModuleCheckbox('mod_master_data_storage', false, true);
+                    setModuleCheckbox('mod_master_data_outbound', true, true);
+                }
+                toggleMasterDataSub(true);
             } else {
-                // Admin Operasional (custom) -> all enabled
-                setModuleCheckbox('mod_inbound', true, false);
-                setModuleCheckbox('mod_warehouse', true, false);
-                setModuleCheckbox('mod_outbound', true, false);
-                setModuleCheckbox('mod_master_data', true, false);
+                setModuleCheckbox('mod_dashboard', false, true);
+                setModuleCheckbox('mod_reports', false, false);
+                setModuleCheckbox('mod_analytics', false, false);
+
+                setModuleCheckbox('mod_master_data', false, false);
+                setModuleCheckbox('mod_master_data_inbound', false, false);
+                setModuleCheckbox('mod_master_data_storage', false, false);
+                setModuleCheckbox('mod_master_data_outbound', false, false);
+                toggleMasterDataSub(false);
             }
+        }
+
+        function toggleMasterDataSub(show) {
+            var subEl = document.getElementById('master-data-sub-options');
+            if (subEl) subEl.style.display = show ? 'block' : 'none';
         }
 
         document.addEventListener('DOMContentLoaded', function () {
@@ -217,10 +289,18 @@ include 'components/header.php';
                 document.getElementById('pass-required-hint').classList.remove('d-none');
                 document.getElementById('pass-help').classList.add('d-none');
                 
+                var roleContainer = document.getElementById('modal_role_container');
+                if (roleContainer) roleContainer.style.display = 'block';
+
                 var roleSelect = document.getElementById('modal_role');
                 roleSelect.disabled = false;
                 roleSelect.value = "inbound_admin";
                 applyRolePreset("inbound_admin");
+            });
+
+            // Toggle Master Data sub-checkboxes visibility when parent is checked/unchecked
+            document.getElementById('mod_master_data').addEventListener('change', function() {
+                toggleMasterDataSub(this.checked);
             });
 
             // Form Submit (Create / Update)
@@ -280,18 +360,31 @@ include 'components/header.php';
                 
                 if (u.role === 'superadmin') {
                     modulesBadges = '<span class="badge badge-success mr-1 mb-1"><i class="fas fa-check-circle mr-1"></i>Semua Modul (Super Admin)</span>';
-                } else if (mods.length === 0) {
-                    modulesBadges = '<span class="badge badge-light text-muted border">Tidak Ada Modul</span>';
                 } else {
-                    mods.forEach(function (m) {
-                        var badgeColor = 'badge-info';
-                        if (m === 'inbound') badgeColor = 'badge-success';
-                        if (m === 'warehouse') badgeColor = 'badge-primary';
-                        if (m === 'outbound') badgeColor = 'badge-warning text-white';
-                        if (m === 'master_data') badgeColor = 'badge-dark';
-
-                        modulesBadges += '<span class="badge ' + badgeColor + ' mr-1 mb-1 text-uppercase">' + m.replace('_', ' ') + '</span>';
-                    });
+                    // Show Dashboard Overview badge for Head role
+                    if (u.role === 'head_warehouse_admin' || mods.includes('dashboard')) {
+                        modulesBadges += '<span class="badge badge-secondary mr-1 mb-1"><i class="fas fa-th-large mr-1"></i>DASHBOARD</span>';
+                    }
+                    // All users have access to these main menu modules (always shown)
+                    modulesBadges += '<span class="badge badge-success mr-1 mb-1"><i class="fas fa-box-open mr-1"></i>INBOUND</span>';
+                    modulesBadges += '<span class="badge badge-primary mr-1 mb-1"><i class="fas fa-warehouse mr-1"></i>WAREHOUSE</span>';
+                    modulesBadges += '<span class="badge badge-warning text-white mr-1 mb-1"><i class="fas fa-truck-loading mr-1"></i>OUTBOUND</span>';
+                    // Reports and Analytics
+                    if (u.role === 'head_warehouse_admin' || mods.includes('reports')) {
+                        modulesBadges += '<span class="badge badge-info mr-1 mb-1"><i class="fas fa-file-alt mr-1"></i>REPORTS</span>';
+                    }
+                    if (u.role === 'head_warehouse_admin' || mods.includes('analytics')) {
+                        modulesBadges += '<span class="badge badge-info mr-1 mb-1"><i class="fas fa-chart-line mr-1"></i>ANALYTICS</span>';
+                    }
+                    // Master Data only if explicitly granted
+                    if (mods.includes('master_data')) {
+                        var mdSubs = [];
+                        if (mods.includes('master_data_inbound')) mdSubs.push('Inbound');
+                        if (mods.includes('master_data_storage')) mdSubs.push('Storage');
+                        if (mods.includes('master_data_outbound')) mdSubs.push('Outbound');
+                        var subLabel = mdSubs.length > 0 ? ' (' + mdSubs.join(', ') + ')' : '';
+                        modulesBadges += '<span class="badge badge-dark mr-1 mb-1"><i class="fas fa-database mr-1"></i>MASTER DATA' + subLabel + '</span>';
+                    }
                 }
 
                 var btnResetPass = '<button class="btn btn-sm btn-warning ml-1" title="Reset Password" onclick="resetUserPassword(' + u.id + ', \'' + escapeQuotes(u.name) + '\')"><i class="fas fa-key"></i> Reset</button>';
@@ -328,13 +421,17 @@ include 'components/header.php';
             document.getElementById('modal_name').value = u.name;
             document.getElementById('modal_password').value = '';
             
+            var roleContainer = document.getElementById('modal_role_container');
             var roleSelect = document.getElementById('modal_role');
+
             if (u.role === 'superadmin') {
-                roleSelect.value = 'superadmin';
-                roleSelect.disabled = true;
+                if (roleContainer) roleContainer.style.display = 'none';
+                applyRolePreset('superadmin');
             } else {
+                if (roleContainer) roleContainer.style.display = 'block';
                 roleSelect.disabled = false;
-                roleSelect.value = (u.role && u.role !== 'superadmin') ? u.role : 'inbound_admin';
+                roleSelect.value = u.role ? u.role : 'inbound_admin';
+                applyRolePreset(roleSelect.value);
             }
 
             document.getElementById('userModalLabel').innerHTML = '<i class="fas fa-user-edit mr-2"></i>Edit Admin / User';
@@ -342,15 +439,30 @@ include 'components/header.php';
             document.getElementById('pass-required-hint').classList.add('d-none');
             document.getElementById('pass-help').classList.remove('d-none');
 
-            applyRolePreset(roleSelect.value);
-
             var mods = Array.isArray(u.allowed_modules) ? u.allowed_modules : [];
-            if (roleSelect.value === 'admin') {
-                document.getElementById('mod_inbound').checked = mods.includes('inbound');
-                document.getElementById('mod_warehouse').checked = mods.includes('warehouse');
-                document.getElementById('mod_outbound').checked = mods.includes('outbound');
-                document.getElementById('mod_master_data').checked = mods.includes('master_data');
+            // Apply role preset first to set disabled/checked defaults
+            applyRolePreset(u.role || 'inbound_admin');
+
+            if (u.role === 'head_warehouse_admin') {
+                document.getElementById('mod_dashboard').checked = true;
+                document.getElementById('mod_reports').checked = mods.length === 0 || mods.includes('reports');
+                document.getElementById('mod_analytics').checked = mods.length === 0 || mods.includes('analytics');
+            } else {
+                document.getElementById('mod_dashboard').checked = false;
+                document.getElementById('mod_reports').checked = mods.includes('reports');
+                document.getElementById('mod_analytics').checked = mods.includes('analytics');
             }
+
+            // For custom/head roles where master_data is configurable, restore from saved data
+            if (u.role !== 'inbound_admin' && u.role !== 'warehouse_admin' && u.role !== 'outbound_admin' && u.role !== 'superadmin') {
+                if (mods.length > 0) {
+                    document.getElementById('mod_master_data').checked = mods.includes('master_data');
+                    document.getElementById('mod_master_data_inbound').checked = mods.includes('master_data_inbound');
+                    document.getElementById('mod_master_data_storage').checked = mods.includes('master_data_storage');
+                    document.getElementById('mod_master_data_outbound').checked = mods.includes('master_data_outbound');
+                }
+            }
+            toggleMasterDataSub(document.getElementById('mod_master_data').checked);
 
             $('#userModal').modal('show');
         }
@@ -360,12 +472,26 @@ include 'components/header.php';
             var username = document.getElementById('modal_username').value;
             var name = document.getElementById('modal_name').value;
             var password = document.getElementById('modal_password').value;
-            var role = document.getElementById('modal_role').value;
+            var roleSelect = document.getElementById('modal_role');
+            var role = roleSelect.value;
+
+            if (userId != "0") {
+                var existingUser = currentUsersList.find(item => item.id == userId);
+                if (existingUser && existingUser.role === 'superadmin') {
+                    role = 'superadmin';
+                }
+            }
 
             var selectedModules = [];
             document.querySelectorAll('.module-checkbox:checked').forEach(cb => {
                 selectedModules.push(cb.value);
             });
+
+            if (role !== 'superadmin') {
+                if (!selectedModules.includes('inbound')) selectedModules.push('inbound');
+                if (!selectedModules.includes('warehouse')) selectedModules.push('warehouse');
+                if (!selectedModules.includes('outbound')) selectedModules.push('outbound');
+            }
 
             var payload = {
                 action: 'save',

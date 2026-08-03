@@ -1,3 +1,6 @@
+<?php
+require_once __DIR__ . '/config/database.php';
+?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -90,32 +93,51 @@
         .portal-card-link {
             display: block;
             width: 100%;
-            max-width: 360px;
+            max-width: 310px;
             margin: 0 auto;
-            text-decoration: none;
-            border-radius: 18px;
+            text-decoration: none !important;
+            border-radius: 14px;
             overflow: hidden;
-            background: transparent;
-            border: none !important;
-            box-shadow: none !important;
-            outline: none !important;
-            transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+            background: rgba(30, 41, 59, 0.65);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.32) !important;
+            transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
 
         .portal-card-link:hover {
-            transform: scale(1.06);
+            transform: translateY(-6px) scale(1.02);
+            box-shadow: 0 18px 38px rgba(0, 0, 0, 0.48), 0 0 18px rgba(59, 130, 246, 0.22) !important;
+            border-color: rgba(59, 130, 246, 0.4) !important;
         }
 
         .portal-card-img {
             width: 100%;
             height: auto;
             aspect-ratio: 1723 / 842;
-            object-fit: fill;
-            border-radius: 18px;
+            object-fit: cover;
+            border-top-left-radius: 14px;
+            border-top-right-radius: 14px;
             display: block;
-            border: none !important;
-            box-shadow: none !important;
-            filter: none !important;
+        }
+
+        .portal-card-body {
+            padding: 10px 14px 14px 14px;
+            text-align: left;
+        }
+
+        .portal-card-title {
+            color: #ffffff;
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+
+        .portal-card-desc {
+            color: #94a3b8;
+            font-size: 0.8rem;
+            line-height: 1.4;
+            margin-bottom: 0;
         }
 
         .footer-text {
@@ -140,26 +162,38 @@
             <p class="hero-subtitle">Asset And Warehouse Management</p>
         </div>
 
-        <!-- Cards Row: Direct images with rounded corners, no box background, no shadow -->
-        <div class="row justify-content-center align-items-center my-auto py-3">
-            <!-- Card 1: AWan -->
-            <div class="col-md-4 col-lg-4 mb-4 text-center">
-                <a href="https://centrals.lintasarta.net/assets/" class="portal-card-link">
+        <!-- Cards Row: Glassmorphism Card Container with Closer Padding -->
+        <div class="row justify-content-center align-items-stretch my-auto py-3 px-md-4">
+            <!-- Card 1: AWan System -->
+            <div class="col-md-4 col-lg-4 mb-4 text-center px-md-2 px-lg-2">
+                <a href="https://centrals.lintasarta.net/assets/" class="portal-card-link h-100 d-flex flex-column">
                     <img src="img/AWan.png" alt="AWan System" class="portal-card-img">
+                    <div class="portal-card-body flex-grow-1 d-flex flex-column justify-content-between">
+                        <div>
+                            <div class="portal-card-title">AWan</div>
+                            <p class="portal-card-desc">Sistem Manajemen pencatatan dan mutasi asset.</p>
+                        </div>
+                    </div>
                 </a>
             </div>
 
-            <!-- Card 2: WMS -->
-            <div class="col-md-4 col-lg-4 mb-4 text-center">
-                <a href="wms_select.php" class="portal-card-link">
+            <!-- Card 2: WMS System -->
+            <div class="col-md-4 col-lg-4 mb-4 text-center px-md-2 px-lg-2">
+                <a href="wms_select.php" class="portal-card-link h-100 d-flex flex-column">
                     <img src="img/WMS.png" alt="Warehouse Management System" class="portal-card-img">
+                    <div class="portal-card-body flex-grow-1 d-flex flex-column justify-content-between">
+                        <div>
+                            <div class="portal-card-title">Warehouse Management System</div>
+                            <p class="portal-card-desc">Dashboard monitoring Inbound, Storage, dan Outbound.</p>
+                        </div>
+                    </div>
                 </a>
             </div>
         </div>
 
         <!-- Footer -->
         <div class="footer-text text-center">
-            <p class="mb-0">Unreleased Beta Versi &copy; PT. Aplikanusa Lintasarta</p>
+            <p class="mb-0"><?php echo htmlspecialchars(function_exists('getSystemAppVersion') ? getSystemAppVersion($pdo ?? null) : 'Beta-v1.0.0'); ?> &copy; PT. Aplikanusa Lintasarta</p>
         </div>
     </div>
 

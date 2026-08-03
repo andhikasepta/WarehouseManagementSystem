@@ -1,7 +1,13 @@
-            <footer class="sticky-footer bg-white">
+<?php
+if (!function_exists('getSystemAppVersion')) {
+    @include_once __DIR__ . '/../config/database.php';
+}
+$currentAppVer = function_exists('getSystemAppVersion') ? getSystemAppVersion($pdo ?? null) : 'Beta-v1.0.0';
+?>
+            <footer class="sticky-footer bg-white py-2" style="padding: 0.4rem 0 !important;">
                 <div class="container my-auto">
-                    <div class="copyright text-center my-auto">
-                        <span>Unreleased Beta Versi &copy; PT. Aplikanusa Lintasarta</span>
+                    <div class="copyright text-center my-auto" style="font-size: 0.7rem; color: #94a3b8;">
+                        <span><?php echo htmlspecialchars($currentAppVer); ?> &copy; PT. Aplikanusa Lintasarta</span>
                     </div>
                 </div>
             </footer>

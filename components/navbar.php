@@ -1,9 +1,10 @@
 <?php
-// Shared Topbar Component
-// Accepts $activePage ('inbound', 'warehouse', 'outbound', 'master_data', 'wms_select', 'user_management')
+// Shared Navigation Component (Left Sidebar + Topbar)
+// Accepts $activePage ('inbound', 'warehouse', 'outbound', 'master_data', 'wms_select', 'user_management', 'dashboard')
 // Accepts optional $hidePeriodSelector (boolean)
 // Accepts optional $hideNavLinks (boolean)
 // Accepts optional $hideLoginButton (boolean)
+// Accepts optional $hideNavbarUl (boolean)
 
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
@@ -14,6 +15,7 @@ if (!isset($activePage)) {
 }
 
 $navUser = [
+    'id' => $_SESSION['user_id'] ?? '',
     'name' => $_SESSION['name'] ?? 'Guest User',
     'role' => $_SESSION['role'] ?? 'guest',
     'is_logged_in' => isset($_SESSION['user_id']) && !empty($_SESSION['user_id'])
@@ -25,38 +27,824 @@ $canAccessMasterData = $navUser['is_logged_in'] && ($isSuperAdminNav || in_array
 
 $shouldHideNavLinks = isset($hideNavLinks) && $hideNavLinks;
 $shouldHideNavbarUl = isset($hideNavbarUl) && $hideNavbarUl;
+$showSidebar = $navUser['is_logged_in'] && !$shouldHideNavLinks;
+
+$navRoleTitle = 'Admin Warehouse';
+if ($navUser['role'] === 'superadmin') $navRoleTitle = 'Super Admin';
+elseif ($navUser['role'] === 'head_warehouse_admin') $navRoleTitle = 'Head-Warehouse Management';
+elseif ($navUser['role'] === 'inbound_admin') $navRoleTitle = 'Inbound Administrator';
+elseif ($navUser['role'] === 'outbound_admin') $navRoleTitle = 'Outbound Administrator';
+elseif ($navUser['role'] === 'warehouse_admin') $navRoleTitle = 'Storage Administrator';
+
+// Fetch active announcement server-side for zero-latency instant navbar rendering
+if (!isset($pdo)) {
+    @include_once __DIR__ . '/../config/database.php';
+}
+
+$navAnnouncement = null;
+$navAnnouncementsList = [];
+$navAnnouncementStatus = 'none';
+
+if (isset($pdo)) {
+    try {
+        date_default_timezone_set('Asia/Jakarta');
+        $currentNow = date('Y-m-d H:i:s');
+        $sqlAnn = "SELECT id, title, description, type, version, start_datetime, end_datetime, updated_at
+                   FROM announcements 
+                   WHERE is_active = 1 
+                     AND DATE(?) BETWEEN DATE(start_datetime) AND DATE(end_datetime)
+                   ORDER BY id ASC";
+        $stmtAnn = $pdo->prepare($sqlAnn);
+        $stmtAnn->execute([$currentNow]);
+        $navAnnouncementsList = $stmtAnn->fetchAll(PDO::FETCH_ASSOC);
+
+        if (!empty($navAnnouncementsList)) {
+            $navAnnouncementStatus = 'active';
+            $monthsIndo = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+            foreach ($navAnnouncementsList as &$ann) {
+                $ann['type'] = $ann['type'] ?? 'maintenance';
+                $startTs = strtotime($ann['start_datetime']);
+                $endTs = strtotime($ann['end_datetime']);
+                $startDateStr = date('d', $startTs) . ' ' . $monthsIndo[date('n', $startTs) - 1] . ' ' . date('Y', $startTs);
+                $startTimeStr = date('H:i', $startTs);
+                $endDateStr = date('d', $endTs) . ' ' . $monthsIndo[date('n', $endTs) - 1] . ' ' . date('Y', $endTs);
+                $endTimeStr = date('H:i', $endTs);
+                if ($startDateStr === $endDateStr) {
+                    $ann['formatted_period'] = $startDateStr . ' (' . $startTimeStr . ' - ' . $endTimeStr . ' WIB)';
+                } else {
+                    $ann['formatted_period'] = $startDateStr . ' ' . $startTimeStr . ' - ' . $endDateStr . ' ' . $endTimeStr . ' WIB';
+                }
+
+                if (!empty($ann['version'])) {
+                    $ann['version_text'] = $ann['version'];
+                } else {
+                    $text = ($ann['title'] ?? '') . ' ' . ($ann['description'] ?? '');
+                    if (preg_match('/(?:versi|version)?\s*((?:beta|alpha|rc)[-_ ]?v?\d+(?:\.\d+)*(?:[-_][a-z0-9]+)?)/i', $text, $m)) {
+                        $ann['version_text'] = trim($m[1]);
+                    } elseif (preg_match('/((?:beta|alpha|rc|v)?[-_]?v?\d+(?:\.\d+)+(?:[-_][a-z0-9]+)?)/i', $text, $m)) {
+                        $ver = trim($m[1]);
+                        $ann['version_text'] = preg_match('/^[0-9]/', $ver) ? 'V' . $ver : $ver;
+                    } elseif (preg_match('/(?:versi|version)\s*([a-z0-9_\-.]+)/i', $text, $m)) {
+                        $ann['version_text'] = trim($m[1]);
+                    } else {
+                        $ann['version_text'] = 'V1.0.0';
+                    }
+                }
+            }
+            unset($ann);
+            $navAnnouncement = $navAnnouncementsList[0];
+        }
+    } catch (Exception $e) {
+        // Silently continue if table/PDO isn't ready
+    }
+}
 ?>
+
+<style>
+/* Dark Blue Sidebar Styles */
+#wms-sidebar {
+    width: 250px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    z-index: 1040;
+    background: linear-gradient(180deg, #0b192c 0%, #112236 40%, #1e3e62 100%);
+    color: #e2e8f0;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 4px 0 15px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s ease-in-out;
+}
+
+#wms-sidebar .sidebar-brand {
+    padding: 0.75rem 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.15);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+#wms-sidebar .sidebar-brand-img {
+    max-height: 32px;
+    width: auto;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+}
+
+#wms-sidebar .sidebar-nav {
+    list-style: none;
+    padding: 0.35rem 0;
+    margin: 0;
+    flex-grow: 1;
+    overflow-y: hidden;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+#wms-sidebar .sidebar-nav::-webkit-scrollbar {
+    display: none;
+}
+
+#wms-sidebar .sidebar-heading {
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: #94a3b8;
+    padding: 0.4rem 1rem 0.15rem 1rem;
+}
+
+#wms-sidebar .nav-item {
+    margin: 0.12rem 0.5rem;
+}
+
+#wms-sidebar .nav-item .nav-link {
+    display: flex;
+    align-items: center;
+    padding: 0.45rem 0.85rem;
+    color: #cbd5e1;
+    font-size: 0.83rem;
+    font-weight: 600;
+    border-radius: 6px;
+    text-decoration: none;
+    transition: all 0.2s ease-in-out;
+}
+
+#wms-sidebar .nav-item .nav-link i {
+    font-size: 0.95rem;
+    width: 1.4rem;
+    margin-right: 0.65rem;
+    color: #94a3b8;
+    transition: color 0.2s ease-in-out;
+}
+
+#wms-sidebar .nav-item .nav-link span {
+    padding-left: 0.15rem;
+}
+
+#wms-sidebar .nav-item .nav-link:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+    transform: translateX(3px);
+}
+
+#wms-sidebar .nav-item .nav-link:hover i {
+    color: #60a5fa;
+}
+
+#wms-sidebar .nav-item.active .nav-link {
+    background: linear-gradient(90deg, #1e4b7a 0%, #285b93 100%);
+    color: #ffffff;
+    font-weight: 700;
+    border-left: 3px solid #60a5fa;
+    box-shadow: 0 2px 8px rgba(30, 75, 122, 0.4);
+}
+
+#wms-sidebar .nav-item.active .nav-link i {
+    color: #60a5fa;
+}
+
+#wms-sidebar .sidebar-user-footer {
+    padding: 1rem;
+    background: rgba(0, 0, 0, 0.25);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+#wms-sidebar .user-info-card {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+/* Layout Adjustments for Left Sidebar */
+<?php if ($showSidebar): ?>
+@media (min-width: 992px) {
+    #content-wrapper {
+        margin-left: 250px !important;
+        transition: margin-left 0.3s ease-in-out;
+    }
+    .topbar.fixed-top {
+        left: 250px !important;
+        width: calc(100% - 250px) !important;
+        transition: left 0.3s ease-in-out, width 0.3s ease-in-out;
+    }
+    .container-fluid {
+        padding-top: 75px !important;
+    }
+}
+
+/* Mini Icon Sidebar Mode (Desktop Collapsed State) */
+@media (min-width: 992px) {
+    body.sidebar-toggled #wms-sidebar {
+        width: 65px !important;
+        transform: translateX(0) !important;
+        visibility: visible !important;
+    }
+    
+    body.sidebar-toggled #wms-sidebar .sidebar-brand {
+        padding: 0.75rem 0.25rem !important;
+    }
+    
+    body.sidebar-toggled #wms-sidebar .sidebar-brand span {
+        font-size: 1rem !important;
+        letter-spacing: 1px !important;
+    }
+    
+    body.sidebar-toggled #wms-sidebar .sidebar-heading {
+        font-size: 0 !important;
+        line-height: 0 !important;
+        padding: 0 !important;
+        margin: 0.65rem 0.6rem !important;
+        height: 1px !important;
+        background-color: rgba(255, 255, 255, 0.15) !important;
+        color: transparent !important;
+        overflow: hidden !important;
+        display: block !important;
+    }
+    
+    body.sidebar-toggled #wms-sidebar .sidebar-nav > .sidebar-heading:first-child,
+    body.sidebar-toggled #wms-sidebar .sidebar-nav > .sidebar-heading:first-of-type {
+        display: none !important;
+    }
+    
+    body.sidebar-toggled #wms-sidebar .nav-item {
+        margin: 0.25rem 0.35rem !important;
+    }
+    
+    body.sidebar-toggled #wms-sidebar .nav-item .nav-link {
+        justify-content: center !important;
+        padding: 0.5rem !important;
+        text-align: center !important;
+        border-left: none !important;
+        border-radius: 6px !important;
+    }
+    
+    body.sidebar-toggled #wms-sidebar .nav-item .nav-link i {
+        margin-right: 0 !important;
+        width: auto !important;
+        font-size: 1.15rem !important;
+    }
+    
+    body.sidebar-toggled #wms-sidebar .nav-item .nav-link span {
+        display: none !important;
+    }
+    
+    body.sidebar-toggled #content-wrapper {
+        margin-left: 65px !important;
+        transition: margin-left 0.3s ease-in-out;
+    }
+    
+    body.sidebar-toggled .topbar.fixed-top {
+        left: 65px !important;
+        width: calc(100% - 65px) !important;
+        transition: left 0.3s ease-in-out, width 0.3s ease-in-out;
+    }
+}
+
+@media (max-width: 991.98px) {
+    #wms-sidebar {
+        transform: translateX(-100%);
+    }
+    body.mobile-sidebar-open #wms-sidebar {
+        transform: translateX(0);
+    }
+    #content-wrapper {
+        margin-left: 0 !important;
+    }
+    .topbar.fixed-top {
+        left: 0 !important;
+        width: 100% !important;
+    }
+    .container-fluid {
+        padding-top: 75px !important;
+    }
+}
+<?php else: ?>
+.container-fluid {
+    padding-top: 75px !important;
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+}
+<?php endif; ?>
+
+/* Global Ultra-Compact Layout Styles for All Pages (Inbound, Storage, Outbound, Master Data, etc.) */
+
+/* Topbar Height */
+.topbar {
+    height: 3.5rem !important;
+}
+
+/* Page Typography Compaction */
+h1, .h1, h1.h3 {
+    font-size: 1.15rem !important;
+    margin-bottom: 0.25rem !important;
+    font-weight: 700 !important;
+}
+
+h2, .h2 {
+    font-size: 1.05rem !important;
+}
+
+h3, .h3 {
+    font-size: 0.95rem !important;
+}
+
+h4, .h4 {
+    font-size: 0.9rem !important;
+}
+
+h5, .h5 {
+    font-size: 0.85rem !important;
+}
+
+h6, .h6 {
+    font-size: 0.8rem !important;
+}
+
+body {
+    font-size: 0.82rem !important;
+}
+
+/* Card Heights & Compaction */
+.card {
+    margin-bottom: 0.5rem !important;
+    border-radius: 6px !important;
+}
+
+.card .card-body {
+    padding: 0.4rem 0.6rem !important;
+}
+
+.card .card-header {
+    padding: 0.35rem 0.6rem !important;
+    min-height: unset !important;
+}
+
+.card .card-footer {
+    padding: 0.35rem 0.6rem !important;
+}
+
+.card .h5, .card h5 {
+    font-size: 0.88rem !important;
+    line-height: 1.2 !important;
+}
+
+.card .h3, .card h3 {
+    font-size: 1.1rem !important;
+    line-height: 1.2 !important;
+}
+
+.card .text-xs {
+    font-size: 0.62rem !important;
+    line-height: 1.2 !important;
+}
+
+.card.py-2 {
+    padding-top: 0.1rem !important;
+    padding-bottom: 0.1rem !important;
+}
+
+.status-card-clickable {
+    padding-top: 0.15rem !important;
+    padding-bottom: 0.15rem !important;
+}
+
+.card i.fa-2x {
+    font-size: 1.2em !important;
+}
+
+/* Spacing & Gaps */
+.mb-4, .my-4 {
+    margin-bottom: 0.5rem !important;
+}
+
+.mb-3, .my-3 {
+    margin-bottom: 0.35rem !important;
+}
+
+.pb-3 {
+    padding-bottom: 0.35rem !important;
+}
+
+.py-2 {
+    padding-top: 0.15rem !important;
+    padding-bottom: 0.15rem !important;
+}
+
+.py-3 {
+    padding-top: 0.35rem !important;
+    padding-bottom: 0.35rem !important;
+}
+
+.row > [class*="col-"].mb-4 {
+    margin-bottom: 0.5rem !important;
+}
+
+/* Table & Form Elements Compaction */
+.table td, .table th {
+    padding: 0.3rem 0.5rem !important;
+    font-size: 0.78rem !important;
+}
+
+.form-control, .custom-select, select.form-control {
+    height: calc(1.2em + 0.45rem + 2px) !important;
+    padding: 0.15rem 0.45rem !important;
+    font-size: 0.78rem !important;
+}
+
+.btn {
+    padding: 0.22rem 0.5rem !important;
+    font-size: 0.78rem !important;
+}
+
+.btn-sm {
+    padding: 0.15rem 0.4rem !important;
+    font-size: 0.74rem !important;
+}
+
+/* Fixed Height & Compact Metric Cards for Storage / Warehouse Management */
+.storage-card,
+.card[class*="border-left-"]:not(.inbound-metric-card) {
+    min-height: 64px !important;
+    max-height: 64px !important;
+    height: 64px !important;
+    overflow: hidden !important;
+}
+
+.storage-card .card-body,
+.card[class*="border-left-"]:not(.inbound-metric-card) .card-body {
+    height: 100% !important;
+    padding: 0.35rem 0.65rem !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-items: flex-start !important;
+    overflow: hidden !important;
+}
+
+/* Inbound Metric Cards - Title on Top, Value Aligned at Bottom Baseline */
+.inbound-metric-card,
+.card.inbound-metric-card {
+    min-height: 64px !important;
+    height: 100% !important;
+}
+
+.inbound-metric-card .card-body,
+.card.inbound-metric-card .card-body {
+    height: 100% !important;
+    padding: 0.35rem 0.55rem !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    align-items: flex-start !important;
+}
+
+.inbound-metric-card .text-xs {
+    white-space: normal !important;
+    word-break: normal !important;
+    line-height: 1.15 !important;
+    margin-bottom: 0.15rem !important;
+    font-size: 0.63rem !important;
+}
+
+.inbound-metric-card .h5,
+.inbound-metric-card h5 {
+    margin-top: auto !important;
+    margin-bottom: 0 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    font-size: 0.92rem !important;
+    line-height: 1.1 !important;
+}
+
+.card[class*="border-left-"] .h5,
+.card[class*="border-left-"] h5,
+.card[class*="border-left-"] .h3,
+.card[class*="border-left-"] h3 {
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    font-size: 0.88rem !important;
+    line-height: 1.15 !important;
+    margin-bottom: 0 !important;
+}
+
+.card[class*="border-left-"] #card-last-update {
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    font-size: 0.72rem !important;
+    line-height: 1.15 !important;
+    margin-bottom: 0 !important;
+}
+
+.card[class*="border-left-"] .text-xs {
+    font-size: 0.62rem !important;
+    margin-bottom: 0.15rem !important;
+    line-height: 1.15 !important;
+}
+
+.tooltip-inner {
+    font-size: 0.72rem !important;
+    padding: 0.25rem 0.5rem !important;
+}
+
+.card[class*="border-left-"] .progress {
+    height: 4px !important;
+    margin-top: 2px !important;
+}
+
+.card[class*="border-left-"] .fa-2x {
+    font-size: 1.15em !important;
+}
+
+.card[class*="border-left-"] .row.no-gutters {
+    width: 100% !important;
+}
+
+.card[class*="border-left-"] .col-auto {
+    padding-left: 0.5rem !important;
+    padding-right: 0.4rem !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+/* Footer Compaction */
+.sticky-footer {
+    padding: 0.4rem 0 !important;
+}
+.sticky-footer .copyright {
+    font-size: 0.7rem !important;
+    line-height: 1.2 !important;
+}
+
+/* Card Text Overlap & Wrap Fix */
+.card .text-nowrap,
+.card-body .text-nowrap,
+.status-card-clickable .text-nowrap,
+.card .text-xs,
+.status-card-clickable .text-xs {
+    line-height: 1.25 !important;
+}
+
+body.sidebar-toggled #wms-sidebar .nav-item .nav-link .nav-lock-icon {
+    display: none !important;
+}
+
+#wms-sidebar .nav-item .nav-link .nav-lock-icon {
+    font-size: 0.72rem;
+    color: #94a3b8;
+    margin-left: auto;
+    opacity: 0.75;
+    transition: color 0.2s ease, opacity 0.2s ease;
+}
+
+    #wms-sidebar .nav-item .nav-link:hover .nav-lock-icon {
+        color: #fbbf24;
+        opacity: 1;
+    }
+
+    @keyframes bullhornPulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.22); }
+        100% { transform: scale(1); }
+    }
+    .animate-pulse {
+        animation: bullhornPulse 1.8s infinite ease-in-out;
+        display: inline-block;
+    }
+</style>
+
+<?php if ($showSidebar): ?>
+<!-- Left Sidebar Navigation -->
+<aside id="wms-sidebar">
+    <div class="sidebar-brand text-center" style="padding: 0.5rem 1rem; min-height: 60px;">
+        <div class="d-flex align-items-center justify-content-center text-white h-100" style="cursor: default;">
+            <img src="img/WMS_Logo.png" alt="WMS Logo" class="sidebar-brand-img" style="max-height: 50px; height: 50px; width: auto; max-width: 100%; object-fit: contain; filter: brightness(0) invert(1); pointer-events: none;">
+        </div>
+    </div>
+
+    <ul class="sidebar-nav">
+        <?php 
+        $navRole = $navUser['role'] ?? '';
+        $isHeadRoleNav = (strpos($navRole, 'head_') === 0) || ($navRole === 'head_warehouse_admin');
+        $isSuperAdminNav = ($navRole === 'superadmin');
+
+        // Access Permission Check Flags
+        // Dashboard Overview: Head role only
+        // Inbound, Storage, Outbound: open to ALL logged-in users (view charts)
+        // Reports, Analytics, Master Data: restricted to users with explicit allowed_modules permission or Head role
+        // System: Super Admin only
+        $hasDashboardAccess  = !$isSuperAdminNav && $isHeadRoleNav;
+        $hasInboundAccess    = !$isSuperAdminNav;
+        $hasWarehouseAccess  = !$isSuperAdminNav;
+        $hasOutboundAccess   = !$isSuperAdminNav;
+        $hasMasterDataAccess = !$isSuperAdminNav && in_array('master_data', $allowedNavModules);
+        $hasReportsAccess    = !$isSuperAdminNav && ($isHeadRoleNav || in_array('reports', $allowedNavModules));
+        $hasAnalyticsAccess  = !$isSuperAdminNav && ($isHeadRoleNav || in_array('analytics', $allowedNavModules));
+        $hasReportSection    = $hasReportsAccess || $hasAnalyticsAccess;
+        $hasUserMgmtAccess   = $isSuperAdminNav;
+        ?>
+
+        <!-- Overview Section -->
+        <?php if ($hasDashboardAccess): ?>
+        <div class="sidebar-heading">Overview</div>
+        <li class="nav-item <?php echo ($activePage == 'dashboard') ? 'active' : ''; ?>">
+            <a class="nav-link" href="dashboard.php">
+                <i class="fas fa-th-large fa-fw"></i>
+                <span>Dashboard</span>
+            </a>
+        </li>
+        <?php endif; ?>
+
+        <!-- Main Menu Section -->
+        <?php if ($hasInboundAccess || $hasWarehouseAccess || $hasOutboundAccess): ?>
+        <div class="sidebar-heading mt-2">Main Menu</div>
+        <?php if ($hasInboundAccess): ?>
+        <li class="nav-item <?php echo ($activePage == 'inbound') ? 'active' : ''; ?>">
+            <a class="nav-link" href="inbound.php">
+                <i class="fas fa-box-open fa-fw"></i>
+                <span>Inbound</span>
+            </a>
+        </li>
+        <?php endif; ?>
+        <?php if ($hasWarehouseAccess): ?>
+        <li class="nav-item <?php echo ($activePage == 'warehouse') ? 'active' : ''; ?>">
+            <a class="nav-link" href="warehouse.php">
+                <i class="fas fa-warehouse fa-fw"></i>
+                <span>Storage</span>
+            </a>
+        </li>
+        <?php endif; ?>
+        <?php if ($hasOutboundAccess): ?>
+        <li class="nav-item <?php echo ($activePage == 'outbound') ? 'active' : ''; ?>">
+            <a class="nav-link" href="outbound.php">
+                <i class="fas fa-truck-loading fa-fw"></i>
+                <span>Outbound</span>
+            </a>
+        </li>
+        <?php endif; ?>
+        <?php endif; ?>
+
+        <!-- Data Settings Section -->
+        <?php if ($hasMasterDataAccess || $hasWarehouseAccess): ?>
+        <div class="sidebar-heading mt-2">Data Settings</div>
+        <?php if ($hasMasterDataAccess): ?>
+        <li class="nav-item <?php echo ($activePage == 'master_data') ? 'active' : ''; ?>">
+            <a class="nav-link" href="master_data.php">
+                <i class="fas fa-database fa-fw"></i>
+                <span>Master Data</span>
+            </a>
+        </li>
+        <?php endif; ?>
+        <?php if ($hasWarehouseAccess): ?>
+        <li class="nav-item <?php echo ($activePage == 'inventory') ? 'active' : ''; ?>">
+            <a class="nav-link" href="warehouse.php">
+                <i class="fas fa-boxes fa-fw"></i>
+                <span>Inventory</span>
+            </a>
+        </li>
+        <?php endif; ?>
+        <?php if ($hasMasterDataAccess): ?>
+        <li class="nav-item <?php echo ($activePage == 'location') ? 'active' : ''; ?>">
+            <a class="nav-link" href="master_data.php">
+                <i class="fas fa-map-marker-alt fa-fw"></i>
+                <span>Location</span>
+            </a>
+        </li>
+        <?php endif; ?>
+        <?php endif; ?>
+
+        <!-- Report Section -->
+        <?php if ($hasReportSection): ?>
+        <div class="sidebar-heading mt-2">Report</div>
+        <?php if ($hasReportsAccess): ?>
+        <li class="nav-item <?php echo ($activePage == 'reports') ? 'active' : ''; ?>">
+            <a class="nav-link" href="dashboard.php">
+                <i class="fas fa-file-alt fa-fw"></i>
+                <span>Reports</span>
+            </a>
+        </li>
+        <?php endif; ?>
+        <?php if ($hasAnalyticsAccess): ?>
+        <li class="nav-item <?php echo ($activePage == 'analytics') ? 'active' : ''; ?>">
+            <a class="nav-link" href="dashboard.php">
+                <i class="fas fa-chart-line fa-fw"></i>
+                <span>Analytics</span>
+            </a>
+        </li>
+        <?php endif; ?>
+        <?php endif; ?>
+
+        <!-- System Section -->
+        <?php if ($hasUserMgmtAccess): ?>
+        <div class="sidebar-heading mt-2">System</div>
+        <li class="nav-item <?php echo ($activePage == 'user_management') ? 'active' : ''; ?>">
+            <a class="nav-link" href="user_management.php">
+                <i class="fas fa-users-cog fa-fw"></i>
+                <span>User Management</span>
+            </a>
+        </li>
+        <li class="nav-item <?php echo ($activePage == 'announcements') ? 'active' : ''; ?>">
+            <a class="nav-link" href="announcements.php">
+                <i class="fas fa-bullhorn fa-fw"></i>
+                <span>Pengumuman</span>
+            </a>
+        </li>
+        <?php endif; ?>
+    </ul>
+
+</aside>
+<?php endif; ?>
+
+<!-- Topbar Navigation -->
 <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 fixed-top shadow" style="z-index: 1020;">
-    <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3">
+    <?php if ($showSidebar): ?>
+    <button id="sidebarToggleTop" class="btn btn-link rounded-circle mr-2 text-primary">
         <i class="fa fa-bars"></i>
     </button>
-    <form class="d-none d-sm-inline-block form-inline mr-auto ml-md-3 my-2 my-md-0 mw-100 navbar-search">
-        <div class="input-group">
-            <?php if (!empty($navUser['is_logged_in'])): ?>
-                <span style="cursor: default;">
-                    <img src="img/Lintasarta.png" alt="Lintasarta Logo" width="150px">
-                </span>
+
+    <!-- Announcement Broadcast Button (Beside Hamburger on sidebar pages) -->
+    <div id="announcement-notify-wrapper" class="d-flex align-items-center mr-2">
+        <?php if ($navAnnouncementStatus === 'active' && $navAnnouncement): ?>
+        <button id="btn-announcement-notify" class="btn btn-primary btn-sm rounded-pill font-weight-bold shadow-sm d-flex align-items-center px-3 py-1" style="background: linear-gradient(135deg, #0b192c 0%, #1e3e62 100%); border: 1px solid rgba(255, 255, 255, 0.2); font-size: 0.82rem; color: #ffffff !important; cursor: pointer;" title="Klik untuk melihat Pengumuman Maintenance" data-toggle="modal" data-target="#announcementNoticeModal">
+            <i class="fas fa-bullhorn mr-1 text-white" style="font-size: 0.9rem;"></i>
+            <span class="font-weight-bold">Pengumuman</span>
+        </button>
+        <?php else: ?>
+        <button id="btn-announcement-notify" class="btn btn-secondary btn-sm rounded-pill font-weight-bold shadow-sm d-flex align-items-center px-3 py-1" style="background: #b0b7c3; opacity: 0.65; border: none; font-size: 0.82rem; color: #ffffff !important; cursor: not-allowed;" title="Tidak ada Pengumuman aktif" disabled>
+            <i class="fas fa-bullhorn mr-1 text-white" style="font-size: 0.9rem;"></i>
+            <span class="font-weight-bold">Pengumuman</span>
+        </button>
+        <?php endif; ?>
+    </div>
+    <div class="mr-auto"></div>
+
+    <?php else: ?>
+    <!-- Logo First, then Announcement Button on the Right Side of Logo -->
+    <div class="d-flex align-items-center mr-auto my-2 ml-md-3">
+        <div class="d-flex align-items-center mr-3" style="cursor: default;">
+            <img src="img/WMS_Logo.png" alt="WMS Logo" style="max-height: 50px; height: 50px; width: auto; object-fit: contain; pointer-events: none;">
+        </div>
+
+        <!-- Announcement Broadcast Button (On right side of Logo for non-sidebar pages like wms_select) -->
+        <div id="announcement-notify-wrapper" class="d-flex align-items-center">
+            <?php if ($navAnnouncementStatus === 'active' && $navAnnouncement): ?>
+            <button id="btn-announcement-notify" class="btn btn-primary btn-sm rounded-pill font-weight-bold shadow-sm d-flex align-items-center px-3 py-1" style="background: linear-gradient(135deg, #0b192c 0%, #1e3e62 100%); border: 1px solid rgba(255, 255, 255, 0.2); font-size: 0.82rem; color: #ffffff !important; cursor: pointer;" title="Klik untuk melihat Pengumuman Maintenance" data-toggle="modal" data-target="#announcementNoticeModal">
+                <i class="fas fa-bullhorn mr-1 text-white" style="font-size: 0.9rem;"></i>
+                <span class="font-weight-bold">Pengumuman</span>
+            </button>
             <?php else: ?>
-                <a href="wms_select.php" title="Kembali ke Dashboard WMS">
-                    <img src="img/Lintasarta.png" alt="Lintasarta Logo" width="150px">
-                </a>
+            <button id="btn-announcement-notify" class="btn btn-secondary btn-sm rounded-pill font-weight-bold shadow-sm d-flex align-items-center px-3 py-1" style="background: #b0b7c3; opacity: 0.65; border: none; font-size: 0.82rem; color: #ffffff !important; cursor: not-allowed;" title="Tidak ada Pengumuman aktif" disabled>
+                <i class="fas fa-bullhorn mr-1 text-white" style="font-size: 0.9rem;"></i>
+                <span class="font-weight-bold">Pengumuman</span>
+            </button>
             <?php endif; ?>
         </div>
-    </form>
+    </div>
+    <?php endif; ?>
+
     <?php if (!$shouldHideNavbarUl): ?>
     <ul class="navbar-nav ml-auto align-items-center text-nowrap" style="white-space: nowrap;">
         <?php if (!isset($hidePeriodSelector) || !$hidePeriodSelector): ?>
+        <?php 
+        $isDateRangePage = in_array($activePage, ['inbound', 'outbound', 'dashboard']);
+        ?>
         <li class="nav-item dropdown no-arrow mx-1">
             <a class="nav-link dropdown-toggle text-nowrap" href="#" id="periodDropdown" role="button"
                 data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                 <span class="mr-2 d-none d-lg-inline text-gray-600 small text-nowrap" id="selected-period-text"
-                    style="font-weight: bold;">PILIH DATA</span> <i
+                    style="font-weight: bold;">PILIH PERIODE DATA</span> <i
                     class="fas fa-chevron-down fa-sm fa-fw text-gray-400"></i>
             </a>
             <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in p-3"
                 aria-labelledby="periodDropdown" id="period-dropdown-menu"
-                style="min-width: 280px;">
-                <h6 class="dropdown-header px-0 pt-0 text-primary font-weight-bold">PILIH DATA</h6>
+                style="min-width: 290px;">
+                <?php if ($isDateRangePage): ?>
+                <h6 class="dropdown-header px-0 pt-0 text-primary font-weight-bold mb-2">
+                    <i class="far fa-calendar-alt mr-1"></i> PILIH PERIODE DATA
+                </h6>
+                <div class="form-group mb-2">
+                    <label for="period-start-date" class="small font-weight-bold text-gray-600 mb-1">Tanggal Mulai</label>
+                    <input type="date" class="form-control form-control-sm" id="period-start-date">
+                </div>
+                <div class="form-group mb-3">
+                    <label for="period-end-date" class="small font-weight-bold text-gray-600 mb-1">Tanggal Selesai</label>
+                    <input type="date" class="form-control form-control-sm" id="period-end-date">
+                </div>
+                <button class="btn btn-primary btn-sm btn-block font-weight-bold" id="btn-load-period" disabled>
+                    <i class="fas fa-filter mr-1"></i>Tampilkan Data
+                </button>
+                <button class="btn btn-outline-secondary btn-sm btn-block font-weight-bold mt-2" id="btn-reset-period">
+                    <i class="fas fa-undo mr-1"></i>Reset
+                </button>
+                <?php else: ?>
+                <h6 class="dropdown-header px-0 pt-0 text-primary font-weight-bold">PILIH PERIODE DATA</h6>
                 <div class="form-group mb-2">
                     <label for="period-month-select" class="small font-weight-bold text-gray-600">Bulan</label>
                     <select class="form-control form-control-sm" id="period-month-select">
@@ -72,67 +860,12 @@ $shouldHideNavbarUl = isset($hideNavbarUl) && $hideNavbarUl;
                 <button class="btn btn-primary btn-sm btn-block" id="btn-load-period" disabled>
                     <i class="fas fa-check mr-1"></i>Tampilkan Data
                 </button>
+                <button class="btn btn-outline-secondary btn-sm btn-block font-weight-bold mt-2" id="btn-reset-period">
+                    <i class="fas fa-undo mr-1"></i>Reset
+                </button>
+                <?php endif; ?>
             </div>
         </li>
-        <?php endif; ?>
-
-        <?php if (!$shouldHideNavLinks): ?>
-        <!-- Navigation Links -->
-        <?php if ($navUser['role'] === 'superadmin'): ?>
-            <li class="nav-item <?php echo ($activePage == 'user_management') ? 'active' : ''; ?>">
-                <a class="nav-link text-nowrap" href="user_management.php">
-                    <span class="mr-2 d-none d-lg-inline text-nowrap <?php echo ($activePage == 'user_management') ? 'text-primary font-weight-bold' : 'text-gray-600 font-weight-bold'; ?>">
-                        <i class="fas fa-users-cog mr-1"></i> User Management
-                    </span>
-                </a>
-            </li>
-        <?php else: ?>
-            <?php 
-            $navRole = $navUser['role'] ?? '';
-            $isHeadRoleNav = (strpos($navRole, 'head_') === 0) || ($navRole === 'head_warehouse_admin');
-            if ($isHeadRoleNav): 
-            ?>
-            <li class="nav-item <?php echo ($activePage == 'dashboard') ? 'active' : ''; ?>">
-                <a class="nav-link text-nowrap" href="dashboard.php">
-                    <span class="mr-2 d-none d-lg-inline text-nowrap <?php echo ($activePage == 'dashboard') ? 'text-primary font-weight-bold' : 'text-gray-600 font-weight-bold'; ?>">
-                        <i class="fas fa-th-large mr-1"></i> Dashboard
-                    </span>
-                </a>
-            </li>
-            <?php endif; ?>
-
-            <li class="nav-item <?php echo ($activePage == 'inbound') ? 'active' : ''; ?>">
-                <a class="nav-link text-nowrap" href="inbound.php">
-                    <span class="mr-2 d-none d-lg-inline text-nowrap <?php echo ($activePage == 'inbound') ? 'text-primary font-weight-bold' : 'text-gray-600 font-weight-bold'; ?>">
-                        <i class="fas fa-box-open mr-1"></i> Inbound
-                    </span>
-                </a>
-            </li>
-            <li class="nav-item <?php echo ($activePage == 'warehouse') ? 'active' : ''; ?>">
-                <a class="nav-link text-nowrap" href="warehouse.php">
-                    <span class="mr-2 d-none d-lg-inline text-nowrap <?php echo ($activePage == 'warehouse') ? 'text-primary font-weight-bold' : 'text-gray-600 font-weight-bold'; ?>">
-                        <i class="fas fa-warehouse mr-1"></i> Storage
-                    </span>
-                </a>
-            </li>
-            <li class="nav-item <?php echo ($activePage == 'outbound') ? 'active' : ''; ?>">
-                <a class="nav-link text-nowrap" href="outbound.php">
-                    <span class="mr-2 d-none d-lg-inline text-nowrap <?php echo ($activePage == 'outbound') ? 'text-primary font-weight-bold' : 'text-gray-600 font-weight-bold'; ?>">
-                        <i class="fas fa-truck-loading mr-1"></i> Outbound
-                    </span>
-                </a>
-            </li>
-            
-            <?php if ($canAccessMasterData): ?>
-            <li class="nav-item <?php echo ($activePage == 'master_data') ? 'active' : ''; ?>">
-                <a class="nav-link text-nowrap" href="master_data.php">
-                    <span class="mr-2 d-none d-lg-inline text-nowrap <?php echo ($activePage == 'master_data') ? 'text-primary font-weight-bold' : 'text-gray-600 font-weight-bold'; ?>">
-                        <i class="fas fa-database mr-1"></i> Master Data
-                    </span>
-                </a>
-            </li>
-            <?php endif; ?>
-        <?php endif; ?>
         <?php endif; ?>
 
         <div class="topbar-divider d-none d-sm-block"></div>
@@ -140,27 +873,28 @@ $shouldHideNavbarUl = isset($hideNavbarUl) && $hideNavbarUl;
         <!-- User Information & Logout Dropdown -->
         <?php if ($navUser['is_logged_in']): ?>
         <li class="nav-item dropdown no-arrow text-nowrap">
-            <a class="nav-link dropdown-toggle text-nowrap" href="#" id="userDropdown" role="button"
+            <a class="nav-link dropdown-toggle text-nowrap py-0 d-flex align-items-center" href="#" id="userDropdown" role="button"
                 data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                <span class="mr-2 d-none d-lg-inline text-gray-700 small font-weight-bold text-nowrap">
-                    <i class="fa fa-user mr-2 text-gray-400"></i><?php echo htmlspecialchars($navUser['name']); ?>
-                </span>
+                <div class="mr-2 d-flex align-items-center justify-content-center">
+                    <i class="fas fa-user-circle text-gray-400" style="font-size: 1.75rem;"></i>
+                </div>
+                <div class="mr-2 d-none d-lg-flex flex-column text-left text-nowrap justify-content-center">
+                    <span class="text-gray-800 small font-weight-bold text-nowrap" style="line-height: 1.2;">
+                        <?php echo htmlspecialchars($navUser['name']); ?>
+                    </span>
+                    <span class="text-muted text-nowrap" style="font-size: 0.68rem; line-height: 1.1; margin-top: 1px;">
+                        <?php echo htmlspecialchars($navRoleTitle); ?>
+                    </span>
+                </div>
                 <i class="fas fa-chevron-down fa-sm fa-fw text-gray-400"></i>
             </a>
-            <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in p-2 text-nowrap"
-                aria-labelledby="userDropdown" style="min-width: 180px;">
-                <div class="dropdown-item-text small text-muted font-weight-bold border-bottom pb-2 mb-2 text-nowrap">
-                    <?php 
-                    $navRoleTitle = 'Admin Warehouse';
-                    if ($navUser['role'] === 'superadmin') $navRoleTitle = 'Super Admin';
-                    elseif ($navUser['role'] === 'head_warehouse_admin') $navRoleTitle = 'Head-Warehouse Management';
-                    elseif ($navUser['role'] === 'inbound_admin') $navRoleTitle = 'Inbound Administrator';
-                    elseif ($navUser['role'] === 'outbound_admin') $navRoleTitle = 'Outbound Administrator';
-                    elseif ($navUser['role'] === 'warehouse_admin') $navRoleTitle = 'Storage Administrator';
-                    ?>
-                    Role: <?php echo htmlspecialchars($navRoleTitle); ?>
-                </div>
-                <a class="dropdown-item text-danger font-weight-bold text-nowrap" href="login.php?action=logout">
+            <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in p-1 text-nowrap"
+                aria-labelledby="userDropdown" style="min-width: 100%; width: max-content;">
+                <a class="dropdown-item text-gray-700 font-weight-bold text-nowrap py-2" href="#" data-toggle="modal" data-target="#changePasswordModal">
+                    <i class="fas fa-key fa-sm fa-fw mr-2 text-gray-500"></i> Ganti Password
+                </a>
+                <div class="dropdown-divider my-1"></div>
+                <a class="dropdown-item text-danger font-weight-bold text-nowrap py-2" href="login.php?action=logout">
                     <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-danger"></i> Logout
                 </a>
             </div>
@@ -175,3 +909,618 @@ $shouldHideNavbarUl = isset($hideNavbarUl) && $hideNavbarUl;
     </ul>
     <?php endif; ?>
 </nav>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var sidebarToggle = document.getElementById('sidebarToggleTop');
+    if (sidebarToggle) {
+        sidebarToggle.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            if (window.innerWidth < 992) {
+                document.body.classList.toggle('mobile-sidebar-open');
+            } else {
+                document.body.classList.toggle('sidebar-toggled');
+            }
+        }, true);
+    }
+
+    var startDateInput = document.getElementById('period-start-date');
+    var endDateInput = document.getElementById('period-end-date');
+    var btnLoad = document.getElementById('btn-load-period');
+    var selectedText = document.getElementById('selected-period-text');
+
+    if (startDateInput && endDateInput && btnLoad) {
+        function updateDateRangeBtn() {
+            if (startDateInput.value && endDateInput.value) {
+                btnLoad.disabled = false;
+            } else {
+                btnLoad.disabled = true;
+            }
+        }
+
+        startDateInput.addEventListener('change', updateDateRangeBtn);
+        endDateInput.addEventListener('change', updateDateRangeBtn);
+
+        btnLoad.addEventListener('click', function() {
+            if (startDateInput.value && endDateInput.value) {
+                var startFormatted = formatDateIndo(startDateInput.value);
+                var endFormatted = formatDateIndo(endDateInput.value);
+                var displayRange = startFormatted + ' - ' + endFormatted;
+                
+                if (selectedText) {
+                    selectedText.textContent = displayRange;
+                }
+
+                // Close dropdown if jQuery/Bootstrap is loaded
+                if (typeof $ !== 'undefined' && $('#periodDropdown').length) {
+                    $('#periodDropdown').dropdown('toggle');
+                }
+
+                // Dispatch global custom event for dateRangeChanged
+                window.dispatchEvent(new CustomEvent('dateRangeChanged', {
+                    detail: {
+                        startDate: startDateInput.value,
+                        endDate: endDateInput.value,
+                        displayRange: displayRange
+                    }
+                }));
+            }
+        });
+    }
+
+    var btnReset = document.getElementById('btn-reset-period');
+    if (btnReset) {
+        btnReset.addEventListener('click', function(e) {
+            e.stopPropagation();
+            if (startDateInput) startDateInput.value = '';
+            if (endDateInput) endDateInput.value = '';
+            
+            var monthSel = document.getElementById('period-month-select');
+            var yearSel = document.getElementById('period-year-select');
+            if (monthSel) monthSel.value = '';
+            if (yearSel) yearSel.value = '';
+
+            if (btnLoad) btnLoad.disabled = true;
+        });
+    }
+
+    function formatDateIndo(dateStr) {
+        if (!dateStr) return '';
+        var parts = dateStr.split('-');
+        if (parts.length === 3) {
+            return parts[2] + '/' + parts[1] + '/' + parts[0];
+        }
+        return dateStr;
+    }
+});
+</script>
+
+<!-- Check & Display Maintenance Announcement Modal for Logged-In Users -->
+<script>
+// Auto-show Announcement Modal on session load (zero-latency server-side state)
+(function() {
+    var isAnnouncementActive = <?php echo ($navAnnouncementStatus === 'active') ? 'true' : 'false'; ?>;
+    var annId = '<?php echo htmlspecialchars($navAnnouncement["id"] ?? ""); ?>';
+    var annUpdatedAt = '<?php echo htmlspecialchars($navAnnouncement["updated_at"] ?? ""); ?>';
+    var currentUserId = '<?php echo htmlspecialchars($navUser["id"] ?? "guest"); ?>';
+    
+    if (!isAnnouncementActive) return;
+
+    function initAnnouncementModal() {
+        if (typeof jQuery === 'undefined') {
+            setTimeout(initAnnouncementModal, 50);
+            return;
+        }
+        jQuery(document).ready(function($) {
+            var storageKey = 'announcement_dismissed_u' + currentUserId + '_' + annId + '_' + annUpdatedAt;
+            if (!sessionStorage.getItem(storageKey)) {
+                $('#announcementNoticeModal').modal('show');
+                $('#announcementNoticeModal').on('hidden.bs.modal', function () {
+                    sessionStorage.setItem(storageKey, 'true');
+                });
+            }
+        });
+    }
+
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+        initAnnouncementModal();
+    } else {
+        document.addEventListener('DOMContentLoaded', initAnnouncementModal);
+    }
+})();
+
+// ─── Real-time Announcement Polling (no reload needed) ───
+(function() {
+    var POLL_INTERVAL_MS = 10000; // Check every 10 seconds for near-instant updates
+    var BASE_PATH = (function() {
+        // Resolve API path relative to the current page
+        var scripts = document.getElementsByTagName('script');
+        // Fallback: detect from current URL
+        var path = window.location.pathname;
+        var segments = path.split('/');
+        segments.pop(); // remove filename
+        return segments.join('/') + '/';
+    })();
+
+    var lastFingerprint = '';
+    var currentUserId = '<?php echo htmlspecialchars($navUser["id"] ?? "guest"); ?>';
+
+    // Capture initial state fingerprint from server-rendered data
+    var initialId = '<?php echo htmlspecialchars($navAnnouncement["id"] ?? ""); ?>';
+    var initialUpdatedAt = '<?php echo htmlspecialchars($navAnnouncement["updated_at"] ?? ""); ?>';
+    if (initialId) {
+        lastFingerprint = initialId + '|' + initialUpdatedAt;
+    }
+
+    function pollAnnouncement() {
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', BASE_PATH + 'api/get_active_announcement.php?_t=' + Date.now(), true);
+        xhr.timeout = 10000;
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState !== 4) return;
+            if (xhr.status !== 200) return;
+
+            try {
+                var data = JSON.parse(xhr.responseText);
+            } catch(e) { return; }
+
+            if (!data.success) return;
+
+            if (data.active && data.status === 'active' && (data.announcements || data.announcement)) {
+                var list = data.announcements || [data.announcement];
+                window.wmsAnnouncementsList = list;
+                if (!window.wmsAnnouncementIdx || window.wmsAnnouncementIdx >= list.length) {
+                    window.wmsAnnouncementIdx = 0;
+                }
+
+                var ann = list[window.wmsAnnouncementIdx];
+                var newFingerprint = ann.id + '|' + (ann.updated_at || '') + '|' + list.length;
+
+                // Update the navbar button to ACTIVE state
+                updateNavbarButton(true);
+
+                // Update modal content with latest data
+                updateModalContent(ann);
+
+                // If this is a NEW or UPDATED announcement, auto-show the modal
+                if (newFingerprint !== lastFingerprint) {
+                    lastFingerprint = newFingerprint;
+                    var storageKey = 'announcement_dismissed_u' + currentUserId + '_' + ann.id + '_' + (ann.updated_at || '');
+
+                    // Only auto-show if user hasn't dismissed this exact version
+                    if (!sessionStorage.getItem(storageKey)) {
+                        showAnnouncementModal(storageKey);
+                    }
+                }
+            } else {
+                // No active announcement — disable the button
+                if (lastFingerprint !== '') {
+                    lastFingerprint = '';
+                    updateNavbarButton(false);
+                    hideAnnouncementModal();
+                }
+            }
+        };
+        xhr.send();
+    }
+
+    function updateNavbarButton(isActive) {
+        // Update ALL announcement buttons on the page (sidebar pages have one, non-sidebar pages have another)
+        var wrappers = document.querySelectorAll('#announcement-notify-wrapper');
+        for (var i = 0; i < wrappers.length; i++) {
+            var btn = wrappers[i].querySelector('#btn-announcement-notify, button');
+            if (!btn) continue;
+
+            if (isActive) {
+                btn.className = 'btn btn-primary btn-sm rounded-pill font-weight-bold shadow-sm d-flex align-items-center px-3 py-1';
+                btn.style.cssText = 'background: linear-gradient(135deg, #0b192c 0%, #1e3e62 100%); border: 1px solid rgba(255, 255, 255, 0.2); font-size: 0.82rem; color: #ffffff !important; cursor: pointer;';
+                btn.title = 'Klik untuk melihat Pengumuman Maintenance';
+                btn.disabled = false;
+                btn.setAttribute('data-toggle', 'modal');
+                btn.setAttribute('data-target', '#announcementNoticeModal');
+            } else {
+                btn.className = 'btn btn-secondary btn-sm rounded-pill font-weight-bold shadow-sm d-flex align-items-center px-3 py-1';
+                btn.style.cssText = 'background: #b0b7c3; opacity: 0.65; border: none; font-size: 0.82rem; color: #ffffff !important; cursor: not-allowed;';
+                btn.title = 'Tidak ada Pengumuman aktif';
+                btn.disabled = true;
+                btn.removeAttribute('data-toggle');
+                btn.removeAttribute('data-target');
+            }
+        }
+    }
+
+    window.navigateWmsAnnouncement = function(dir) {
+        var list = window.wmsAnnouncementsList || [];
+        if (list.length <= 1) return;
+        window.wmsAnnouncementIdx = (window.wmsAnnouncementIdx + dir + list.length) % list.length;
+        updateModalContent(list[window.wmsAnnouncementIdx]);
+    };
+
+    function updateModalContent(ann) {
+        if (!ann) return;
+        var modalHeaderEl = document.getElementById('announcementNoticeModalLabel');
+        var iconContainerEl = document.getElementById('noticeIconContainer');
+        var iconEl = document.getElementById('noticeIconEl');
+        var titleEl = document.getElementById('noticeTitleText');
+        var descEl = document.getElementById('noticeDescriptionText');
+        var bottomBadgeEl = document.getElementById('noticeBottomBadge');
+        var prevBtn = document.getElementById('btnBodyNoticePrev');
+        var nextBtn = document.getElementById('btnBodyNoticeNext');
+        var counterText = document.getElementById('noticeCounterText');
+
+        var list = window.wmsAnnouncementsList || [];
+        var total = list.length;
+        if (total > 1) {
+            if (prevBtn) prevBtn.style.display = 'inline-block';
+            if (nextBtn) nextBtn.style.display = 'inline-block';
+        } else {
+            if (prevBtn) prevBtn.style.display = 'none';
+            if (nextBtn) nextBtn.style.display = 'none';
+        }
+
+        if (titleEl) titleEl.textContent = ann.title || '';
+        if (descEl) descEl.textContent = ann.description || '';
+
+        var isUpdate = (ann.type === 'update');
+
+        if (modalHeaderEl) {
+            modalHeaderEl.innerHTML = '<i class="fas fa-bullhorn mr-2"></i>Pengumuman';
+        }
+
+        if (iconContainerEl && iconEl) {
+            if (isUpdate) {
+                iconContainerEl.style.backgroundColor = '#fee2e2';
+                iconContainerEl.style.color = '#dc2626';
+                iconEl.className = 'fas fa-exclamation fa-2x font-weight-bold';
+            } else {
+                iconContainerEl.style.backgroundColor = '#e2e8f0';
+                iconContainerEl.style.color = '#0b192c';
+                iconEl.className = 'fas fa-tools fa-2x';
+            }
+        }
+
+        if (bottomBadgeEl) {
+            if (isUpdate) {
+                var verText = ann.version_text || extractVersionFromJS(ann);
+                bottomBadgeEl.innerHTML = '<i class="fas fa-info-circle mr-1"></i>Versi Aplikasi <br><span id="noticePeriodText" class="font-weight-bold">' + escapeHtmlJS(verText) + '</span>';
+            } else {
+                bottomBadgeEl.innerHTML = '<i class="fas fa-clock mr-1"></i> Periode Maintenance: <br><span id="noticePeriodText" class="font-weight-bold">' + escapeHtmlJS(ann.formatted_period || '') + '</span>';
+            }
+        }
+    }
+
+    function extractVersionFromJS(ann) {
+        if (ann.version_text) return ann.version_text;
+        var text = (ann.title || '') + ' ' + (ann.description || '');
+        var match = text.match(/(?:versi|version)?\s*((?:beta|alpha|rc)[-_ ]?v?\d+(?:\.\d+)*(?:[-_][a-z0-9]+)?)/i);
+        if (match) return match[1].trim();
+
+        match = text.match(/((?:beta|alpha|rc|v)?[-_]?v?\d+(?:\.\d+)+(?:[-_][a-z0-9]+)?)/i);
+        if (match) {
+            var ver = match[1].trim();
+            if (/^[0-9]/.test(ver)) {
+                ver = 'V' + ver;
+            }
+            return ver;
+        }
+        match = text.match(/(?:versi|version)\s*([a-z0-9_\-.]+)/i);
+        if (match) return match[1].trim();
+        return 'V1.0.0';
+    }
+
+    function escapeHtmlJS(text) {
+        if (!text) return '';
+        return String(text).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    }
+
+    function showAnnouncementModal(storageKey) {
+        if (typeof jQuery === 'undefined') {
+            setTimeout(function() { showAnnouncementModal(storageKey); }, 100);
+            return;
+        }
+        jQuery(function($) {
+            var $modal = $('#announcementNoticeModal');
+            $modal.modal('show');
+            // Dismiss tracking: mark as seen when user closes
+            $modal.off('hidden.bs.modal.poll').on('hidden.bs.modal.poll', function() {
+                if (storageKey) sessionStorage.setItem(storageKey, 'true');
+            });
+        });
+    }
+
+    function hideAnnouncementModal() {
+        if (typeof jQuery !== 'undefined') {
+            jQuery('#announcementNoticeModal').modal('hide');
+        }
+    }
+
+    // Expose global trigger so admin page can force an immediate check
+    window.__wmsForceAnnouncementPoll = function() {
+        pollAnnouncement();
+    };
+
+    // Start polling: first check 2s after load, then every 10s
+    function startPolling() {
+        setTimeout(pollAnnouncement, 2000); // First check almost immediately
+        setInterval(pollAnnouncement, POLL_INTERVAL_MS);
+    }
+
+    if (document.readyState === 'complete') {
+        startPolling();
+    } else {
+        window.addEventListener('load', startPolling);
+    }
+})();
+</script>
+
+<?php
+$isUpdateType = ($navAnnouncement['type'] ?? 'maintenance') === 'update';
+$navAnnText = ($navAnnouncement['title'] ?? '') . ' ' . ($navAnnouncement['description'] ?? '');
+$navAnnVersion = 'V1.0.0';
+if (preg_match('/(?:versi|version)?\s*((?:beta|alpha|rc)[-_ ]?v?\d+(?:\.\d+)*(?:[-_][a-z0-9]+)?)/i', $navAnnText, $m)) {
+    $navAnnVersion = trim($m[1]);
+} elseif (preg_match('/((?:beta|alpha|rc|v)?[-_]?v?\d+(?:\.\d+)+(?:[-_][a-z0-9]+)?)/i', $navAnnText, $m)) {
+    $ver = trim($m[1]);
+    $navAnnVersion = preg_match('/^[0-9]/', $ver) ? 'V' . $ver : $ver;
+} elseif (preg_match('/(?:versi|version)\s*([a-z0-9_\-.]+)/i', $navAnnText, $m)) {
+    $navAnnVersion = trim($m[1]);
+}
+?>
+<script>
+window.wmsAnnouncementsList = <?php echo json_encode($navAnnouncementsList ?? []); ?>;
+window.wmsAnnouncementIdx = 0;
+</script>
+
+<!-- Global User Maintenance Announcement Modal -->
+<div class="modal fade" id="announcementNoticeModal" tabindex="-1" role="dialog" aria-labelledby="announcementNoticeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 14px; overflow: hidden;">
+            <div class="modal-header border-0 text-white py-3 px-4" style="background: linear-gradient(135deg, #0b192c 0%, #1e3e62 100%);">
+                <h5 class="modal-title font-weight-bold text-white my-auto" id="announcementNoticeModalLabel">
+                    <i class="fas fa-bullhorn mr-2"></i>Pengumuman
+                </h5>
+                <button type="button" class="close text-white opacity-75 my-auto" data-dismiss="modal" aria-label="Close" style="outline: none;">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body text-center bg-white" style="position: relative; padding: 1.5rem 3.8rem !important;">
+                <!-- Left Navigation Arrow on Modal Body (Pure Arrow, No Circle) -->
+                <button type="button" id="btnBodyNoticePrev" class="btn p-0 border-0" onclick="navigateWmsAnnouncement(-1)" title="Pengumuman Sebelumnya" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); z-index: 10; display: <?php echo (count($navAnnouncementsList ?? []) > 1) ? 'inline-block' : 'none'; ?>; color: #1e3e62; background: transparent; outline: none; cursor: pointer;">
+                    <i class="fas fa-chevron-left fa-2x"></i>
+                </button>
+
+                <!-- Right Navigation Arrow on Modal Body (Pure Arrow, No Circle) -->
+                <button type="button" id="btnBodyNoticeNext" class="btn p-0 border-0" onclick="navigateWmsAnnouncement(1)" title="Pengumuman Selanjutnya" style="position: absolute; right: 16px; top: 50%; transform: translateY(-50%); z-index: 10; display: <?php echo (count($navAnnouncementsList ?? []) > 1) ? 'inline-block' : 'none'; ?>; color: #1e3e62; background: transparent; outline: none; cursor: pointer;">
+                    <i class="fas fa-chevron-right fa-2x"></i>
+                </button>
+
+                <div class="mb-3">
+                    <div class="icon-circle d-inline-flex align-items-center justify-content-center rounded-circle p-3 shadow-sm" id="noticeIconContainer" style="width: 70px; height: 70px; background-color: <?php echo $isUpdateType ? '#fee2e2' : '#e2e8f0'; ?>; color: <?php echo $isUpdateType ? '#dc2626' : '#0b192c'; ?>;">
+                        <?php if ($isUpdateType): ?>
+                            <i class="fas fa-exclamation fa-2x font-weight-bold" id="noticeIconEl"></i>
+                        <?php else: ?>
+                            <i class="fas fa-tools fa-2x" id="noticeIconEl"></i>
+                        <?php endif; ?>
+                    </div>
+                </div>
+
+                <h5 class="font-weight-bold text-gray-800 mb-2" id="noticeTitleText"><?php echo htmlspecialchars($navAnnouncement['title'] ?? ''); ?></h5>
+                <p class="text-gray-700 small mb-3 text-left p-3 rounded" style="background-color: #f8fafc; border: 1px solid #e2e8f0; white-space: pre-line; max-height: 180px; overflow-y: auto;" id="noticeDescriptionText"><?php echo htmlspecialchars($navAnnouncement['description'] ?? ''); ?></p>
+                <div class="badge px-4 py-3 small font-weight-bold mt-3 mb-1" id="noticeBottomBadge" style="font-size: 0.82rem; white-space: normal; background-color: #e2e8f0; color: #0b192c; line-height: 1.5;">
+                    <?php if ($isUpdateType): ?>
+                        <i class="fas fa-info-circle mr-1"></i>Versi Aplikasi <br><span id="noticePeriodText" class="font-weight-bold"><?php echo htmlspecialchars($navAnnouncement['version_text'] ?? $navAnnVersion); ?></span>
+                    <?php else: ?>
+                        <i class="fas fa-clock mr-1"></i> Periode Maintenance: <br><span id="noticePeriodText" class="font-weight-bold"><?php echo htmlspecialchars($navAnnouncement['formatted_period'] ?? ''); ?></span>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Change Password Modal -->
+<div class="modal fade" id="changePasswordModal" tabindex="-1" role="dialog" aria-labelledby="changePasswordModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document" style="max-width: 440px;">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 14px; overflow: hidden;">
+            <div class="modal-header border-0 text-white py-3 px-4" style="background: linear-gradient(135deg, #0b192c 0%, #1e3e62 100%);">
+                <h5 class="modal-title font-weight-bold text-white my-auto" id="changePasswordModalLabel">
+                    <i class="fas fa-key mr-2"></i>Ganti Password
+                </h5>
+                <button type="button" class="close text-white opacity-75 my-auto" data-dismiss="modal" aria-label="Close" style="outline: none;">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form id="formChangePassword" autocomplete="off">
+                <div class="modal-body bg-white p-4">
+                    <div id="changePasswordAlert" class="alert alert-danger d-none small mb-3"></div>
+                    
+                    <div class="form-group mb-3">
+                        <label for="change_current_password" class="small font-weight-bold text-gray-700">Password Saat Ini <span class="text-danger">*</span></label>
+                        <div class="position-relative">
+                            <input type="password" class="form-control" id="change_current_password" name="current_password" placeholder="Masukkan password saat ini" required autocomplete="current-password" style="padding-right: 2.5rem !important;">
+                            <button class="btn p-0 btn-toggle-pwd" type="button" data-target="change_current_password" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: transparent; border: none; color: #64748b; outline: none; z-index: 5; box-shadow: none;">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label for="change_new_password" class="small font-weight-bold text-gray-700">Password Baru <span class="text-danger">*</span></label>
+                        <div class="position-relative">
+                            <input type="password" class="form-control" id="change_new_password" name="new_password" placeholder="Minimal 6 karakter" required autocomplete="new-password" style="padding-right: 2.5rem !important;">
+                            <button class="btn p-0 btn-toggle-pwd" type="button" data-target="change_new_password" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: transparent; border: none; color: #64748b; outline: none; z-index: 5; box-shadow: none;">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="form-group mb-2">
+                        <label for="change_confirm_password" class="small font-weight-bold text-gray-700">Konfirmasi Password Baru <span class="text-danger">*</span></label>
+                        <div class="position-relative">
+                            <input type="password" class="form-control" id="change_confirm_password" name="confirm_password" placeholder="Ulangi password baru" required autocomplete="new-password" style="padding-right: 2.5rem !important;">
+                            <button class="btn p-0 btn-toggle-pwd" type="button" data-target="change_confirm_password" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: transparent; border: none; color: #64748b; outline: none; z-index: 5; box-shadow: none;">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light px-4 py-3 border-top-0 d-flex justify-content-between">
+                    <button type="button" class="btn btn-secondary font-weight-bold px-3" data-dismiss="modal">
+                        <i class="fas fa-times mr-1"></i>Batal
+                    </button>
+                    <button type="submit" class="btn btn-primary font-weight-bold px-4" id="btnSubmitChangePassword">
+                        <i class="fas fa-save mr-1"></i>Simpan Password
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Password visibility toggle buttons
+    document.querySelectorAll('.btn-toggle-pwd').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var targetId = this.getAttribute('data-target');
+            var input = document.getElementById(targetId);
+            var icon = this.querySelector('i');
+            if (input) {
+                if (input.type === 'password') {
+                    input.type = 'text';
+                    icon.classList.remove('fa-eye');
+                    icon.classList.add('fa-eye-slash');
+                } else {
+                    input.type = 'password';
+                    icon.classList.remove('fa-eye-slash');
+                    icon.classList.add('fa-eye');
+                }
+            }
+        });
+    });
+
+    // Reset change password form when modal is hidden or shown
+    if (window.jQuery) {
+        $('#changePasswordModal').on('hidden.bs.modal show.bs.modal', function () {
+            var form = document.getElementById('formChangePassword');
+            if (form) form.reset();
+            var alertDiv = document.getElementById('changePasswordAlert');
+            if (alertDiv) {
+                alertDiv.classList.add('d-none');
+                alertDiv.textContent = '';
+            }
+            // Reset input types to password
+            ['change_current_password', 'change_new_password', 'change_confirm_password'].forEach(function(id) {
+                var inp = document.getElementById(id);
+                if (inp) inp.type = 'password';
+            });
+            document.querySelectorAll('.btn-toggle-pwd i').forEach(function(icon) {
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            });
+        });
+    }
+
+    // Submit change password form
+    var formPwd = document.getElementById('formChangePassword');
+    if (formPwd) {
+        formPwd.addEventListener('submit', function(e) {
+            e.preventDefault();
+            var alertDiv = document.getElementById('changePasswordAlert');
+            if (alertDiv) {
+                alertDiv.classList.add('d-none');
+                alertDiv.textContent = '';
+            }
+
+            var currentPwd = document.getElementById('change_current_password').value.trim();
+            var newPwd = document.getElementById('change_new_password').value.trim();
+            var confirmPwd = document.getElementById('change_confirm_password').value.trim();
+
+            if (!currentPwd || !newPwd || !confirmPwd) {
+                if (alertDiv) {
+                    alertDiv.textContent = 'Semua kolom password wajib diisi.';
+                    alertDiv.classList.remove('d-none');
+                }
+                return;
+            }
+
+            if (newPwd.length < 6) {
+                if (alertDiv) {
+                    alertDiv.textContent = 'Password baru minimal harus 6 karakter.';
+                    alertDiv.classList.remove('d-none');
+                }
+                return;
+            }
+
+            if (newPwd !== confirmPwd) {
+                if (alertDiv) {
+                    alertDiv.textContent = 'Konfirmasi password baru tidak cocok.';
+                    alertDiv.classList.remove('d-none');
+                }
+                return;
+            }
+
+            var btnSubmit = document.getElementById('btnSubmitChangePassword');
+            if (btnSubmit) {
+                btnSubmit.disabled = true;
+                btnSubmit.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Menyimpan...';
+            }
+
+            fetch('api/change_password.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    current_password: currentPwd,
+                    new_password: newPwd,
+                    confirm_password: confirmPwd
+                })
+            })
+            .then(function(res) { return res.json(); })
+            .then(function(data) {
+                if (btnSubmit) {
+                    btnSubmit.disabled = false;
+                    btnSubmit.innerHTML = '<i class="fas fa-save mr-1"></i>Simpan Password';
+                }
+
+                if (data.status === 'success') {
+                    if (window.jQuery) {
+                        $('#changePasswordModal').modal('hide');
+                    }
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({
+                            title: 'Berhasil!',
+                            text: data.message || 'Password Anda berhasil diperbarui.',
+                            icon: 'success',
+                            confirmButtonColor: '#1e3e62'
+                        });
+                    } else {
+                        alert(data.message || 'Password Anda berhasil diperbarui.');
+                    }
+                } else {
+                    if (alertDiv) {
+                        alertDiv.textContent = data.message || 'Gagal memperbarui password.';
+                        alertDiv.classList.remove('d-none');
+                    } else if (typeof Swal !== 'undefined') {
+                        Swal.fire('Error', data.message || 'Gagal memperbarui password.', 'error');
+                    } else {
+                        alert(data.message || 'Gagal memperbarui password.');
+                    }
+                }
+            })
+            .catch(function(err) {
+                if (btnSubmit) {
+                    btnSubmit.disabled = false;
+                    btnSubmit.innerHTML = '<i class="fas fa-save mr-1"></i>Simpan Password';
+                }
+                if (alertDiv) {
+                    alertDiv.textContent = 'Terjadi kesalahan koneksi server.';
+                    alertDiv.classList.remove('d-none');
+                }
+            });
+        });
+    }
+});
+</script>

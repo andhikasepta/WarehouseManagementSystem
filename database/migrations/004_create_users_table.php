@@ -2,16 +2,20 @@
 // database/migrations/004_create_users_table.php
 
 return function ($pdo) {
+    $driver = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+    $idCol = ($driver === 'pgsql') ? "id SERIAL PRIMARY KEY" : "id INT AUTO_INCREMENT PRIMARY KEY";
+    $tableOpt = ($driver === 'pgsql') ? "" : "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
+
     // 1. Create users table
     $sql = "CREATE TABLE IF NOT EXISTS users (
-        id INT AUTO_INCREMENT PRIMARY KEY,
+        $idCol,
         username VARCHAR(100) NOT NULL UNIQUE,
         password VARCHAR(255) NOT NULL,
         name VARCHAR(150) NOT NULL,
         role VARCHAR(50) NOT NULL DEFAULT 'admin',
         allowed_modules TEXT NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
+    ) $tableOpt;";
     
     $pdo->exec($sql);
 

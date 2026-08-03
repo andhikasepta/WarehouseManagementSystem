@@ -6,6 +6,11 @@ require_once __DIR__ . '/auth.php';
 $error = '';
 $redirect = $_GET['redirect'] ?? $_POST['redirect'] ?? 'wms_select.php';
 
+// Show access denied notification if redirected back
+if (isset($_GET['access_denied']) && $_GET['access_denied'] == '1') {
+    $error = 'User tidak mendapatkan hak akses modul.';
+}
+
 $moduleSubtitle = '';
 if (strpos($redirect, 'inbound') !== false) {
     $moduleSubtitle = 'Inbound Management';
@@ -36,6 +41,10 @@ if (isset($_GET['action']) && $_GET['action'] === 'logout') {
 
 // If already logged in and no logout request
 if (isset($_SESSION['user_id']) && !empty($_SESSION['user_id']) && !isset($_GET['action'])) {
+    if (($_SESSION['role'] ?? '') === 'superadmin') {
+        header("Location: user_management.php");
+        exit;
+    }
     header("Location: " . $redirect);
     exit;
 }
@@ -78,6 +87,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
                 $decodedModules = json_decode($user['allowed_modules'], true);
                 $_SESSION['allowed_modules'] = is_array($decodedModules) ? $decodedModules : [];
+
+                // Determine which module is being requested from redirect
+                $requestedModule = '';
+                if (strpos($redirect, 'inbound') !== false) {
+                    $requestedModule = 'inbound';
+                } elseif (strpos($redirect, 'warehouse') !== false) {
+                    $requestedModule = 'warehouse';
+                } elseif (strpos($redirect, 'outbound') !== false) {
+                    $requestedModule = 'outbound';
+                } elseif (strpos($redirect, 'master_data') !== false) {
+                    $requestedModule = 'master_data';
+                }
+
+                // Check module access (skip for superadmin & head_warehouse_admin)
+                if (!empty($requestedModule) 
+                    && $user['role'] !== 'superadmin' 
+                    && $user['role'] !== 'head_warehouse_admin') {
+                    $allowedModules = is_array($decodedModules) ? $decodedModules : [];
+                    if (!in_array($requestedModule, $allowedModules)) {
+                        // User doesn't have access — destroy session and redirect back
+                        $_SESSION = array();
+                        if (ini_get("session.use_cookies")) {
+                            $params = session_get_cookie_params();
+                            setcookie(session_name(), '', time() - 42000,
+                                $params["path"], $params["domain"],
+                                $params["secure"], $params["httponly"]
+                            );
+                        }
+                        session_destroy();
+                        header("Location: login.php?redirect=" . urlencode($redirect) . "&access_denied=1");
+                        exit;
+                    }
+                }
 
                 if ($user['role'] === 'superadmin') {
                     header("Location: user_management.php");
@@ -243,7 +285,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
 
         <div class="footer-text">
-            Unreleased Beta Versi &copy; PT. Aplikanusa Lintasarta
+            <?php echo htmlspecialchars(function_exists('getSystemAppVersion') ? getSystemAppVersion($pdo ?? null) : 'Beta-v1.0.0'); ?> &copy; PT. Aplikanusa Lintasarta
         </div>
     </div>
 

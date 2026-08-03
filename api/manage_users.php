@@ -89,9 +89,15 @@ if ($method === 'POST') {
     $userId = intval($data['id'] ?? 0);
     $username = trim($data['username'] ?? '');
     $name = trim($data['name'] ?? '');
-    $password = trim($data['password'] ?? '');
     $role = trim($data['role'] ?? 'admin');
     $modules = is_array($data['allowed_modules'] ?? null) ? $data['allowed_modules'] : [];
+
+    // Core WMS modules are accessible by all users for view & chart access
+    if ($role !== 'superadmin') {
+        if (!in_array('inbound', $modules)) $modules[] = 'inbound';
+        if (!in_array('warehouse', $modules)) $modules[] = 'warehouse';
+        if (!in_array('outbound', $modules)) $modules[] = 'outbound';
+    }
 
     if (empty($username) || empty($name)) {
         echo json_encode(['status' => 'error', 'message' => 'Username dan nama wajib diisi.']);
