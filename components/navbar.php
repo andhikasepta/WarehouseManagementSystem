@@ -31,6 +31,7 @@ $showSidebar = $navUser['is_logged_in'] && !$shouldHideNavLinks;
 
 $navRoleTitle = 'Admin Warehouse';
 if ($navUser['role'] === 'superadmin') $navRoleTitle = 'Super Admin';
+elseif ($navUser['role'] === 'head_asset_warehouse_admin') $navRoleTitle = 'Head-Asset And Warehouse Management';
 elseif ($navUser['role'] === 'head_warehouse_admin') $navRoleTitle = 'Head-Warehouse Management';
 elseif ($navUser['role'] === 'inbound_admin') $navRoleTitle = 'Inbound Administrator';
 elseif ($navUser['role'] === 'outbound_admin') $navRoleTitle = 'Outbound Administrator';
@@ -640,11 +641,14 @@ body.sidebar-toggled #wms-sidebar .nav-item .nav-link .nav-lock-icon {
         // Inbound, Storage, Outbound: open to ALL logged-in users (view charts)
         // Reports, Analytics, Master Data: restricted to users with explicit allowed_modules permission or Head role
         // System: Super Admin only
-        $hasDashboardAccess  = !$isSuperAdminNav && $isHeadRoleNav;
+        $hasDashboardAccess  = !$isSuperAdminNav && ($isHeadRoleNav || in_array('dashboard', $allowedNavModules));
         $hasInboundAccess    = !$isSuperAdminNav;
         $hasWarehouseAccess  = !$isSuperAdminNav;
         $hasOutboundAccess   = !$isSuperAdminNav;
-        $hasMasterDataAccess = !$isSuperAdminNav && in_array('master_data', $allowedNavModules);
+        $hasMasterDataAccess = !$isSuperAdminNav && ($isHeadRoleNav || in_array('master_data', $allowedNavModules));
+        $hasInventoryAccess  = !$isSuperAdminNav && ($isHeadRoleNav || in_array('inventory', $allowedNavModules));
+        $hasLocationAccess   = !$isSuperAdminNav && ($isHeadRoleNav || in_array('location', $allowedNavModules));
+        $hasDataSettingsSection = $hasMasterDataAccess || $hasInventoryAccess || $hasLocationAccess;
         $hasReportsAccess    = !$isSuperAdminNav && ($isHeadRoleNav || in_array('reports', $allowedNavModules));
         $hasAnalyticsAccess  = !$isSuperAdminNav && ($isHeadRoleNav || in_array('analytics', $allowedNavModules));
         $hasReportSection    = $hasReportsAccess || $hasAnalyticsAccess;
@@ -692,7 +696,7 @@ body.sidebar-toggled #wms-sidebar .nav-item .nav-link .nav-lock-icon {
         <?php endif; ?>
 
         <!-- Data Settings Section -->
-        <?php if ($hasMasterDataAccess || $hasWarehouseAccess): ?>
+        <?php if ($hasDataSettingsSection): ?>
         <div class="sidebar-heading mt-2">Data Settings</div>
         <?php if ($hasMasterDataAccess): ?>
         <li class="nav-item <?php echo ($activePage == 'master_data') ? 'active' : ''; ?>">
@@ -702,17 +706,17 @@ body.sidebar-toggled #wms-sidebar .nav-item .nav-link .nav-lock-icon {
             </a>
         </li>
         <?php endif; ?>
-        <?php if ($hasWarehouseAccess): ?>
+        <?php if ($hasInventoryAccess): ?>
         <li class="nav-item <?php echo ($activePage == 'inventory') ? 'active' : ''; ?>">
-            <a class="nav-link" href="warehouse.php">
+            <a class="nav-link" href="inventory.php">
                 <i class="fas fa-boxes fa-fw"></i>
                 <span>Inventory</span>
             </a>
         </li>
         <?php endif; ?>
-        <?php if ($hasMasterDataAccess): ?>
+        <?php if ($hasLocationAccess): ?>
         <li class="nav-item <?php echo ($activePage == 'location') ? 'active' : ''; ?>">
-            <a class="nav-link" href="master_data.php">
+            <a class="nav-link" href="location.php">
                 <i class="fas fa-map-marker-alt fa-fw"></i>
                 <span>Location</span>
             </a>
@@ -725,7 +729,7 @@ body.sidebar-toggled #wms-sidebar .nav-item .nav-link .nav-lock-icon {
         <div class="sidebar-heading mt-2">Report</div>
         <?php if ($hasReportsAccess): ?>
         <li class="nav-item <?php echo ($activePage == 'reports') ? 'active' : ''; ?>">
-            <a class="nav-link" href="dashboard.php">
+            <a class="nav-link" href="reports.php">
                 <i class="fas fa-file-alt fa-fw"></i>
                 <span>Reports</span>
             </a>
@@ -733,7 +737,7 @@ body.sidebar-toggled #wms-sidebar .nav-item .nav-link .nav-lock-icon {
         <?php endif; ?>
         <?php if ($hasAnalyticsAccess): ?>
         <li class="nav-item <?php echo ($activePage == 'analytics') ? 'active' : ''; ?>">
-            <a class="nav-link" href="dashboard.php">
+            <a class="nav-link" href="analytics.php">
                 <i class="fas fa-chart-line fa-fw"></i>
                 <span>Analytics</span>
             </a>

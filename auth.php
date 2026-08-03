@@ -56,10 +56,6 @@ function getCurrentUser() {
     ];
 }
 
-/**
- * Enforce authentication and module permission access.
- * If user lacks permission, renders a permission error page and halts execution.
- */
 function checkModuleAccess($requiredModule = '') {
     if (!isLoggedIn()) {
         $currentPage = basename($_SERVER['PHP_SELF']);
@@ -72,7 +68,6 @@ function checkModuleAccess($requiredModule = '') {
     $user = getCurrentUser();
     $currentPage = basename($_SERVER['PHP_SELF']);
 
-    // 1. User Management Page Access (Strictly Super Admin Only)
     if ($requiredModule === 'user_management' || $currentPage === 'user_management.php') {
         if ($user['role'] !== 'superadmin') {
             renderAccessDeniedPage('user_management', $user, 'Akun Anda tidak diberikan izin akses ke modul ini.');
@@ -81,7 +76,6 @@ function checkModuleAccess($requiredModule = '') {
         return true;
     }
 
-    // 2. Super Admin Role Restriction (Super Admin is dedicated exclusively to System Management)
     if ($user['role'] === 'superadmin') {
         if ($currentPage !== 'user_management.php' && $currentPage !== 'announcements.php') {
             header("Location: user_management.php");
@@ -90,11 +84,9 @@ function checkModuleAccess($requiredModule = '') {
         return true;
     }
 
-    // 3. Module Access Checks
     $isHeadRole = (strpos($user['role'], 'head_') === 0) || ($user['role'] === 'head_warehouse_admin');
     $allowedModules = is_array($user['allowed_modules']) ? $user['allowed_modules'] : [];
 
-    // Dashboard Overview is strictly for Head roles
     if ($requiredModule === 'dashboard' || $currentPage === 'dashboard.php') {
         if (!$isHeadRole) {
             renderAccessDeniedPage('dashboard', $user, 'Halaman Dashboard Overview ini khusus untuk Pimpinan Head-Management.');
@@ -103,7 +95,6 @@ function checkModuleAccess($requiredModule = '') {
         return true;
     }
 
-    // Reports and Analytics permission checks
     if ($requiredModule === 'reports' || $requiredModule === 'analytics') {
         if (!$isHeadRole && !in_array($requiredModule, $allowedModules)) {
             renderAccessDeniedPage($requiredModule, $user, 'Akun Anda tidak diberikan izin akses ke modul ini.');
@@ -112,8 +103,7 @@ function checkModuleAccess($requiredModule = '') {
         return true;
     }
 
-    // Master Data permission check
-    if ($requiredModule === 'master_data' || $currentPage === 'master_data.php') {
+    if ($requiredModule === 'master_data' || $currentPage === 'master_data.php' || $requiredModule === 'location' || $currentPage === 'location.php') {
         if (!in_array('master_data', $allowedModules)) {
             renderAccessDeniedPage('master_data', $user, 'Akun Anda tidak diberikan izin akses ke modul ini.');
             exit;

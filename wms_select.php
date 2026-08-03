@@ -116,7 +116,7 @@ include 'components/header.php';
                                 <div class="card-body p-4 text-center d-flex flex-column">
                                     <h4 class="font-weight-bold text-gray-800 mb-2">STORAGE</h4>
                                     <p class="text-muted small flex-grow-1">
-                                        Modul Storage
+                                        Monitoring pengelolaan inventory & kapasitas gudang — dari total aset, NBV, utilisasi space perangkat di gudang.
                                     </p>
                                     <div class="mt-3">
                                         <a href="login.php?redirect=warehouse.php" class="btn btn-primary btn-module btn-block shadow-sm">
