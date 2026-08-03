@@ -23,13 +23,15 @@ require_once __DIR__ . '/config/database.php';
         body {
             font-family: 'Outfit', 'Nunito', sans-serif;
             background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
-            height: 100vh;
+            min-height: 100vh;
+            min-height: 100dvh;
             display: flex;
             flex-direction: column;
             color: #f8fafc;
             margin: 0;
             padding: 0;
-            overflow: hidden;
+            overflow-x: hidden;
+            overflow-y: auto;
             position: relative;
         }
 
@@ -59,11 +61,14 @@ require_once __DIR__ . '/config/database.php';
 
         .main-container {
             flex: 1;
+            flex-grow: 1;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
             position: relative;
             z-index: 1;
+            min-height: 100vh;
+            min-height: 100dvh;
         }
 
         .brand-header {
@@ -144,6 +149,30 @@ require_once __DIR__ . '/config/database.php';
             color: #64748b;
             font-size: 0.9rem;
             padding: 24px 0;
+            margin-top: auto;
+        }
+
+        @media (max-width: 768px) {
+            .brand-header {
+                padding-top: 20px;
+                padding-bottom: 5px;
+            }
+            .brand-logo {
+                max-width: 140px;
+            }
+            .hero-title {
+                font-size: 1.5rem;
+            }
+            .hero-subtitle {
+                font-size: 0.9rem;
+            }
+            .portal-card-link {
+                max-width: 100%;
+            }
+            .footer-text {
+                font-size: 0.75rem;
+                padding: 16px 0;
+            }
         }
     </style>
 

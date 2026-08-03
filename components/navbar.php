@@ -739,21 +739,52 @@ html, body {
         margin-right: 0 !important;
     }
 
-    /* Hide period selector text, show icon only */
+    /* Period selector: show calendar icon clearly, hide text */
     #selected-period-text {
         display: none !important;
     }
+    #periodDropdown {
+        padding: 0.35rem 0.5rem !important;
+    }
+    #periodDropdown .fa-calendar-alt {
+        font-size: 1.25rem !important;
+        color: #5a5c69 !important;
+    }
+    #periodDropdown .fa-chevron-down {
+        font-size: 0.55rem !important;
+        margin-left: 0.15rem !important;
+    }
 
-    /* Compact user dropdown - hide name/role on mobile */
-    #userDropdown .d-lg-flex {
-        display: none !important;
+    /* User dropdown: show icon + name/role compact on mobile */
+    #userDropdown {
+        padding: 0.2rem 0.35rem !important;
     }
     #userDropdown .fa-user-circle {
-        font-size: 1.4rem !important;
+        font-size: 1.3rem !important;
+        color: #5a5c69 !important;
     }
-    #userDropdown {
-        padding: 0 0.25rem !important;
+    #userDropdown .user-info-mobile {
+        display: flex !important;
     }
+    #userDropdown .user-info-mobile .user-name-text {
+        font-size: 0.68rem !important;
+        max-width: 90px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    #userDropdown .user-info-mobile .user-role-text {
+        font-size: 0.55rem !important;
+        max-width: 90px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    #userDropdown .fa-chevron-down {
+        font-size: 0.55rem !important;
+        margin-left: 0.1rem !important;
+    }
+
 
     /* Reduce hamburger button size */
     #sidebarToggleTop {
@@ -818,14 +849,14 @@ html, body {
         max-width: 100% !important;
     }
 
-    /* Chart container heights: compact on mobile */
+    /* Chart container heights: readable & uncompressed on mobile */
     .chart-bar, .chart-pie, .chart-area,
     div[style*="height: 320px"],
     div[style*="height: 300px"],
     div[style*="height: 260px"],
     div[style*="height: 250px"] {
-        height: 220px !important;
-        max-height: 220px !important;
+        height: 260px !important;
+        max-height: 280px !important;
     }
 
     /* Charts with inner min-width scroll containers */
@@ -965,7 +996,21 @@ html, body {
         padding: 0.75rem 1rem !important;
     }
     #announcementNoticeModal .modal-body {
-        padding: 1rem 2.5rem !important;
+        padding: 1rem 1.8rem !important;
+        max-height: 85vh !important;
+        overflow-y: auto !important;
+    }
+    #announcementNoticeModal #btnBodyNoticePrev {
+        left: 4px !important;
+    }
+    #announcementNoticeModal #btnBodyNoticeNext {
+        right: 4px !important;
+    }
+    #announcementNoticeModal #noticeBottomBadge {
+        max-width: 100% !important;
+        white-space: normal !important;
+        font-size: 0.75rem !important;
+        padding: 0.5rem 0.75rem !important;
     }
     .modal-dialog.modal-lg {
         max-width: calc(100vw - 1rem) !important;
@@ -1033,15 +1078,15 @@ html, body {
         max-width: 100% !important;
     }
 
-    /* Chart containers even smaller */
+    /* Chart containers readable on small mobile */
     .chart-pie, .chart-bar, .chart-area,
     div[style*="height: 320px"],
     div[style*="height: 300px"],
     div[style*="height: 260px"],
     div[style*="height: 250px"],
     div[style*="height: 220px"] {
-        height: 180px !important;
-        max-height: 180px !important;
+        height: 240px !important;
+        max-height: 260px !important;
     }
 
     /* Dashboard flow steps: even more compact */
@@ -1105,6 +1150,17 @@ html, body {
         height: 30px !important;
     }
 
+    #announcementNoticeModal .modal-body {
+        padding: 0.75rem 1.25rem !important;
+    }
+    #announcementNoticeModal #noticeIconContainer {
+        width: 50px !important;
+        height: 50px !important;
+    }
+    #announcementNoticeModal #noticeIconEl {
+        font-size: 1.25rem !important;
+    }
+
     /* WMS Select module cards */
     .col-lg-4.col-md-6 {
         flex: 0 0 100% !important;
@@ -1144,9 +1200,10 @@ html, body {
         padding: 0.3rem 0.4rem !important;
     }
 
-    /* Dashboard summary section badge hide text */
-    .badge[style*="font-size"] {
-        display: none !important;
+    #announcementNoticeModal #noticeBottomBadge {
+        display: inline-block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
     }
 }
 </style>
@@ -1353,11 +1410,12 @@ html, body {
         $isDateRangePage = in_array($activePage, ['inbound', 'outbound', 'dashboard']);
         ?>
         <li class="nav-item dropdown no-arrow mx-1">
-            <a class="nav-link dropdown-toggle text-nowrap" href="#" id="periodDropdown" role="button"
+            <a class="nav-link dropdown-toggle text-nowrap d-flex align-items-center" href="#" id="periodDropdown" role="button"
                 data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                <span class="mr-2 d-none d-lg-inline text-gray-600 small text-nowrap" id="selected-period-text"
+                <i class="far fa-calendar-alt fa-fw text-gray-600" style="font-size: 1.1rem;"></i>
+                <span class="ml-2 d-none d-lg-inline text-gray-600 small text-nowrap" id="selected-period-text"
                     style="font-weight: bold;">PILIH PERIODE DATA</span> <i
-                    class="fas fa-chevron-down fa-sm fa-fw text-gray-400"></i>
+                    class="fas fa-chevron-down fa-sm fa-fw text-gray-400 ml-1"></i>
             </a>
             <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in p-3"
                 aria-labelledby="periodDropdown" id="period-dropdown-menu"
@@ -1412,18 +1470,18 @@ html, body {
         <li class="nav-item dropdown no-arrow text-nowrap">
             <a class="nav-link dropdown-toggle text-nowrap py-0 d-flex align-items-center" href="#" id="userDropdown" role="button"
                 data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                <div class="mr-2 d-flex align-items-center justify-content-center">
+                <div class="d-flex align-items-center justify-content-center" style="min-width: 28px;">
                     <i class="fas fa-user-circle text-gray-400" style="font-size: 1.75rem;"></i>
                 </div>
-                <div class="mr-2 d-none d-lg-flex flex-column text-left text-nowrap justify-content-center">
-                    <span class="text-gray-800 small font-weight-bold text-nowrap" style="line-height: 1.2;">
+                <div class="ml-2 d-flex flex-column text-left text-nowrap justify-content-center user-info-mobile">
+                    <span class="text-gray-800 small font-weight-bold text-nowrap user-name-text" style="line-height: 1.2;">
                         <?php echo htmlspecialchars($navUser['name']); ?>
                     </span>
-                    <span class="text-muted text-nowrap" style="font-size: 0.68rem; line-height: 1.1; margin-top: 1px;">
+                    <span class="text-muted text-nowrap user-role-text" style="font-size: 0.68rem; line-height: 1.1; margin-top: 1px;">
                         <?php echo htmlspecialchars($navRoleTitle); ?>
                     </span>
                 </div>
-                <i class="fas fa-chevron-down fa-sm fa-fw text-gray-400"></i>
+                <i class="fas fa-chevron-down fa-sm fa-fw text-gray-400 ml-1"></i>
             </a>
             <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in p-1 text-nowrap"
                 aria-labelledby="userDropdown" style="min-width: 100%; width: max-content;">

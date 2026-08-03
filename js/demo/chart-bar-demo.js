@@ -1,6 +1,6 @@
 Chart.defaults.global.defaultFontFamily = 'Nunito', '-apple-system,system-ui,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif';
 Chart.defaults.global.defaultFontColor = '#858796';
-Chart.defaults.global.defaultFontSize = 10;
+Chart.defaults.global.defaultFontSize = 11;
 
 function number_format(number, decimals, dec_point, thousands_sep) {
   // *     example: number_format(1234.56, 2, ',', ' ');
@@ -70,7 +70,7 @@ var myBarChart = new Chart(ctx, {
         },
         ticks: {
           maxTicksLimit: 6,
-          fontSize: 9
+          fontSize: 10.5
         },
         maxBarThickness: 25,
       }],
@@ -212,7 +212,7 @@ if (ctxIn) {
           anchor: 'end',
           align: 'top',
           font: {
-            size: 10,
+            size: 11,
             weight: 'bold'
           },
           formatter: function(value, context) {
@@ -257,7 +257,7 @@ if (ctxOut) {
           anchor: 'end',
           align: 'top',
           font: {
-            size: 10,
+            size: 11,
             weight: 'bold'
           },
           formatter: function(value, context) {
