@@ -1,6 +1,6 @@
 Chart.defaults.global.defaultFontFamily = 'Nunito', '-apple-system,system-ui,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif';
 Chart.defaults.global.defaultFontColor = '#858796';
-Chart.defaults.global.defaultFontSize = 10;
+Chart.defaults.global.defaultFontSize = 11;
 
 function number_format(number, decimals, dec_point, thousands_sep) {
   // *     example: number_format(1234.56, 2, ',', ' ');
@@ -166,7 +166,7 @@ var myHorizontalBarChart = new Chart(ctx, {
         anchor: 'end',
         align: 'right',
         font: {
-          size: 10,
+          size: 11,
           weight: 'bold'
         },
         formatter: function (value, context) {

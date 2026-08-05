@@ -619,6 +619,593 @@ body.sidebar-toggled #wms-sidebar .nav-item .nav-link .nav-lock-icon {
         animation: bullhornPulse 1.8s infinite ease-in-out;
         display: inline-block;
     }
+
+/* =============================================
+   MOBILE RESPONSIVE STYLES
+   ============================================= */
+
+/* Mobile Sidebar Overlay Backdrop */
+#sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1035;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+}
+
+body.mobile-sidebar-open #sidebar-overlay {
+    display: block;
+    opacity: 1;
+}
+
+/* Prevent body scroll when mobile sidebar is open */
+body.mobile-sidebar-open {
+    overflow: hidden !important;
+}
+
+/* Make sidebar scrollable on mobile */
+@media (max-width: 991.98px) {
+    #wms-sidebar {
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    #wms-sidebar .sidebar-nav {
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+}
+
+/* Prevent horizontal overflow on entire page */
+html, body {
+    overflow-x: hidden !important;
+}
+
+/* ─── Override inline padding-top on ALL pages ─── */
+@media (max-width: 768px) {
+    .container-fluid[style*="padding-top: 100px"],
+    .container-fluid[style*="padding-top:100px"],
+    .container[style*="padding-top: 120px"],
+    .container[style*="padding-top:120px"] {
+        padding-top: 60px !important;
+    }
+}
+@media (max-width: 576px) {
+    .container-fluid[style*="padding-top: 100px"],
+    .container-fluid[style*="padding-top:100px"],
+    .container[style*="padding-top: 120px"],
+    .container[style*="padding-top:120px"] {
+        padding-top: 50px !important;
+    }
+}
+
+/* === Tablet Adjustments (≤991px) === */
+@media (max-width: 991.98px) {
+    /* Dashboard & Outbound flow steps: allow horizontal scroll */
+    #inbound-steps-container,
+    #outbound-steps-container,
+    .card-body > .d-flex.flex-nowrap,
+    .card-body > .mt-3 > .d-flex.flex-nowrap {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 0.5rem;
+        scrollbar-width: thin;
+    }
+
+    /* Flow step minimum width so they don't collapse */
+    .flow-step {
+        min-width: 80px !important;
+        flex-shrink: 0 !important;
+    }
+
+    /* Flow step icons shrink slightly */
+    .flow-step .rounded-circle {
+        width: 32px !important;
+        height: 32px !important;
+    }
+    .flow-step .rounded-circle i {
+        font-size: 0.8rem !important;
+    }
+
+    /* Warehouse cards: 2 per row on tablet */
+    .col-xl-3.col-md-6,
+    .col-xl-2.col-md-6 {
+        flex: 0 0 50% !important;
+        max-width: 50% !important;
+    }
+}
+
+/* === Mobile Topbar Adjustments (≤768px) === */
+@media (max-width: 768px) {
+    /* Compact topbar height */
+    .topbar {
+        height: 3rem !important;
+        padding: 0 0.5rem !important;
+    }
+
+    /* Hide announcement button text, show icon only */
+    #announcement-notify-wrapper #btn-announcement-notify span {
+        display: none !important;
+    }
+    #announcement-notify-wrapper #btn-announcement-notify {
+        padding: 0.3rem 0.5rem !important;
+        min-width: unset !important;
+    }
+    #announcement-notify-wrapper #btn-announcement-notify i {
+        margin-right: 0 !important;
+    }
+
+    /* Period selector: show calendar icon clearly, hide text */
+    #selected-period-text {
+        display: none !important;
+    }
+    #periodDropdown {
+        padding: 0.35rem 0.5rem !important;
+    }
+    #periodDropdown .fa-calendar-alt {
+        font-size: 1.25rem !important;
+        color: #5a5c69 !important;
+    }
+    #periodDropdown .fa-chevron-down {
+        font-size: 0.55rem !important;
+        margin-left: 0.15rem !important;
+    }
+
+    /* User dropdown: show icon + name/role compact on mobile */
+    #userDropdown {
+        padding: 0.2rem 0.35rem !important;
+    }
+    #userDropdown .fa-user-circle {
+        font-size: 1.3rem !important;
+        color: #5a5c69 !important;
+    }
+    #userDropdown .user-info-mobile {
+        display: flex !important;
+    }
+    #userDropdown .user-info-mobile .user-name-text {
+        font-size: 0.68rem !important;
+        max-width: 90px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    #userDropdown .user-info-mobile .user-role-text {
+        font-size: 0.55rem !important;
+        max-width: 90px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    #userDropdown .fa-chevron-down {
+        font-size: 0.55rem !important;
+        margin-left: 0.1rem !important;
+    }
+
+
+    /* Reduce hamburger button size */
+    #sidebarToggleTop {
+        padding: 0.2rem 0.4rem !important;
+        margin-right: 0.25rem !important;
+    }
+
+    /* Ensure dropdown menus don't overflow screen */
+    .topbar .dropdown-menu {
+        max-width: calc(100vw - 1rem) !important;
+        right: 0 !important;
+        left: auto !important;
+    }
+
+    /* Period dropdown - make it mobile friendly */
+    #period-dropdown-menu {
+        min-width: 260px !important;
+        max-width: calc(100vw - 2rem) !important;
+        right: -0.5rem !important;
+    }
+
+    /* Topbar divider hidden on mobile */
+    .topbar-divider {
+        display: none !important;
+    }
+
+    /* Compact container-fluid */
+    .container-fluid {
+        padding-left: 0.75rem !important;
+        padding-right: 0.75rem !important;
+        padding-top: 60px !important;
+    }
+
+    /* Page heading responsive */
+    h1, .h1, h1.h3 {
+        font-size: 1rem !important;
+    }
+
+    /* ─── Card grid responsive: metric cards 2 per row ─── */
+    .col-xl-2.col-md-4.col-sm-6,
+    .col-xl-4.col-md-4.col-sm-6 {
+        flex: 0 0 50% !important;
+        max-width: 50% !important;
+    }
+
+    /* Warehouse metric cards - 2 per row */
+    .col-xl-3.col-md-6 {
+        flex: 0 0 50% !important;
+        max-width: 50% !important;
+    }
+
+    /* Warehouse smaller cards (col-xl-2) stack 2 per row */
+    .col-xl-2.col-md-6 {
+        flex: 0 0 50% !important;
+        max-width: 50% !important;
+    }
+
+    /* Chart cards: full width on mobile */
+    .col-xl-6.col-lg-6,
+    .col-xl-4.col-lg-4 {
+        flex: 0 0 100% !important;
+        max-width: 100% !important;
+    }
+
+    /* Chart container heights: readable & uncompressed on mobile */
+    .chart-bar, .chart-pie, .chart-area,
+    div[style*="height: 320px"],
+    div[style*="height: 300px"],
+    div[style*="height: 260px"],
+    div[style*="height: 250px"] {
+        height: 260px !important;
+        max-height: 280px !important;
+    }
+
+    /* Charts with inner min-width scroll containers */
+    .chart-bar > div[style*="min-width"],
+    .chart-area > div[style*="min-width"] {
+        min-width: 100% !important;
+    }
+
+    /* Chart card overflow: allow horizontal scroll */
+    .chart-bar {
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
+    }
+
+    /* Card headers & body compact on mobile */
+    .card .card-header h6 {
+        font-size: 0.72rem !important;
+        line-height: 1.3 !important;
+    }
+    .card .card-header h6 span {
+        font-size: 0.62rem !important;
+    }
+
+    /* Status flow cards: stack properly */
+    .status-card-clickable {
+        margin-bottom: 0.5rem !important;
+    }
+
+    /* Dashboard flow steps: smaller icons & text */
+    .flow-step {
+        min-width: 70px !important;
+        padding: 0.25rem !important;
+    }
+    .flow-step .rounded-circle {
+        width: 28px !important;
+        height: 28px !important;
+        margin-bottom: 0.25rem !important;
+    }
+    .flow-step .rounded-circle i {
+        font-size: 0.7rem !important;
+    }
+    .flow-step .font-weight-bold[style*="font-size: 0.62rem"] {
+        font-size: 0.52rem !important;
+    }
+    .flow-step .font-weight-bold[style*="font-size: 0.82rem"] {
+        font-size: 0.68rem !important;
+    }
+
+    /* Flow step arrows smaller */
+    .text-gray-300.align-self-center {
+        font-size: 0.5rem !important;
+        margin: 0 !important;
+    }
+
+    /* Dashboard summary card badges */
+    .badge[style*="font-size: 0.65rem"] {
+        font-size: 0.55rem !important;
+        padding: 0.15rem 0.4rem !important;
+    }
+
+    /* Dashboard pie chart section */
+    #dashInboundFlowPieChart {
+        max-height: 120px !important;
+    }
+
+    /* Dashboard Inventory/Outbound summary layout: stack columns */
+    .col-xl-9.col-lg-8,
+    .col-xl-8.col-lg-8,
+    .col-xl-7.col-lg-7 {
+        flex: 0 0 100% !important;
+        max-width: 100% !important;
+    }
+    .col-xl-3.col-lg-4,
+    .col-xl-4.col-lg-4.col-md-12,
+    .col-xl-5.col-lg-5 {
+        flex: 0 0 100% !important;
+        max-width: 100% !important;
+        border-left: none !important;
+        padding-left: 15px !important;
+        margin-top: 0.75rem;
+    }
+
+    /* Outbound: ranking & sebaran inner cards stack */
+    .col-lg-6.d-flex {
+        flex: 0 0 100% !important;
+        max-width: 100% !important;
+    }
+
+    /* Row negative margin fix for tight layouts */
+    .row[style*="margin-left: -4px"] {
+        margin-left: -2px !important;
+        margin-right: -2px !important;
+    }
+    .row[style*="margin-left: -4px"] > [class*="col-"] {
+        padding-left: 2px !important;
+        padding-right: 2px !important;
+    }
+
+    /* Fixed-height card overrides for mobile */
+    .storage-card,
+    .card[class*="border-left-"]:not(.inbound-metric-card) {
+        min-height: auto !important;
+        max-height: none !important;
+        height: auto !important;
+    }
+
+    /* Outbound metric cards allow auto height */
+    .card.border-left-primary,
+    .card.border-left-success,
+    .card.border-left-info,
+    .card.border-left-warning,
+    .card.border-left-danger,
+    .card.border-left-secondary {
+        min-height: auto !important;
+        max-height: none !important;
+        height: auto !important;
+    }
+
+    /* Outbound card body text auto size */
+    .card .h4 {
+        font-size: 0.85rem !important;
+        word-break: break-word !important;
+    }
+
+    /* Table: tighter on mobile */
+    .table td, .table th {
+        padding: 0.25rem 0.35rem !important;
+        font-size: 0.72rem !important;
+    }
+
+    /* Modal adjustments */
+    .modal-dialog {
+        margin: 0.5rem !important;
+        max-width: calc(100vw - 1rem) !important;
+    }
+    .modal-body {
+        padding: 0.75rem 1rem !important;
+    }
+    #announcementNoticeModal .modal-body {
+        padding: 1rem 1.8rem !important;
+        max-height: 85vh !important;
+        overflow-y: auto !important;
+    }
+    #announcementNoticeModal #btnBodyNoticePrev {
+        left: 4px !important;
+    }
+    #announcementNoticeModal #btnBodyNoticeNext {
+        right: 4px !important;
+    }
+    #announcementNoticeModal #noticeBottomBadge {
+        max-width: 100% !important;
+        white-space: normal !important;
+        font-size: 0.75rem !important;
+        padding: 0.5rem 0.75rem !important;
+    }
+    .modal-dialog.modal-lg {
+        max-width: calc(100vw - 1rem) !important;
+    }
+    .modal-body[style*="max-height: 75vh"] {
+        max-height: 65vh !important;
+    }
+
+    /* WMS Select page: cards full width on mobile */
+    .module-card .module-icon-bg {
+        height: 100px !important;
+    }
+    .module-card .card-body {
+        padding: 1rem !important;
+    }
+    .module-card h4 {
+        font-size: 1rem !important;
+    }
+}
+
+/* === Small Mobile (≤576px) === */
+@media (max-width: 576px) {
+    .topbar {
+        height: 2.8rem !important;
+        padding: 0 0.35rem !important;
+    }
+
+    /* Further reduce topbar button sizes */
+    #sidebarToggleTop {
+        padding: 0.15rem 0.3rem !important;
+        font-size: 0.9rem !important;
+    }
+
+    /* Container fluid tighter */
+    .container-fluid {
+        padding-left: 0.5rem !important;
+        padding-right: 0.5rem !important;
+        padding-top: 50px !important;
+    }
+
+    /* Non-sidebar pages - compact logo on mobile */
+    .topbar .sidebar-brand-img,
+    .topbar img[alt="WMS Logo"] {
+        max-height: 32px !important;
+        height: 32px !important;
+    }
+
+    /* Metric cards: single column on very small screens */
+    .col-xl-2.col-md-4.col-sm-6,
+    .col-xl-4.col-md-4.col-sm-6 {
+        flex: 0 0 100% !important;
+        max-width: 100% !important;
+    }
+
+    /* Warehouse metric cards single column */
+    .col-xl-3.col-md-6,
+    .col-xl-2.col-md-6 {
+        flex: 0 0 100% !important;
+        max-width: 100% !important;
+    }
+
+    /* Outbound metric cards: single column */
+    .col-xl-4.col-md-4 {
+        flex: 0 0 100% !important;
+        max-width: 100% !important;
+    }
+
+    /* Chart containers readable on small mobile */
+    .chart-pie, .chart-bar, .chart-area,
+    div[style*="height: 320px"],
+    div[style*="height: 300px"],
+    div[style*="height: 260px"],
+    div[style*="height: 250px"],
+    div[style*="height: 220px"] {
+        height: 240px !important;
+        max-height: 260px !important;
+    }
+
+    /* Dashboard flow steps: even more compact */
+    .flow-step {
+        min-width: 60px !important;
+        padding: 0.15rem !important;
+    }
+    .flow-step .rounded-circle {
+        width: 24px !important;
+        height: 24px !important;
+    }
+    .flow-step .rounded-circle i {
+        font-size: 0.6rem !important;
+    }
+    .flow-step div[style*="margin-top"] {
+        margin-top: 0.15rem !important;
+    }
+
+    /* Flow arrows hide on very small screens to save space */
+    .text-gray-300.align-self-center .fa-chevron-right {
+        font-size: 0.4rem !important;
+    }
+
+    /* Dashboard card titles compact */
+    .card-body .font-weight-bold[style*="font-size: 0.85rem"] {
+        font-size: 0.72rem !important;
+    }
+
+    /* Dashboard pie chart even smaller */
+    div[style*="height: 145px"],
+    div[style*="height: 110px"] {
+        height: 100px !important;
+        max-height: 100px !important;
+    }
+
+    /* KPI boxes compact */
+    .bg-light.rounded.p-2 .row .col-6 div[style*="font-size: 1.1rem"] {
+        font-size: 0.85rem !important;
+    }
+    .bg-light.rounded.p-2 .row .col-6 div[style*="font-size: 0.6rem"] {
+        font-size: 0.5rem !important;
+    }
+
+    /* Outbound ranking inner cards */
+    .card.border.shadow-sm .card-body {
+        padding: 0.5rem !important;
+    }
+    .card.border.shadow-sm h6 {
+        font-size: 0.68rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+
+    /* Table horizontal scroll */
+    .table-responsive {
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Non-sidebar pages: logo compact */
+    .topbar .d-flex[style*="cursor: default"] img {
+        max-height: 30px !important;
+        height: 30px !important;
+    }
+
+    #announcementNoticeModal .modal-body {
+        padding: 0.75rem 1.25rem !important;
+    }
+    #announcementNoticeModal #noticeIconContainer {
+        width: 50px !important;
+        height: 50px !important;
+    }
+    #announcementNoticeModal #noticeIconEl {
+        font-size: 1.25rem !important;
+    }
+
+    /* WMS Select module cards */
+    .col-lg-4.col-md-6 {
+        flex: 0 0 100% !important;
+        max-width: 100% !important;
+    }
+    .module-card .module-icon-bg {
+        height: 80px !important;
+    }
+    .module-card .module-icon-bg i {
+        font-size: 2rem !important;
+    }
+
+    /* Page heading stack on small screens */
+    .d-sm-flex {
+        flex-direction: column !important;
+    }
+    .d-sm-flex h1 {
+        margin-bottom: 0.5rem !important;
+    }
+}
+
+/* === Very Small Mobile (≤400px) === */
+@media (max-width: 400px) {
+    /* Even tighter container */
+    .container-fluid {
+        padding-left: 0.35rem !important;
+        padding-right: 0.35rem !important;
+    }
+
+    /* Body font further reduced */
+    body {
+        font-size: 0.75rem !important;
+    }
+
+    /* Card body tighter */
+    .card .card-body {
+        padding: 0.3rem 0.4rem !important;
+    }
+
+    #announcementNoticeModal #noticeBottomBadge {
+        display: inline-block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
+}
 </style>
 
 <?php if ($showSidebar): ?>
@@ -767,6 +1354,9 @@ body.sidebar-toggled #wms-sidebar .nav-item .nav-link .nav-lock-icon {
 <?php endif; ?>
 
 <!-- Topbar Navigation -->
+<!-- Mobile Sidebar Overlay Backdrop -->
+<div id="sidebar-overlay"></div>
+
 <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 fixed-top shadow" style="z-index: 1020;">
     <?php if ($showSidebar): ?>
     <button id="sidebarToggleTop" class="btn btn-link rounded-circle mr-2 text-primary">
@@ -820,11 +1410,12 @@ body.sidebar-toggled #wms-sidebar .nav-item .nav-link .nav-lock-icon {
         $isDateRangePage = in_array($activePage, ['inbound', 'outbound', 'dashboard']);
         ?>
         <li class="nav-item dropdown no-arrow mx-1">
-            <a class="nav-link dropdown-toggle text-nowrap" href="#" id="periodDropdown" role="button"
+            <a class="nav-link dropdown-toggle text-nowrap d-flex align-items-center" href="#" id="periodDropdown" role="button"
                 data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                <span class="mr-2 d-none d-lg-inline text-gray-600 small text-nowrap" id="selected-period-text"
+                <i class="far fa-calendar-alt fa-fw text-gray-600" style="font-size: 1.1rem;"></i>
+                <span class="ml-2 d-none d-lg-inline text-gray-600 small text-nowrap" id="selected-period-text"
                     style="font-weight: bold;">PILIH PERIODE DATA</span> <i
-                    class="fas fa-chevron-down fa-sm fa-fw text-gray-400"></i>
+                    class="fas fa-chevron-down fa-sm fa-fw text-gray-400 ml-1"></i>
             </a>
             <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in p-3"
                 aria-labelledby="periodDropdown" id="period-dropdown-menu"
@@ -879,18 +1470,18 @@ body.sidebar-toggled #wms-sidebar .nav-item .nav-link .nav-lock-icon {
         <li class="nav-item dropdown no-arrow text-nowrap">
             <a class="nav-link dropdown-toggle text-nowrap py-0 d-flex align-items-center" href="#" id="userDropdown" role="button"
                 data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                <div class="mr-2 d-flex align-items-center justify-content-center">
+                <div class="d-flex align-items-center justify-content-center" style="min-width: 28px;">
                     <i class="fas fa-user-circle text-gray-400" style="font-size: 1.75rem;"></i>
                 </div>
-                <div class="mr-2 d-none d-lg-flex flex-column text-left text-nowrap justify-content-center">
-                    <span class="text-gray-800 small font-weight-bold text-nowrap" style="line-height: 1.2;">
+                <div class="ml-2 d-flex flex-column text-left text-nowrap justify-content-center user-info-mobile">
+                    <span class="text-gray-800 small font-weight-bold text-nowrap user-name-text" style="line-height: 1.2;">
                         <?php echo htmlspecialchars($navUser['name']); ?>
                     </span>
-                    <span class="text-muted text-nowrap" style="font-size: 0.68rem; line-height: 1.1; margin-top: 1px;">
+                    <span class="text-muted text-nowrap user-role-text" style="font-size: 0.68rem; line-height: 1.1; margin-top: 1px;">
                         <?php echo htmlspecialchars($navRoleTitle); ?>
                     </span>
                 </div>
-                <i class="fas fa-chevron-down fa-sm fa-fw text-gray-400"></i>
+                <i class="fas fa-chevron-down fa-sm fa-fw text-gray-400 ml-1"></i>
             </a>
             <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in p-1 text-nowrap"
                 aria-labelledby="userDropdown" style="min-width: 100%; width: max-content;">
@@ -917,6 +1508,12 @@ body.sidebar-toggled #wms-sidebar .nav-item .nav-link .nav-lock-icon {
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     var sidebarToggle = document.getElementById('sidebarToggleTop');
+    var sidebarOverlay = document.getElementById('sidebar-overlay');
+
+    function closeMobileSidebar() {
+        document.body.classList.remove('mobile-sidebar-open');
+    }
+
     if (sidebarToggle) {
         sidebarToggle.addEventListener('click', function(e) {
             e.preventDefault();
@@ -928,6 +1525,28 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }, true);
     }
+
+    // Close mobile sidebar when clicking overlay backdrop
+    if (sidebarOverlay) {
+        sidebarOverlay.addEventListener('click', closeMobileSidebar);
+    }
+
+    // Close mobile sidebar when clicking a nav link (for navigation)
+    var sidebarNavLinks = document.querySelectorAll('#wms-sidebar .nav-link');
+    for (var i = 0; i < sidebarNavLinks.length; i++) {
+        sidebarNavLinks[i].addEventListener('click', function() {
+            if (window.innerWidth < 992) {
+                closeMobileSidebar();
+            }
+        });
+    }
+
+    // Auto-close sidebar on window resize to desktop
+    window.addEventListener('resize', function() {
+        if (window.innerWidth >= 992) {
+            closeMobileSidebar();
+        }
+    });
 
     var startDateInput = document.getElementById('period-start-date');
     var endDateInput = document.getElementById('period-end-date');
