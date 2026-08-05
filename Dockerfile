@@ -1,69 +1,45 @@
-# =====================================================================
-# Warehouse Management System (WMS) - Dockerfile
-# =====================================================================
-# Base: PHP 8.2 with Apache (Debian)
-# =====================================================================
-
 FROM php:8.2-apache
 
-# ── System dependencies ──────────────────────────────────────────────
-RUN apt-get update && apt-get install -y --no-install-recommends \
+# 1. Instal ekstensi PHP dan MySQL Server
+RUN apt-get update && apt-get install -y \
+    mariadb-server \
     libpng-dev \
     libjpeg-dev \
     libfreetype6-dev \
-    libpq-dev \
-    libzip-dev \
+    zip \
     unzip \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install pdo_mysql gd \
+    && a2enmod rewrite
 
-# ── PHP extensions ───────────────────────────────────────────────────
-RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install -j$(nproc) \
-        pdo_mysql \
-        pdo_pgsql \
-        gd \
-        zip \
-        opcache
+# 2. Salin source code aplikasi ke folder Apache
+COPY . /var/www/html/
+RUN chown -R www-data:www-data /var/www/html
 
-# ── Apache modules ──────────────────────────────────────────────────
-RUN a2enmod rewrite headers expires deflate
+# 3. Buat file .env otomatis di dalam kontainer berdasarkan konfigurasi Anda
+RUN echo 'APP_ENV=production' > /var/www/html/.env && \
+    echo 'APP_NAME="Warehouse Management System - Lintasarta"' >> /var/www/html/.env && \
+    echo 'APP_URL=http://localhost:7860' >> /var/www/html/.env && \
+    echo 'APP_TIMEZONE=Asia/Jakarta' >> /var/www/html/.env && \
+    echo 'DB_DRIVER=mysql' >> /var/www/html/.env && \
+    echo 'DB_HOST=127.0.0.1' >> /var/www/html/.env && \
+    echo 'DB_USER=wms_user' >> /var/www/html/.env && \
+    echo 'DB_PASSWORD=wms_secure_password' >> /var/www/html/.env && \
+    echo 'DB_NAME=dashboard_db' >> /var/www/html/.env && \
+    echo 'SESSION_LIFETIME=7200' >> /var/www/html/.env && \
+    echo 'SESSION_SECURE=false' >> /var/www/html/.env
 
-# ── Apache virtual-host ─────────────────────────────────────────────
-COPY apache.conf /etc/apache2/sites-available/000-default.conf
+# 4. Konfigurasi Port wajib Hugging Face (7860)
+RUN sed -i 's/Listen 80/Listen 7860/g' /etc/apache2/ports.conf && \
+    sed -i 's/<VirtualHost \*:80>/<VirtualHost \*:7860>/g' /etc/apache2/sites-available/000-default.conf
 
-# Update DocumentRoot in the copied config to match container path
-RUN sed -i 's|/var/www/html/WarehouseManagementSystem|/var/www/html|g' \
-    /etc/apache2/sites-available/000-default.conf
+EXPOSE 7860
 
-# ── PHP production settings ─────────────────────────────────────────
-RUN { \
-    echo "display_errors = Off"; \
-    echo "log_errors = On"; \
-    echo "error_log = /var/log/php_errors.log"; \
-    echo "upload_max_filesize = 64M"; \
-    echo "post_max_size = 64M"; \
-    echo "memory_limit = 256M"; \
-    echo "max_execution_time = 120"; \
-    echo "session.gc_maxlifetime = 7200"; \
-    echo "date.timezone = Asia/Jakarta"; \
-    echo "opcache.enable = 1"; \
-    echo "opcache.memory_consumption = 128"; \
-    echo "opcache.max_accelerated_files = 10000"; \
-    echo "opcache.validate_timestamps = 0"; \
-} > /usr/local/etc/php/conf.d/wms-production.ini
-
-# ── Copy application source ─────────────────────────────────────────
-COPY --chown=www-data:www-data . /var/www/html/
-
-# ── Set correct permissions ─────────────────────────────────────────
-RUN chown -R www-data:www-data /var/www/html \
-    && chmod -R 755 /var/www/html
-
-# ── Healthcheck ─────────────────────────────────────────────────────
-HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-    CMD curl -f http://localhost/ || exit 1
-
-EXPOSE 80
-
-CMD ["apache2-foreground"]
+# 5. Script untuk menyalakan MySQL, membuat database, dan menjalankan Apache
+CMD service mariadb start && \
+    mysql -e "CREATE DATABASE IF NOT EXISTS dashboard_db;" && \
+    mysql -e "CREATE USER IF NOT EXISTS 'wms_user'@'localhost' IDENTIFIED BY 'wms_secure_password';" && \
+    mysql -e "GRANT ALL PRIVILEGES ON dashboard_db.* TO 'wms_user'@'localhost';" && \
+    mysql -e "FLUSH PRIVILEGES;" && \
+    (mysql dashboard_db < /var/www/html/database.sql || mysql dashboard_db < /var/www/html/db.sql || echo "No SQL dump found") && \
+    apache2-foreground

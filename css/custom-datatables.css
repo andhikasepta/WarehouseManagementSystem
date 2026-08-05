@@ -1,0 +1,25 @@
+/* Standard DataTables Bootstrap 4 Component Overrides */
+
+/* 1. Standard DataTables Bootstrap 4 Table Header Sort Arrow Spacing */
+table.dataTable.table-sm > thead > tr > th:not(.sorting_disabled) {
+    padding-right: 28px !important;
+}
+
+/* 2. DataTables Length Dropdown Select Arrow Spacing */
+div.dataTables_wrapper div.dataTables_length select {
+    width: auto !important;
+    display: inline-block !important;
+    padding-right: 1.75rem !important;
+}
+
+/* 3. Table cells white-space nowrap */
+table.dataTable td,
+table.dataTable th {
+    white-space: nowrap !important;
+}
+
+/* 4. Hide default DataTables top-right search box for Inbound & Outbound */
+#dataTableInbound_wrapper .dataTables_filter,
+#dataTableOutbound_wrapper .dataTables_filter {
+    display: none !important;
+}

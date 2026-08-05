@@ -74,12 +74,7 @@ include 'components/header.php';
         .nav-pills .nav-link { color: #5a5c69; border-radius: 0.35rem; transition: all 0.2s ease-in-out; }
         .nav-pills .nav-link.active { background-color: #4e73df; color: #fff; box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075); }
         .table-responsive { overflow-x: auto; }
-        #dataTableAsset th, #dataTableAsset td { white-space: nowrap; }
         #dataTableAsset td:nth-child(1) { white-space: normal !important; min-width: 200px; }
-        .custom-select {
-            background: #ffffff url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3e%3cpath fill='%235a5c69' d='M0 0l5 6 5-6z'/%3e%3c/svg%3e") no-repeat right 0.75rem center/10px 6px !important;
-            padding-right: 1.75rem;
-        }
     </style>
 
 </head>
@@ -170,61 +165,81 @@ include 'components/header.php';
                                 </div>
                                 <?php endif; ?>
                                 <div class="card-body p-4" style="flex: 1;">
-                                    <!-- Filter Control Bar (Search & Dropdowns) -->
+                                    <!-- Filter Control Bar (Dropdowns & Reset) -->
                                     <div class="card shadow-sm border mb-4" style="border-radius: 8px;">
                                         <div class="card-body py-3 px-4">
-                                            <div class="form-row align-items-center">
-                                                <!-- Search Bar (No. PO / Item) -->
+                                            <div class="form-row align-items-end">
+                                                <!-- Periode Group Dropdown -->
                                                 <div class="col-md-3 col-sm-6 mb-2 mb-md-0">
-                                                    <label for="search-po-item" class="small font-weight-bold text-gray-700 mb-1">Cari No. PO / Item</label>
-                                                    <div class="input-group input-group-sm">
-                                                        <input type="text" class="form-control form-control-sm" id="search-po-item" placeholder="No. PO / Item...">
-                                                        <div class="input-group-append">
-                                                            <button class="btn btn-primary btn-sm" type="button" id="btn-search-po">
-                                                                <i class="fas fa-search"></i>
-                                                            </button>
-                                                        </div>
-                                                    </div>
+                                                    <label for="filter-inbound-periode" class="small font-weight-bold text-gray-700 mb-1">Periode Group</label>
+                                                    <select class="form-control form-control-sm custom-select custom-select-sm" id="filter-inbound-periode">
+                                                        <option value="">Semua Periode</option>
+                                                    </select>
                                                 </div>
 
                                                 <!-- Bagian Dropdown -->
-                                                <div class="col-md-3 col-sm-6 mb-2 mb-md-0">
-                                                    <label for="filter-bagian" class="small font-weight-bold text-gray-700 mb-1">Bagian</label>
-                                                    <select class="form-control form-control-sm custom-select custom-select-sm" id="filter-bagian">
+                                                <div class="col-md-2 col-sm-6 mb-2 mb-md-0">
+                                                    <label for="filter-inbound-bagian" class="small font-weight-bold text-gray-700 mb-1">Bagian</label>
+                                                    <select class="form-control form-control-sm custom-select custom-select-sm" id="filter-inbound-bagian">
                                                         <option value="">Semua Bagian</option>
                                                     </select>
                                                 </div>
 
-                                                <!-- PIC PO Dropdown -->
-                                                <div class="col-md-3 col-sm-6 mb-2 mb-md-0">
-                                                    <label for="filter-pic-po" class="small font-weight-bold text-gray-700 mb-1">PIC PO</label>
-                                                    <select class="form-control form-control-sm custom-select custom-select-sm" id="filter-pic-po">
-                                                        <option value="">Semua PIC PO</option>
+                                                <!-- PIC Teknis Dropdown -->
+                                                <div class="col-md-2 col-sm-6 mb-2 mb-md-0">
+                                                    <label for="filter-inbound-pic" class="small font-weight-bold text-gray-700 mb-1">PIC Teknis</label>
+                                                    <select class="form-control form-control-sm custom-select custom-select-sm" id="filter-inbound-pic">
+                                                        <option value="">Semua PIC Teknis</option>
                                                     </select>
                                                 </div>
 
-                                                <!-- Status Dropdown -->
+                                                <!-- Item Kategori Dropdown -->
                                                 <div class="col-md-3 col-sm-6 mb-2 mb-md-0">
-                                                    <label for="filter-status" class="small font-weight-bold text-gray-700 mb-1">Status</label>
-                                                    <select class="form-control form-control-sm custom-select custom-select-sm" id="filter-status">
-                                                        <option value="">Semua Status</option>
+                                                    <label for="filter-inbound-kategori" class="small font-weight-bold text-gray-700 mb-1">Item Kategori</label>
+                                                    <select class="form-control form-control-sm custom-select custom-select-sm" id="filter-inbound-kategori">
+                                                        <option value="">Semua Kategori</option>
                                                     </select>
+                                                </div>
+
+                                                <!-- Reset Filter Button -->
+                                                <div class="col-md-2 col-sm-6 mb-2 mb-md-0">
+                                                    <button class="btn btn-outline-secondary btn-sm font-weight-bold btn-block" type="button" id="btn-reset-filter-inbound">
+                                                        <i class="fas fa-undo mr-1"></i> Reset Filter
+                                                    </button>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div class="text-center py-4">
-                                        <div class="mb-3">
-                                            <span class="fa-stack fa-2x text-gray-400">
-                                                <i class="fas fa-circle fa-stack-2x text-light"></i>
-                                                <i class="fas fa-box-open fa-stack-1x text-secondary"></i>
-                                            </span>
-                                        </div>
-                                        <h4 class="font-weight-bold text-gray-800 mb-2">Master Data Inbound</h4>
-                                        <p class="text-muted max-width-500 mx-auto mb-0" style="max-width: 500px;">
-                                            Belum ada data master untuk modul Inbound.
-                                        </p>
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered table-sm table-striped" id="dataTableInbound" width="100%" cellspacing="0">
+                                            <thead class="thead-light">
+                                                <tr>
+                                                    <th>PR Nomor</th>
+                                                    <th>PR Kode Site</th>
+                                                    <th>PR Nama Site</th>
+                                                    <th>PR Item Kategori</th>
+                                                    <th>PR PIC Teknis Nama</th>
+                                                    <th>PR Nama Bagian</th>
+                                                    <th>PR Nama Divisi</th>
+                                                    <th>PR Regional</th>
+                                                    <th>PR Jenis MA</th>
+                                                    <th>PO Nomor</th>
+                                                    <th>PO Deskripsi</th>
+                                                    <th>PO Vendor</th>
+                                                    <th>PO Tgl. Generate</th>
+                                                    <th>PO Nama Item</th>
+                                                    <th>PO Qty Item</th>
+                                                    <th>PO UoM Item</th>
+                                                    <th>PO Target Delivery</th>
+                                                    <th>Project ID</th>
+                                                    <th>Periode Group</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <!-- Populated dynamically via DataTables -->
+                                            </tbody>
+                                        </table>
                                     </div>
                                 </div>
                             </div>
@@ -467,23 +482,10 @@ include 'components/header.php';
                                 </div>
                                 <?php endif; ?>
                                 <div class="card-body p-4" style="flex: 1;">
-                                    <!-- Filter Control Bar (Search & Dropdowns) -->
+                                    <!-- Filter Control Bar (Dropdowns & Reset) -->
                                     <div class="card shadow-sm border mb-4" style="border-radius: 8px;">
                                         <div class="card-body py-3 px-4">
-                                            <div class="form-row align-items-center">
-                                                <!-- Search Bar (No. MR / Item) -->
-                                                <div class="col-md-3 col-sm-6 mb-2 mb-md-0">
-                                                    <label for="search-mr-item-outbound" class="small font-weight-bold text-gray-700 mb-1">Cari No. MR / Item</label>
-                                                    <div class="input-group input-group-sm">
-                                                        <input type="text" class="form-control form-control-sm" id="search-mr-item-outbound" placeholder="No. MR / Item...">
-                                                        <div class="input-group-append">
-                                                            <button class="btn btn-primary btn-sm" type="button" id="btn-search-mr-outbound">
-                                                                <i class="fas fa-search"></i>
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                </div>
-
+                                            <div class="form-row align-items-end">
                                                 <!-- Tujuan Site Dropdown -->
                                                 <div class="col-md-3 col-sm-6 mb-2 mb-md-0">
                                                     <label for="filter-tujuan-site-outbound" class="small font-weight-bold text-gray-700 mb-1">Tujuan Site</label>
@@ -506,6 +508,13 @@ include 'components/header.php';
                                                     <select class="form-control form-control-sm custom-select custom-select-sm" id="filter-status-outbound">
                                                         <option value="">Semua Status</option>
                                                     </select>
+                                                </div>
+
+                                                <!-- Reset Filter Button -->
+                                                <div class="col-md-3 col-sm-6 mb-2 mb-md-0">
+                                                    <button class="btn btn-outline-secondary btn-sm font-weight-bold btn-block" type="button" id="btn-reset-filter-outbound">
+                                                        <i class="fas fa-undo mr-1"></i> Reset Filter
+                                                    </button>
                                                 </div>
                                             </div>
                                         </div>
@@ -683,12 +692,44 @@ include 'components/header.php';
                             </button>
                         </div>
                     </div>
+
+                    <!-- Periode Group Selectors (Month & Year) -->
+                    <div class="form-row mb-2">
+                        <div class="col-6">
+                            <label for="uploadInboundMonthSelect" class="small font-weight-bold text-gray-700 mb-1">Bulan Periode <span class="text-danger">*</span></label>
+                            <select class="form-control form-control-sm" id="uploadInboundMonthSelect">
+                                <option value="">-- Pilih Bulan --</option>
+                                <option value="January">January</option>
+                                <option value="February">February</option>
+                                <option value="March">March</option>
+                                <option value="April">April</option>
+                                <option value="May">May</option>
+                                <option value="June">June</option>
+                                <option value="July">July</option>
+                                <option value="August">August</option>
+                                <option value="September">September</option>
+                                <option value="October">October</option>
+                                <option value="November">November</option>
+                                <option value="December">December</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label for="uploadInboundYearSelect" class="small font-weight-bold text-gray-700 mb-1">Tahun Periode <span class="text-danger">*</span></label>
+                            <select class="form-control form-control-sm" id="uploadInboundYearSelect">
+                                <option value="">-- Pilih Tahun --</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Period Availability Status Indicator -->
+                    <div id="inbound-period-status" class="mb-3" style="display: none;"></div>
+
                     <div class="upload-drop-zone border rounded p-4 text-center bg-light">
                         <i class="fas fa-cloud-upload-alt fa-3x text-primary mb-3"></i>
                         <h5 class="font-weight-bold">Drag &amp; Drop Excel File Inbound</h5>
                         <p class="text-muted small">atau pilih file dari komputer Anda</p>
                         <input type="file" id="excel-file-inbound-input" accept=".xlsx,.xls,.csv" class="d-none" />
-                        <button class="btn btn-primary btn-sm px-3 font-weight-bold" type="button" onclick="document.getElementById('excel-file-inbound-input').click();">
+                        <button class="btn btn-primary btn-sm px-3 font-weight-bold" type="button" id="btn-browse-inbound" onclick="document.getElementById('excel-file-inbound-input').click();">
                             <i class="fas fa-folder-open mr-1"></i> Browse File
                         </button>
                         <div class="small text-muted mt-2">Formats: .xlsx, .xls, .csv</div>
@@ -757,7 +798,19 @@ include 'components/header.php';
                         <div class="form-group mb-3">
                             <label for="deleteInboundMonthSelect" class="small font-weight-bold text-gray-600">Bulan</label>
                             <select class="form-control form-control-sm" id="deleteInboundMonthSelect">
-                                <option value="">-- Pilih Bulan --</option>
+                                <option value="">-- Pilih Bulan (Kosongkan untuk Hapus Semua) --</option>
+                                <option value="January">January</option>
+                                <option value="February">February</option>
+                                <option value="March">March</option>
+                                <option value="April">April</option>
+                                <option value="May">May</option>
+                                <option value="June">June</option>
+                                <option value="July">July</option>
+                                <option value="August">August</option>
+                                <option value="September">September</option>
+                                <option value="October">October</option>
+                                <option value="November">November</option>
+                                <option value="December">December</option>
                             </select>
                         </div>
                         <div class="form-group mb-4">
@@ -767,9 +820,9 @@ include 'components/header.php';
                             </select>
                         </div>
                         <div class="d-flex justify-content-end mt-4">
-                            <button class="btn btn-light px-4 mr-2" type="button" data-dismiss="modal" style="border-radius: 6px; font-weight: 600;">Cancel</button>
+                            <button class="btn btn-light px-4 mr-2" type="button" data-dismiss="modal" style="border-radius: 6px; font-weight: 600;">Batal</button>
                             <button class="btn btn-danger px-4" type="button" id="btn-confirm-delete-inbound" style="border-radius: 6px; font-weight: 600; box-shadow: 0 4px 10px rgba(231,74,59,0.3);">
-                                <i class="fas fa-trash mr-1"></i> Delete Data Inbound
+                                <i class="fas fa-trash mr-1"></i> Hapus Data Inbound
                             </button>
                         </div>
                     </div>
@@ -975,29 +1028,37 @@ include 'components/header.php';
         var btnConfirmDeleteInbound = document.getElementById('btn-confirm-delete-inbound');
         if (btnConfirmDeleteInbound) {
             btnConfirmDeleteInbound.addEventListener('click', function () {
-                var delMonth = document.getElementById('deleteInboundMonthSelect');
-                var delYear = document.getElementById('deleteInboundYearSelect');
-                if (!delMonth || !delMonth.value || !delYear || !delYear.value) {
-                    alert('Silakan pilih Bulan dan Tahun untuk menghapus data Inbound.');
-                    return;
-                }
-                var periodToDelete = delMonth.value + ' ' + delYear.value;
-                if (!confirm("Apakah Anda YAKIN ingin menghapus semua data Inbound untuk periode " + periodToDelete.toUpperCase() + "?")) return;
+                var m = document.getElementById('deleteInboundMonthSelect') ? document.getElementById('deleteInboundMonthSelect').value : '';
+                var y = document.getElementById('deleteInboundYearSelect') ? document.getElementById('deleteInboundYearSelect').value : '';
+                var period = (m && y) ? (m + ' ' + y) : null;
 
-                fetch('api/delete_data.php', {
+                var msg = period 
+                    ? "Apakah Anda YAKIN ingin menghapus data Inbound untuk periode " + period.toUpperCase() + "?" 
+                    : "Apakah Anda YAKIN ingin menghapus SEMUA Data Master Inbound dari database?";
+
+                if (!confirm(msg)) return;
+
+                fetch('api/delete_inbound_master.php', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ periode: periodToDelete, type: 'inbound' })
+                    body: JSON.stringify({ action: 'delete_period', periode: period, month: m, year: y })
                 })
                 .then(r => r.json())
                 .then(res => {
                     if (res.status === 'success') {
-                        alert('Data Inbound berhasil dihapus.');
+                        alert(res.message || 'Data Master Inbound berhasil dihapus.');
                         $('#deleteDataModalInbound').modal('hide');
-                        location.reload();
+                        if ($.fn.DataTable && $('#dataTableInbound').length) {
+                            $('#dataTableInbound').DataTable().ajax.reload();
+                        } else {
+                            location.reload();
+                        }
                     } else {
                         alert('Gagal menghapus data: ' + res.message);
                     }
+                })
+                .catch(err => {
+                    alert('Terjadi kesalahan saat menghubungi server.');
                 });
             });
         }
