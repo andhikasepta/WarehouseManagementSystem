@@ -89,6 +89,7 @@ if ($method === 'POST') {
     $userId = intval($data['id'] ?? 0);
     $username = trim($data['username'] ?? '');
     $name = trim($data['name'] ?? '');
+    $password = trim($data['password'] ?? '');
     $role = trim($data['role'] ?? 'admin');
     $modules = is_array($data['allowed_modules'] ?? null) ? $data['allowed_modules'] : [];
 

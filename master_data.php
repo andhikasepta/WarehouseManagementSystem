@@ -170,7 +170,7 @@ include 'components/header.php';
                                         <div class="card-body py-3 px-4">
                                             <div class="form-row align-items-end">
                                                 <!-- Periode Group Dropdown -->
-                                                <div class="col-md-3 col-sm-6 mb-2 mb-md-0">
+                                                <div class="col-md-2 col-sm-6 mb-2 mb-md-0">
                                                     <label for="filter-inbound-periode" class="small font-weight-bold text-gray-700 mb-1">Periode Group</label>
                                                     <select class="form-control form-control-sm custom-select custom-select-sm" id="filter-inbound-periode">
                                                         <option value="">Semua Periode</option>
@@ -194,11 +194,17 @@ include 'components/header.php';
                                                 </div>
 
                                                 <!-- Item Kategori Dropdown -->
-                                                <div class="col-md-3 col-sm-6 mb-2 mb-md-0">
+                                                <div class="col-md-2 col-sm-6 mb-2 mb-md-0">
                                                     <label for="filter-inbound-kategori" class="small font-weight-bold text-gray-700 mb-1">Item Kategori</label>
                                                     <select class="form-control form-control-sm custom-select custom-select-sm" id="filter-inbound-kategori">
                                                         <option value="">Semua Kategori</option>
                                                     </select>
+                                                </div>
+
+                                                <!-- No. PR / PO Search Input -->
+                                                <div class="col-md-2 col-sm-6 mb-2 mb-md-0">
+                                                    <label for="filter-inbound-po" class="small font-weight-bold text-gray-700 mb-1">No. PR / PO</label>
+                                                    <input type="text" class="form-control form-control-sm" id="filter-inbound-po" placeholder="Cari No. PR / PO...">
                                                 </div>
 
                                                 <!-- Reset Filter Button -->
@@ -495,7 +501,7 @@ include 'components/header.php';
                                                 </div>
 
                                                 <!-- PIC MR Dropdown -->
-                                                <div class="col-md-3 col-sm-6 mb-2 mb-md-0">
+                                                <div class="col-md-2 col-sm-6 mb-2 mb-md-0">
                                                     <label for="filter-pic-mr-outbound" class="small font-weight-bold text-gray-700 mb-1">PIC MR</label>
                                                     <select class="form-control form-control-sm custom-select custom-select-sm" id="filter-pic-mr-outbound">
                                                         <option value="">Semua PIC MR</option>
@@ -503,15 +509,21 @@ include 'components/header.php';
                                                 </div>
 
                                                 <!-- Status Dropdown -->
-                                                <div class="col-md-3 col-sm-6 mb-2 mb-md-0">
+                                                <div class="col-md-2 col-sm-6 mb-2 mb-md-0">
                                                     <label for="filter-status-outbound" class="small font-weight-bold text-gray-700 mb-1">Status</label>
                                                     <select class="form-control form-control-sm custom-select custom-select-sm" id="filter-status-outbound">
                                                         <option value="">Semua Status</option>
                                                     </select>
                                                 </div>
 
-                                                <!-- Reset Filter Button -->
+                                                <!-- No. MR Search Input -->
                                                 <div class="col-md-3 col-sm-6 mb-2 mb-md-0">
+                                                    <label for="filter-outbound-mr" class="small font-weight-bold text-gray-700 mb-1">No. MR</label>
+                                                    <input type="text" class="form-control form-control-sm" id="filter-outbound-mr" placeholder="Cari No. MR...">
+                                                </div>
+
+                                                <!-- Reset Filter Button -->
+                                                <div class="col-md-2 col-sm-6 mb-2 mb-md-0">
                                                     <button class="btn btn-outline-secondary btn-sm font-weight-bold btn-block" type="button" id="btn-reset-filter-outbound">
                                                         <i class="fas fa-undo mr-1"></i> Reset Filter
                                                     </button>
@@ -923,13 +935,11 @@ include 'components/header.php';
                 localStorage.setItem('activeMasterSegmentTab', targetSeg);
                 if (targetSeg === '#seg-storage') {
                     $('#storage-action-buttons').fadeIn(200);
-                    setTimeout(function() {
-                        if ($.fn.DataTable) {
-                            $($.fn.dataTable.tables(true)).DataTable().columns.adjust();
-                        }
-                    }, 150);
                 } else {
                     $('#storage-action-buttons').fadeOut(200);
+                }
+                if (typeof loadActiveMasterTabTable === 'function') {
+                    loadActiveMasterTabTable();
                 }
             });
 
@@ -943,12 +953,14 @@ include 'components/header.php';
             $('#masterDataTabs a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
                 var targetTab = $(e.target).attr("href");
                 localStorage.setItem('activeMasterDataTab', targetTab);
-                setTimeout(function() {
-                    if ($.fn.DataTable) {
-                        $($.fn.dataTable.tables(true)).DataTable().columns.adjust();
-                    }
-                }, 150);
+                if (typeof loadActiveMasterTabTable === 'function') {
+                    loadActiveMasterTabTable();
+                }
             });
+
+            if (typeof loadActiveMasterTabTable === 'function') {
+                loadActiveMasterTabTable();
+            }
         });
         
         // Delete Data Logic
