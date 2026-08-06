@@ -1,4 +1,34 @@
 // js/master-data.js
+if (window.jQuery && $.fn && $.fn.dataTable) {
+    $.extend(true, $.fn.dataTable.defaults, {
+        language: {
+            processing: "Data Is Processing Please Wait"
+        }
+    });
+}
+
+if (window.jQuery) {
+    // Show SweetAlert2 loading modal when DataTables AJAX fetch starts
+    $(document).on('preXhr.dt', function () {
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                title: 'Data Is Processing Please Wait',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                didOpen: function () {
+                    Swal.showLoading();
+                }
+            });
+        }
+    });
+
+    // Close SweetAlert2 loading modal when DataTables AJAX fetch completes or errors
+    $(document).on('xhr.dt error.dt', function () {
+        if (typeof Swal !== 'undefined') {
+            Swal.close();
+        }
+    });
+}
 var inboundTable = null;
 var assetTable = null;
 var rackTable = null;
@@ -117,7 +147,7 @@ function initInboundTable() {
             {
                 data: 'periode_group',
                 render: function (data) {
-                    return data ? '<span class="badge badge-info px-2 py-1">' + data + '</span>' : '<span class="badge badge-secondary px-2 py-1">Unknown Period</span>';
+                    return data ? data : 'Unknown Period';
                 }
             }
         ]
@@ -416,7 +446,7 @@ $(document).ready(function () {
         // Show loading
         if (typeof Swal !== 'undefined') {
             Swal.fire({
-                title: 'Memuat Data...',
+                title: 'Data Is Processing Please Wait',
                 allowOutsideClick: false,
                 allowEscapeKey: false,
                 didOpen: function () { Swal.showLoading(); }
@@ -788,7 +818,7 @@ $(document).ready(function () {
 
         if (typeof Swal !== 'undefined') {
             Swal.fire({
-                title: 'Reading Excel File...',
+                title: 'Data Is Processing Please Wait',
                 html: 'Memproses file Excel Inbound untuk periode <b>' + monthVal + ' ' + yearVal + '</b>...',
                 allowOutsideClick: false,
                 didOpen: () => { Swal.showLoading(); }

@@ -5,13 +5,46 @@ Chart.defaults.global.defaultFontColor = '#858796';
 document.addEventListener("DOMContentLoaded", function () {
   window.inventorySummaryRealValues = [0, 0, 0, 0];
 
-  // 1. Initialize Inventory Summary Pie/Doughnut Chart
+  function getStorageDynamicStepNames() {
+    var storageContainer = document.getElementById('storage-steps-container');
+    var flowSteps = storageContainer ? storageContainer.querySelectorAll('.flow-step') : [];
+    var names = [];
+    flowSteps.forEach(function (stepEl, idx) {
+      if (idx > 0) { // Skip Step 1 (Total Perangkat) as pie chart represents the 4 categories
+        var titleEl = stepEl.querySelector('.text-gray-700');
+        if (titleEl && titleEl.textContent.trim()) {
+          names.push(titleEl.textContent.trim());
+        }
+      }
+    });
+    if (names.length === 4) return names;
+    return ['Aging <3 Bulan', 'Aging 3-12 Bulan', 'Aging >12 Bulan', 'RE-Use'];
+  }
+
+  function syncStorageFlowLabels() {
+    var stepNames = getStorageDynamicStepNames();
+
+    // 1. Sync Chart.js doughnut chart labels
+    if (window.dashInventorySummaryPieChart && window.dashInventorySummaryPieChart.data) {
+      window.dashInventorySummaryPieChart.data.labels = stepNames;
+    }
+
+    // 2. Sync Right-side Legend item names (#inv-legend-name-1 .. #inv-legend-name-4)
+    stepNames.forEach(function (name, idx) {
+      var legendNameEl = document.getElementById('inv-legend-name-' + (idx + 1));
+      if (legendNameEl) {
+        legendNameEl.textContent = name;
+      }
+    });
+  }
+
+  // 1. Initialize Inventory Summary Pie/Doughnut Chart (Storage Tekno)
   var ctxInvPie = document.getElementById("dashInventorySummaryPieChart");
   if (ctxInvPie) {
     window.dashInventorySummaryPieChart = new Chart(ctxInvPie, {
       type: 'doughnut',
       data: {
-        labels: ['Aging <3 Bulan', 'Aging 3-12 Bulan', 'Aging >12 Bulan', 'Non Moving'],
+        labels: getStorageDynamicStepNames(),
         datasets: [{
           data: [1, 1, 1, 1],
           backgroundColor: ['#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b'],
@@ -54,6 +87,92 @@ document.addEventListener("DOMContentLoaded", function () {
         }
       }
     });
+
+    syncStorageFlowLabels();
+  }
+
+  // 1b. Initialize Storage HUB & Outlet Warehouse Pie/Doughnut Chart
+  window.storageHubRealValues = [0, 0, 0, 0];
+
+  function getStorageHubDynamicStepNames() {
+    var storageContainer = document.getElementById('storage-steps-container-hub');
+    var flowSteps = storageContainer ? storageContainer.querySelectorAll('.flow-step') : [];
+    var names = [];
+    flowSteps.forEach(function (stepEl, idx) {
+      if (idx > 0) {
+        var titleEl = stepEl.querySelector('.text-gray-700');
+        if (titleEl && titleEl.textContent.trim()) {
+          names.push(titleEl.textContent.trim());
+        }
+      }
+    });
+    if (names.length === 4) return names;
+    return ['Aging <3 Bulan', 'Aging 3-12 Bulan', 'Aging >12 Bulan', 'RE-Use'];
+  }
+
+  function syncStorageHubFlowLabels() {
+    var stepNames = getStorageHubDynamicStepNames();
+    if (window.dashStorageHubPieChart && window.dashStorageHubPieChart.data) {
+      window.dashStorageHubPieChart.data.labels = stepNames;
+    }
+    stepNames.forEach(function (name, idx) {
+      var legendNameEl = document.getElementById('hub-inv-legend-name-' + (idx + 1));
+      if (legendNameEl) {
+        legendNameEl.textContent = name;
+      }
+    });
+  }
+
+  var ctxStorageHubPie = document.getElementById("dashStorageHubPieChart");
+  if (ctxStorageHubPie) {
+    window.dashStorageHubPieChart = new Chart(ctxStorageHubPie, {
+      type: 'doughnut',
+      data: {
+        labels: getStorageHubDynamicStepNames(),
+        datasets: [{
+          data: [1, 1, 1, 1],
+          backgroundColor: ['#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b'],
+          hoverBackgroundColor: ['#17a673', '#2c9faf', '#dfa827', '#be2617'],
+          hoverBorderColor: "rgba(234, 236, 244, 1)",
+          borderWidth: 2
+        }]
+      },
+      options: {
+        maintainAspectRatio: false,
+        cutoutPercentage: 65,
+        legend: {
+          display: false
+        },
+        tooltips: {
+          backgroundColor: "rgba(255,255,255,0.95)",
+          bodyFontColor: "#4a5568",
+          bodyFontSize: 9,
+          titleFontSize: 9,
+          borderColor: '#e2e8f0',
+          borderWidth: 1,
+          xPadding: 6,
+          yPadding: 4,
+          displayColors: true,
+          boxWidth: 6,
+          boxHeight: 6,
+          caretPadding: 4,
+          caretSize: 4,
+          cornerRadius: 4,
+          callbacks: {
+            label: function (tooltipItem, data) {
+              var realValues = window.storageHubRealValues || [0, 0, 0, 0];
+              var realVal = realValues[tooltipItem.index] !== undefined ? realValues[tooltipItem.index] : 0;
+              var sum = realValues.reduce(function (a, b) { return a + b; }, 0);
+              var pct = sum > 0 ? Math.round((realVal / sum) * 100) : 0;
+              var stepName = data.labels[tooltipItem.index] || 'Category';
+              return stepName + ': ' + realVal + ' (' + pct + '%)';
+            }
+          }
+        }
+      }
+    });
+
+    syncStorageHubFlowLabels();
   }
 
   function getDynamicStepNames() {
@@ -154,7 +273,7 @@ document.addEventListener("DOMContentLoaded", function () {
     syncInboundFlowLabels();
   }
 
-  // Helper function to update Inventory Summary Pie Chart values
+  // Helper function to update Inventory Summary Pie Chart values (Storage Tekno)
   window.updateInventorySummaryPieChart = function (newValues) {
     if (!newValues || !Array.isArray(newValues)) return;
     window.inventorySummaryRealValues = newValues;
@@ -162,12 +281,31 @@ document.addEventListener("DOMContentLoaded", function () {
     var totalEl = document.getElementById('inventory-pie-total-val');
     if (totalEl) totalEl.textContent = sum;
     if (window.dashInventorySummaryPieChart && window.dashInventorySummaryPieChart.data) {
+      syncStorageFlowLabels();
       if (sum === 0) {
         window.dashInventorySummaryPieChart.data.datasets[0].data = [1, 1, 1, 1];
       } else {
         window.dashInventorySummaryPieChart.data.datasets[0].data = newValues;
       }
       window.dashInventorySummaryPieChart.update();
+    }
+  };
+
+  // Helper function to update Storage HUB & Outlet Warehouse Pie Chart values
+  window.updateStorageHubPieChart = function (newValues) {
+    if (!newValues || !Array.isArray(newValues)) return;
+    window.storageHubRealValues = newValues;
+    var sum = newValues.reduce(function (a, b) { return a + b; }, 0);
+    var totalEl = document.getElementById('hub-inventory-pie-total-val');
+    if (totalEl) totalEl.textContent = sum;
+    if (window.dashStorageHubPieChart && window.dashStorageHubPieChart.data) {
+      syncStorageHubFlowLabels();
+      if (sum === 0) {
+        window.dashStorageHubPieChart.data.datasets[0].data = [1, 1, 1, 1];
+      } else {
+        window.dashStorageHubPieChart.data.datasets[0].data = newValues;
+      }
+      window.dashStorageHubPieChart.update();
     }
   };
 
@@ -386,4 +524,5 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
   applyStorageUtilColor();
+  syncStorageFlowLabels();
 });

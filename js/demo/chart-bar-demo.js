@@ -72,7 +72,9 @@ var myBarChart = new Chart(ctx, {
           maxTicksLimit: 6,
           fontSize: 10.5
         },
-        maxBarThickness: 25,
+        barPercentage: 1.0,
+        categoryPercentage: 0.5,
+        maxBarThickness: 18,
       }],
       yAxes: [{
         id: "y-axis-qty",

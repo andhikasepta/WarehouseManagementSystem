@@ -23,3 +23,10 @@ table.dataTable th {
 #dataTableOutbound_wrapper .dataTables_filter {
     display: none !important;
 }
+
+/* 5. SweetAlert2 Overlay Backdrop Blur */
+.swal2-container {
+    backdrop-filter: blur(5px) !important;
+    -webkit-backdrop-filter: blur(5px) !important;
+    background-color: rgba(0, 0, 0, 0.45) !important;
+}

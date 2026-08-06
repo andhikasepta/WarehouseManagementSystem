@@ -160,7 +160,7 @@ if (isset($pdo)) {
     margin: 0.12rem 0.5rem;
 }
 
-#wms-sidebar .nav-item .nav-link {
+#wms-sidebar .nav-item > .nav-link {
     display: flex;
     align-items: center;
     padding: 0.45rem 0.85rem;
@@ -172,7 +172,7 @@ if (isset($pdo)) {
     transition: all 0.2s ease-in-out;
 }
 
-#wms-sidebar .nav-item .nav-link i {
+#wms-sidebar .nav-item > .nav-link i {
     font-size: 0.95rem;
     width: 1.4rem;
     margin-right: 0.65rem;
@@ -180,21 +180,21 @@ if (isset($pdo)) {
     transition: color 0.2s ease-in-out;
 }
 
-#wms-sidebar .nav-item .nav-link span {
+#wms-sidebar .nav-item > .nav-link span {
     padding-left: 0.15rem;
 }
 
-#wms-sidebar .nav-item .nav-link:hover {
+#wms-sidebar .nav-item > .nav-link:hover {
     background: rgba(255, 255, 255, 0.1);
     color: #ffffff;
     transform: translateX(3px);
 }
 
-#wms-sidebar .nav-item .nav-link:hover i {
+#wms-sidebar .nav-item > .nav-link:hover i {
     color: #60a5fa;
 }
 
-#wms-sidebar .nav-item.active .nav-link {
+#wms-sidebar .nav-item.active > .nav-link {
     background: linear-gradient(90deg, #1e4b7a 0%, #285b93 100%);
     color: #ffffff;
     font-weight: 700;
@@ -202,8 +202,75 @@ if (isset($pdo)) {
     box-shadow: 0 2px 8px rgba(30, 75, 122, 0.4);
 }
 
-#wms-sidebar .nav-item.active .nav-link i {
+#wms-sidebar .nav-item.active > .nav-link i {
     color: #60a5fa;
+}
+
+/* Sidebar Submenu Dropdown Styles */
+#wms-sidebar .sidebar-submenu {
+    padding: 0.25rem 0.35rem;
+    margin: 0.25rem 0 0.35rem 0.75rem;
+    background: rgba(0, 0, 0, 0.25);
+    border-left: 2px solid rgba(96, 165, 250, 0.3);
+    border-radius: 0 8px 8px 0;
+}
+
+#wms-sidebar .sidebar-submenu .sub-link {
+    display: flex;
+    align-items: center;
+    padding: 0.4rem 0.75rem;
+    margin: 0.15rem 0;
+    color: #cbd5e1;
+    font-size: 0.78rem;
+    font-weight: 600;
+    border-radius: 5px;
+    text-decoration: none;
+    transition: all 0.2s ease-in-out;
+}
+
+#wms-sidebar .sidebar-submenu .sub-link i {
+    font-size: 0.8rem;
+    width: 1.1rem;
+    margin-right: 0.5rem;
+    color: #94a3b8;
+    transition: color 0.2s ease-in-out;
+}
+
+#wms-sidebar .sidebar-submenu .sub-link:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: #ffffff;
+    transform: translateX(3px);
+}
+
+#wms-sidebar .sidebar-submenu .sub-link:hover i {
+    color: #60a5fa;
+}
+
+#wms-sidebar .sidebar-submenu .sub-link.active {
+    background: linear-gradient(90deg, #2563eb 0%, #1d4ed8 100%) !important;
+    color: #ffffff !important;
+    font-weight: 700;
+    box-shadow: 0 2px 6px rgba(37, 99, 235, 0.4);
+}
+
+#wms-sidebar .sidebar-submenu .sub-link.active i {
+    color: #ffffff !important;
+}
+
+/* Chevron indicator right-alignment */
+#wms-sidebar .nav-link .dropdown-arrow,
+#wms-sidebar .nav-link .fa-chevron-down,
+#wms-sidebar .nav-link .fa-angle-down {
+    margin-left: auto !important;
+    margin-right: 0 !important;
+    font-size: 0.68rem !important;
+    display: inline-block !important;
+}
+
+#wms-sidebar a[aria-expanded="true"] .dropdown-arrow,
+#wms-sidebar a[aria-expanded="true"] .fa-chevron-down,
+#wms-sidebar a[aria-expanded="true"] .fa-angle-down {
+    color: #60a5fa !important;
 }
 
 #wms-sidebar .sidebar-user-footer {
@@ -1264,12 +1331,27 @@ html, body {
             </a>
         </li>
         <?php endif; ?>
-        <?php if ($hasWarehouseAccess): ?>
-        <li class="nav-item <?php echo ($activePage == 'warehouse') ? 'active' : ''; ?>">
-            <a class="nav-link" href="warehouse.php">
-                <i class="fas fa-warehouse fa-fw"></i>
-                <span>Storage</span>
+        <?php if ($hasWarehouseAccess): 
+            $isStorageActive = in_array($activePage, ['warehouse', 'storage_hub']);
+        ?>
+        <li class="nav-item <?php echo $isStorageActive ? 'active' : ''; ?>">
+            <a class="nav-link collapsed d-flex align-items-center justify-content-between w-100" href="#collapseStorageMenu" data-toggle="collapse" data-target="#collapseStorageMenu" aria-expanded="false" aria-controls="collapseStorageMenu" style="cursor: pointer;">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-warehouse fa-fw"></i>
+                    <span>Storage</span>
+                </div>
+                <i class="fas fa-chevron-down dropdown-arrow"></i>
             </a>
+            <div id="collapseStorageMenu" class="collapse <?php echo $isStorageActive ? 'show' : ''; ?>" data-parent="#wms-sidebar">
+                <div class="sidebar-submenu">
+                    <a class="sub-link <?php echo ($activePage == 'warehouse') ? 'active' : ''; ?>" href="warehouse.php">
+                        <i class="fas fa-building"></i> <span>Storage Tekno</span>
+                    </a>
+                    <a class="sub-link <?php echo ($activePage == 'storage_hub') ? 'active' : ''; ?>" href="storage_hub.php">
+                        <i class="fas fa-store-alt"></i> <span>Storage HUB &amp; Outlet</span>
+                    </a>
+                </div>
+            </div>
         </li>
         <?php endif; ?>
         <?php if ($hasOutboundAccess): ?>
@@ -1439,20 +1521,32 @@ html, body {
                     <i class="fas fa-undo mr-1"></i>Reset
                 </button>
                 <?php else: ?>
-                <h6 class="dropdown-header px-0 pt-0 text-primary font-weight-bold">PILIH PERIODE DATA</h6>
+                <h6 class="dropdown-header px-0 pt-0 text-primary font-weight-bold mb-2">
+                    <i class="far fa-calendar-alt mr-1"></i> PILIH PERIODE DATA
+                </h6>
+
+                <?php if ($activePage == 'storage_hub'): ?>
+                <div class="form-group mb-2" id="site-select-group">
+                    <label for="period-site-select" class="small font-weight-bold text-gray-600 mb-1">Site</label>
+                    <select class="form-control form-control-sm" id="period-site-select">
+                        <option value="">-- Pilih Site --</option>
+                    </select>
+                </div>
+                <?php endif; ?>
+
                 <div class="form-group mb-2">
-                    <label for="period-month-select" class="small font-weight-bold text-gray-600">Bulan</label>
+                    <label for="period-month-select" class="small font-weight-bold text-gray-600 mb-1">Bulan</label>
                     <select class="form-control form-control-sm" id="period-month-select">
                         <option value="">-- Pilih Bulan --</option>
                     </select>
                 </div>
                 <div class="form-group mb-2">
-                    <label for="period-year-select" class="small font-weight-bold text-gray-600">Tahun</label>
+                    <label for="period-year-select" class="small font-weight-bold text-gray-600 mb-1">Tahun</label>
                     <select class="form-control form-control-sm" id="period-year-select">
                         <option value="">-- Pilih Tahun --</option>
                     </select>
                 </div>
-                <button class="btn btn-primary btn-sm btn-block" id="btn-load-period" disabled>
+                <button class="btn btn-primary btn-sm btn-block font-weight-bold mt-3" id="btn-load-period" disabled>
                     <i class="fas fa-check mr-1"></i>Tampilkan Data
                 </button>
                 <button class="btn btn-outline-secondary btn-sm btn-block font-weight-bold mt-2" id="btn-reset-period">
@@ -1532,7 +1626,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Close mobile sidebar when clicking a nav link (for navigation)
-    var sidebarNavLinks = document.querySelectorAll('#wms-sidebar .nav-link');
+    var sidebarNavLinks = document.querySelectorAll('#wms-sidebar .nav-link:not([data-toggle="collapse"]), #wms-sidebar .sub-link');
     for (var i = 0; i < sidebarNavLinks.length; i++) {
         sidebarNavLinks[i].addEventListener('click', function() {
             if (window.innerWidth < 992) {

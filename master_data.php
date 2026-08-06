@@ -148,23 +148,27 @@ include 'components/header.php';
                         <?php if ($canAccessInboundMaster): ?>
                         <!-- 1. INBOUND MASTER DATA -->
                         <div class="tab-pane fade <?php echo ($defaultMasterSegment === 'inbound') ? 'show active' : ''; ?>" id="seg-inbound" role="tabpanel" aria-labelledby="seg-inbound-tab">
-                            <div class="card shadow border-0 mb-4" style="border-radius: 12px; min-height: calc(100vh - 320px); display: flex; flex-direction: column;">
-                                <?php if ($userRole !== 'head_warehouse_admin'): ?>
-                                <div class="card-header bg-white py-3 d-flex flex-column flex-sm-row align-items-sm-center justify-content-between border-bottom">
-                                    <h6 class="m-0 font-weight-bold text-primary">
-                                        <i class="fas fa-box-open mr-2"></i>Menu Master Data Inbound
-                                    </h6>
-                                    <div class="mt-2 mt-sm-0">
-                                        <button class="btn btn-success btn-sm shadow-sm font-weight-bold mr-2" data-toggle="modal" data-target="#uploadExcelModalInbound">
-                                            <i class="fas fa-file-import mr-1"></i> Import Excel Inbound
-                                        </button>
-                                        <button class="btn btn-danger btn-sm shadow-sm font-weight-bold" data-toggle="modal" data-target="#deleteDataModalInbound">
-                                            <i class="fas fa-trash-alt mr-1"></i> Hapus Data Inbound
-                                        </button>
-                                    </div>
+                            <?php if ($userRole !== 'head_warehouse_admin'): ?>
+                            <div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between mb-3 bg-white p-3 rounded shadow-sm border">
+                                <h6 class="m-0 font-weight-bold text-primary">
+                                    <i class="fas fa-box-open mr-2"></i>Menu Master Data Inbound
+                                </h6>
+                                <div class="mt-2 mt-sm-0">
+                                    <button class="btn btn-success btn-sm shadow-sm font-weight-bold mr-2" data-toggle="modal" data-target="#uploadExcelModalInbound">
+                                        <i class="fas fa-file-import mr-1"></i> Import Excel Inbound
+                                    </button>
+                                    <button class="btn btn-danger btn-sm shadow-sm font-weight-bold" data-toggle="modal" data-target="#deleteDataModalInbound">
+                                        <i class="fas fa-trash-alt mr-1"></i> Hapus Data Inbound
+                                    </button>
                                 </div>
-                                <?php endif; ?>
-                                <div class="card-body p-4" style="flex: 1;">
+                            </div>
+                            <?php endif; ?>
+
+                            <div class="card shadow mb-4" style="min-height: calc(100vh - 380px);">
+                                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                                    <h6 class="m-0 font-weight-bold text-primary">Tabel Master Data Inbound</h6>
+                                </div>
+                                <div class="card-body">
                                     <!-- Filter Control Bar (Dropdowns & Reset) -->
                                     <div class="card shadow-sm border mb-4" style="border-radius: 8px;">
                                         <div class="card-body py-3 px-4">
@@ -218,8 +222,8 @@ include 'components/header.php';
                                     </div>
 
                                     <div class="table-responsive">
-                                        <table class="table table-bordered table-sm table-striped" id="dataTableInbound" width="100%" cellspacing="0">
-                                            <thead class="thead-light">
+                                        <table class="table table-bordered table-sm" id="dataTableInbound" width="100%" cellspacing="0">
+                                            <thead>
                                                 <tr>
                                                     <th>PR Nomor</th>
                                                     <th>PR Kode Site</th>
@@ -471,23 +475,27 @@ include 'components/header.php';
                         <?php if ($canAccessOutboundMaster): ?>
                         <!-- 3. OUTBOUND MASTER DATA -->
                         <div class="tab-pane fade <?php echo ($defaultMasterSegment === 'outbound') ? 'show active' : ''; ?>" id="seg-outbound" role="tabpanel" aria-labelledby="seg-outbound-tab">
-                            <div class="card shadow border-0 mb-4" style="border-radius: 12px; min-height: calc(100vh - 320px); display: flex; flex-direction: column;">
-                                <?php if ($userRole !== 'head_warehouse_admin'): ?>
-                                <div class="card-header bg-white py-3 d-flex flex-column flex-sm-row align-items-sm-center justify-content-between border-bottom">
-                                    <h6 class="m-0 font-weight-bold text-primary">
-                                        <i class="fas fa-truck-loading mr-2"></i>Menu Master Data Outbound
-                                    </h6>
-                                    <div class="mt-2 mt-sm-0">
-                                        <button class="btn btn-success btn-sm shadow-sm font-weight-bold mr-2" data-toggle="modal" data-target="#uploadExcelModalOutbound">
-                                            <i class="fas fa-file-import mr-1"></i> Import Excel Outbound
-                                        </button>
-                                        <button class="btn btn-danger btn-sm shadow-sm font-weight-bold" data-toggle="modal" data-target="#deleteDataModalOutbound">
-                                            <i class="fas fa-trash-alt mr-1"></i> Hapus Data Outbound
-                                        </button>
-                                    </div>
+                            <?php if ($userRole !== 'head_warehouse_admin'): ?>
+                            <div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between mb-3 bg-white p-3 rounded shadow-sm border">
+                                <h6 class="m-0 font-weight-bold text-primary">
+                                    <i class="fas fa-truck-loading mr-2"></i>Menu Master Data Outbound
+                                </h6>
+                                <div class="mt-2 mt-sm-0">
+                                    <button class="btn btn-success btn-sm shadow-sm font-weight-bold mr-2" data-toggle="modal" data-target="#uploadExcelModalOutbound">
+                                        <i class="fas fa-file-import mr-1"></i> Import Excel Outbound
+                                    </button>
+                                    <button class="btn btn-danger btn-sm shadow-sm font-weight-bold" data-toggle="modal" data-target="#deleteDataModalOutbound">
+                                        <i class="fas fa-trash-alt mr-1"></i> Hapus Data Outbound
+                                    </button>
                                 </div>
-                                <?php endif; ?>
-                                <div class="card-body p-4" style="flex: 1;">
+                            </div>
+                            <?php endif; ?>
+
+                            <div class="card shadow mb-4" style="min-height: calc(100vh - 380px);">
+                                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                                    <h6 class="m-0 font-weight-bold text-primary">Tabel Master Data Outbound</h6>
+                                </div>
+                                <div class="card-body">
                                     <!-- Filter Control Bar (Dropdowns & Reset) -->
                                     <div class="card shadow-sm border mb-4" style="border-radius: 8px;">
                                         <div class="card-body py-3 px-4">
@@ -1003,6 +1011,18 @@ include 'components/header.php';
                 }
             });
 
+        // Helper function for showing SweetAlert loading modal
+        function showProcessingModal() {
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    title: 'Data Is Processing Please Wait',
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    didOpen: function () { Swal.showLoading(); }
+                });
+            }
+        }
+
         // 1. Confirm Delete Storage Data
         var btnConfirmDelete = document.getElementById('btn-confirm-delete');
         if (btnConfirmDelete) {
@@ -1010,29 +1030,68 @@ include 'components/header.php';
                 var delMonth = document.getElementById('deleteMonthSelect');
                 var delYear = document.getElementById('deleteYearSelect');
                 if (!delMonth || !delMonth.value || !delYear || !delYear.value) {
-                    alert('Silakan pilih Bulan dan Tahun untuk menghapus data Storage.');
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire('Peringatan', 'Silakan pilih Bulan dan Tahun untuk menghapus data Storage.', 'warning');
+                    } else {
+                        alert('Silakan pilih Bulan dan Tahun untuk menghapus data Storage.');
+                    }
                     return;
                 }
                 var periodToDelete = delMonth.value + ' ' + delYear.value;
-                if (!confirm("Apakah Anda YAKIN ingin menghapus semua data Storage untuk periode " + periodToDelete.toUpperCase() + "?")) return;
 
-                fetch('api/delete_data.php', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ periode: periodToDelete })
-                })
-                .then(r => r.json())
-                .then(res => {
-                    if (res.status === 'success') {
-                        alert('Data Storage berhasil dihapus.');
-                        $('#deleteDataModal').modal('hide');
-                        if ($.fn.DataTable && $('#dataTableAsset').length) {
-                            $('#dataTableAsset').DataTable().ajax.reload();
+                var executeStorageDelete = function () {
+                    showProcessingModal();
+                    fetch('api/delete_data.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ periode: periodToDelete })
+                    })
+                    .then(r => r.json())
+                    .then(res => {
+                        if (res.status === 'success') {
+                            if (typeof Swal !== 'undefined') {
+                                Swal.fire('Berhasil!', 'Data Storage berhasil dihapus.', 'success');
+                            } else {
+                                alert('Data Storage berhasil dihapus.');
+                            }
+                            $('#deleteDataModal').modal('hide');
+                            if ($.fn.DataTable && $('#dataTableAsset').length) {
+                                $('#dataTableAsset').DataTable().ajax.reload();
+                            }
+                        } else {
+                            if (typeof Swal !== 'undefined') {
+                                Swal.fire('Error', 'Gagal menghapus data: ' + res.message, 'error');
+                            } else {
+                                alert('Gagal menghapus data: ' + res.message);
+                            }
                         }
-                    } else {
-                        alert('Gagal menghapus data: ' + res.message);
+                    })
+                    .catch(err => {
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire('Error', 'Terjadi kesalahan saat menghubungi server.', 'error');
+                        }
+                    });
+                };
+
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        title: 'Apakah Anda YAKIN?',
+                        text: "Ingin menghapus semua data Storage untuk periode " + periodToDelete.toUpperCase() + "?",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#e74a3b',
+                        cancelButtonColor: '#858796',
+                        confirmButtonText: 'Ya, Hapus!'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            executeStorageDelete();
+                        }
+                    });
+                } else {
+                    if (confirm("Apakah Anda YAKIN ingin menghapus semua data Storage untuk periode " + periodToDelete.toUpperCase() + "?")) {
+                        executeStorageDelete();
                     }
-                });
+                }
             });
         }
 
@@ -1045,33 +1104,66 @@ include 'components/header.php';
                 var period = (m && y) ? (m + ' ' + y) : null;
 
                 var msg = period 
-                    ? "Apakah Anda YAKIN ingin menghapus data Inbound untuk periode " + period.toUpperCase() + "?" 
-                    : "Apakah Anda YAKIN ingin menghapus SEMUA Data Master Inbound dari database?";
+                    ? "Ingin menghapus data Inbound untuk periode " + period.toUpperCase() + "?" 
+                    : "Ingin menghapus SEMUA Data Master Inbound dari database?";
 
-                if (!confirm(msg)) return;
-
-                fetch('api/delete_inbound_master.php', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: 'delete_period', periode: period, month: m, year: y })
-                })
-                .then(r => r.json())
-                .then(res => {
-                    if (res.status === 'success') {
-                        alert(res.message || 'Data Master Inbound berhasil dihapus.');
-                        $('#deleteDataModalInbound').modal('hide');
-                        if ($.fn.DataTable && $('#dataTableInbound').length) {
-                            $('#dataTableInbound').DataTable().ajax.reload();
+                var executeInboundDelete = function () {
+                    showProcessingModal();
+                    fetch('api/delete_inbound_master.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ action: 'delete_period', periode: period, month: m, year: y })
+                    })
+                    .then(r => r.json())
+                    .then(res => {
+                        if (res.status === 'success') {
+                            if (typeof Swal !== 'undefined') {
+                                Swal.fire('Berhasil!', res.message || 'Data Master Inbound berhasil dihapus.', 'success');
+                            } else {
+                                alert(res.message || 'Data Master Inbound berhasil dihapus.');
+                            }
+                            $('#deleteDataModalInbound').modal('hide');
+                            if ($.fn.DataTable && $('#dataTableInbound').length) {
+                                $('#dataTableInbound').DataTable().ajax.reload();
+                            } else {
+                                location.reload();
+                            }
                         } else {
-                            location.reload();
+                            if (typeof Swal !== 'undefined') {
+                                Swal.fire('Error', 'Gagal menghapus data: ' + res.message, 'error');
+                            } else {
+                                alert('Gagal menghapus data: ' + res.message);
+                            }
                         }
-                    } else {
-                        alert('Gagal menghapus data: ' + res.message);
+                    })
+                    .catch(err => {
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire('Error', 'Terjadi kesalahan saat menghubungi server.', 'error');
+                        } else {
+                            alert('Terjadi kesalahan saat menghubungi server.');
+                        }
+                    });
+                };
+
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        title: 'Apakah Anda YAKIN?',
+                        text: msg,
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#e74a3b',
+                        cancelButtonColor: '#858796',
+                        confirmButtonText: 'Ya, Hapus!'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            executeInboundDelete();
+                        }
+                    });
+                } else {
+                    if (confirm("Apakah Anda YAKIN " + msg)) {
+                        executeInboundDelete();
                     }
-                })
-                .catch(err => {
-                    alert('Terjadi kesalahan saat menghubungi server.');
-                });
+                }
             });
         }
 
@@ -1082,27 +1174,66 @@ include 'components/header.php';
                 var delMonth = document.getElementById('deleteOutboundMonthSelect');
                 var delYear = document.getElementById('deleteOutboundYearSelect');
                 if (!delMonth || !delMonth.value || !delYear || !delYear.value) {
-                    alert('Silakan pilih Bulan dan Tahun untuk menghapus data Outbound.');
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire('Peringatan', 'Silakan pilih Bulan dan Tahun untuk menghapus data Outbound.', 'warning');
+                    } else {
+                        alert('Silakan pilih Bulan dan Tahun untuk menghapus data Outbound.');
+                    }
                     return;
                 }
                 var periodToDelete = delMonth.value + ' ' + delYear.value;
-                if (!confirm("Apakah Anda YAKIN ingin menghapus semua data Outbound untuk periode " + periodToDelete.toUpperCase() + "?")) return;
 
-                fetch('api/delete_data.php', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ periode: periodToDelete, type: 'outbound' })
-                })
-                .then(r => r.json())
-                .then(res => {
-                    if (res.status === 'success') {
-                        alert('Data Outbound berhasil dihapus.');
-                        $('#deleteDataModalOutbound').modal('hide');
-                        location.reload();
-                    } else {
-                        alert('Gagal menghapus data: ' + res.message);
+                var executeOutboundDelete = function () {
+                    showProcessingModal();
+                    fetch('api/delete_data.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ periode: periodToDelete, type: 'outbound' })
+                    })
+                    .then(r => r.json())
+                    .then(res => {
+                        if (res.status === 'success') {
+                            if (typeof Swal !== 'undefined') {
+                                Swal.fire('Berhasil!', 'Data Outbound berhasil dihapus.', 'success');
+                            } else {
+                                alert('Data Outbound berhasil dihapus.');
+                            }
+                            $('#deleteDataModalOutbound').modal('hide');
+                            location.reload();
+                        } else {
+                            if (typeof Swal !== 'undefined') {
+                                Swal.fire('Error', 'Gagal menghapus data: ' + res.message, 'error');
+                            } else {
+                                alert('Gagal menghapus data: ' + res.message);
+                            }
+                        }
+                    })
+                    .catch(err => {
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire('Error', 'Terjadi kesalahan saat menghubungi server.', 'error');
+                        }
+                    });
+                };
+
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        title: 'Apakah Anda YAKIN?',
+                        text: "Ingin menghapus semua data Outbound untuk periode " + periodToDelete.toUpperCase() + "?",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#e74a3b',
+                        cancelButtonColor: '#858796',
+                        confirmButtonText: 'Ya, Hapus!'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            executeOutboundDelete();
+                        }
+                    });
+                } else {
+                    if (confirm("Apakah Anda YAKIN ingin menghapus semua data Outbound untuk periode " + periodToDelete.toUpperCase() + "?")) {
+                        executeOutboundDelete();
                     }
-                });
+                }
             });
         }
     </script>

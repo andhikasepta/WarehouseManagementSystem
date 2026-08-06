@@ -21,7 +21,15 @@ try {
         return strtotime($b) - strtotime($a); // Descending order
     });
 
-    echo json_encode(['status' => 'success', 'data' => $results]);
+    // Query distinct sites from so_location or sub_location
+    $stmtSites = $pdo->query("SELECT DISTINCT so_location FROM assets WHERE so_location IS NOT NULL AND so_location != '' ORDER BY so_location ASC");
+    $sites = $stmtSites->fetchAll(PDO::FETCH_COLUMN);
+
+    echo json_encode([
+        'status' => 'success', 
+        'data' => $results,
+        'sites' => $sites
+    ]);
 } catch(PDOException $e) {
     echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
 }

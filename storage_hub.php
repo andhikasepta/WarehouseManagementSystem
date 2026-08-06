@@ -2,7 +2,7 @@
 require_once __DIR__ . '/auth.php';
 checkModuleAccess('warehouse');
 
-$pageTitle = 'Storage - Dashboard Warehouse';
+$pageTitle = 'Storage HUB & Outlet - Dashboard Warehouse';
 include 'components/header.php';
 ?>
 
@@ -11,13 +11,15 @@ include 'components/header.php';
         <div id="content-wrapper" class="d-flex flex-column min-vh-100">
             <div id="content" class="flex-grow-1">
                 <?php
-                $activePage = 'warehouse';
+                $activePage = 'storage_hub';
                 include 'components/navbar.php';
                 ?>
                 <div class="container-fluid" style="padding-top: 100px;">
                     <!-- Page Heading just like inbound -->
                     <div class="d-sm-flex align-items-center justify-content-between mb-4">
-                        <h1 class="h3 mb-0 text-gray-800 font-weight-bold">Storage Tekno</h1>
+                        <h1 class="h3 mb-0 text-gray-800 font-weight-bold">
+                            Storage HUB &amp; Outlet Warehouse <span id="storage-hub-selected-site" class="text-primary font-weight-bold ml-2" style="font-size: 1.15rem; display: none;"></span>
+                        </h1>
                     </div>
                     <div class="row" style="margin-left: -4px; margin-right: -4px;">
                         <!-- Total Asset -->
@@ -235,18 +237,11 @@ include 'components/header.php';
                         </div>
                     </div>
 
-
-
                     <!-- Page level plugins -->
                     <script src="vendor/chart.js/Chart.min.js"></script>
                     <script
                         src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@0.7.0/dist/chartjs-plugin-datalabels.min.js"></script>
-
-                    <!-- SweetAlert2 for loading dialogs -->
                     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-                    <!-- SheetJS (xlsx) for Excel parsing -->
-                    <!-- TODO(security): Pin version and add SRI integrity hash for production -->
                     <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 
                     <!-- Page level custom scripts -->
@@ -262,7 +257,6 @@ include 'components/header.php';
                                 "July", "August", "September", "October", "November", "December"
                             ];
 
-                            // Keep the dropdown open when clicking inside the selects
                             var periodMenu = document.getElementById('period-dropdown-menu');
                             if (periodMenu) {
                                 periodMenu.addEventListener('click', function (e) {
@@ -270,7 +264,6 @@ include 'components/header.php';
                                 });
                             }
 
-                            // ── Populate Month & Year selects from DB ──
                             function loadPeriods(selectPeriod) {
                                 fetch('api/get_periods.php')
                                     .then(function (r) { return r.json(); })
@@ -287,19 +280,17 @@ include 'components/header.php';
                                             });
                                         }
 
-                                        // Build sorted year list ascending
                                         var availableYears = Object.keys(yearsSet).sort();
+                                        var availableSites = (result.sites && result.sites.length > 0)
+                                            ? result.sites
+                                            : ['HUB TEKNO', 'HUB JAKARTA', 'OUTLET BANDUNG', 'OUTLET SURABAYA'];
 
-                                        // Populate navbar Month select (always all 12 months)
+                                        populateSelect('period-site-select', availableSites, '-- Pilih Site --');
                                         populateSelect('period-month-select', ALL_MONTHS, '-- Pilih Bulan --');
-                                        // Populate navbar Year select (dynamic from DB)
                                         populateSelect('period-year-select', availableYears, '-- Pilih Tahun --');
-
-                                        // Populate delete modal selects
                                         populateSelect('deleteMonthSelect', ALL_MONTHS, '-- Pilih Bulan --');
                                         populateSelect('deleteYearSelect', availableYears, '-- Pilih Tahun --');
 
-                                        // If a specific period was requested (e.g. after upload), pre-select it
                                         if (selectPeriod) {
                                             preselectPeriod(selectPeriod);
                                             loadDataForPeriod(selectPeriod);
@@ -342,7 +333,6 @@ include 'components/header.php';
                                 }
                             }
 
-                            // ── Enable / disable the "Tampilkan Data" button ──
                             function updateLoadButton() {
                                 var m = document.getElementById('period-month-select');
                                 var y = document.getElementById('period-year-select');
@@ -357,7 +347,6 @@ include 'components/header.php';
                             if (monthSel) monthSel.addEventListener('change', updateLoadButton);
                             if (yearSel) yearSel.addEventListener('change', updateLoadButton);
 
-                            // ── Load button click ──
                             var btnLoad = document.getElementById('btn-load-period');
                             if (btnLoad) {
                                 btnLoad.addEventListener('click', function () {
@@ -366,15 +355,27 @@ include 'components/header.php';
                                     if (m && m.value && y && y.value) {
                                         var period = m.value + ' ' + y.value;
                                         loadDataForPeriod(period);
-                                        // Close the dropdown after selecting
                                         $(periodMenu).closest('.dropdown').find('.dropdown-toggle').dropdown('toggle');
                                     }
                                 });
                             }
 
-                            // ── Fetch & render data for a period ──
                             function loadDataForPeriod(period) {
-                                document.getElementById('selected-period-text').textContent = period.toUpperCase();
+                                 var sSel = document.getElementById('period-site-select');
+                                 var siteVal = (sSel && sSel.value) ? sSel.value : '';
+
+                                 var siteBadge = document.getElementById('storage-hub-selected-site');
+                                 if (siteBadge) {
+                                     if (siteVal) {
+                                         siteBadge.textContent = '(' + siteVal.toUpperCase() + ')';
+                                         siteBadge.style.display = 'inline';
+                                     } else {
+                                         siteBadge.textContent = '';
+                                         siteBadge.style.display = 'none';
+                                     }
+                                 }
+
+                                 document.getElementById('selected-period-text').textContent = period.toUpperCase();
 
                                 if (typeof Swal !== 'undefined') {
                                     Swal.fire({
@@ -397,15 +398,12 @@ include 'components/header.php';
                                     ? fetch('api/get_yearly_in_out.php?year=' + encodeURIComponent(yr)).then(function (response) { return response.json(); })
                                     : Promise.resolve(null);
 
-                                // Execute both requests in parallel for maximum speed
                                 Promise.all([fetchDashboard, fetchYearly])
                                     .then(function (results) {
                                         var result = results[0];
                                         var resData = results[1];
 
-                                        // 1. Synchronously update dashboard cards & main charts (Bar, Horizontal, Aging)
                                         if (result && result.status === 'success' && result.data && result.data.length > 0) {
-                                            console.log("Loaded data from database:", result.data.length, "rows for", period);
                                             var headers = Object.keys(result.data[0]);
                                             window.currentDashboardData = result.data;
                                             window.currentDashboardHeaders = headers;
@@ -425,7 +423,6 @@ include 'components/header.php';
                                             }
                                         }
 
-                                        // 2. Synchronously update Yearly IN & OUT charts at the exact same moment
                                         if (resData && resData.status === 'success' && resData.data) {
                                             var mLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
                                             if (window.perangkatInChart && window.perangkatInChart.data) {
@@ -450,13 +447,9 @@ include 'components/header.php';
                                     });
                             }
 
-                            // ── Initial load ──
                             loadPeriods();
-
-                            // Expose globally so excel-upload.js can trigger after upload
                             window.loadPeriods = loadPeriods;
 
-                            // ── Delete Data Logic ──
                             var btnConfirmDelete = document.getElementById('btn-confirm-delete');
                             if (btnConfirmDelete) {
                                 btnConfirmDelete.addEventListener('click', function () {
@@ -524,12 +517,18 @@ include 'components/header.php';
 
                                             var currentPeriodText = document.getElementById('selected-period-text').textContent;
                                             if (currentPeriodText.toLowerCase() === periodToDelete.toLowerCase()) {
-                                                document.getElementById('selected-period-text').textContent = "PILIH PERIODE DATA";
-                                                if (window.FormulaController) {
-                                                    window.FormulaController.updateDashboardCards([], []);
+                                                if (selectPeriod) {
+                                                    preselectPeriod(selectPeriod);
+                                                    loadDataForPeriod(selectPeriod);
+                                                } else {
+                                                    document.getElementById('selected-period-text').textContent = "PILIH PERIODE DATA";
+                                                    var siteBadge = document.getElementById('storage-hub-selected-site');
+                                                    if (siteBadge) { siteBadge.textContent = ''; siteBadge.style.display = 'none'; }
+                                                    if (window.FormulaController) {
+                                                        window.FormulaController.updateDashboardCards([], []);
+                                                    }
                                                 }
                                             }
-                                            // Refresh period selects
                                             loadPeriods();
                                         } else {
                                             if (typeof Swal !== 'undefined') {

@@ -609,7 +609,7 @@
 
         if (typeof Swal !== 'undefined') {
             Swal.fire({
-                title: 'Data is loading...',
+                title: 'Data Is Processing Please Wait',
                 html: 'Please do not refresh the page.<br><br><span style="font-size: 0.9em; color: #666;"><i class="fas fa-clock mr-1"></i> Estimasi Waktu: ~' + estTimeText + '</span>',
                 allowOutsideClick: false,
                 allowEscapeKey: false,

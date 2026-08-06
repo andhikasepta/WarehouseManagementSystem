@@ -115,9 +115,6 @@ var myHorizontalBarChart = new Chart(ctx, {
           fontSize: 9.5,
           padding: 4,
           callback: function (value) {
-            if (typeof value === 'string' && value.length > 20) {
-              return value.substring(0, 18) + '...';
-            }
             return value;
           }
         },
