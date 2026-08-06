@@ -18,7 +18,7 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     });
     if (names.length === 4) return names;
-    return ['Aging <3 Bulan', 'Aging 3-12 Bulan', 'Aging >12 Bulan', 'RE-Use'];
+    return ['< 1 Tahun', '1 - 2 Tahun', '> 2 Tahun', 'RE-Use'];
   }
 
   function syncStorageFlowLabels() {
@@ -374,7 +374,7 @@ document.addEventListener("DOMContentLoaded", function () {
   // Apply to Outbound progress
   applyProgressColor('outbound-progress-bar', 'outbound-progress-percent');
 
-  // 3. Receiving Trend Line Chart (PO Vendor, Perangkat, PO Mover per month)
+  // 3. Receiving Trend Line Chart (Perangkat IN & Perangkat OUT per month from Storage Tekno)
   var ctxReceivingTrend = document.getElementById("dashReceivingTrendLineChart");
   if (ctxReceivingTrend) {
     window.dashReceivingTrendLineChart = new Chart(ctxReceivingTrend, {
@@ -383,24 +383,10 @@ document.addEventListener("DOMContentLoaded", function () {
         labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
         datasets: [
           {
-            label: 'PO Vendor',
-            data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            borderColor: '#4e73df',
-            backgroundColor: 'rgba(78, 115, 223, 0.05)',
-            pointBackgroundColor: '#4e73df',
-            pointBorderColor: '#fff',
-            pointBorderWidth: 2,
-            pointRadius: 3,
-            pointHoverRadius: 5,
-            borderWidth: 2,
-            fill: false,
-            lineTension: 0.3
-          },
-          {
-            label: 'Perangkat',
+            label: 'Perangkat IN',
             data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
             borderColor: '#1cc88a',
-            backgroundColor: 'rgba(28, 200, 138, 0.05)',
+            backgroundColor: 'rgba(28, 200, 138, 0.08)',
             pointBackgroundColor: '#1cc88a',
             pointBorderColor: '#fff',
             pointBorderWidth: 2,
@@ -411,11 +397,11 @@ document.addEventListener("DOMContentLoaded", function () {
             lineTension: 0.3
           },
           {
-            label: 'PO Mover',
+            label: 'Perangkat OUT',
             data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            borderColor: '#36b9cc',
-            backgroundColor: 'rgba(54, 185, 204, 0.05)',
-            pointBackgroundColor: '#36b9cc',
+            borderColor: '#e74a3b',
+            backgroundColor: 'rgba(231, 74, 59, 0.08)',
+            pointBackgroundColor: '#e74a3b',
             pointBorderColor: '#fff',
             pointBorderWidth: 2,
             pointRadius: 3,
@@ -471,13 +457,41 @@ document.addEventListener("DOMContentLoaded", function () {
           callbacks: {
             label: function(tooltipItem, data) {
               var dsLabel = data.datasets[tooltipItem.datasetIndex].label || 'Value';
-              return dsLabel + ': ' + tooltipItem.yLabel;
+              return dsLabel + ': ' + tooltipItem.yLabel + ' Unit';
             }
           }
         }
       }
     });
   }
+
+  // Helper function to update Receiving Trend Line Chart (Storage Tekno)
+  window.updateDashReceivingTrendChart = function (inData, outData, inDetails, outDetails, yearText) {
+    if (window.dashReceivingTrendLineChart && window.dashReceivingTrendLineChart.data) {
+      window.dashReceivingTrendLineChart.data.datasets[0].data = inData || [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+      window.dashReceivingTrendLineChart.data.datasets[1].data = outData || [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+      window.dashReceivingTrendLineChart._inDetails = inDetails || [];
+      window.dashReceivingTrendLineChart._outDetails = outDetails || [];
+      
+      // Update _recordsPerIndex for modal detail click if needed
+      var mLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      window.dashReceivingTrendLineChart._recordsPerIndex = mLabels.map(function(m, idx) {
+        var inRecs = (inDetails && inDetails[idx]) ? inDetails[idx] : [];
+        var outRecs = (outDetails && outDetails[idx]) ? outDetails[idx] : [];
+        return inRecs.concat(outRecs);
+      });
+
+      window.dashReceivingTrendLineChart.update();
+
+      if (window.FormulaController) {
+        window.FormulaController.makeChartClickable(window.dashReceivingTrendLineChart, "Perangkat IN & OUT (Storage Tekno)");
+      }
+    }
+    var badgeEl = document.getElementById('trends-title-period');
+    if (badgeEl && yearText) {
+      badgeEl.textContent = 'Storage Tekno (' + yearText + ')';
+    }
+  };
 
   // 4. KPI Best Practice status badge helper
   function getKpiStatus(percent) {

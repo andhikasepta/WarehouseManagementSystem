@@ -112,6 +112,300 @@
         return findColumnByKeyword(headers, keywords);
     };
 
+    FormulaController.getFieldValue = function(item, keys) {
+        if (!item) return '-';
+        for (var i = 0; i < keys.length; i++) {
+            var k = keys[i];
+            if (item[k] !== undefined && item[k] !== null && item[k] !== '') {
+                return String(item[k]);
+            }
+        }
+        var itemKeys = Object.keys(item);
+        for (var i = 0; i < keys.length; i++) {
+            var targetLower = keys[i].toLowerCase().trim();
+            for (var j = 0; j < itemKeys.length; j++) {
+                if (itemKeys[j].toLowerCase().trim() === targetLower) {
+                    var val = item[itemKeys[j]];
+                    if (val !== undefined && val !== null && val !== '') {
+                        return String(val);
+                    }
+                }
+            }
+        }
+        return '-';
+    };
+
+    function escapeHtml(str) {
+        if (typeof str !== 'string') return str;
+        return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    }
+
+    FormulaController.openDetailModal = function(chartTitle, label, records) {
+        var modalEl = document.getElementById('chartDetailModal');
+        if (!modalEl) return;
+
+        var titleEl = document.getElementById('chartDetailTitle');
+        var subtitleEl = document.getElementById('chartDetailSubtitle');
+        var countEl = document.getElementById('chartDetailRecordCount');
+
+        if (titleEl) titleEl.textContent = chartTitle;
+
+        var isCategoryMode = (chartTitle.indexOf('Perangkat') !== -1 || chartTitle.indexOf('IN') !== -1 || chartTitle.indexOf('OUT') !== -1);
+        var totalQty = records ? records.length : 0;
+        var totalNbv = 0;
+
+        var dataRows = [];
+        if (records && records.length > 0) {
+            records.forEach(function(item, idx) {
+                var specCode = FormulaController.getFieldValue(item, ['spec_code', 'SPEC_CODE', 'spec code', 'spek']);
+                var regNo = FormulaController.getFieldValue(item, ['reg_no', 'REG_NO', 'reg no', 'register']);
+                var specName = FormulaController.getFieldValue(item, ['spec_name', 'SPEC_NAME', 'spec name', 'nama', 'perangkat', 'item']);
+                var categoryVal = FormulaController.getFieldValue(item, ['category', 'CATEGORY', 'kategori', 'range', 'status', 'STATUS']);
+                var rawNbv = FormulaController.getFieldValue(item, ['nbv', 'NBV', 'value', 'harga', 'price']);
+
+                var numNbv = parseFloat(String(rawNbv).replace(/[^0-9.-]+/g, '')) || 0;
+                totalNbv += numNbv;
+                var formattedNbv = formatCurrency(numNbv);
+
+                dataRows.push({
+                    no: idx + 1,
+                    spec_code: specCode,
+                    reg_no: regNo,
+                    spec_name: specName,
+                    category: categoryVal || '-',
+                    nbv_num: numNbv,
+                    nbv_formatted: formattedNbv
+                });
+            });
+        }
+
+        if (subtitleEl) {
+            var subtitleHtml = '';
+            if (label) {
+                subtitleHtml += '<span class="badge badge-primary mr-2 mb-1 shadow-sm" style="font-size: 0.72rem; font-weight: 600; padding: 3px 8px;"><i class="fas fa-filter mr-1"></i>Kategori / Group: ' + escapeHtml(label) + '</span>';
+            }
+            subtitleHtml += '<span class="badge badge-info mr-2 mb-1 shadow-sm" style="font-size: 0.72rem; font-weight: 600; padding: 3px 8px;"><i class="fas fa-boxes mr-1"></i>Total Qty: ' + formatNumber(totalQty) + ' Unit</span>';
+            if (!isCategoryMode) {
+                subtitleHtml += '<span class="badge badge-success mr-2 mb-1 shadow-sm" style="font-size: 0.72rem; font-weight: 600; padding: 3px 8px;"><i class="fas fa-coins mr-1"></i>Total NBV: ' + formatCurrency(totalNbv) + '</span>';
+            }
+            subtitleEl.innerHTML = subtitleHtml;
+        }
+
+        if (countEl) countEl.textContent = formatNumber(totalQty);
+
+        var col5Title = isCategoryMode ? "CATEGORY" : "NBV";
+
+        if (typeof $ !== 'undefined') {
+            if ($.fn.DataTable) {
+                if ($.fn.DataTable.isDataTable('#chartDetailTable')) {
+                    $('#chartDetailTable').DataTable().clear().destroy();
+                }
+
+                $('#chartDetailTable').DataTable({
+                    data: dataRows,
+                    columns: [
+                        { data: "no", title: "NO", className: "text-center", width: "50px" },
+                        { 
+                            data: "spec_code",
+                            title: "SPEC CODE", 
+                            className: "text-left",
+                            render: function(data) {
+                                return escapeHtml(data);
+                            }
+                        },
+                        { 
+                            data: "reg_no", 
+                            title: "REG NO", 
+                            className: "text-left",
+                            render: function(data) {
+                                return escapeHtml(data);
+                            }
+                        },
+                        { 
+                            data: "spec_name", 
+                            title: "SPEC NAME", 
+                            className: "text-left",
+                            render: function(data) {
+                                return escapeHtml(data);
+                            }
+                        },
+                        { 
+                            data: isCategoryMode ? "category" : "nbv_num", 
+                            title: col5Title, 
+                            className: isCategoryMode ? "text-left" : "text-right",
+                            render: function(data, type, row) {
+                                if (isCategoryMode) {
+                                    return escapeHtml(data);
+                                }
+                                if (type === 'display' || type === 'filter') {
+                                    return escapeHtml(row.nbv_formatted);
+                                }
+                                return data;
+                            }
+                        }
+                    ],
+                    pageLength: 10,
+                    lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Semua"]],
+                    paging: true,
+                    searching: true,
+                    ordering: true,
+                    info: true,
+                    autoWidth: false,
+                    deferRender: true,
+                    language: {
+                        lengthMenu: "Tampilkan _MENU_ entries",
+                        search: "Cari:",
+                        zeroRecords: "Tidak ada data yang ditemukan",
+                        info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ entries",
+                        infoEmpty: "Menampilkan 0 sampai 0 dari 0 entries",
+                        infoFiltered: "(disaring dari _MAX_ total entries)",
+                        paginate: {
+                            first: "Pertama",
+                            last: "Terakhir",
+                            next: "Berikutnya",
+                            previous: "Sebelumnya"
+                        }
+                    }
+                });
+            }
+
+            $('#chartDetailModal').modal('show');
+        }
+    };
+
+    FormulaController.getClickedChartIndex = function(chartInstance, e) {
+        if (!chartInstance || !chartInstance.canvas || !chartInstance.scales) return -1;
+
+        var rect = chartInstance.canvas.getBoundingClientRect();
+        var x = e.clientX - rect.left;
+        var y = e.clientY - rect.top;
+
+        var isHorizontalBar = (chartInstance.config && chartInstance.config.type === 'horizontalBar');
+        var chartArea = chartInstance.chartArea;
+
+        // Restrict modal triggering exclusively to label text area (outside bar graphics)
+        var isClickOnLabelArea = false;
+        if (chartArea) {
+            if (isHorizontalBar) {
+                // Horizontal bar chart (Asset Organization): Y-axis labels are on left (x <= chartArea.left + 5)
+                isClickOnLabelArea = (x <= chartArea.left + 5);
+            } else {
+                // Vertical bar chart (Storage / Aging): X-axis labels are on bottom (y >= chartArea.bottom - 5)
+                isClickOnLabelArea = (y >= chartArea.bottom - 5);
+            }
+        } else {
+            isClickOnLabelArea = true;
+        }
+
+        // Ignore clicks on colored bar graphics
+        if (!isClickOnLabelArea) {
+            return -1;
+        }
+
+        // 2. Locate the Category Scale (Y-axis for horizontalBar, X-axis for vertical bar)
+        var categoryScale = null;
+        for (var scaleId in chartInstance.scales) {
+            var s = chartInstance.scales[scaleId];
+            if (!s) continue;
+            if (isHorizontalBar && !s.isHorizontal) {
+                categoryScale = s;
+                break;
+            } else if (!isHorizontalBar && s.isHorizontal) {
+                categoryScale = s;
+                break;
+            }
+        }
+
+        // Fallback: Pick scale matching label count
+        if (!categoryScale && chartInstance.data && chartInstance.data.labels) {
+            for (var sId in chartInstance.scales) {
+                var sc = chartInstance.scales[sId];
+                if (sc && sc.ticks && sc.ticks.length === chartInstance.data.labels.length) {
+                    categoryScale = sc;
+                    break;
+                }
+            }
+        }
+
+        if (categoryScale) {
+            var numLabels = (chartInstance.data && chartInstance.data.labels) ? chartInstance.data.labels.length : (categoryScale.ticks ? categoryScale.ticks.length : 0);
+            if (numLabels === 0) return -1;
+
+            // Method A: Native Chart.js getValueForPixel
+            if (typeof categoryScale.getValueForPixel === 'function') {
+                var rawVal = isHorizontalBar ? categoryScale.getValueForPixel(y) : categoryScale.getValueForPixel(x);
+                var valIdx = Math.round(rawVal);
+                if (typeof valIdx === 'number' && !isNaN(valIdx) && valIdx >= 0 && valIdx < numLabels) {
+                    return valIdx;
+                }
+            }
+
+            // Method B: Pixel range linear interpolation
+            var startPixel = isHorizontalBar ? categoryScale.top : categoryScale.left;
+            var endPixel = isHorizontalBar ? categoryScale.bottom : categoryScale.right;
+            var clickPixel = isHorizontalBar ? y : x;
+
+            if (typeof startPixel === 'number' && typeof endPixel === 'number' && endPixel > startPixel) {
+                var step = (endPixel - startPixel) / numLabels;
+                var interpolatedIdx = Math.floor((clickPixel - startPixel) / step);
+                if (interpolatedIdx >= 0 && interpolatedIdx < numLabels) {
+                    return interpolatedIdx;
+                }
+            }
+
+            // Method C: Nearest tick pixel comparison
+            var closestIdx = -1;
+            var minDiff = Infinity;
+            for (var i = 0; i < numLabels; i++) {
+                var px = -1;
+                if (typeof categoryScale.getPixelForTick === 'function') {
+                    px = categoryScale.getPixelForTick(i);
+                } else if (typeof categoryScale.getPixelForValue === 'function') {
+                    px = categoryScale.getPixelForValue(i);
+                }
+                if (typeof px === 'number' && !isNaN(px) && px >= 0) {
+                    var diff = Math.abs(clickPixel - px);
+                    if (diff < minDiff) {
+                        minDiff = diff;
+                        closestIdx = i;
+                    }
+                }
+            }
+
+            if (closestIdx >= 0 && closestIdx < numLabels) {
+                return closestIdx;
+            }
+        }
+
+        return -1;
+    };
+
+    FormulaController.makeChartClickable = function(chartInstance, defaultTitle) {
+        if (!chartInstance || !chartInstance.canvas) return;
+        var canvas = chartInstance.canvas;
+        
+        if (canvas._hasClickListener) return;
+        canvas._hasClickListener = true;
+
+        canvas.style.cursor = 'pointer';
+
+        canvas.addEventListener('mousemove', function(e) {
+            var index = FormulaController.getClickedChartIndex(chartInstance, e);
+            canvas.style.cursor = (index !== -1) ? 'pointer' : 'default';
+        });
+
+        canvas.addEventListener('click', function(e) {
+            var index = FormulaController.getClickedChartIndex(chartInstance, e);
+            if (index !== -1 && chartInstance.data && chartInstance.data.labels && index < chartInstance.data.labels.length) {
+                var label = chartInstance.data.labels[index];
+                var title = chartInstance._chartTitle || defaultTitle || 'Detail Data';
+                var records = (chartInstance._recordsPerIndex && chartInstance._recordsPerIndex[index]) ? chartInstance._recordsPerIndex[index] : [];
+
+                FormulaController.openDetailModal(title, label, records);
+            }
+        });
+    };
+
     // Main entry point to update cards
     FormulaController.updateDashboardCards = function (sheetData, headers) {
         if (!sheetData || sheetData.length === 0) {
@@ -164,6 +458,57 @@
         var cardNbv = document.getElementById('card-total-nbv');
         if (cardNbv) cardNbv.textContent = formatCurrency(totalNbv);
 
+        // Update Dashboard Overview Storage Summary elements if present
+        var invTotalEl = document.getElementById('inv-total-perangkat');
+        if (invTotalEl) invTotalEl.textContent = formatNumber(totalAsset) + ' Unit';
+
+        var rangeColDash = FormulaController.findBestColumn(headers, ['range', 'RANGE', 'aging_range', 'AGING_RANGE'], ['range', 'aging', 'usia', 'umur']);
+        var catColDash = FormulaController.findBestColumn(headers, ['category', 'CATEGORY', 'kategori', 'KATEGORI'], ['category', 'kategori', 'status']);
+
+        var cLess3m = 0;
+        var c3to12m = 0;
+        var cMore12m = 0;
+        var cReUse = 0;
+
+        if (sheetData && sheetData.length > 0) {
+            for (var sd = 0; sd < sheetData.length; sd++) {
+                var row = sheetData[sd];
+                var rVal = rangeColDash ? String(row[rangeColDash] || '').trim().toLowerCase() : '';
+                var cVal = catColDash ? String(row[catColDash] || '').trim().toLowerCase() : '';
+
+                // Categorize Aging (>2 checked first to avoid "2 tahun" substring collision)
+                if (rVal.indexOf('>2') !== -1 || rVal.indexOf('> 2') !== -1 || rVal.indexOf('2 - 3') !== -1 || rVal.indexOf('2-3') !== -1 || rVal.indexOf('> 2 tahun') !== -1 || rVal.indexOf('>2 tahun') !== -1) {
+                    cMore12m++;
+                } else if (rVal.indexOf('<1') !== -1 || rVal.indexOf('< 1') !== -1 || rVal.indexOf('< 3') !== -1 || rVal.indexOf('<3') !== -1 || rVal.indexOf('< 1 tahun') !== -1 || rVal.indexOf('<1 tahun') !== -1 || rVal.indexOf('<') !== -1) {
+                    cLess3m++;
+                } else if (rVal.indexOf('>1') !== -1 || rVal.indexOf('> 1') !== -1 || rVal.indexOf('1-2') !== -1 || rVal.indexOf('1 - 2') !== -1 || rVal.indexOf('3-12') !== -1 || rVal.indexOf('3 - 12') !== -1 || rVal.indexOf('1 tahun') !== -1) {
+                    c3to12m++;
+                } else if (rVal.indexOf('>') !== -1) {
+                    cMore12m++;
+                }
+
+                if (cVal.indexOf('re-use') !== -1 || cVal.indexOf('reuse') !== -1 || cVal.indexOf('need to utilize') !== -1 || cVal.indexOf('slow moving') !== -1) {
+                    cReUse++;
+                }
+            }
+        }
+
+        var elLess3m = document.getElementById('inv-aging-less-3m');
+        if (elLess3m) elLess3m.textContent = formatNumber(cLess3m) + ' Unit';
+
+        var el3to12m = document.getElementById('inv-aging-3-12m');
+        if (el3to12m) el3to12m.textContent = formatNumber(c3to12m) + ' Unit';
+
+        var elMore12m = document.getElementById('inv-aging-more-12m');
+        if (elMore12m) elMore12m.textContent = formatNumber(cMore12m) + ' Unit';
+
+        var elReUse = document.getElementById('inv-re-useg');
+        if (elReUse) elReUse.textContent = formatNumber(cReUse) + ' Unit';
+
+        if (window.updateInventorySummaryPieChart) {
+            window.updateInventorySummaryPieChart([cLess3m, c3to12m, cMore12m, cReUse]);
+        }
+
         // 3 & 4. UTILISASI SPACE & FREE SPACE
         // These cards are populated by the UTILISASI AREA / RACK table section (section 9) below.
         // Helper for Utilisasi progress bar colors
@@ -189,13 +534,15 @@
             cardUpdate.textContent = months[date.getMonth()] + ' ' + date.getFullYear();
         }
 
-        // 6. PERGERAKAN PERANGKAT CHART (myBarChart)
-        // Uses GRUP_BUILDING column for grouping.
-        // Qty = count of SPEC_CODE per unique building.
-        // NBV = sum of NBV per unique building.
+        // 6. STORAGE BERDASARKAN AGING CHART (myBarChart)
+        // Filters data by Category: 'Need To Utilize', 'Slow Moving', 'Re-use', 'New'
+        // Groups filtered data by Aging Range ('range' column, e.g. <1 Tahun, 1-2 Tahun, 2-3 Tahun, >3 Tahun, etc.)
         if (window.myBarChart && window.myBarChart.data) {
-            // Try exact column name first, then fallback to keyword detection
-            var buildingCol = FormulaController.findBestColumn(headers, ['CATEGORY'], ['category', 'kategori', 'grup_building', 'building', 'gedung', 'status', 'pergerakan']);
+            // Find Aging Range column (range, aging, etc.)
+            var rangeCol = FormulaController.findBestColumn(headers, ['range', 'RANGE', 'aging_range', 'AGING_RANGE'], ['range', 'aging', 'usia', 'umur']);
+
+            // Find Category column (category, kategori, etc.)
+            var catColBar = FormulaController.findBestColumn(headers, ['category', 'CATEGORY', 'kategori', 'KATEGORI'], ['category', 'kategori', 'status']);
 
             // Find SPEC_CODE column for counting Qty
             var specCodeColBar = FormulaController.findBestColumn(headers, ['SPEC_CODE'], ['spec_code', 'spec code', 'spek']);
@@ -203,30 +550,48 @@
             // Find NBV column for summing
             var barNbvCol = FormulaController.findBestColumn(headers, ['NBV'], ['nbv', 'value', 'harga', 'price', 'total']);
 
-            if (buildingCol) {
-                // Group rows by unique GRUP_BUILDING
-                var groups = {};
+            // Filter sheetData by Category of Need To Utilize, Slow Moving, Re-use, New
+            var allowedCategories = ['need to utilize', 'slow moving', 're-use', 'reuse', 'new'];
+            var filteredBarData = [];
+
+            if (catColBar) {
                 for (var i = 0; i < sheetData.length; i++) {
-                    var building = String(sheetData[i][buildingCol] || 'Unknown').trim();
-                    if (!groups[building]) {
-                        groups[building] = { data: [] };
+                    var cVal = String(sheetData[i][catColBar] || '').trim().toLowerCase();
+                    if (allowedCategories.indexOf(cVal) !== -1) {
+                        filteredBarData.push(sheetData[i]);
                     }
-                    groups[building].data.push(sheetData[i]);
+                }
+            } else {
+                filteredBarData = sheetData;
+            }
+
+            var groupByCol = rangeCol || catColBar;
+
+            if (groupByCol) {
+                // Group rows by unique Aging Range value
+                var groups = {};
+                for (var i = 0; i < filteredBarData.length; i++) {
+                    var rangeKey = String(filteredBarData[i][groupByCol] || 'Unknown').trim();
+                    if (!rangeKey) rangeKey = 'Unknown';
+                    if (!groups[rangeKey]) {
+                        groups[rangeKey] = { data: [] };
+                    }
+                    groups[rangeKey].data.push(filteredBarData[i]);
                 }
 
                 var labels = Object.keys(groups);
                 var qtyData = [];
                 var nbvData = [];
+                window.myBarChart._recordsPerIndex = [];
 
                 for (var j = 0; j < labels.length; j++) {
                     var groupData = groups[labels[j]].data;
+                    window.myBarChart._recordsPerIndex.push(groupData);
 
-                    // Qty = count of rows that have a SPEC_CODE value in this building group
                     var qty = specCodeColBar
                         ? FormulaController.computeCount(groupData, specCodeColBar)
                         : FormulaController.computeCount(groupData);
 
-                    // NBV = sum of NBV column for this building group
                     var nbv = barNbvCol
                         ? FormulaController.computeSum(groupData, barNbvCol)
                         : 0;
@@ -238,13 +603,18 @@
                 window.myBarChart.data.labels = labels;
                 window.myBarChart.data.datasets[0].data = qtyData;
                 window.myBarChart.data.datasets[1].data = nbvData;
+                window.myBarChart._chartTitle = "STORAGE - Berdasarkan Aging";
                 window.myBarChart.update();
+                FormulaController.makeChartClickable(window.myBarChart, "STORAGE - Berdasarkan Aging");
             } else {
-                // Fallback if no building column is found: plot total
+                // Fallback if no range/category column is found: plot total
                 window.myBarChart.data.labels = ["Total"];
                 window.myBarChart.data.datasets[0].data = [totalAsset];
                 window.myBarChart.data.datasets[1].data = [totalNbv];
+                window.myBarChart._recordsPerIndex = [sheetData];
+                window.myBarChart._chartTitle = "STORAGE - Berdasarkan Aging";
                 window.myBarChart.update();
+                FormulaController.makeChartClickable(window.myBarChart, "STORAGE - Berdasarkan Aging");
             }
         }
 
@@ -273,12 +643,13 @@
                     orgGroups[org].data.push(sheetData[k]);
                 }
 
-                var orgLabels = Object.keys(orgGroups);
-                var orgQtyData = [];
-                var orgNbvData = [];
+                // Calculate Qty & NBV for each organization and sort descending by Qty
+                var orgList = [];
+                var rawOrgKeys = Object.keys(orgGroups);
 
-                for (var l = 0; l < orgLabels.length; l++) {
-                    var oGroupData = orgGroups[orgLabels[l]].data;
+                for (var l = 0; l < rawOrgKeys.length; l++) {
+                    var orgName = rawOrgKeys[l];
+                    var oGroupData = orgGroups[orgName].data;
 
                     // Qty = count of rows that have a SPEC_CODE value in this org group
                     var oQty = specCodeCol
@@ -290,8 +661,32 @@
                         ? FormulaController.computeSum(oGroupData, orgNbvCol)
                         : 0;
 
-                    orgQtyData.push(oQty);
-                    orgNbvData.push(oNbv);
+                    orgList.push({
+                        label: orgName,
+                        qty: oQty,
+                        nbv: oNbv,
+                        records: oGroupData
+                    });
+                }
+
+                // Sort organizations from Highest Qty to Lowest Qty
+                orgList.sort(function(a, b) {
+                    if (b.qty !== a.qty) {
+                        return b.qty - a.qty;
+                    }
+                    return b.nbv - a.nbv;
+                });
+
+                var orgLabels = [];
+                var orgQtyData = [];
+                var orgNbvData = [];
+                window.myHorizontalBarChart._recordsPerIndex = [];
+
+                for (var m = 0; m < orgList.length; m++) {
+                    orgLabels.push(orgList[m].label);
+                    orgQtyData.push(orgList[m].qty);
+                    orgNbvData.push(orgList[m].nbv);
+                    window.myHorizontalBarChart._recordsPerIndex.push(orgList[m].records);
                 }
 
                 window.myHorizontalBarChart.data.labels = orgLabels;
@@ -307,13 +702,18 @@
                     chartContainer.style.height = dynamicHeight + 'px';
                 }
 
+                window.myHorizontalBarChart._chartTitle = "Berdasarkan Asset Organization";
                 window.myHorizontalBarChart.update();
+                FormulaController.makeChartClickable(window.myHorizontalBarChart, "Berdasarkan Asset Organization");
             } else {
                 // Fallback if no org column is found
                 window.myHorizontalBarChart.data.labels = ["Total"];
                 window.myHorizontalBarChart.data.datasets[0].data = [totalAsset];
                 window.myHorizontalBarChart.data.datasets[1].data = [totalNbv];
+                window.myHorizontalBarChart._recordsPerIndex = [sheetData];
+                window.myHorizontalBarChart._chartTitle = "Berdasarkan Asset Organization";
                 window.myHorizontalBarChart.update();
+                FormulaController.makeChartClickable(window.myHorizontalBarChart, "Berdasarkan Asset Organization");
             }
         }
 
@@ -381,9 +781,11 @@
 
                 var rangeLabels = Object.keys(rangeGroups);
                 var rangeQtyData = [];
+                window.agingBarChart._recordsPerIndex = [];
 
                 for (var n = 0; n < rangeLabels.length; n++) {
                     var rGroupData = rangeGroups[rangeLabels[n]].data;
+                    window.agingBarChart._recordsPerIndex.push(rGroupData);
 
                     // Qty = count of rows that have a SPEC_CODE value in this range group
                     var rQty = specCodeColAging
@@ -395,7 +797,9 @@
 
                 window.agingBarChart.data.labels = rangeLabels;
                 window.agingBarChart.data.datasets[0].data = rangeQtyData;
+                window.agingBarChart._chartTitle = "Aging Perangkat";
                 window.agingBarChart.update();
+                FormulaController.makeChartClickable(window.agingBarChart, "Aging Perangkat");
             }
         }
 

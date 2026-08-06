@@ -15,11 +15,10 @@ include 'components/header.php';
                 include 'components/navbar.php';
                 ?>
                 <div class="container-fluid" style="padding-top: 100px;">
-                    <!-- Page Heading just like inbound -->
-                    <div class="d-sm-flex align-items-center justify-content-between mb-4">
-                        <h1 class="h3 mb-0 text-gray-800 font-weight-bold">
-                            Storage HUB &amp; Outlet Warehouse <span id="storage-hub-selected-site" class="text-primary font-weight-bold ml-2" style="font-size: 1.15rem; display: none;"></span>
-                        </h1>
+                    <!-- Page Heading -->
+                    <div class="mb-4">
+                        <h1 class="h3 mb-1 text-gray-800 font-weight-bold">Storage Management-HUB &amp; Outlet Warehouse</h1>
+                        <div class="text-muted small font-weight-medium" id="storage-hub-selected-site"></div>
                     </div>
                     <div class="row" style="margin-left: -4px; margin-right: -4px;">
                         <!-- Total Asset -->
@@ -245,7 +244,7 @@ include 'components/header.php';
                     <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 
                     <!-- Page level custom scripts -->
-                    <script src="js/formula-controller.js?v=6"></script>
+                    <script src="js/formula-controller.js?v=23"></script>
                     <script src="js/demo/chart-bar-demo.js?v=8"></script>
                     <script src="js/demo/chart-horizontal-bar-demo.js?v=5"></script>
 
@@ -285,7 +284,7 @@ include 'components/header.php';
                                             ? result.sites
                                             : ['HUB TEKNO', 'HUB JAKARTA', 'OUTLET BANDUNG', 'OUTLET SURABAYA'];
 
-                                        populateSelect('period-site-select', availableSites, '-- Pilih Site --');
+                                        populateSelect('period-site-select', availableSites, '-- Pilih HUB/Outlet Warehouse --');
                                         populateSelect('period-month-select', ALL_MONTHS, '-- Pilih Bulan --');
                                         populateSelect('period-year-select', availableYears, '-- Pilih Tahun --');
                                         populateSelect('deleteMonthSelect', ALL_MONTHS, '-- Pilih Bulan --');
@@ -342,10 +341,19 @@ include 'components/header.php';
                                 }
                             }
 
-                            var monthSel = document.getElementById('period-month-select');
-                            var yearSel = document.getElementById('period-year-select');
-                            if (monthSel) monthSel.addEventListener('change', updateLoadButton);
-                            if (yearSel) yearSel.addEventListener('change', updateLoadButton);
+                             var monthSel = document.getElementById('period-month-select');
+                             var yearSel = document.getElementById('period-year-select');
+                             var siteSel = document.getElementById('period-site-select');
+                             if (monthSel) monthSel.addEventListener('change', updateLoadButton);
+                             if (yearSel) yearSel.addEventListener('change', updateLoadButton);
+                             if (siteSel) {
+                                 siteSel.addEventListener('change', function () {
+                                     var siteBadge = document.getElementById('storage-hub-selected-site');
+                                     if (siteBadge) {
+                                         siteBadge.textContent = this.value ? this.value.toUpperCase() : '';
+                                     }
+                                 });
+                             }
 
                             var btnLoad = document.getElementById('btn-load-period');
                             if (btnLoad) {
@@ -367,11 +375,9 @@ include 'components/header.php';
                                  var siteBadge = document.getElementById('storage-hub-selected-site');
                                  if (siteBadge) {
                                      if (siteVal) {
-                                         siteBadge.textContent = '(' + siteVal.toUpperCase() + ')';
-                                         siteBadge.style.display = 'inline';
+                                         siteBadge.textContent = siteVal.toUpperCase();
                                      } else {
                                          siteBadge.textContent = '';
-                                         siteBadge.style.display = 'none';
                                      }
                                  }
 
@@ -428,12 +434,22 @@ include 'components/header.php';
                                             if (window.perangkatInChart && window.perangkatInChart.data) {
                                                 window.perangkatInChart.data.labels = mLabels;
                                                 window.perangkatInChart.data.datasets[0].data = resData.data.in;
+                                                window.perangkatInChart._recordsPerIndex = resData.data.in_details || [];
+                                                window.perangkatInChart._chartTitle = "Perangkat IN";
                                                 window.perangkatInChart.update(0);
+                                                if (window.FormulaController) {
+                                                    window.FormulaController.makeChartClickable(window.perangkatInChart, "Perangkat IN");
+                                                }
                                             }
                                             if (window.perangkatOutChart && window.perangkatOutChart.data) {
                                                 window.perangkatOutChart.data.labels = mLabels;
                                                 window.perangkatOutChart.data.datasets[0].data = resData.data.out;
+                                                window.perangkatOutChart._recordsPerIndex = resData.data.out_details || [];
+                                                window.perangkatOutChart._chartTitle = "Perangkat OUT";
                                                 window.perangkatOutChart.update(0);
+                                                if (window.FormulaController) {
+                                                    window.FormulaController.makeChartClickable(window.perangkatOutChart, "Perangkat OUT");
+                                                }
                                             }
                                         }
 
@@ -521,9 +537,9 @@ include 'components/header.php';
                                                     preselectPeriod(selectPeriod);
                                                     loadDataForPeriod(selectPeriod);
                                                 } else {
-                                                    document.getElementById('selected-period-text').textContent = "PILIH PERIODE DATA";
-                                                    var siteBadge = document.getElementById('storage-hub-selected-site');
-                                                    if (siteBadge) { siteBadge.textContent = ''; siteBadge.style.display = 'none'; }
+                                                    document.getElementById('selected-period-text').textContent = "STORAGE MANAGEMENT";
+                                                     var siteBadge = document.getElementById('storage-hub-selected-site');
+                                                     if (siteBadge) { siteBadge.textContent = ''; }
                                                     if (window.FormulaController) {
                                                         window.FormulaController.updateDashboardCards([], []);
                                                     }

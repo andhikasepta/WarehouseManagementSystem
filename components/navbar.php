@@ -400,6 +400,25 @@ if (isset($pdo)) {
 
 /* Global Ultra-Compact Layout Styles for All Pages (Inbound, Storage, Outbound, Master Data, etc.) */
 
+/* Fix background scrolling & scroll chaining for all modals */
+body.modal-open {
+    overflow: hidden !important;
+}
+
+.modal,
+.modal-dialog,
+.modal-content,
+.modal-body,
+.table-responsive {
+    overscroll-behavior: contain !important;
+    overscroll-behavior-y: contain !important;
+}
+
+.modal-dialog-scrollable .modal-body {
+    overflow-y: auto !important;
+    overscroll-behavior: contain !important;
+}
+
 /* Topbar Height */
 .topbar {
     height: 3.5rem !important;
@@ -1489,7 +1508,7 @@ html, body {
     <ul class="navbar-nav ml-auto align-items-center text-nowrap" style="white-space: nowrap;">
         <?php if (!isset($hidePeriodSelector) || !$hidePeriodSelector): ?>
         <?php 
-        $isDateRangePage = in_array($activePage, ['inbound', 'outbound', 'dashboard']);
+        $isDateRangePage = in_array($activePage, ['inbound', 'outbound']);
         ?>
         <li class="nav-item dropdown no-arrow mx-1">
             <a class="nav-link dropdown-toggle text-nowrap d-flex align-items-center" href="#" id="periodDropdown" role="button"
@@ -1527,9 +1546,9 @@ html, body {
 
                 <?php if ($activePage == 'storage_hub'): ?>
                 <div class="form-group mb-2" id="site-select-group">
-                    <label for="period-site-select" class="small font-weight-bold text-gray-600 mb-1">Site</label>
+                    <label for="period-site-select" class="small font-weight-bold text-gray-600 mb-1">HUB/Outlet Warehouse</label>
                     <select class="form-control form-control-sm" id="period-site-select">
-                        <option value="">-- Pilih Site --</option>
+                        <option value="">-- Pilih HUB/Outlet Warehouse --</option>
                     </select>
                 </div>
                 <?php endif; ?>

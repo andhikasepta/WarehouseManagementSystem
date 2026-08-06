@@ -15,9 +15,10 @@ include 'components/header.php';
                 include 'components/navbar.php';
                 ?>
                 <div class="container-fluid" style="padding-top: 100px;">
-                    <!-- Page Heading just like inbound -->
-                    <div class="d-sm-flex align-items-center justify-content-between mb-4">
-                        <h1 class="h3 mb-0 text-gray-800 font-weight-bold">Storage Tekno</h1>
+                    <!-- Page Heading -->
+                    <div class="mb-4">
+                        <h1 class="h3 mb-1 text-gray-800 font-weight-bold">Storage Management</h1>
+                        <div class="text-muted small font-weight-medium">50002003289 - Warehouse Tekno</div>
                     </div>
                     <div class="row" style="margin-left: -4px; margin-right: -4px;">
                         <!-- Total Asset -->
@@ -250,7 +251,7 @@ include 'components/header.php';
                     <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 
                     <!-- Page level custom scripts -->
-                    <script src="js/formula-controller.js?v=6"></script>
+                    <script src="js/formula-controller.js?v=23"></script>
                     <script src="js/demo/chart-bar-demo.js?v=8"></script>
                     <script src="js/demo/chart-horizontal-bar-demo.js?v=5"></script>
 
@@ -431,12 +432,22 @@ include 'components/header.php';
                                             if (window.perangkatInChart && window.perangkatInChart.data) {
                                                 window.perangkatInChart.data.labels = mLabels;
                                                 window.perangkatInChart.data.datasets[0].data = resData.data.in;
+                                                window.perangkatInChart._recordsPerIndex = resData.data.in_details || [];
+                                                window.perangkatInChart._chartTitle = "Perangkat IN";
                                                 window.perangkatInChart.update(0);
+                                                if (window.FormulaController) {
+                                                    window.FormulaController.makeChartClickable(window.perangkatInChart, "Perangkat IN");
+                                                }
                                             }
                                             if (window.perangkatOutChart && window.perangkatOutChart.data) {
                                                 window.perangkatOutChart.data.labels = mLabels;
                                                 window.perangkatOutChart.data.datasets[0].data = resData.data.out;
+                                                window.perangkatOutChart._recordsPerIndex = resData.data.out_details || [];
+                                                window.perangkatOutChart._chartTitle = "Perangkat OUT";
                                                 window.perangkatOutChart.update(0);
+                                                if (window.FormulaController) {
+                                                    window.FormulaController.makeChartClickable(window.perangkatOutChart, "Perangkat OUT");
+                                                }
                                             }
                                         }
 

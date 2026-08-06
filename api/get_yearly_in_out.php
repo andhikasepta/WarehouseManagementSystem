@@ -27,7 +27,9 @@ try {
     
     $results = [
         'in' => array_fill(0, 12, 0),
-        'out' => array_fill(0, 12, 0)
+        'out' => array_fill(0, 12, 0),
+        'in_details' => array_fill(0, 12, []),
+        'out_details' => array_fill(0, 12, [])
     ];
 
     // First, let's get all distinct periode_groups to establish chronological order
@@ -65,10 +67,10 @@ try {
         echo json_encode(['status' => 'success', 'data' => $results]);
         exit;
     }
-    
+
     // Load all required assets grouped by periode_group
     $inClause = implode(',', array_fill(0, count($periodsToLoad), '?'));
-    $stmtAssets = $pdo->prepare("SELECT reg_no, periode_group FROM assets WHERE periode_group IN ($inClause)");
+    $stmtAssets = $pdo->prepare("SELECT reg_no, spec_code, spec_name, category, periode_group FROM assets WHERE periode_group IN ($inClause)");
     $stmtAssets->execute($periodsToLoad);
     
     $assetsByPeriod = [];
@@ -77,7 +79,7 @@ try {
     }
     
     while ($row = $stmtAssets->fetch(PDO::FETCH_ASSOC)) {
-        $assetsByPeriod[$row['periode_group']][$row['reg_no']] = true;
+        $assetsByPeriod[$row['periode_group']][$row['reg_no']] = $row;
     }
     
     // Now compute IN/OUT for each month
@@ -96,29 +98,43 @@ try {
         
         $countIn = 0;
         $countOut = 0;
+        $inDetails = [];
+        $outDetails = [];
         
         // Count IN
-        foreach ($currAssetsMap as $reg_no => $_) {
-            if (!$prevPeriod) {
+        foreach ($currAssetsMap as $reg_no => $assetRow) {
+            if (!$prevPeriod || !isset($prevAssetsMap[$reg_no])) {
                 $countIn++;
-            } else {
-                if (!isset($prevAssetsMap[$reg_no])) {
-                    $countIn++;
-                }
+                $inDetails[] = [
+                    'spec_code' => $assetRow['spec_code'] ?? '-',
+                    'reg_no' => $reg_no,
+                    'spec_name' => $assetRow['spec_name'] ?? '-',
+                    'category' => $assetRow['category'] ?? 'IN',
+                    'status' => 'IN'
+                ];
             }
         }
         
         // Count OUT
         if ($prevPeriod) {
-            foreach ($prevAssetsMap as $reg_no => $_) {
+            foreach ($prevAssetsMap as $reg_no => $assetRow) {
                 if (!isset($currAssetsMap[$reg_no])) {
                     $countOut++;
+                    $outDetails[] = [
+                        'spec_code' => $assetRow['spec_code'] ?? '-',
+                        'reg_no' => $reg_no,
+                        'spec_name' => $assetRow['spec_name'] ?? '-',
+                        'category' => $assetRow['category'] ?? 'OUT',
+                        'status' => 'OUT'
+                    ];
                 }
             }
         }
         
         $results['in'][$i] = $countIn;
         $results['out'][$i] = $countOut;
+        $results['in_details'][$i] = $inDetails;
+        $results['out_details'][$i] = $outDetails;
     }
     
     echo json_encode([

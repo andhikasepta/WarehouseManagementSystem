@@ -1,8 +1,55 @@
 /* Standard DataTables Bootstrap 4 Component Overrides */
 
 /* 1. Standard DataTables Bootstrap 4 Table Header Sort Arrow Spacing */
+table.dataTable > thead > tr > th:not(.sorting_disabled),
+table.dataTable > thead > tr > td:not(.sorting_disabled),
 table.dataTable.table-sm > thead > tr > th:not(.sorting_disabled) {
-    padding-right: 28px !important;
+    padding-right: 30px !important;
+    position: relative !important;
+    cursor: pointer !important;
+}
+
+table.dataTable thead .sorting::before,
+table.dataTable thead .sorting::after,
+table.dataTable thead .sorting_asc::before,
+table.dataTable thead .sorting_asc::after,
+table.dataTable thead .sorting_desc::before,
+table.dataTable thead .sorting_desc::after {
+    right: 0.75em !important;
+}
+
+/* Remove sorting arrows for chart detail modal headers while keeping click-to-sort active */
+#chartDetailTable.dataTable thead .sorting::before,
+#chartDetailTable.dataTable thead .sorting::after,
+#chartDetailTable.dataTable thead .sorting_asc::before,
+#chartDetailTable.dataTable thead .sorting_asc::after,
+#chartDetailTable.dataTable thead .sorting_desc::before,
+#chartDetailTable.dataTable thead .sorting_desc::after {
+    display: none !important;
+    content: "" !important;
+}
+
+#chartDetailTable.dataTable thead th,
+#chartDetailTable.dataTable thead td {
+    padding: 8px 10px !important;
+    cursor: pointer !important;
+    white-space: nowrap !important;
+}
+
+/* Compact top & bottom padding for modal table cells */
+#chartDetailTable th,
+#chartDetailTable td {
+    padding-top: 7px !important;
+    padding-bottom: 7px !important;
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+    vertical-align: middle !important;
+}
+
+/* Eliminate inner table container vertical scrollbar */
+#chartDetailModal .table-responsive {
+    overflow-x: auto !important;
+    overflow-y: visible !important;
 }
 
 /* 2. DataTables Length Dropdown Select Arrow Spacing */

@@ -390,7 +390,7 @@ include 'components/header.php';
                                                     id="storage-steps-container">
                                                     <!-- Step 1: Total Perangkat -->
                                                     <div class="flow-step text-center flex-fill px-1 py-1"
-                                                        style="cursor: pointer;" title="Total Perangkat">
+                                                        onclick="openStorageSummaryModal(0)" style="cursor: pointer;" title="Total Perangkat">
                                                         <div class="rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center shadow-sm"
                                                             style="width: 36px; height: 36px; background-color: #eef2ff;">
                                                             <i class="fas fa-cubes text-primary"
@@ -408,16 +408,16 @@ include 'components/header.php';
                                                         style="font-size: 0.7rem;"><i class="fas fa-chevron-right"></i>
                                                     </div>
 
-                                                    <!-- Step 2: Aging <3 Bulan -->
+                                                    <!-- Step 2: < 1 Tahun -->
                                                     <div class="flow-step text-center flex-fill px-1 py-1"
-                                                        style="cursor: pointer;" title="Aging <3 Bulan">
+                                                        onclick="openStorageSummaryModal(1)" style="cursor: pointer;" title="< 1 Tahun">
                                                         <div class="rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center shadow-sm"
                                                             style="width: 36px; height: 36px; background-color: #ecfdf5;">
                                                             <i class="fas fa-history text-success"
                                                                 style="font-size: 0.95rem;"></i>
                                                         </div>
                                                         <div class="font-weight-bold text-gray-700 text-nowrap mt-3 mb-1"
-                                                            style="font-size: 0.62rem;">Aging &lt;3 Bulan</div>
+                                                            style="font-size: 0.62rem;">&lt; 1 Tahun</div>
                                                         <div class="font-weight-bold text-success"
                                                             style="font-size: 0.82rem;" id="inv-aging-less-3m">0 Unit
                                                         </div>
@@ -428,16 +428,16 @@ include 'components/header.php';
                                                         style="font-size: 0.7rem;"><i class="fas fa-chevron-right"></i>
                                                     </div>
 
-                                                    <!-- Step 3: Aging 3-12 Bulan -->
+                                                    <!-- Step 3: > 1 Tahun -->
                                                     <div class="flow-step text-center flex-fill px-1 py-1"
-                                                        style="cursor: pointer;" title="Aging 3-12 Bulan">
+                                                        onclick="openStorageSummaryModal(2)" style="cursor: pointer;" title="> 1 Tahun">
                                                         <div class="rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center shadow-sm"
                                                             style="width: 36px; height: 36px; background-color: #e0f2fe;">
                                                             <i class="fas fa-hourglass-half text-info"
                                                                 style="font-size: 0.95rem;"></i>
                                                         </div>
                                                         <div class="font-weight-bold text-gray-700 text-nowrap mt-3 mb-1"
-                                                            style="font-size: 0.62rem;">Aging 3-12 Bulan</div>
+                                                            style="font-size: 0.62rem;">&gt; 1 Tahun</div>
                                                         <div class="font-weight-bold text-info"
                                                             style="font-size: 0.82rem;" id="inv-aging-3-12m">0 Unit
                                                         </div>
@@ -448,16 +448,16 @@ include 'components/header.php';
                                                         style="font-size: 0.7rem;"><i class="fas fa-chevron-right"></i>
                                                     </div>
 
-                                                    <!-- Step 4: Aging >12 Bulan -->
+                                                    <!-- Step 4: > 2 Tahun -->
                                                     <div class="flow-step text-center flex-fill px-1 py-1"
-                                                        style="cursor: pointer;" title="Aging >12 Bulan">
+                                                        onclick="openStorageSummaryModal(3)" style="cursor: pointer;" title="> 2 Tahun">
                                                         <div class="rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center shadow-sm"
                                                             style="width: 36px; height: 36px; background-color: #fef3c7;">
                                                             <i class="fas fa-calendar-alt text-warning"
                                                                 style="font-size: 0.95rem;"></i>
                                                         </div>
                                                         <div class="font-weight-bold text-gray-700 text-nowrap mt-3 mb-1"
-                                                            style="font-size: 0.62rem;">Aging &gt;12 Bulan</div>
+                                                            style="font-size: 0.62rem;">&gt; 2 Tahun</div>
                                                         <div class="font-weight-bold text-warning"
                                                             style="font-size: 0.82rem;" id="inv-aging-more-12m">0 Unit
                                                         </div>
@@ -470,7 +470,7 @@ include 'components/header.php';
 
                                                     <!-- Step 5: RE-Use -->
                                                     <div class="flow-step text-center flex-fill px-1 py-1"
-                                                        style="cursor: pointer;" title="RE-Use">
+                                                        onclick="openStorageSummaryModal(4)" style="cursor: pointer;" title="RE-Use">
                                                         <div class="rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center shadow-sm"
                                                             style="width: 36px; height: 36px; background-color: #fee2e2;">
                                                             <i class="fas fa-pause-circle text-danger"
@@ -505,8 +505,7 @@ include 'components/header.php';
                                                             <i class="fas fa-circle text-success mr-2.5"
                                                                 style="font-size: 0.42rem;"></i>
                                                             <span class="text-gray-800 font-weight-bold text-nowrap"
-                                                                style="font-size: 0.58rem;" id="inv-legend-name-1">Aging
-                                                                &lt;3 Bulan</span>
+                                                                style="font-size: 0.58rem;" id="inv-legend-name-1">&lt; 1 Tahun</span>
                                                             <span class="text-muted font-weight-bold ml-auto pl-1"
                                                                 style="font-size: 0.58rem;" id="inv-legend-1">0%</span>
                                                         </div>
@@ -514,8 +513,7 @@ include 'components/header.php';
                                                             <i class="fas fa-circle text-info mr-2.5"
                                                                 style="font-size: 0.42rem;"></i>
                                                             <span class="text-gray-800 font-weight-bold text-nowrap"
-                                                                style="font-size: 0.58rem;" id="inv-legend-name-2">Aging
-                                                                3-12 Bulan</span>
+                                                                style="font-size: 0.58rem;" id="inv-legend-name-2">&gt; 1 Tahun</span>
                                                             <span class="text-muted font-weight-bold ml-auto pl-1"
                                                                 style="font-size: 0.58rem;" id="inv-legend-2">0%</span>
                                                         </div>
@@ -523,8 +521,7 @@ include 'components/header.php';
                                                             <i class="fas fa-circle text-warning mr-2.5"
                                                                 style="font-size: 0.42rem;"></i>
                                                             <span class="text-gray-800 font-weight-bold text-nowrap"
-                                                                style="font-size: 0.58rem;" id="inv-legend-name-3">Aging
-                                                                &gt;12 Bulan</span>
+                                                                style="font-size: 0.58rem;" id="inv-legend-name-3">&gt; 2 Tahun</span>
                                                             <span class="text-muted font-weight-bold ml-auto pl-1"
                                                                 style="font-size: 0.58rem;" id="inv-legend-3">0%</span>
                                                         </div>
@@ -809,20 +806,22 @@ include 'components/header.php';
                             </div>
                         </div>
 
-                        <!-- Card 2: Trends (PO Vendor, Perangkat, PO Mover) -->
+                        <!-- Card 2: Trends (Perangkat IN & Perangkat OUT from Storage Tekno) -->
                         <div class="col-xl-6 col-lg-6 col-md-12 mb-4" style="padding-left: 4px; padding-right: 4px;">
                             <div class="card shadow border-0 h-100">
                                 <div class="card-body py-3 px-3 d-flex flex-column">
                                     <div class="d-flex align-items-center justify-content-between mb-2 text-nowrap">
                                         <span class="font-weight-bold text-primary text-nowrap"
                                             style="font-size: 0.82rem;"><i
-                                                class="fas fa-chart-line mr-2"></i>Trends</span>
+                                                class="fas fa-chart-line mr-2"></i>Trends Perangkat (IN & OUT)</span>
+                                        <span class="badge badge-info font-weight-normal text-nowrap px-2.5 py-1"
+                                            style="font-size: 0.65rem;" id="trends-title-period">Storage Tekno</span>
                                     </div>
                                     <div class="my-auto" style="position: relative; height: 145px;">
                                         <canvas id="dashReceivingTrendLineChart"></canvas>
                                     </div>
                                     <div class="mt-auto pt-2">
-                                        <a href="inbound.php"
+                                        <a href="warehouse.php"
                                             class="btn btn-sm btn-block font-weight-bold py-1 btn-detail-dark shadow-sm">Lihat
                                             Detail <i class="fas fa-arrow-right ml-1"
                                                 style="font-size: 0.6rem;"></i></a>
@@ -841,18 +840,288 @@ include 'components/header.php';
             <!-- End of Main Content -->
 
             <script src="vendor/chart.js/Chart.min.js"></script>
+            <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+            <script src="js/formula-controller.js?v=23"></script>
             <script src="js/demo/chart-dashboard-demo.js?v=<?= time() ?>"></script>
             <script>
-                if (window.jQuery) {
-                    $(document).ready(function() {
+                document.addEventListener('DOMContentLoaded', function () {
+                    var ALL_MONTHS = [
+                        "January", "February", "March", "April", "May", "June",
+                        "July", "August", "September", "October", "November", "December"
+                    ];
+
+                    // Keep the dropdown open when clicking inside the selects/options
+                    var periodMenu = document.getElementById('period-dropdown-menu');
+                    if (periodMenu) {
+                        periodMenu.addEventListener('click', function (e) {
+                            e.stopPropagation();
+                        });
+                    }
+
+                    // Click handler for Storage Summary flow steps on dashboard overview
+                    window.openStorageSummaryModal = function(stepIndex) {
+                        if (!window.currentDashboardData || window.currentDashboardData.length === 0) {
+                            if (typeof Swal !== 'undefined') {
+                                Swal.fire({
+                                    icon: 'info',
+                                    title: 'Pilih Periode Data',
+                                    text: 'Silakan pilih periode data terlebih dahulu.'
+                                });
+                            } else {
+                                alert('Silakan pilih periode data terlebih dahulu.');
+                            }
+                            return;
+                        }
+
+                        var sheetData = window.currentDashboardData;
+                        var headers = window.currentDashboardHeaders || Object.keys(sheetData[0] || {});
+                        var rangeCol = FormulaController.findBestColumn(headers, ['range', 'RANGE', 'aging_range', 'AGING_RANGE'], ['range', 'aging', 'usia', 'umur']);
+                        var catCol = FormulaController.findBestColumn(headers, ['category', 'CATEGORY', 'kategori', 'KATEGORI'], ['category', 'kategori', 'status']);
+
+                        var filteredRecords = [];
+                        var label = '';
+
+                        if (stepIndex === 0) {
+                            label = 'Total Perangkat';
+                            filteredRecords = sheetData;
+                        } else if (stepIndex === 1) {
+                            label = '< 1 Tahun';
+                            filteredRecords = sheetData.filter(function(row) {
+                                var rVal = rangeCol ? String(row[rangeCol] || '').trim().toLowerCase() : '';
+                                return (rVal.indexOf('<1') !== -1 || rVal.indexOf('< 1') !== -1 || rVal.indexOf('< 3') !== -1 || rVal.indexOf('<3') !== -1 || rVal.indexOf('< 1 tahun') !== -1 || rVal.indexOf('<1 tahun') !== -1 || rVal.indexOf('<') !== -1);
+                            });
+                        } else if (stepIndex === 2) {
+                            label = '> 1 Tahun';
+                            filteredRecords = sheetData.filter(function(row) {
+                                var rVal = rangeCol ? String(row[rangeCol] || '').trim().toLowerCase() : '';
+                                // Exclude > 2 Tahun items from > 1 Tahun
+                                if (rVal.indexOf('>2') !== -1 || rVal.indexOf('> 2') !== -1 || rVal.indexOf('2 - 3') !== -1 || rVal.indexOf('2-3') !== -1) return false;
+                                return (rVal.indexOf('>1') !== -1 || rVal.indexOf('> 1') !== -1 || rVal.indexOf('1-2') !== -1 || rVal.indexOf('1 - 2') !== -1 || rVal.indexOf('3-12') !== -1 || rVal.indexOf('3 - 12') !== -1 || rVal.indexOf('1 tahun') !== -1);
+                            });
+                        } else if (stepIndex === 3) {
+                            label = '> 2 Tahun';
+                            filteredRecords = sheetData.filter(function(row) {
+                                var rVal = rangeCol ? String(row[rangeCol] || '').trim().toLowerCase() : '';
+                                return (rVal.indexOf('>2') !== -1 || rVal.indexOf('> 2') !== -1 || rVal.indexOf('2 - 3') !== -1 || rVal.indexOf('2-3') !== -1 || rVal.indexOf('> 2 tahun') !== -1 || rVal.indexOf('>2 tahun') !== -1 || rVal.indexOf('>') !== -1);
+                            });
+                        } else if (stepIndex === 4) {
+                            label = 'RE-Use';
+                            filteredRecords = sheetData.filter(function(row) {
+                                var cVal = catCol ? String(row[catCol] || '').trim().toLowerCase() : '';
+                                return (cVal.indexOf('re-use') !== -1 || cVal.indexOf('reuse') !== -1 || cVal.indexOf('need to utilize') !== -1 || cVal.indexOf('slow moving') !== -1);
+                            });
+                        }
+
+                        if (window.FormulaController) {
+                            window.FormulaController.openDetailModal('STORAGE SUMMARY', label, filteredRecords);
+                        }
+                    };
+
+                    function populateSelect(selectId, items, placeholder) {
+                        var sel = document.getElementById(selectId);
+                        if (!sel) return;
+                        sel.replaceChildren();
+                        var defOpt = document.createElement('option');
+                        defOpt.value = '';
+                        defOpt.textContent = placeholder;
+                        sel.appendChild(defOpt);
+                        items.forEach(function (item) {
+                            var opt = document.createElement('option');
+                            opt.value = item;
+                            opt.textContent = item.toUpperCase();
+                            sel.appendChild(opt);
+                        });
+                    }
+
+                    function updateLoadButton() {
+                        var m = document.getElementById('period-month-select');
+                        var y = document.getElementById('period-year-select');
+                        var btn = document.getElementById('btn-load-period');
+                        if (btn) {
+                            btn.disabled = !(m && m.value && y && y.value);
+                        }
+                    }
+
+                    var monthSel = document.getElementById('period-month-select');
+                    var yearSel = document.getElementById('period-year-select');
+                    if (monthSel) monthSel.addEventListener('change', updateLoadButton);
+                    if (yearSel) yearSel.addEventListener('change', updateLoadButton);
+
+                    function fetchTrendsData(year) {
+                        if (!year) year = new Date().getFullYear().toString();
+                        fetch('api/get_yearly_in_out.php?year=' + encodeURIComponent(year))
+                            .then(function (r) { return r.json(); })
+                            .then(function (resData) {
+                                if (resData && resData.status === 'success' && resData.data) {
+                                    if (window.updateDashReceivingTrendChart) {
+                                        window.updateDashReceivingTrendChart(
+                                            resData.data.in,
+                                            resData.data.out,
+                                            resData.data.in_details,
+                                            resData.data.out_details,
+                                            year
+                                        );
+                                    }
+                                } else {
+                                    if (window.updateDashReceivingTrendChart) {
+                                        window.updateDashReceivingTrendChart([], [], [], [], year);
+                                    }
+                                }
+                            })
+                            .catch(function (err) {
+                                console.error('Error fetching trends data:', err);
+                            });
+                    }
+
+                    function loadPeriods() {
+                        fetch('api/get_periods.php')
+                            .then(function (r) { return r.json(); })
+                            .then(function (result) {
+                                var yearsSet = {};
+                                if (result.status === 'success' && result.data) {
+                                    result.data.forEach(function (pg) {
+                                        if (!pg || pg === 'Unknown Period') return;
+                                        var parts = pg.split(' ');
+                                        if (parts.length >= 2) {
+                                            yearsSet[parts[1]] = true;
+                                        }
+                                    });
+                                }
+                                var availableYears = Object.keys(yearsSet).sort();
+                                populateSelect('period-month-select', ALL_MONTHS, '-- Pilih Bulan --');
+                                populateSelect('period-year-select', availableYears, '-- Pilih Tahun --');
+
+                                var pText = document.getElementById('selected-period-text');
+                                if (pText) pText.textContent = "PILIH PERIODE DATA";
+
+                                if (window.FormulaController) {
+                                    window.FormulaController.updateDashboardCards([], []);
+                                }
+
+                                var defaultYear = availableYears.length > 0 ? availableYears[availableYears.length - 1] : new Date().getFullYear().toString();
+                                fetchTrendsData(defaultYear);
+                            })
+                            .catch(function (err) {
+                                console.error('Error fetching periods:', err);
+                            });
+                    }
+
+                    var btnLoad = document.getElementById('btn-load-period');
+                    if (btnLoad) {
+                        btnLoad.addEventListener('click', function () {
+                            var m = document.getElementById('period-month-select');
+                            var y = document.getElementById('period-year-select');
+                            if (m && m.value && y && y.value) {
+                                var period = m.value + ' ' + y.value;
+                                loadDashboardData(period);
+                                if (window.jQuery) {
+                                    $('#periodDropdown').dropdown('toggle');
+                                }
+                            }
+                        });
+                    }
+
+                    var btnReset = document.getElementById('btn-reset-period');
+                    if (btnReset) {
+                        btnReset.addEventListener('click', function () {
+                            var m = document.getElementById('period-month-select');
+                            var y = document.getElementById('period-year-select');
+                            if (m) m.value = '';
+                            if (y) y.value = '';
+                            updateLoadButton();
+
+                            var pText = document.getElementById('selected-period-text');
+                            if (pText) pText.textContent = "PILIH PERIODE DATA";
+
+                            window.currentDashboardData = [];
+                            window.currentDashboardHeaders = [];
+                            if (window.FormulaController) {
+                                window.FormulaController.updateDashboardCards([], []);
+                            }
+                            fetchTrendsData();
+                        });
+                    }
+
+                    function loadDashboardData(period) {
+                        var pText = document.getElementById('selected-period-text');
+                        if (pText) pText.textContent = period.toUpperCase();
+
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                title: 'Data Is Processing Please Wait',
+                                allowOutsideClick: false,
+                                allowEscapeKey: false,
+                                didOpen: () => { Swal.showLoading(); }
+                            });
+                        }
+
+                        var parts = period.split(' ');
+                        var yr = parts.length > 1 ? parts[parts.length - 1] : new Date().getFullYear().toString();
+
+                        var fetchDashboard = fetch('api/get_data.php?periode=' + encodeURIComponent(period))
+                            .then(function (response) { return response.json(); });
+
+                        var fetchYearly = fetch('api/get_yearly_in_out.php?year=' + encodeURIComponent(yr))
+                            .then(function (response) { return response.json(); });
+
+                        Promise.all([fetchDashboard, fetchYearly])
+                            .then(function (results) {
+                                var result = results[0];
+                                var resData = results[1];
+
+                                if (result && result.status === 'success' && result.data && result.data.length > 0) {
+                                    var headers = Object.keys(result.data[0]);
+                                    window.currentDashboardData = result.data;
+                                    window.currentDashboardHeaders = headers;
+                                    if (window.FormulaController) {
+                                        window.FormulaController.updateDashboardCards(result.data, headers);
+                                    }
+                                } else {
+                                    window.currentDashboardData = [];
+                                    window.currentDashboardHeaders = [];
+                                    if (window.FormulaController) {
+                                        window.FormulaController.updateDashboardCards([], []);
+                                    }
+                                }
+
+                                if (resData && resData.status === 'success' && resData.data) {
+                                    if (window.updateDashReceivingTrendChart) {
+                                        window.updateDashReceivingTrendChart(
+                                            resData.data.in,
+                                            resData.data.out,
+                                            resData.data.in_details,
+                                            resData.data.out_details,
+                                            yr
+                                        );
+                                    }
+                                } else {
+                                    if (window.updateDashReceivingTrendChart) {
+                                        window.updateDashReceivingTrendChart([], [], [], [], yr);
+                                    }
+                                }
+
+                                if (typeof Swal !== 'undefined') Swal.close();
+                            })
+                            .catch(function (error) {
+                                console.error('Error fetching dashboard data:', error);
+                                if (typeof Swal !== 'undefined') {
+                                    Swal.fire('Error', 'Failed to load data. Please try again.', 'error');
+                                }
+                            });
+                    }
+
+                    loadPeriods();
+                    window.loadPeriods = loadPeriods;
+
+                    if (window.jQuery) {
                         $('#storageManagementCarousel').on('slide.bs.carousel', function (e) {
                             var idx = e.to;
                             $('#storage-slide-indicator').text((idx + 1) + ' / 2');
                             $('#storage-slider-pills .nav-link').removeClass('active bg-info text-white').addClass('text-muted');
                             $('#storage-slider-pills .nav-link').eq(idx).addClass('active bg-info text-white').removeClass('text-muted');
                         });
-                    });
-                }
+                    }
+                });
             </script>
 
             <?php include 'components/footer.php'; ?>
