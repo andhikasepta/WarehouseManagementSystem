@@ -17,6 +17,7 @@ function ensureInboundMasterTableExists($pdo) {
     $jsonCol = ($driver === 'pgsql') ? "raw_data JSONB" : "raw_data JSON";
     $updatedAtCol = ($driver === 'pgsql') ? "updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP" : "updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP";
 
+    // Safety net: create table if migrations haven't run yet
     $sql = "CREATE TABLE IF NOT EXISTS inbound_master (
         $idCol,
         pr_nomor TEXT,
@@ -43,39 +44,6 @@ function ensureInboundMasterTableExists($pdo) {
         $updatedAtCol
     )";
     $pdo->exec($sql);
-
-    // Automatically alter table if columns exist without periode_group
-    try {
-        if ($driver === 'mysql') {
-            $pdo->exec("ALTER TABLE inbound_master ADD COLUMN periode_group TEXT");
-        } elseif ($driver === 'pgsql') {
-            $pdo->exec("ALTER TABLE inbound_master ADD COLUMN IF NOT EXISTS periode_group TEXT");
-        }
-    } catch (Exception $ex) {
-        // Column already exists
-    }
-
-    try {
-        if ($driver === 'mysql') {
-            $pdo->exec("ALTER TABLE inbound_master 
-                MODIFY COLUMN pr_nomor TEXT,
-                MODIFY COLUMN pr_kode_site TEXT,
-                MODIFY COLUMN pr_nama_site TEXT,
-                MODIFY COLUMN pr_item_kategori TEXT,
-                MODIFY COLUMN pr_pic_teknis_nama TEXT,
-                MODIFY COLUMN pr_nama_bagian TEXT,
-                MODIFY COLUMN pr_nama_divisi TEXT,
-                MODIFY COLUMN pr_regional TEXT,
-                MODIFY COLUMN pr_jenis_ma TEXT,
-                MODIFY COLUMN po_nomor TEXT,
-                MODIFY COLUMN po_vendor TEXT,
-                MODIFY COLUMN po_nama_item TEXT,
-                MODIFY COLUMN po_uom_item TEXT,
-                MODIFY COLUMN project_id TEXT");
-        }
-    } catch (Exception $ex) {
-        // Table columns already TEXT
-    }
 }
 
 function getValCI($row, $keys) {

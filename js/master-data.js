@@ -34,6 +34,44 @@ var assetTable = null;
 var rackTable = null;
 var existingInboundPeriods = [];
 
+// Refresh inbound filter dropdowns from server (called after upload/delete)
+function refreshInboundFilters() {
+    $.getJSON('api/get_inbound_filters.php', function (json) {
+        if (json.status === 'success' && json.filters) {
+            if (json.filters.periode) {
+                existingInboundPeriods = json.filters.periode || [];
+                var $periodeSel = $('#filter-inbound-periode');
+                $periodeSel.find('option:not(:first)').remove();
+                json.filters.periode.forEach(function (p) {
+                    $periodeSel.append('<option value="' + p + '">' + p + '</option>');
+                });
+                checkInboundPeriodStatus();
+            }
+            if (json.filters.bagian) {
+                var $bagianSel = $('#filter-inbound-bagian');
+                $bagianSel.find('option:not(:first)').remove();
+                json.filters.bagian.forEach(function (b) {
+                    $bagianSel.append('<option value="' + b + '">' + b + '</option>');
+                });
+            }
+            if (json.filters.pic) {
+                var $picSel = $('#filter-inbound-pic');
+                $picSel.find('option:not(:first)').remove();
+                json.filters.pic.forEach(function (p) {
+                    $picSel.append('<option value="' + p + '">' + p + '</option>');
+                });
+            }
+            if (json.filters.kategori) {
+                var $kategoriSel = $('#filter-inbound-kategori');
+                $kategoriSel.find('option:not(:first)').remove();
+                json.filters.kategori.forEach(function (k) {
+                    $kategoriSel.append('<option value="' + k + '">' + k + '</option>');
+                });
+            }
+        }
+    });
+}
+
 function checkInboundPeriodStatus() {
     var month = $('#uploadInboundMonthSelect').val();
     var year = $('#uploadInboundYearSelect').val();
@@ -73,52 +111,52 @@ function checkInboundPeriodStatus() {
 
 function initInboundTable() {
     if (inboundTable || $('#dataTableInbound').length === 0) return;
-    
+
+    // Load filter options from separate lightweight endpoint (once)
+    $.getJSON('api/get_inbound_filters.php', function (json) {
+        if (json.status === 'success' && json.filters) {
+            var $periodeSel = $('#filter-inbound-periode');
+            var $bagianSel = $('#filter-inbound-bagian');
+            var $picSel = $('#filter-inbound-pic');
+            var $kategoriSel = $('#filter-inbound-kategori');
+
+            if (json.filters.periode) {
+                existingInboundPeriods = json.filters.periode || [];
+                $periodeSel.find('option:not(:first)').remove();
+                json.filters.periode.forEach(function (p) {
+                    $periodeSel.append('<option value="' + p + '">' + p + '</option>');
+                });
+                checkInboundPeriodStatus();
+            }
+            if (json.filters.bagian) {
+                $bagianSel.find('option:not(:first)').remove();
+                json.filters.bagian.forEach(function (b) {
+                    $bagianSel.append('<option value="' + b + '">' + b + '</option>');
+                });
+            }
+            if (json.filters.pic) {
+                $picSel.find('option:not(:first)').remove();
+                json.filters.pic.forEach(function (p) {
+                    $picSel.append('<option value="' + p + '">' + p + '</option>');
+                });
+            }
+            if (json.filters.kategori) {
+                $kategoriSel.find('option:not(:first)').remove();
+                json.filters.kategori.forEach(function (k) {
+                    $kategoriSel.append('<option value="' + k + '">' + k + '</option>');
+                });
+            }
+        }
+    });
+
+    // Server-side DataTables — only fetches the visible page from the server
     inboundTable = $('#dataTableInbound').DataTable({
         processing: true,
+        serverSide: true,
         deferRender: true,
         ajax: {
             url: 'api/get_inbound_master.php',
-            dataSrc: function (json) {
-                if (json.status === 'success') {
-                    if (json.filters) {
-                        var $periodeSel = $('#filter-inbound-periode');
-                        var $bagianSel = $('#filter-inbound-bagian');
-                        var $picSel = $('#filter-inbound-pic');
-                        var $kategoriSel = $('#filter-inbound-kategori');
-
-                        if (json.filters.periode) {
-                            existingInboundPeriods = json.filters.periode || [];
-                            $periodeSel.find('option:not(:first)').remove();
-                            json.filters.periode.forEach(function (p) {
-                                $periodeSel.append('<option value="' + p + '">' + p + '</option>');
-                            });
-                            checkInboundPeriodStatus();
-                        }
-                        if (json.filters.bagian) {
-                            $bagianSel.find('option:not(:first)').remove();
-                            json.filters.bagian.forEach(function (b) {
-                                $bagianSel.append('<option value="' + b + '">' + b + '</option>');
-                            });
-                        }
-                        if (json.filters.pic) {
-                            $picSel.find('option:not(:first)').remove();
-                            json.filters.pic.forEach(function (p) {
-                                $picSel.append('<option value="' + p + '">' + p + '</option>');
-                            });
-                        }
-                        if (json.filters.kategori) {
-                            $kategoriSel.find('option:not(:first)').remove();
-                            json.filters.kategori.forEach(function (k) {
-                                $kategoriSel.append('<option value="' + k + '">' + k + '</option>');
-                            });
-                        }
-                    }
-                    return json.data || [];
-                } else {
-                    return [];
-                }
-            }
+            type: 'GET'
         },
         columns: [
             { data: 'pr_nomor', defaultContent: '-' },
@@ -150,7 +188,10 @@ function initInboundTable() {
                     return data ? data : 'Unknown Period';
                 }
             }
-        ]
+        ],
+        order: [[0, 'desc']],
+        pageLength: 25,
+        searchDelay: 500  // Debounce global search to avoid excessive server requests
     });
 
     // Populate Year dropdowns for Inbound Upload & Delete Modals
@@ -170,30 +211,37 @@ function initInboundTable() {
 
     $('#uploadInboundMonthSelect, #uploadInboundYearSelect').off('change.inbound').on('change.inbound', checkInboundPeriodStatus);
 
+    // Per-column filters — send search to server via DataTables column().search()
     $('#filter-inbound-periode').off('change.inbound').on('change.inbound', function () {
-        var val = $.fn.dataTable.util.escapeRegex($(this).val());
+        var val = $(this).val();
         inboundTable.column(18).search(val ? '^' + val + '$' : '', true, false).draw();
     });
 
     $('#filter-inbound-bagian').off('change.inbound').on('change.inbound', function () {
-        var val = $.fn.dataTable.util.escapeRegex($(this).val());
+        var val = $(this).val();
         inboundTable.column(5).search(val ? '^' + val + '$' : '', true, false).draw();
     });
 
     $('#filter-inbound-pic').off('change.inbound').on('change.inbound', function () {
-        var val = $.fn.dataTable.util.escapeRegex($(this).val());
+        var val = $(this).val();
         inboundTable.column(4).search(val ? '^' + val + '$' : '', true, false).draw();
     });
 
     $('#filter-inbound-kategori').off('change.inbound').on('change.inbound', function () {
-        var val = $.fn.dataTable.util.escapeRegex($(this).val());
+        var val = $(this).val();
         inboundTable.column(3).search(val ? '^' + val + '$' : '', true, false).draw();
     });
 
-    $('#filter-inbound-po').off('keyup.inbound change.inbound input.inbound').on('keyup.inbound change.inbound input.inbound', function () {
-        if (inboundTable) {
-            inboundTable.draw();
-        }
+    // PR/PO search — now handled server-side via DataTables global search
+    var poSearchTimer = null;
+    $('#filter-inbound-po').off('keyup.inbound change.inbound input.inbound').on('keyup.inbound input.inbound', function () {
+        var val = $(this).val();
+        clearTimeout(poSearchTimer);
+        poSearchTimer = setTimeout(function () {
+            if (inboundTable) {
+                inboundTable.search(val).draw();
+            }
+        }, 400); // debounce 400ms
     });
 
     $('#btn-reset-filter-inbound').off('click.inbound').on('click.inbound', function () {
@@ -211,10 +259,40 @@ function initInboundTable() {
 function initAssetTable() {
     if (assetTable || $('#dataTableAsset').length === 0) return;
 
+    var assetFiltersLoaded = false;
+
     assetTable = $('#dataTableAsset').DataTable({
         processing: true,
+        serverSide: true,
         deferRender: true,
-        ajax: 'api/get_master_assets.php',
+        ajax: {
+            url: 'api/get_master_assets.php',
+            type: 'GET',
+            dataSrc: function (json) {
+                // Populate filter dropdowns from server response (once)
+                if (!assetFiltersLoaded && json.filters) {
+                    assetFiltersLoaded = true;
+                    var $periodeSelect = $('#filterAssetPeriode');
+                    var $subLocSelect = $('#filterAssetSubLocation');
+
+                    if (json.filters.periodes) {
+                        $periodeSelect.find('option:not(:first)').remove();
+                        json.filters.periodes.forEach(function (d) {
+                            if (d) $periodeSelect.append('<option value="' + d + '">' + d + '</option>');
+                        });
+                    }
+                    if (json.filters.subLocations) {
+                        $subLocSelect.find('option:not(:first)').remove();
+                        json.filters.subLocations.forEach(function (d) {
+                            if (d) $subLocSelect.append('<option value="' + d + '">' + d + '</option>');
+                        });
+                    }
+
+                    $('#filterAssetPeriode, #filterAssetSubLocation').select2({ width: '100%' });
+                }
+                return json.data || [];
+            }
+        },
         columns: [
             { data: 'spec_code' },
             { data: 'spec_name' },
@@ -241,26 +319,10 @@ function initAssetTable() {
                 }
             }
         ],
+        order: [[0, 'asc']],
+        pageLength: 25,
+        searchDelay: 500,
         initComplete: function () {
-            var api = this.api();
-            var periodes = api.column(10).data().unique().toArray().sort(function (a, b) {
-                if (!a) return 1;
-                if (!b) return -1;
-                return new Date("01 " + a) - new Date("01 " + b);
-            });
-            var $periodeSelect = $('#filterAssetPeriode');
-            $.each(periodes, function (i, d) {
-                if (d) $periodeSelect.append('<option value="' + d + '">' + d + '</option>');
-            });
-
-            var subLocations = api.column(8).data().unique().sort();
-            var $subLocSelect = $('#filterAssetSubLocation');
-            subLocations.each(function (d) {
-                if (d) $subLocSelect.append('<option value="' + d + '">' + d + '</option>');
-            });
-
-            $('#filterAssetPeriode, #filterAssetSubLocation').select2({ width: '100%' });
-
             var $searchBar = $('#dataTableAsset_filter');
             $searchBar.detach().appendTo('#assetSearchContainer');
             $searchBar.css({ 'text-align': 'right', 'width': '100%' });
@@ -269,13 +331,14 @@ function initAssetTable() {
         }
     });
 
+    // Per-column filters — send search to server
     $('#filterAssetPeriode').off('change.asset').on('change.asset', function () {
-        var val = $.fn.dataTable.util.escapeRegex($(this).val());
+        var val = $(this).val();
         assetTable.column(10).search(val ? '^' + val + '$' : '', true, false).draw();
     });
 
     $('#filterAssetSubLocation').off('change.asset').on('change.asset', function () {
-        var val = $.fn.dataTable.util.escapeRegex($(this).val());
+        var val = $(this).val();
         assetTable.column(8).search(val ? '^' + val + '$' : '', true, false).draw();
     });
 }
@@ -351,18 +414,7 @@ function loadActiveMasterTabTable() {
     }
 }
 
-// Custom search for Inbound PR/PO (Column 0 & Column 9)
-if ($.fn.dataTable) {
-    $.fn.dataTable.ext.search.push(function (settings, data, dataIndex) {
-        if (!settings || !settings.nTable || settings.nTable.id !== 'dataTableInbound') return true;
-        var searchVal = $('#filter-inbound-po').val();
-        if (!searchVal || !searchVal.trim()) return true;
-        searchVal = searchVal.trim().toLowerCase();
-        var prNomor = (data[0] || '').toLowerCase();
-        var poNomor = (data[9] || '').toLowerCase();
-        return prNomor.indexOf(searchVal) !== -1 || poNomor.indexOf(searchVal) !== -1;
-    });
-}
+// NOTE: Custom client-side search for Inbound PR/PO removed — now handled server-side
 
 $(document).ready(function () {
     // Load table for the currently active tab on page load
@@ -859,6 +911,7 @@ $(document).ready(function () {
                             $('#uploadExcelModalInbound').modal('hide');
                             if (inboundTable) {
                                 inboundTable.ajax.reload();
+                                refreshInboundFilters();
                             } else {
                                 location.reload();
                             }
