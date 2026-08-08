@@ -103,10 +103,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $requestedModule = 'master_data';
                 }
 
-                // Check module access (skip for superadmin & head_warehouse_admin)
-                if (!empty($requestedModule) 
-                    && $user['role'] !== 'superadmin' 
-                    && $user['role'] !== 'head_warehouse_admin') {
+                // Check module access (skip for superadmin)
+                if (!empty($requestedModule) && $user['role'] !== 'superadmin') {
                     $allowedModules = is_array($decodedModules) ? $decodedModules : [];
                     if (!in_array($requestedModule, $allowedModules)) {
                         // User doesn't have access — destroy session and redirect back
@@ -126,19 +124,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 if ($user['role'] === 'superadmin') {
                     header("Location: user_management.php");
-                } elseif ($user['role'] === 'head_warehouse_admin') {
-                    header("Location: dashboard.php");
-                } elseif ($redirect === 'wms_select.php') {
-                    if ($user['role'] === 'inbound_admin') {
-                        header("Location: inbound.php");
-                    } elseif ($user['role'] === 'warehouse_admin') {
-                        header("Location: warehouse.php");
-                    } elseif ($user['role'] === 'outbound_admin') {
-                        header("Location: outbound.php");
-                    } elseif ($user['role'] === 'outsourcing') {
-                        header("Location: wms_select.php");
-                    } else {
+                } elseif ($redirect === 'wms_select.php' || empty($redirect)) {
+                    $allowed = is_array($decodedModules) ? $decodedModules : [];
+                    if (in_array('dashboard', $allowed)) {
                         header("Location: dashboard.php");
+                    } elseif (in_array('warehouse', $allowed)) {
+                        header("Location: warehouse.php");
+                    } elseif (in_array('inbound', $allowed)) {
+                        header("Location: inbound.php");
+                    } elseif (in_array('outbound', $allowed)) {
+                        header("Location: outbound.php");
+                    } elseif (!empty($allowed)) {
+                        header("Location: " . $allowed[0] . ".php");
+                    } else {
+                        header("Location: wms_select.php");
                     }
                 } else {
                     header("Location: " . $redirect);

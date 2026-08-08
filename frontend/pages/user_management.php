@@ -605,15 +605,18 @@ include FRONTEND_PATH . 'components/header.php';
                 if (u.role === 'superadmin') {
                     modulesBadges = '<span class="badge badge-success mr-1 mb-1"><i class="fas fa-check-circle mr-1"></i>Semua Modul (Super Admin)</span>';
                 } else {
-                    // Show Dashboard Overview badge for Head role
-                    if (isHeadUser || mods.includes('dashboard')) {
+                    if (mods.includes('dashboard')) {
                         modulesBadges += '<span class="badge badge-secondary mr-1 mb-1"><i class="fas fa-th-large mr-1"></i>DASHBOARD ' + buildPermBadges(perms, 'dashboard', 'Dashboard') + '</span>';
                     }
-                    // All users have access to these main menu modules (always shown)
-                    modulesBadges += '<span class="badge badge-success mr-1 mb-1"><i class="fas fa-box-open mr-1"></i>INBOUND ' + buildPermBadges(perms, 'inbound', 'Inbound') + '</span>';
-                    modulesBadges += '<span class="badge badge-primary mr-1 mb-1"><i class="fas fa-warehouse mr-1"></i>STORAGE ' + buildPermBadges(perms, 'warehouse', 'Storage') + '</span>';
-                    modulesBadges += '<span class="badge badge-warning text-white mr-1 mb-1"><i class="fas fa-truck-loading mr-1"></i>OUTBOUND ' + buildPermBadges(perms, 'outbound', 'Outbound') + '</span>';
-                    // Master Data only if explicitly granted
+                    if (mods.includes('inbound')) {
+                        modulesBadges += '<span class="badge badge-success mr-1 mb-1"><i class="fas fa-box-open mr-1"></i>INBOUND ' + buildPermBadges(perms, 'inbound', 'Inbound') + '</span>';
+                    }
+                    if (mods.includes('warehouse')) {
+                        modulesBadges += '<span class="badge badge-primary mr-1 mb-1"><i class="fas fa-warehouse mr-1"></i>STORAGE ' + buildPermBadges(perms, 'warehouse', 'Storage') + '</span>';
+                    }
+                    if (mods.includes('outbound')) {
+                        modulesBadges += '<span class="badge badge-warning text-white mr-1 mb-1"><i class="fas fa-truck-loading mr-1"></i>OUTBOUND ' + buildPermBadges(perms, 'outbound', 'Outbound') + '</span>';
+                    }
                     if (mods.includes('master_data')) {
                         var mdSubs = [];
                         if (mods.includes('master_data_inbound')) mdSubs.push('Inbound');
@@ -622,18 +625,20 @@ include FRONTEND_PATH . 'components/header.php';
                         var subLabel = mdSubs.length > 0 ? ' (' + mdSubs.join(', ') + ')' : '';
                         modulesBadges += '<span class="badge badge-dark mr-1 mb-1"><i class="fas fa-database mr-1"></i>MASTER DATA' + subLabel + ' ' + buildPermBadges(perms, 'master_data', 'Master Data') + '</span>';
                     }
-                    if (isHeadUser || mods.includes('inventory')) {
+                    if (mods.includes('inventory')) {
                         modulesBadges += '<span class="badge badge-primary mr-1 mb-1"><i class="fas fa-boxes mr-1"></i>INVENTORY ' + buildPermBadges(perms, 'inventory', 'Inventory') + '</span>';
                     }
-                    if (isHeadUser || mods.includes('location')) {
+                    if (mods.includes('location')) {
                         modulesBadges += '<span class="badge badge-info mr-1 mb-1"><i class="fas fa-map-marker-alt mr-1"></i>LOCATION ' + buildPermBadges(perms, 'location', 'Location') + '</span>';
                     }
-                    // Reports and Analytics
-                    if (isHeadUser || mods.includes('reports')) {
+                    if (mods.includes('reports')) {
                         modulesBadges += '<span class="badge badge-info mr-1 mb-1"><i class="fas fa-file-alt mr-1"></i>REPORTS ' + buildPermBadges(perms, 'reports', 'Reports') + '</span>';
                     }
-                    if (isHeadUser || mods.includes('analytics')) {
+                    if (mods.includes('analytics')) {
                         modulesBadges += '<span class="badge badge-info mr-1 mb-1"><i class="fas fa-chart-line mr-1"></i>ANALYTICS ' + buildPermBadges(perms, 'analytics', 'Analytics') + '</span>';
+                    }
+                    if (!modulesBadges) {
+                        modulesBadges = '<span class="text-muted font-italic" style="font-size:0.75rem;">Tidak ada modul</span>';
                     }
                 }
 

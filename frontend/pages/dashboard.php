@@ -2,26 +2,8 @@
 // dashboard.php - Head-Warehouse Management Dashboard Overview
 require_once __DIR__ . '/../../backend/auth.php';
 
-if (!isLoggedIn()) {
-    header("Location: login.php");
-    exit;
-}
-
+checkModuleAccess('dashboard');
 $currentUser = getCurrentUser();
-$userRole = $currentUser['role'] ?? '';
-$isHeadRole = (strpos($userRole, 'head_') === 0) || ($userRole === 'head_warehouse_admin');
-
-// Super Admin is redirected by auth.php
-if ($userRole === 'superadmin') {
-    header("Location: user_management.php");
-    exit;
-}
-
-// Dashboard Overview is strictly restricted to Head-Management roles
-if (!$isHeadRole) {
-    renderAccessDeniedPage('dashboard', $currentUser, "Halaman Dashboard Overview ini khusus untuk Pimpinan Head-Management.");
-    exit;
-}
 
 $pageTitle = 'Dashboard Overview - Head Warehouse Management';
 include FRONTEND_PATH . 'components/header.php';

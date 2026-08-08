@@ -6,39 +6,15 @@ $currentUser = getCurrentUser();
 $userRole = $currentUser['role'] ?? 'admin';
 $userModules = is_array($currentUser['allowed_modules'] ?? null) ? $currentUser['allowed_modules'] : [];
 
-$canAccessInboundMaster = false;
-$canAccessStorageMaster = false;
-$canAccessOutboundMaster = false;
+$canAccessInboundMaster = in_array('master_data_inbound', $userModules);
+$canAccessStorageMaster = in_array('master_data_storage', $userModules);
+$canAccessOutboundMaster = in_array('master_data_outbound', $userModules);
 
-if ($userRole === 'head_warehouse_admin' || $userRole === 'superadmin') {
-    // Head and Superadmin: check sub-permissions, default to all if none set
-    $canAccessInboundMaster = in_array('master_data_inbound', $userModules) || !in_array('master_data_inbound', $userModules) && !in_array('master_data_storage', $userModules) && !in_array('master_data_outbound', $userModules);
-    $canAccessStorageMaster = in_array('master_data_storage', $userModules) || !in_array('master_data_inbound', $userModules) && !in_array('master_data_storage', $userModules) && !in_array('master_data_outbound', $userModules);
-    $canAccessOutboundMaster = in_array('master_data_outbound', $userModules) || !in_array('master_data_inbound', $userModules) && !in_array('master_data_storage', $userModules) && !in_array('master_data_outbound', $userModules);
-} elseif ($userRole === 'inbound_admin') {
+// If superadmin or if master_data is granted without specific sub-modules, grant access to all 3 tabs
+if ($userRole === 'superadmin' || (in_array('master_data', $userModules) && !$canAccessInboundMaster && !$canAccessStorageMaster && !$canAccessOutboundMaster)) {
     $canAccessInboundMaster = true;
-    $canAccessStorageMaster = in_array('master_data_storage', $userModules);
-    $canAccessOutboundMaster = in_array('master_data_outbound', $userModules);
-} elseif ($userRole === 'warehouse_admin') {
-    $canAccessInboundMaster = in_array('master_data_inbound', $userModules);
     $canAccessStorageMaster = true;
-    $canAccessOutboundMaster = in_array('master_data_outbound', $userModules);
-} elseif ($userRole === 'outbound_admin') {
-    $canAccessInboundMaster = in_array('master_data_inbound', $userModules);
-    $canAccessStorageMaster = in_array('master_data_storage', $userModules);
     $canAccessOutboundMaster = true;
-} else {
-    // Custom roles: use sub-permissions from allowed_modules
-    $canAccessInboundMaster = in_array('master_data_inbound', $userModules);
-    $canAccessStorageMaster = in_array('master_data_storage', $userModules);
-    $canAccessOutboundMaster = in_array('master_data_outbound', $userModules);
-    
-    // Fallback: if master_data granted but no sub-permissions set, allow all
-    if (in_array('master_data', $userModules) && !$canAccessInboundMaster && !$canAccessStorageMaster && !$canAccessOutboundMaster) {
-        $canAccessInboundMaster = true;
-        $canAccessStorageMaster = true;
-        $canAccessOutboundMaster = true;
-    }
 }
 
 $defaultMasterSegment = '';

@@ -72,24 +72,18 @@ function hasPermission($module, $action = 'view') {
     // Superadmin has all permissions
     if ($user['role'] === 'superadmin') return true;
 
-    // Head roles have full permissions on all their accessible modules
-    $isHead = (strpos($user['role'], 'head_') === 0) || ($user['role'] === 'head_warehouse_admin');
-    if ($isHead) return true;
+    $allowedModules = $user['allowed_modules'] ?? [];
+    if (!is_array($allowedModules) || !in_array($module, $allowedModules)) {
+        return false;
+    }
 
-    $permissions = $user['permissions'];
-    if (!is_array($permissions)) return $action === 'view'; // Default: view only
-
-    if (isset($permissions[$module]) && is_array($permissions[$module])) {
+    $permissions = $user['permissions'] ?? [];
+    if (is_array($permissions) && isset($permissions[$module]) && is_array($permissions[$module])) {
         return !empty($permissions[$module][$action]);
     }
 
     // If module is in allowed_modules but no explicit permissions entry, default to view only
-    $allowedModules = $user['allowed_modules'];
-    if (is_array($allowedModules) && in_array($module, $allowedModules)) {
-        return $action === 'view';
-    }
-
-    return false;
+    return $action === 'view';
 }
 
 /**
@@ -129,32 +123,31 @@ function checkModuleAccess($requiredModule = '') {
         return true;
     }
 
-    $isOutsourcing = ($user['role'] === 'outsourcing');
-    $isHeadRole = (strpos($user['role'], 'head_') === 0) || ($user['role'] === 'head_warehouse_admin');
     $allowedModules = is_array($user['allowed_modules']) ? $user['allowed_modules'] : [];
 
-    if ($requiredModule === 'dashboard' || $currentPage === 'dashboard.php') {
-        if (!$isHeadRole) {
-            renderAccessDeniedPage('dashboard', $user, 'Halaman Dashboard Overview ini khusus untuk Pimpinan Head-Management.');
-            exit;
-        }
-        return true;
+    // Map page to module key if not explicitly given
+    $moduleKey = $requiredModule;
+    if (empty($moduleKey)) {
+        $pageMap = [
+            'dashboard.php' => 'dashboard',
+            'inbound.php' => 'inbound',
+            'warehouse.php' => 'warehouse',
+            'storage_hub.php' => 'warehouse',
+            'outbound.php' => 'outbound',
+            'master_data.php' => 'master_data',
+            'inventory.php' => 'inventory',
+            'location.php' => 'location',
+            'reports.php' => 'reports',
+            'analytics.php' => 'analytics',
+        ];
+        $moduleKey = $pageMap[$currentPage] ?? '';
     }
 
-    if ($requiredModule === 'reports' || $requiredModule === 'analytics') {
-        if (!$isHeadRole && !in_array($requiredModule, $allowedModules)) {
-            renderAccessDeniedPage($requiredModule, $user, 'Akun Anda tidak diberikan izin akses ke modul ini.');
+    if (!empty($moduleKey)) {
+        if (!in_array($moduleKey, $allowedModules)) {
+            renderAccessDeniedPage($moduleKey, $user, 'Akun Anda tidak diberikan izin akses ke modul ini.');
             exit;
         }
-        return true;
-    }
-
-    if ($requiredModule === 'master_data' || $currentPage === 'master_data.php' || $requiredModule === 'location' || $currentPage === 'location.php') {
-        if (!in_array('master_data', $allowedModules)) {
-            renderAccessDeniedPage('master_data', $user, 'Akun Anda tidak diberikan izin akses ke modul ini.');
-            exit;
-        }
-        return true;
     }
 
     return true;
