@@ -216,9 +216,11 @@ include FRONTEND_PATH . 'components/header.php';
                                                     id="flow-reg-count">0 PO</div>
                                             </div>
 
-                                            <!-- Arrow 5 -->
-                                            <div class="text-gray-300 align-self-center mx-1"
-                                                style="font-size: 0.7rem;"><i class="fas fa-chevron-right"></i></div>
+                                            <!-- Vertical Divider: Separator for Total GR > Total Registrasi -->
+                                            <div class="align-self-center mx-2 d-flex align-items-center justify-content-center"
+                                                style="height: 38px;">
+                                                <div style="width: 1.5px; height: 34px; background-color: #cbd5e1; border-radius: 1px;"></div>
+                                            </div>
 
                                             <!-- Step 6: Total GR -->
                                             <div class="flow-step text-center flex-fill px-1 py-1"
