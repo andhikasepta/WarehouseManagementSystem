@@ -18,7 +18,11 @@ return function ($pdo) {
         $exists = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if (!$exists) {
-            $pdo->exec("ALTER TABLE users ADD COLUMN permissions TEXT NOT NULL DEFAULT '{}'");
+            if ($driver === 'pgsql') {
+                $pdo->exec("ALTER TABLE users ADD COLUMN permissions TEXT NOT NULL DEFAULT '{}'");
+            } else {
+                $pdo->exec("ALTER TABLE users ADD COLUMN permissions TEXT NULL");
+            }
             echo "Added 'permissions' column to users table.\n";
 
             // Backfill existing users: for each user's allowed_modules, set default permissions (view=true, add=true, delete=true)
@@ -27,7 +31,8 @@ return function ($pdo) {
 
             foreach ($users as $user) {
                 $modules = json_decode($user['allowed_modules'], true);
-                if (!is_array($modules)) $modules = [];
+                if (!is_array($modules))
+                    $modules = [];
 
                 $permissions = [];
                 foreach ($modules as $mod) {

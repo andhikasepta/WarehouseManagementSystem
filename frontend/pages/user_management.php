@@ -131,13 +131,13 @@ include FRONTEND_PATH . 'components/header.php';
                                                     <div class="custom-control custom-checkbox d-inline-block">
                                                         <input type="checkbox" class="custom-control-input module-checkbox" id="mod_dashboard" value="dashboard">
                                                         <label class="custom-control-label font-weight-bold text-gray-800" for="mod_dashboard">
-                                                            <i class="fas fa-th-large text-primary mr-1"></i> Dashboard Overview <span class="badge badge-light border text-muted ml-1" style="font-size:0.65rem;">Head Role Only</span>
+                                                            <i class="fas fa-th-large text-primary mr-1"></i> Dashboard Overview
                                                         </label>
                                                     </div>
                                                     <div class="perm-checkboxes ml-4 mt-1" id="perm_dashboard" style="display:none;">
                                                         <div class="d-flex flex-wrap" style="gap: 8px;">
                                                             <div class="custom-control custom-checkbox custom-control-inline">
-                                                                <input type="checkbox" class="custom-control-input perm-cb" id="perm_dashboard_view" data-module="dashboard" data-perm="view" checked disabled>
+                                                                <input type="checkbox" class="custom-control-input perm-cb" id="perm_dashboard_view" data-module="dashboard" data-perm="view">
                                                                 <label class="custom-control-label text-muted" for="perm_dashboard_view" style="font-size:0.75rem;"><i class="fas fa-eye mr-1"></i>View</label>
                                                             </div>
                                                             <div class="custom-control custom-checkbox custom-control-inline">
@@ -159,15 +159,15 @@ include FRONTEND_PATH . 'components/header.php';
                                                 <!-- Inbound -->
                                                 <div class="module-perm-row mb-2" data-module="inbound">
                                                     <div class="custom-control custom-checkbox d-inline-block">
-                                                        <input type="checkbox" class="custom-control-input module-checkbox" id="mod_inbound" value="inbound" checked disabled>
-                                                        <label class="custom-control-label font-weight-bold text-gray-600" for="mod_inbound">
-                                                            <i class="fas fa-box-open text-primary mr-1"></i> Inbound Management <span class="badge badge-light border text-muted ml-1" style="font-size:0.65rem;">Semua User</span>
+                                                        <input type="checkbox" class="custom-control-input module-checkbox" id="mod_inbound" value="inbound">
+                                                        <label class="custom-control-label font-weight-bold text-gray-800" for="mod_inbound">
+                                                            <i class="fas fa-box-open text-primary mr-1"></i> Inbound Management
                                                         </label>
                                                     </div>
-                                                    <div class="perm-checkboxes ml-4 mt-1" id="perm_inbound">
+                                                    <div class="perm-checkboxes ml-4 mt-1" id="perm_inbound" style="display:none;">
                                                         <div class="d-flex flex-wrap" style="gap: 8px;">
                                                             <div class="custom-control custom-checkbox custom-control-inline">
-                                                                <input type="checkbox" class="custom-control-input perm-cb" id="perm_inbound_view" data-module="inbound" data-perm="view" checked disabled>
+                                                                <input type="checkbox" class="custom-control-input perm-cb" id="perm_inbound_view" data-module="inbound" data-perm="view">
                                                                 <label class="custom-control-label text-muted" for="perm_inbound_view" style="font-size:0.75rem;"><i class="fas fa-eye mr-1"></i>View</label>
                                                             </div>
                                                             <div class="custom-control custom-checkbox custom-control-inline">
@@ -185,15 +185,15 @@ include FRONTEND_PATH . 'components/header.php';
                                                 <!-- Warehouse / Storage -->
                                                 <div class="module-perm-row mb-2" data-module="warehouse">
                                                     <div class="custom-control custom-checkbox d-inline-block">
-                                                        <input type="checkbox" class="custom-control-input module-checkbox" id="mod_warehouse" value="warehouse" checked disabled>
-                                                        <label class="custom-control-label font-weight-bold text-gray-600" for="mod_warehouse">
-                                                            <i class="fas fa-warehouse text-primary mr-1"></i> Storage Management <span class="badge badge-light border text-muted ml-1" style="font-size:0.65rem;">Semua User</span>
+                                                        <input type="checkbox" class="custom-control-input module-checkbox" id="mod_warehouse" value="warehouse">
+                                                        <label class="custom-control-label font-weight-bold text-gray-800" for="mod_warehouse">
+                                                            <i class="fas fa-warehouse text-primary mr-1"></i> Storage Management
                                                         </label>
                                                     </div>
-                                                    <div class="perm-checkboxes ml-4 mt-1" id="perm_warehouse">
+                                                    <div class="perm-checkboxes ml-4 mt-1" id="perm_warehouse" style="display:none;">
                                                         <div class="d-flex flex-wrap" style="gap: 8px;">
                                                             <div class="custom-control custom-checkbox custom-control-inline">
-                                                                <input type="checkbox" class="custom-control-input perm-cb" id="perm_warehouse_view" data-module="warehouse" data-perm="view" checked disabled>
+                                                                <input type="checkbox" class="custom-control-input perm-cb" id="perm_warehouse_view" data-module="warehouse" data-perm="view">
                                                                 <label class="custom-control-label text-muted" for="perm_warehouse_view" style="font-size:0.75rem;"><i class="fas fa-eye mr-1"></i>View</label>
                                                             </div>
                                                             <div class="custom-control custom-checkbox custom-control-inline">
@@ -211,15 +211,15 @@ include FRONTEND_PATH . 'components/header.php';
                                                 <!-- Outbound -->
                                                 <div class="module-perm-row mb-2" data-module="outbound">
                                                     <div class="custom-control custom-checkbox d-inline-block">
-                                                        <input type="checkbox" class="custom-control-input module-checkbox" id="mod_outbound" value="outbound" checked disabled>
-                                                        <label class="custom-control-label font-weight-bold text-gray-600" for="mod_outbound">
-                                                            <i class="fas fa-truck-loading text-primary mr-1"></i> Outbound Management <span class="badge badge-light border text-muted ml-1" style="font-size:0.65rem;">Semua User</span>
+                                                        <input type="checkbox" class="custom-control-input module-checkbox" id="mod_outbound" value="outbound">
+                                                        <label class="custom-control-label font-weight-bold text-gray-800" for="mod_outbound">
+                                                            <i class="fas fa-truck-loading text-primary mr-1"></i> Outbound Management
                                                         </label>
                                                     </div>
-                                                    <div class="perm-checkboxes ml-4 mt-1" id="perm_outbound">
+                                                    <div class="perm-checkboxes ml-4 mt-1" id="perm_outbound" style="display:none;">
                                                         <div class="d-flex flex-wrap" style="gap: 8px;">
                                                             <div class="custom-control custom-checkbox custom-control-inline">
-                                                                <input type="checkbox" class="custom-control-input perm-cb" id="perm_outbound_view" data-module="outbound" data-perm="view" checked disabled>
+                                                                <input type="checkbox" class="custom-control-input perm-cb" id="perm_outbound_view" data-module="outbound" data-perm="view">
                                                                 <label class="custom-control-label text-muted" for="perm_outbound_view" style="font-size:0.75rem;"><i class="fas fa-eye mr-1"></i>View</label>
                                                             </div>
                                                             <div class="custom-control custom-checkbox custom-control-inline">
@@ -249,7 +249,7 @@ include FRONTEND_PATH . 'components/header.php';
                                                     <div class="perm-checkboxes ml-4 mt-1" id="perm_master_data" style="display:none;">
                                                         <div class="d-flex flex-wrap" style="gap: 8px;">
                                                             <div class="custom-control custom-checkbox custom-control-inline">
-                                                                <input type="checkbox" class="custom-control-input perm-cb" id="perm_master_data_view" data-module="master_data" data-perm="view" checked disabled>
+                                                                <input type="checkbox" class="custom-control-input perm-cb" id="perm_master_data_view" data-module="master_data" data-perm="view">
                                                                 <label class="custom-control-label text-muted" for="perm_master_data_view" style="font-size:0.75rem;"><i class="fas fa-eye mr-1"></i>View</label>
                                                             </div>
                                                             <div class="custom-control custom-checkbox custom-control-inline">
@@ -298,7 +298,7 @@ include FRONTEND_PATH . 'components/header.php';
                                                     <div class="perm-checkboxes ml-4 mt-1" id="perm_inventory" style="display:none;">
                                                         <div class="d-flex flex-wrap" style="gap: 8px;">
                                                             <div class="custom-control custom-checkbox custom-control-inline">
-                                                                <input type="checkbox" class="custom-control-input perm-cb" id="perm_inventory_view" data-module="inventory" data-perm="view" checked disabled>
+                                                                <input type="checkbox" class="custom-control-input perm-cb" id="perm_inventory_view" data-module="inventory" data-perm="view">
                                                                 <label class="custom-control-label text-muted" for="perm_inventory_view" style="font-size:0.75rem;"><i class="fas fa-eye mr-1"></i>View</label>
                                                             </div>
                                                             <div class="custom-control custom-checkbox custom-control-inline">
@@ -324,7 +324,7 @@ include FRONTEND_PATH . 'components/header.php';
                                                     <div class="perm-checkboxes ml-4 mt-1" id="perm_location" style="display:none;">
                                                         <div class="d-flex flex-wrap" style="gap: 8px;">
                                                             <div class="custom-control custom-checkbox custom-control-inline">
-                                                                <input type="checkbox" class="custom-control-input perm-cb" id="perm_location_view" data-module="location" data-perm="view" checked disabled>
+                                                                <input type="checkbox" class="custom-control-input perm-cb" id="perm_location_view" data-module="location" data-perm="view">
                                                                 <label class="custom-control-label text-muted" for="perm_location_view" style="font-size:0.75rem;"><i class="fas fa-eye mr-1"></i>View</label>
                                                             </div>
                                                             <div class="custom-control custom-checkbox custom-control-inline">
@@ -354,7 +354,7 @@ include FRONTEND_PATH . 'components/header.php';
                                                     <div class="perm-checkboxes ml-4 mt-1" id="perm_reports" style="display:none;">
                                                         <div class="d-flex flex-wrap" style="gap: 8px;">
                                                             <div class="custom-control custom-checkbox custom-control-inline">
-                                                                <input type="checkbox" class="custom-control-input perm-cb" id="perm_reports_view" data-module="reports" data-perm="view" checked disabled>
+                                                                <input type="checkbox" class="custom-control-input perm-cb" id="perm_reports_view" data-module="reports" data-perm="view">
                                                                 <label class="custom-control-label text-muted" for="perm_reports_view" style="font-size:0.75rem;"><i class="fas fa-eye mr-1"></i>View</label>
                                                             </div>
                                                             <div class="custom-control custom-checkbox custom-control-inline">
@@ -380,7 +380,7 @@ include FRONTEND_PATH . 'components/header.php';
                                                     <div class="perm-checkboxes ml-4 mt-1" id="perm_analytics" style="display:none;">
                                                         <div class="d-flex flex-wrap" style="gap: 8px;">
                                                             <div class="custom-control custom-checkbox custom-control-inline">
-                                                                <input type="checkbox" class="custom-control-input perm-cb" id="perm_analytics_view" data-module="analytics" data-perm="view" checked disabled>
+                                                                <input type="checkbox" class="custom-control-input perm-cb" id="perm_analytics_view" data-module="analytics" data-perm="view">
                                                                 <label class="custom-control-label text-muted" for="perm_analytics_view" style="font-size:0.75rem;"><i class="fas fa-eye mr-1"></i>View</label>
                                                             </div>
                                                             <div class="custom-control custom-checkbox custom-control-inline">
@@ -445,133 +445,27 @@ include FRONTEND_PATH . 'components/header.php';
             var addCb = document.getElementById('perm_' + moduleKey + '_add');
             var deleteCb = document.getElementById('perm_' + moduleKey + '_delete');
 
-            if (viewCb) { viewCb.checked = viewVal; viewCb.disabled = true; } // View always checked and disabled when module is active
+            if (viewCb) { viewCb.checked = viewVal; viewCb.disabled = allDisabled; }
             if (addCb) { addCb.checked = addVal; addCb.disabled = allDisabled; }
             if (deleteCb) { deleteCb.checked = deleteVal; deleteCb.disabled = allDisabled; }
         }
 
         function applyRolePreset(val) {
-            // Inbound, Warehouse, Outbound are ALWAYS accessible (checked + disabled)
-            setModuleCheckbox('mod_inbound', true, true);
-            setModuleCheckbox('mod_warehouse', true, true);
-            setModuleCheckbox('mod_outbound', true, true);
+            // Reset all module checkboxes to unchecked and enabled (superadmin decides everything)
+            var allModuleIds = ['mod_dashboard', 'mod_inbound', 'mod_warehouse', 'mod_outbound',
+                'mod_master_data', 'mod_master_data_inbound', 'mod_master_data_storage', 'mod_master_data_outbound',
+                'mod_inventory', 'mod_location', 'mod_reports', 'mod_analytics'];
+            allModuleIds.forEach(function(id) {
+                setModuleCheckbox(id, false, false);
+            });
 
-            // Always show permission checkboxes for core modules
-            togglePermCheckboxes('inbound', true);
-            togglePermCheckboxes('warehouse', true);
-            togglePermCheckboxes('outbound', true);
+            // Reset all permission checkboxes to unchecked and enabled
+            permModules.forEach(function(mod) {
+                togglePermCheckboxes(mod, false);
+                setPermCheckboxes(mod, false, false, false, false);
+            });
 
-            var isHead = (val && val.indexOf('head_') === 0) || val === 'head_warehouse_admin';
-
-            if (isHead) {
-                // Dashboard Overview is strictly for Head role (checked + disabled)
-                setModuleCheckbox('mod_dashboard', true, true);
-                setModuleCheckbox('mod_reports', true, false);
-                setModuleCheckbox('mod_analytics', true, false);
-
-                setModuleCheckbox('mod_master_data', true, false);
-                setModuleCheckbox('mod_master_data_inbound', true, false);
-                setModuleCheckbox('mod_master_data_storage', true, false);
-                setModuleCheckbox('mod_master_data_outbound', true, false);
-                setModuleCheckbox('mod_inventory', true, false);
-                setModuleCheckbox('mod_location', true, false);
-                toggleMasterDataSub(true);
-
-                // Head roles get full permissions by default
-                permModules.forEach(function(mod) {
-                    togglePermCheckboxes(mod, true);
-                    setPermCheckboxes(mod, true, true, true, true); // All checked and disabled
-                });
-            } else if (val === 'superadmin') {
-                setModuleCheckbox('mod_dashboard', true, true);
-                setModuleCheckbox('mod_reports', true, true);
-                setModuleCheckbox('mod_analytics', true, true);
-
-                setModuleCheckbox('mod_master_data', true, true);
-                setModuleCheckbox('mod_master_data_inbound', true, true);
-                setModuleCheckbox('mod_master_data_storage', true, true);
-                setModuleCheckbox('mod_master_data_outbound', true, true);
-                setModuleCheckbox('mod_inventory', true, true);
-                setModuleCheckbox('mod_location', true, true);
-                toggleMasterDataSub(true);
-
-                // Superadmin: all permissions, all disabled
-                permModules.forEach(function(mod) {
-                    togglePermCheckboxes(mod, true);
-                    setPermCheckboxes(mod, true, true, true, true);
-                });
-            } else if (val === 'inbound_admin' || val === 'warehouse_admin' || val === 'outbound_admin') {
-                // Dashboard Overview is LOCKED & DISABLED (unchecked + disabled) for other administrator roles
-                setModuleCheckbox('mod_dashboard', false, true);
-                setModuleCheckbox('mod_reports', true, false);
-                setModuleCheckbox('mod_analytics', true, false);
-
-                setModuleCheckbox('mod_master_data', true, false);
-                setModuleCheckbox('mod_inventory', true, false);
-                setModuleCheckbox('mod_location', true, false);
-                if (val === 'inbound_admin') {
-                    setModuleCheckbox('mod_master_data_inbound', true, false);
-                    setModuleCheckbox('mod_master_data_storage', false, false);
-                    setModuleCheckbox('mod_master_data_outbound', false, false);
-                } else if (val === 'warehouse_admin') {
-                    setModuleCheckbox('mod_master_data_inbound', false, false);
-                    setModuleCheckbox('mod_master_data_storage', true, false);
-                    setModuleCheckbox('mod_master_data_outbound', false, false);
-                } else if (val === 'outbound_admin') {
-                    setModuleCheckbox('mod_master_data_inbound', false, false);
-                    setModuleCheckbox('mod_master_data_storage', false, false);
-                    setModuleCheckbox('mod_master_data_outbound', true, false);
-                }
-                toggleMasterDataSub(true);
-
-                // Admin roles: default to full permissions (add+delete), editable
-                togglePermCheckboxes('dashboard', false);
-                ['inbound', 'warehouse', 'outbound', 'master_data', 'inventory', 'location', 'reports', 'analytics'].forEach(function(mod) {
-                    togglePermCheckboxes(mod, true);
-                    setPermCheckboxes(mod, true, true, true, false);
-                });
-            } else if (val === 'outsourcing') {
-                // Outsourcing: default to View Only on core modules
-                setModuleCheckbox('mod_dashboard', false, true);
-                setModuleCheckbox('mod_reports', false, false);
-                setModuleCheckbox('mod_analytics', false, false);
-
-                setModuleCheckbox('mod_master_data', false, false);
-                setModuleCheckbox('mod_master_data_inbound', false, false);
-                setModuleCheckbox('mod_master_data_storage', false, false);
-                setModuleCheckbox('mod_master_data_outbound', false, false);
-                setModuleCheckbox('mod_inventory', false, false);
-                setModuleCheckbox('mod_location', false, false);
-                toggleMasterDataSub(false);
-
-                // Outsourcing: View Only by default on core modules, no add/delete
-                togglePermCheckboxes('dashboard', false);
-                ['inbound', 'warehouse', 'outbound'].forEach(function(mod) {
-                    togglePermCheckboxes(mod, true);
-                    setPermCheckboxes(mod, true, false, false, false);
-                });
-                ['master_data', 'inventory', 'location', 'reports', 'analytics'].forEach(function(mod) {
-                    togglePermCheckboxes(mod, false);
-                    setPermCheckboxes(mod, true, false, false, false);
-                });
-            } else {
-                setModuleCheckbox('mod_dashboard', false, true);
-                setModuleCheckbox('mod_reports', false, false);
-                setModuleCheckbox('mod_analytics', false, false);
-
-                setModuleCheckbox('mod_master_data', false, false);
-                setModuleCheckbox('mod_master_data_inbound', false, false);
-                setModuleCheckbox('mod_master_data_storage', false, false);
-                setModuleCheckbox('mod_master_data_outbound', false, false);
-                setModuleCheckbox('mod_inventory', false, false);
-                setModuleCheckbox('mod_location', false, false);
-                toggleMasterDataSub(false);
-
-                permModules.forEach(function(mod) {
-                    togglePermCheckboxes(mod, false);
-                    setPermCheckboxes(mod, true, false, false, false);
-                });
-            }
+            toggleMasterDataSub(false);
 
             // Sync optional module permission visibility
             syncOptionalModulePerms();
@@ -582,9 +476,9 @@ include FRONTEND_PATH . 'components/header.php';
          * show/hide permission checkboxes based on whether the module checkbox is checked.
          */
         function syncOptionalModulePerms() {
-            ['dashboard', 'master_data', 'inventory', 'location', 'reports', 'analytics'].forEach(function(mod) {
+            permModules.forEach(function(mod) {
                 var modCb = document.getElementById('mod_' + mod);
-                if (modCb && !modCb.disabled) {
+                if (modCb) {
                     togglePermCheckboxes(mod, modCb.checked);
                 }
             });
@@ -617,8 +511,8 @@ include FRONTEND_PATH . 'components/header.php';
 
                 var roleSelect = document.getElementById('modal_role');
                 roleSelect.disabled = false;
-                roleSelect.value = "inbound_admin";
-                applyRolePreset("inbound_admin");
+                roleSelect.value = "head_asset_warehouse_admin";
+                applyRolePreset("head_asset_warehouse_admin");
             });
 
             // Toggle Master Data sub-checkboxes visibility when parent is checked/unchecked
@@ -627,8 +521,8 @@ include FRONTEND_PATH . 'components/header.php';
                 togglePermCheckboxes('master_data', this.checked);
             });
 
-            // Toggle permission checkboxes for optional modules
-            ['dashboard', 'inventory', 'location', 'reports', 'analytics'].forEach(function(mod) {
+            // Toggle permission checkboxes for all modules when checked/unchecked
+            permModules.forEach(function(mod) {
                 var modCb = document.getElementById('mod_' + mod);
                 if (modCb) {
                     modCb.addEventListener('change', function() {
@@ -797,16 +691,18 @@ include FRONTEND_PATH . 'components/header.php';
 
             var mods = Array.isArray(u.allowed_modules) ? u.allowed_modules : [];
             var perms = (typeof u.permissions === 'object' && u.permissions !== null) ? u.permissions : {};
-            // Apply role preset first to set disabled/checked defaults
-            applyRolePreset(u.role || 'inbound_admin');
+            // Apply role preset first to reset all checkboxes
+            applyRolePreset(u.role || 'head_asset_warehouse_admin');
 
-            var isHead = (u.role && u.role.indexOf('head_') === 0) || u.role === 'head_warehouse_admin';
-
-            document.getElementById('mod_dashboard').checked = mods.includes('dashboard') || isHead;
-            document.getElementById('mod_inventory').checked = mods.length === 0 || mods.includes('inventory') || isHead;
-            document.getElementById('mod_location').checked = mods.length === 0 || mods.includes('location') || isHead;
-            document.getElementById('mod_reports').checked = mods.length === 0 || mods.includes('reports') || isHead;
-            document.getElementById('mod_analytics').checked = mods.length === 0 || mods.includes('analytics') || isHead;
+            // Restore saved module checkboxes from DB data
+            document.getElementById('mod_dashboard').checked = mods.includes('dashboard');
+            document.getElementById('mod_inbound').checked = mods.includes('inbound');
+            document.getElementById('mod_warehouse').checked = mods.includes('warehouse');
+            document.getElementById('mod_outbound').checked = mods.includes('outbound');
+            document.getElementById('mod_inventory').checked = mods.includes('inventory');
+            document.getElementById('mod_location').checked = mods.includes('location');
+            document.getElementById('mod_reports').checked = mods.includes('reports');
+            document.getElementById('mod_analytics').checked = mods.includes('analytics');
             document.getElementById('mod_master_data').checked = mods.includes('master_data');
             document.getElementById('mod_master_data_inbound').checked = mods.includes('master_data_inbound');
             document.getElementById('mod_master_data_storage').checked = mods.includes('master_data_storage');
@@ -818,20 +714,14 @@ include FRONTEND_PATH . 'components/header.php';
             permModules.forEach(function(mod) {
                 var modCb = document.getElementById('mod_' + mod);
                 var isModActive = modCb ? modCb.checked : false;
-                
-                if (isHead || u.role === 'superadmin') {
-                    // Head and superadmin: all permissions, all disabled (already set by applyRolePreset)
-                    return;
-                }
 
-                if (isModActive || ['inbound', 'warehouse', 'outbound'].includes(mod)) {
+                if (isModActive) {
                     togglePermCheckboxes(mod, true);
-                    
                     if (perms[mod]) {
-                        setPermCheckboxes(mod, true, !!perms[mod].add, !!perms[mod]['delete'], false);
+                        setPermCheckboxes(mod, !!perms[mod].view, !!perms[mod].add, !!perms[mod]['delete'], false);
                     } else {
-                        // Default: view only
-                        setPermCheckboxes(mod, true, false, false, false);
+                        // Default: all unchecked
+                        setPermCheckboxes(mod, false, false, false, false);
                     }
                 } else {
                     togglePermCheckboxes(mod, false);
@@ -861,11 +751,7 @@ include FRONTEND_PATH . 'components/header.php';
                 selectedModules.push(cb.value);
             });
 
-            if (role !== 'superadmin') {
-                if (!selectedModules.includes('inbound')) selectedModules.push('inbound');
-                if (!selectedModules.includes('warehouse')) selectedModules.push('warehouse');
-                if (!selectedModules.includes('outbound')) selectedModules.push('outbound');
-            }
+            // No forced modules - superadmin decides all access
 
             // Collect permissions from checkboxes
             var permissions = {};

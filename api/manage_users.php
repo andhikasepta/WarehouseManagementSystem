@@ -101,12 +101,7 @@ if ($method === 'POST') {
         $role = 'outsourcing'; // Default to outsourcing for unknown roles
     }
 
-    // Core WMS modules are accessible by all users for view & chart access
-    if ($role !== 'superadmin') {
-        if (!in_array('inbound', $modules)) $modules[] = 'inbound';
-        if (!in_array('warehouse', $modules)) $modules[] = 'warehouse';
-        if (!in_array('outbound', $modules)) $modules[] = 'outbound';
-    }
+    // No forced modules - superadmin decides all access via RBAC checkboxes
 
     if (empty($username) || empty($name)) {
         echo json_encode(['status' => 'error', 'message' => 'Username dan nama wajib diisi.']);
