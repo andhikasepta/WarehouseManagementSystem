@@ -3,8 +3,8 @@
 // Lightweight endpoint to fetch distinct filter options for the Inbound Master Data table.
 // Called once on page load, not on every DataTables redraw.
 header('Content-Type: application/json');
-require_once __DIR__ . '/../config/database.php';
-require_once __DIR__ . '/../auth.php';
+require_once __DIR__ . '/../backend/config/database.php';
+require_once __DIR__ . '/../backend/auth.php';
 
 if (!isLoggedIn()) {
     echo json_encode(['status' => 'error', 'message' => 'Unauthorized']);

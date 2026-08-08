@@ -21,7 +21,8 @@ AddDefaultCharset UTF-8
 
 # Block Direct Browsing of Internal Directories
 <IfModule mod_rewrite.c>
-    RewriteRule ^(config|database|scratch)/ - [F,L]
+    RewriteRule ^(backend|config|database|scratch)/ - [F,L]
+    RewriteRule ^frontend/(pages|components)/ - [F,L]
 </IfModule>
 
 # Security Headers (Requires mod_headers)

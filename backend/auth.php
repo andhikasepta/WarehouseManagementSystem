@@ -1,5 +1,7 @@
 <?php
-// auth.php - Session & Permission Helper
+// backend/auth.php - Session & Permission Helper
+
+require_once __DIR__ . '/paths.php';
 
 if (session_status() === PHP_SESSION_NONE) {
     ini_set('session.cookie_httponly', 1);
@@ -16,7 +18,7 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-require_once __DIR__ . '/config/database.php';
+require_once CONFIG_PATH . 'database.php';
 
 // Session inactivity timeout (30 minutes)
 $maxInactivity = 1800;
@@ -128,7 +130,7 @@ function renderAccessDeniedPage($requiredModule = '', $user = null, $customMessa
         $customMessage = 'Akun Anda tidak diberikan izin akses ke modul ini.';
     }
     $pageTitle = 'Akses Ditolak - Dashboard Warehouse';
-    include 'components/header.php';
+    include FRONTEND_PATH . 'components/header.php';
     ?>
     <body id="page-top" class="bg-light">
         <div id="wrapper">
@@ -137,7 +139,7 @@ function renderAccessDeniedPage($requiredModule = '', $user = null, $customMessa
                     <?php 
                     $activePage = '';
                     $hidePeriodSelector = true;
-                    include 'components/navbar.php'; 
+                    include FRONTEND_PATH . 'components/navbar.php'; 
                     ?>
 
                     <div class="container" style="padding-top: 130px; padding-bottom: 60px;">
@@ -195,7 +197,7 @@ function renderAccessDeniedPage($requiredModule = '', $user = null, $customMessa
                         </div>
                     </div>
                 </div>
-                <?php include 'components/footer.php'; ?>
+                <?php include FRONTEND_PATH . 'components/footer.php'; ?>
             </div>
         </div>
     </body>

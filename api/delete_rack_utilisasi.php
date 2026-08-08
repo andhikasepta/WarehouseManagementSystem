@@ -1,8 +1,8 @@
 <?php
 // api/delete_rack_utilisasi.php
 header('Content-Type: application/json');
-require_once __DIR__ . '/../config/database.php';
-require_once __DIR__ . '/../auth.php';
+require_once __DIR__ . '/../backend/config/database.php';
+require_once __DIR__ . '/../backend/auth.php';
 
 if (!isLoggedIn()) {
     http_response_code(401);

@@ -1,6 +1,10 @@
 <?php
 if (!function_exists('getSystemAppVersion')) {
-    @include_once __DIR__ . '/../config/database.php';
+    if (defined('BACKEND_PATH')) {
+        @include_once BACKEND_PATH . 'config/database.php';
+    } else {
+        @include_once __DIR__ . '/../../backend/config/database.php';
+    }
 }
 $currentAppVer = function_exists('getSystemAppVersion') ? getSystemAppVersion($pdo ?? null) : 'Beta-v1.0.0';
 ?>
@@ -62,18 +66,18 @@ $currentAppVer = function_exists('getSystemAppVersion') ? getSystemAppVersion($p
     </a>
 
     <!-- Bootstrap core JavaScript-->
-    <script src="vendor/jquery/jquery.min.js"></script>
-    <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="frontend/vendor/jquery/jquery.min.js"></script>
+    <script src="frontend/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
 
     <!-- Core plugin JavaScript-->
-    <script src="vendor/jquery-easing/jquery.easing.min.js"></script>
+    <script src="frontend/vendor/jquery-easing/jquery.easing.min.js"></script>
 
     <!-- Custom scripts for all pages-->
-    <script src="js/sb-admin-2.min.js"></script>
+    <script src="frontend/js/sb-admin-2.min.js"></script>
 
     <!-- Page level plugins for DataTables -->
-    <script src="vendor/datatables/jquery.dataTables.min.js"></script>
-    <script src="vendor/datatables/dataTables.bootstrap4.min.js"></script>
+    <script src="frontend/vendor/datatables/jquery.dataTables.min.js"></script>
+    <script src="frontend/vendor/datatables/dataTables.bootstrap4.min.js"></script>
 
     <!-- Global Modal Scroll Lock Handler -->
     <script>

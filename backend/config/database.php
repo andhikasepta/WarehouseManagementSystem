@@ -1,5 +1,7 @@
 <?php
-// config/database.php
+// backend/config/database.php
+
+require_once __DIR__ . '/../paths.php';
 
 // Auto-load .env file if available
 if (!function_exists('loadEnvFile')) {
@@ -22,7 +24,7 @@ if (!function_exists('loadEnvFile')) {
         }
     }
 }
-loadEnvFile(__DIR__ . '/../.env');
+loadEnvFile(ROOT_PATH . '.env');
 
 $driver   = getenv('DB_DRIVER')   ?: 'mysql'; // 'mysql' or 'pgsql'
 $host     = getenv('DB_HOST')     ?: '127.0.0.1';

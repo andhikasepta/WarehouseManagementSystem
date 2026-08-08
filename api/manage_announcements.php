@@ -1,8 +1,8 @@
 <?php
 // api/manage_announcements.php - Announcement CRUD Handler for Super Admin
 header('Content-Type: application/json');
-require_once __DIR__ . '/../config/database.php';
-require_once __DIR__ . '/../auth.php';
+require_once __DIR__ . '/../backend/config/database.php';
+require_once __DIR__ . '/../backend/auth.php';
 
 if (!isLoggedIn()) {
     echo json_encode(['success' => false, 'message' => 'Unauthorized']);

@@ -2,8 +2,8 @@
 // api/get_inbound_master.php
 // Server-side DataTables processing for Inbound Master Data
 header('Content-Type: application/json');
-require_once __DIR__ . '/../config/database.php';
-require_once __DIR__ . '/../auth.php';
+require_once __DIR__ . '/../backend/config/database.php';
+require_once __DIR__ . '/../backend/auth.php';
 
 if (!isLoggedIn()) {
     echo json_encode(['status' => 'error', 'message' => 'Unauthorized']);

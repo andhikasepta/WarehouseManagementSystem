@@ -1,8 +1,8 @@
 <?php
 // api/change_password.php - Secure User Password Change Endpoint
 header('Content-Type: application/json');
-require_once __DIR__ . '/../config/database.php';
-require_once __DIR__ . '/../auth.php';
+require_once __DIR__ . '/../backend/config/database.php';
+require_once __DIR__ . '/../backend/auth.php';
 
 if (!isLoggedIn()) {
     echo json_encode(['status' => 'error', 'message' => 'Anda harus login terlebih dahulu.']);

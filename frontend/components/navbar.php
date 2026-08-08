@@ -39,7 +39,11 @@ elseif ($navUser['role'] === 'warehouse_admin') $navRoleTitle = 'Storage Adminis
 
 // Fetch active announcement server-side for zero-latency instant navbar rendering
 if (!isset($pdo)) {
-    @include_once __DIR__ . '/../config/database.php';
+    if (defined('BACKEND_PATH')) {
+        @include_once BACKEND_PATH . 'config/database.php';
+    } else {
+        @include_once __DIR__ . '/../../backend/config/database.php';
+    }
 }
 
 $navAnnouncement = null;

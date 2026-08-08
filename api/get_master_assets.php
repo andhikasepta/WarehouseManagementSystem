@@ -5,8 +5,8 @@ ini_set('memory_limit', '256M');
 set_time_limit(60);
 ini_set('display_errors', 0);
 header('Content-Type: application/json');
-require_once __DIR__ . '/../config/database.php';
-require_once __DIR__ . '/../auth.php';
+require_once __DIR__ . '/../backend/config/database.php';
+require_once __DIR__ . '/../backend/auth.php';
 
 if (!isLoggedIn()) {
     echo json_encode(['data' => [], 'error' => 'Unauthorized']);
