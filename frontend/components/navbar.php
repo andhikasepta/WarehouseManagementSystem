@@ -1417,7 +1417,8 @@ if (isset($pdo)) {
             $hasDataSettingsSection = $hasMasterDataAccess || $hasInventoryAccess || $hasLocationAccess;
             $hasReportsAccess = !$isSuperAdminNav && in_array('reports', $allowedNavModules);
             $hasAnalyticsAccess = !$isSuperAdminNav && in_array('analytics', $allowedNavModules);
-            $hasReportSection = $hasReportsAccess || $hasAnalyticsAccess;
+            $hasKpiMonitoringAccess = !$isSuperAdminNav && in_array('kpi_monitoring', $allowedNavModules);
+            $hasReportSection = $hasReportsAccess || $hasAnalyticsAccess || $hasKpiMonitoringAccess;
             $hasUserMgmtAccess = $isSuperAdminNav;
             ?>
 
@@ -1526,6 +1527,14 @@ if (isset($pdo)) {
                         <a class="nav-link" href="analytics.php">
                             <i class="fas fa-chart-line fa-fw"></i>
                             <span>Analytics</span>
+                        </a>
+                    </li>
+                <?php endif; ?>
+                <?php if ($hasKpiMonitoringAccess): ?>
+                    <li class="nav-item <?php echo ($activePage == 'kpi_monitoring') ? 'active' : ''; ?>">
+                        <a class="nav-link" href="kpi_monitoring.php">
+                            <i class="fas fa-tachometer-alt fa-fw"></i>
+                            <span>KPI Monitoring</span>
                         </a>
                     </li>
                 <?php endif; ?>

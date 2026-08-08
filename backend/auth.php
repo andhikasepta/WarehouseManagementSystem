@@ -139,6 +139,7 @@ function checkModuleAccess($requiredModule = '') {
             'location.php' => 'location',
             'reports.php' => 'reports',
             'analytics.php' => 'analytics',
+            'kpi_monitoring.php' => 'kpi_monitoring',
         ];
         $moduleKey = $pageMap[$currentPage] ?? '';
     }
