@@ -36,6 +36,7 @@ elseif ($navUser['role'] === 'head_warehouse_admin') $navRoleTitle = 'Head-Wareh
 elseif ($navUser['role'] === 'inbound_admin') $navRoleTitle = 'Inbound Administrator';
 elseif ($navUser['role'] === 'outbound_admin') $navRoleTitle = 'Outbound Administrator';
 elseif ($navUser['role'] === 'warehouse_admin') $navRoleTitle = 'Storage Administrator';
+elseif ($navUser['role'] === 'outsourcing') $navRoleTitle = 'Outsourcing';
 
 // Fetch active announcement server-side for zero-latency instant navbar rendering
 if (!isset($pdo)) {

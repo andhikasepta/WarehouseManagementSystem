@@ -88,6 +88,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $decodedModules = json_decode($user['allowed_modules'], true);
                 $_SESSION['allowed_modules'] = is_array($decodedModules) ? $decodedModules : [];
 
+                $decodedPermissions = json_decode($user['permissions'] ?? '{}', true);
+                $_SESSION['permissions'] = is_array($decodedPermissions) ? $decodedPermissions : [];
+
                 // Determine which module is being requested from redirect
                 $requestedModule = '';
                 if (strpos($redirect, 'inbound') !== false) {
@@ -132,6 +135,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         header("Location: warehouse.php");
                     } elseif ($user['role'] === 'outbound_admin') {
                         header("Location: outbound.php");
+                    } elseif ($user['role'] === 'outsourcing') {
+                        header("Location: wms_select.php");
                     } else {
                         header("Location: dashboard.php");
                     }

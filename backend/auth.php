@@ -54,8 +54,51 @@ function getCurrentUser() {
         'username' => $_SESSION['username'] ?? '',
         'name' => $_SESSION['name'] ?? '',
         'role' => $_SESSION['role'] ?? 'admin',
-        'allowed_modules' => $_SESSION['allowed_modules'] ?? []
+        'allowed_modules' => $_SESSION['allowed_modules'] ?? [],
+        'permissions' => $_SESSION['permissions'] ?? []
     ];
+}
+
+/**
+ * Check if the current user has a specific permission on a module.
+ * @param string $module  Module key (e.g. 'inbound', 'warehouse', 'master_data')
+ * @param string $action  Permission action: 'view', 'add', or 'delete'
+ * @return bool
+ */
+function hasPermission($module, $action = 'view') {
+    if (!isLoggedIn()) return false;
+    $user = getCurrentUser();
+
+    // Superadmin has all permissions
+    if ($user['role'] === 'superadmin') return true;
+
+    // Head roles have full permissions on all their accessible modules
+    $isHead = (strpos($user['role'], 'head_') === 0) || ($user['role'] === 'head_warehouse_admin');
+    if ($isHead) return true;
+
+    $permissions = $user['permissions'];
+    if (!is_array($permissions)) return $action === 'view'; // Default: view only
+
+    if (isset($permissions[$module]) && is_array($permissions[$module])) {
+        return !empty($permissions[$module][$action]);
+    }
+
+    // If module is in allowed_modules but no explicit permissions entry, default to view only
+    $allowedModules = $user['allowed_modules'];
+    if (is_array($allowedModules) && in_array($module, $allowedModules)) {
+        return $action === 'view';
+    }
+
+    return false;
+}
+
+/**
+ * Get the full permissions array for the current user.
+ * @return array
+ */
+function getUserPermissions() {
+    if (!isLoggedIn()) return [];
+    return $_SESSION['permissions'] ?? [];
 }
 
 function checkModuleAccess($requiredModule = '') {
@@ -86,6 +129,7 @@ function checkModuleAccess($requiredModule = '') {
         return true;
     }
 
+    $isOutsourcing = ($user['role'] === 'outsourcing');
     $isHeadRole = (strpos($user['role'], 'head_') === 0) || ($user['role'] === 'head_warehouse_admin');
     $allowedModules = is_array($user['allowed_modules']) ? $user['allowed_modules'] : [];
 
@@ -175,6 +219,8 @@ function renderAccessDeniedPage($requiredModule = '', $user = null, $customMessa
                                                      $targetUrl = 'warehouse.php';
                                                  } elseif ($role === 'outbound_admin') {
                                                      $targetUrl = 'outbound.php';
+                                                 } elseif ($role === 'outsourcing') {
+                                                     $targetUrl = 'wms_select.php';
                                                  } elseif (!empty($modules)) {
                                                      if (in_array('warehouse', $modules)) {
                                                          $targetUrl = 'warehouse.php';
