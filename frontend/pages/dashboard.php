@@ -5,7 +5,7 @@ require_once __DIR__ . '/../../backend/auth.php';
 checkModuleAccess('dashboard');
 $currentUser = getCurrentUser();
 
-$pageTitle = 'Dashboard Overview - Head Warehouse Management';
+$pageTitle = 'WMS - PT. Aplikanusa Lintasarta';
 include FRONTEND_PATH . 'components/header.php';
 ?>
 <style>

@@ -1,8 +1,8 @@
 <?php
 // Shared Header Component
-// Accepts $pageTitle (string, default: 'Dashboard Warehouse')
+// Accepts $pageTitle (string, default: 'WMS - PT. Aplikanusa Lintasarta')
 if (!isset($pageTitle)) {
-    $pageTitle = 'Dashboard Warehouse';
+    $pageTitle = 'WMS - PT. Aplikanusa Lintasarta';
 }
 ?>
 <!DOCTYPE html>

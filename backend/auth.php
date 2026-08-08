@@ -167,7 +167,7 @@ function renderAccessDeniedPage($requiredModule = '', $user = null, $customMessa
     if (empty($customMessage)) {
         $customMessage = 'Akun Anda tidak diberikan izin akses ke modul ini.';
     }
-    $pageTitle = 'Akses Ditolak - Dashboard Warehouse';
+    $pageTitle = 'WMS - PT. Aplikanusa Lintasarta';
     include FRONTEND_PATH . 'components/header.php';
     ?>
     <body id="page-top" class="bg-light">

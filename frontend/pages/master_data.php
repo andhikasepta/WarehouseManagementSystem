@@ -26,7 +26,7 @@ if ($canAccessInboundMaster) {
     $defaultMasterSegment = 'outbound';
 }
 
-$pageTitle = 'Master Data - Dashboard Warehouse';
+$pageTitle = 'WMS - PT. Aplikanusa Lintasarta';
 include FRONTEND_PATH . 'components/header.php';
 ?>
     <script>

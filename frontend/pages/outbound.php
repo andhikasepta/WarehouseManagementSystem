@@ -2,7 +2,7 @@
 require_once __DIR__ . '/../../backend/auth.php';
 checkModuleAccess('outbound');
 
-$pageTitle = 'Outbound - Dashboard Warehouse';
+$pageTitle = 'WMS - PT. Aplikanusa Lintasarta';
 include FRONTEND_PATH . 'components/header.php';
 ?>
 

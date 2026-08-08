@@ -10,7 +10,7 @@ if ($user['role'] !== 'superadmin') {
     exit;
 }
 
-$pageTitle = 'Pengumuman Maintenance - Portal System';
+$pageTitle = 'WMS - PT. Aplikanusa Lintasarta';
 include FRONTEND_PATH . 'components/header.php';
 ?>
 

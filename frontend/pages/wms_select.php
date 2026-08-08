@@ -18,7 +18,7 @@ if (isLoggedIn()) {
     }
 }
 
-$pageTitle = 'Pilih Dashboard WMS - Lintasarta';
+$pageTitle = 'WMS - PT. Aplikanusa Lintasarta';
 include FRONTEND_PATH . 'components/header.php';
 ?>
     <style>

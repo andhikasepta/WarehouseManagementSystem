@@ -163,7 +163,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta name="description" content="Login - Storage Management System Lintasarta">
     <meta name="author" content="Lintasarta">
 
-    <title>Login - WMS Lintasarta</title>
+    <title>WMS - PT. Aplikanusa Lintasarta</title>
 
     <link rel="icon" href="frontend/img/LogoLintas.png">
     <link href="frontend/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">

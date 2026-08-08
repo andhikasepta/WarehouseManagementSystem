@@ -10,7 +10,7 @@ if ($user['role'] !== 'superadmin') {
     exit;
 }
 
-$pageTitle = 'User Management - Dashboard Warehouse';
+$pageTitle = 'WMS - PT. Aplikanusa Lintasarta';
 include FRONTEND_PATH . 'components/header.php';
 ?>
 
@@ -234,6 +234,32 @@ include FRONTEND_PATH . 'components/header.php';
                                                     </div>
                                                 </div>
 
+                                                <!-- KPI Monitoring -->
+                                                <div class="module-perm-row mb-2" data-module="kpi_monitoring">
+                                                    <div class="custom-control custom-checkbox d-inline-block">
+                                                        <input type="checkbox" class="custom-control-input module-checkbox" id="mod_kpi_monitoring" value="kpi_monitoring">
+                                                        <label class="custom-control-label font-weight-bold text-gray-800" for="mod_kpi_monitoring">
+                                                            <i class="fas fa-tachometer-alt text-primary mr-1"></i> KPI Monitoring
+                                                        </label>
+                                                    </div>
+                                                    <div class="perm-checkboxes ml-4 mt-1" id="perm_kpi_monitoring" style="display:none;">
+                                                        <div class="d-flex flex-wrap" style="gap: 8px;">
+                                                            <div class="custom-control custom-checkbox custom-control-inline">
+                                                                <input type="checkbox" class="custom-control-input perm-cb" id="perm_kpi_monitoring_view" data-module="kpi_monitoring" data-perm="view">
+                                                                <label class="custom-control-label text-muted" for="perm_kpi_monitoring_view" style="font-size:0.75rem;"><i class="fas fa-eye mr-1"></i>View</label>
+                                                            </div>
+                                                            <div class="custom-control custom-checkbox custom-control-inline">
+                                                                <input type="checkbox" class="custom-control-input perm-cb" id="perm_kpi_monitoring_add" data-module="kpi_monitoring" data-perm="add">
+                                                                <label class="custom-control-label text-muted" for="perm_kpi_monitoring_add" style="font-size:0.75rem;"><i class="fas fa-plus mr-1"></i>Add/Edit</label>
+                                                            </div>
+                                                            <div class="custom-control custom-checkbox custom-control-inline">
+                                                                <input type="checkbox" class="custom-control-input perm-cb" id="perm_kpi_monitoring_delete" data-module="kpi_monitoring" data-perm="delete">
+                                                                <label class="custom-control-label text-muted" for="perm_kpi_monitoring_delete" style="font-size:0.75rem;"><i class="fas fa-trash mr-1"></i>Delete</label>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
                                                 <hr class="my-2">
                                                 <!-- Data Settings Section -->
                                                 <p class="small text-muted mb-2 font-weight-bold" style="line-height:1.3;"><i class="fas fa-cog mr-1"></i>Data Settings:</p>
@@ -390,32 +416,6 @@ include FRONTEND_PATH . 'components/header.php';
                                                             <div class="custom-control custom-checkbox custom-control-inline">
                                                                 <input type="checkbox" class="custom-control-input perm-cb" id="perm_analytics_delete" data-module="analytics" data-perm="delete">
                                                                 <label class="custom-control-label text-muted" for="perm_analytics_delete" style="font-size:0.75rem;"><i class="fas fa-trash mr-1"></i>Delete</label>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                <!-- KPI Monitoring -->
-                                                <div class="module-perm-row mb-2" data-module="kpi_monitoring">
-                                                    <div class="custom-control custom-checkbox d-inline-block">
-                                                        <input type="checkbox" class="custom-control-input module-checkbox" id="mod_kpi_monitoring" value="kpi_monitoring">
-                                                        <label class="custom-control-label font-weight-bold text-gray-800" for="mod_kpi_monitoring">
-                                                            <i class="fas fa-tachometer-alt text-primary mr-1"></i> KPI Monitoring
-                                                        </label>
-                                                    </div>
-                                                    <div class="perm-checkboxes ml-4 mt-1" id="perm_kpi_monitoring" style="display:none;">
-                                                        <div class="d-flex flex-wrap" style="gap: 8px;">
-                                                            <div class="custom-control custom-checkbox custom-control-inline">
-                                                                <input type="checkbox" class="custom-control-input perm-cb" id="perm_kpi_monitoring_view" data-module="kpi_monitoring" data-perm="view">
-                                                                <label class="custom-control-label text-muted" for="perm_kpi_monitoring_view" style="font-size:0.75rem;"><i class="fas fa-eye mr-1"></i>View</label>
-                                                            </div>
-                                                            <div class="custom-control custom-checkbox custom-control-inline">
-                                                                <input type="checkbox" class="custom-control-input perm-cb" id="perm_kpi_monitoring_add" data-module="kpi_monitoring" data-perm="add">
-                                                                <label class="custom-control-label text-muted" for="perm_kpi_monitoring_add" style="font-size:0.75rem;"><i class="fas fa-plus mr-1"></i>Add/Edit</label>
-                                                            </div>
-                                                            <div class="custom-control custom-checkbox custom-control-inline">
-                                                                <input type="checkbox" class="custom-control-input perm-cb" id="perm_kpi_monitoring_delete" data-module="kpi_monitoring" data-perm="delete">
-                                                                <label class="custom-control-label text-muted" for="perm_kpi_monitoring_delete" style="font-size:0.75rem;"><i class="fas fa-trash mr-1"></i>Delete</label>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -643,6 +643,9 @@ include FRONTEND_PATH . 'components/header.php';
                     if (mods.includes('outbound')) {
                         modulesBadges += '<span class="badge badge-warning text-white mr-1 mb-1"><i class="fas fa-truck-loading mr-1"></i>OUTBOUND ' + buildPermBadges(perms, 'outbound', 'Outbound') + '</span>';
                     }
+                    if (mods.includes('kpi_monitoring')) {
+                        modulesBadges += '<span class="badge badge-info mr-1 mb-1"><i class="fas fa-tachometer-alt mr-1"></i>KPI MONITORING ' + buildPermBadges(perms, 'kpi_monitoring', 'KPI Monitoring') + '</span>';
+                    }
                     if (mods.includes('master_data')) {
                         var mdSubs = [];
                         if (mods.includes('master_data_inbound')) mdSubs.push('Inbound');
@@ -662,9 +665,6 @@ include FRONTEND_PATH . 'components/header.php';
                     }
                     if (mods.includes('analytics')) {
                         modulesBadges += '<span class="badge badge-info mr-1 mb-1"><i class="fas fa-chart-line mr-1"></i>ANALYTICS ' + buildPermBadges(perms, 'analytics', 'Analytics') + '</span>';
-                    }
-                    if (mods.includes('kpi_monitoring')) {
-                        modulesBadges += '<span class="badge badge-info mr-1 mb-1"><i class="fas fa-tachometer-alt mr-1"></i>KPI MONITORING ' + buildPermBadges(perms, 'kpi_monitoring', 'KPI Monitoring') + '</span>';
                     }
                     if (!modulesBadges) {
                         modulesBadges = '<span class="text-muted font-italic" style="font-size:0.75rem;">Tidak ada modul</span>';

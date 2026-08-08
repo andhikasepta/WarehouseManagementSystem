@@ -12,7 +12,7 @@ require_once __DIR__ . '/../../backend/config/database.php';
     <meta name="description" content="Portal System Lintasarta - AWan & WMS">
     <meta name="author" content="Lintasarta">
 
-    <title>Portal System - Lintasarta</title>
+    <title>WMS - PT. Aplikanusa Lintasarta</title>
 
     <link rel="icon" href="frontend/img/LogoLintas.png">
     <link href="frontend/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">

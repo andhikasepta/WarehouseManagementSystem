@@ -1411,14 +1411,15 @@ if (isset($pdo)) {
             $hasInboundAccess = !$isSuperAdminNav && in_array('inbound', $allowedNavModules);
             $hasWarehouseAccess = !$isSuperAdminNav && in_array('warehouse', $allowedNavModules);
             $hasOutboundAccess = !$isSuperAdminNav && in_array('outbound', $allowedNavModules);
+            $hasKpiMonitoringAccess = !$isSuperAdminNav && in_array('kpi_monitoring', $allowedNavModules);
+            $hasMainMenuSection = $hasInboundAccess || $hasWarehouseAccess || $hasOutboundAccess || $hasKpiMonitoringAccess;
             $hasMasterDataAccess = !$isSuperAdminNav && in_array('master_data', $allowedNavModules);
             $hasInventoryAccess = !$isSuperAdminNav && in_array('inventory', $allowedNavModules);
             $hasLocationAccess = !$isSuperAdminNav && in_array('location', $allowedNavModules);
             $hasDataSettingsSection = $hasMasterDataAccess || $hasInventoryAccess || $hasLocationAccess;
             $hasReportsAccess = !$isSuperAdminNav && in_array('reports', $allowedNavModules);
             $hasAnalyticsAccess = !$isSuperAdminNav && in_array('analytics', $allowedNavModules);
-            $hasKpiMonitoringAccess = !$isSuperAdminNav && in_array('kpi_monitoring', $allowedNavModules);
-            $hasReportSection = $hasReportsAccess || $hasAnalyticsAccess || $hasKpiMonitoringAccess;
+            $hasReportSection = $hasReportsAccess || $hasAnalyticsAccess;
             $hasUserMgmtAccess = $isSuperAdminNav;
             ?>
 
@@ -1434,7 +1435,7 @@ if (isset($pdo)) {
             <?php endif; ?>
 
             <!-- Main Menu Section -->
-            <?php if ($hasInboundAccess || $hasWarehouseAccess || $hasOutboundAccess): ?>
+            <?php if ($hasMainMenuSection): ?>
                 <div class="sidebar-heading mt-2">Main Menu</div>
                 <?php if ($hasInboundAccess): ?>
                     <li class="nav-item <?php echo ($activePage == 'inbound') ? 'active' : ''; ?>">
@@ -1477,6 +1478,14 @@ if (isset($pdo)) {
                         <a class="nav-link" href="outbound.php">
                             <i class="fas fa-truck-loading fa-fw"></i>
                             <span>Outbound</span>
+                        </a>
+                    </li>
+                <?php endif; ?>
+                <?php if ($hasKpiMonitoringAccess): ?>
+                    <li class="nav-item <?php echo ($activePage == 'kpi_monitoring') ? 'active' : ''; ?>">
+                        <a class="nav-link" href="kpi_monitoring.php">
+                            <i class="fas fa-tachometer-alt fa-fw"></i>
+                            <span>KPI Monitoring</span>
                         </a>
                     </li>
                 <?php endif; ?>
@@ -1527,14 +1536,6 @@ if (isset($pdo)) {
                         <a class="nav-link" href="analytics.php">
                             <i class="fas fa-chart-line fa-fw"></i>
                             <span>Analytics</span>
-                        </a>
-                    </li>
-                <?php endif; ?>
-                <?php if ($hasKpiMonitoringAccess): ?>
-                    <li class="nav-item <?php echo ($activePage == 'kpi_monitoring') ? 'active' : ''; ?>">
-                        <a class="nav-link" href="kpi_monitoring.php">
-                            <i class="fas fa-tachometer-alt fa-fw"></i>
-                            <span>KPI Monitoring</span>
                         </a>
                     </li>
                 <?php endif; ?>

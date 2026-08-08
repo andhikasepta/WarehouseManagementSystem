@@ -2,7 +2,7 @@
 require_once __DIR__ . '/../../backend/auth.php';
 checkModuleAccess('kpi_monitoring');
 
-$pageTitle = 'KPI Monitoring - Dashboard Warehouse';
+$pageTitle = 'WMS - PT. Aplikanusa Lintasarta';
 include FRONTEND_PATH . 'components/header.php';
 ?>
 
