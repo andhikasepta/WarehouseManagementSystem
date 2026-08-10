@@ -61,7 +61,7 @@ elseif ($user['role'] === 'outsourcing') $userRoleDisplay = 'Outsourcing';
         .repo-nav {
             background: linear-gradient(135deg, #0b192c 0%, #112236 50%, #1e3e62 100%);
             color: #ffffff;
-            padding: 12px 0;
+            padding: 8px 0;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             position: sticky;
             top: 0;
@@ -81,26 +81,32 @@ elseif ($user['role'] === 'outsourcing') $userRoleDisplay = 'Outsourcing';
         .repo-nav__brand {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 14px;
             text-decoration: none !important;
             color: #ffffff !important;
         }
 
         .repo-nav__logo-img {
-            max-height: 32px;
+            max-height: 46px;
+            height: 46px;
             width: auto;
             filter: brightness(0) invert(1);
+            transition: transform 0.2s ease;
+        }
+
+        .repo-nav__logo-img:hover {
+            transform: scale(1.03);
         }
 
         .repo-nav__separator {
-            width: 1px;
-            height: 20px;
-            background: rgba(255, 255, 255, 0.25);
+            width: 1.5px;
+            height: 38px;
+            background: rgba(255, 255, 255, 0.35);
         }
 
         .repo-nav__subtitle {
-            font-size: 0.92rem;
-            font-weight: 600;
+            font-size: 1rem;
+            font-weight: 700;
             color: #93c5fd;
             letter-spacing: 0.3px;
         }
