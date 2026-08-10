@@ -218,6 +218,19 @@ require_once __DIR__ . '/../../backend/config/database.php';
                     </div>
                 </a>
             </div>
+
+            <!-- Card 3: Warehouse Repository -->
+            <div class="col-md-4 col-lg-4 mb-4 text-center px-md-2 px-lg-2">
+                <a href="repository.php" class="portal-card-link h-100 d-flex flex-column">
+                    <img src="frontend/img/Repository.png" alt="Warehouse Repository" class="portal-card-img" style="background: rgba(255, 255, 255, 0.05); min-height: 140px;">
+                    <div class="portal-card-body flex-grow-1 d-flex flex-column justify-content-between">
+                        <div>
+                            <div class="portal-card-title">Sentralisasi Dokumen AWM</div>
+                            <p class="portal-card-desc">Repository panduan &amp; work instruction (WI).</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
         </div>
 
         <!-- Footer -->

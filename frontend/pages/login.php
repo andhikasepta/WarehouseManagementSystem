@@ -22,6 +22,8 @@ if (strpos($redirect, 'inbound') !== false) {
     $moduleSubtitle = 'Master Data';
 } elseif (strpos($redirect, 'user_management') !== false) {
     $moduleSubtitle = 'User Management';
+} elseif (strpos($redirect, 'repository') !== false) {
+    $moduleSubtitle = 'Warehouse Management Repository';
 }
 
 // Handle Logout
@@ -42,6 +44,10 @@ if (isset($_GET['action']) && $_GET['action'] === 'logout') {
 // If already logged in and no logout request
 if (isset($_SESSION['user_id']) && !empty($_SESSION['user_id']) && !isset($_GET['action'])) {
     if (($_SESSION['role'] ?? '') === 'superadmin') {
+        if ($redirect === 'repository.php' || $redirect === 'announcements.php') {
+            header("Location: " . $redirect);
+            exit;
+        }
         header("Location: user_management.php");
         exit;
     }
@@ -123,7 +129,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
 
                 if ($user['role'] === 'superadmin') {
-                    header("Location: user_management.php");
+                    if ($redirect === 'repository.php' || $redirect === 'announcements.php') {
+                        header("Location: " . $redirect);
+                    } else {
+                        header("Location: user_management.php");
+                    }
                 } elseif ($redirect === 'wms_select.php' || empty($redirect)) {
                     $allowed = is_array($decodedModules) ? $decodedModules : [];
                     if (in_array('dashboard', $allowed)) {
@@ -283,9 +293,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </form>
 
         <div class="mt-3">
-            <a href="wms_select.php" class="text-muted small">
-                <i class="fas fa-chevron-left mr-1"></i> Kembali ke Modul WMS
-            </a>
+            <?php if (strpos($redirect, 'repository') !== false): ?>
+                <a href="index.php" class="text-muted small">
+                    <i class="fas fa-chevron-left mr-1"></i> Kembali ke Landing Page Portal
+                </a>
+            <?php else: ?>
+                <a href="wms_select.php" class="text-muted small">
+                    <i class="fas fa-chevron-left mr-1"></i> Kembali ke Modul WMS
+                </a>
+            <?php endif; ?>
         </div>
 
         <div class="footer-text">

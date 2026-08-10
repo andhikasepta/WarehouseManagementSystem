@@ -1556,6 +1556,12 @@ if (isset($pdo)) {
                         <span>Pengumuman</span>
                     </a>
                 </li>
+                <li class="nav-item <?php echo ($activePage == 'repository_management') ? 'active' : ''; ?>">
+                    <a class="nav-link" href="repository_management.php">
+                        <i class="fas fa-folder-open fa-fw"></i>
+                        <span>Repository</span>
+                    </a>
+                </li>
             <?php endif; ?>
         </ul>
 
@@ -2419,3 +2425,143 @@ if (preg_match('/(?:versi|version)?\s*((?:beta|alpha|rc)[-_ ]?v?\d+(?:\.\d+)*(?:
         }
     });
 </script>
+
+<?php if ($isSuperAdminNav): ?>
+<!-- Modal Upload WI from Sidebar -->
+<div class="modal fade" id="uploadDocModalSidebar" tabindex="-1" role="dialog" aria-labelledby="uploadDocModalSidebarLabel" aria-hidden="true" style="z-index: 1060;">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 14px; overflow: hidden;">
+            <div class="modal-header border-0 text-white py-3 px-4" style="background: linear-gradient(135deg, #0b192c 0%, #1e3e62 100%);">
+                <h5 class="modal-title font-weight-bold text-white my-auto" id="uploadDocModalSidebarLabel">
+                    <i class="fas fa-file-upload mr-2"></i>Upload File PDF (WI)
+                </h5>
+                <button type="button" class="close text-white opacity-75 my-auto" data-dismiss="modal" aria-label="Close" style="outline: none;">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form id="uploadDocSidebarForm" enctype="multipart/form-data">
+                <div class="modal-body bg-white p-4">
+                    <input type="hidden" name="action" value="upload">
+                    <div class="form-group mb-3">
+                        <label class="small font-weight-bold text-gray-700">Nama Dokumen / File <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="title" id="sidebarDocTitle" placeholder="Contoh: WI - Penerimaan Barang & Staging Area.pdf" required>
+                    </div>
+                    <div class="form-group mb-2">
+                        <label class="small font-weight-bold text-gray-700">File PDF <span class="text-danger">*</span></label>
+                        <div class="p-3 text-center rounded border" style="background: #f8fafc; border: 2px dashed #cbd5e1 !important; cursor: pointer;" onclick="document.getElementById('sidebarPdfInput').click();">
+                            <i class="fas fa-file-pdf fa-2x text-danger mb-1"></i>
+                            <p class="mb-0 small font-weight-bold text-gray-800" id="sidebarFileLabel">Klik untuk memilih file PDF (Maks. 25MB)</p>
+                            <input type="file" id="sidebarPdfInput" name="pdf_file" accept=".pdf,application/pdf" style="display: none;" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light px-4 py-3 border-top-0 d-flex justify-content-between">
+                    <button type="button" class="btn btn-secondary font-weight-bold px-3" data-dismiss="modal">
+                        <i class="fas fa-times mr-1"></i>Batal
+                    </button>
+                    <button type="submit" class="btn btn-primary font-weight-bold px-4" id="btnSubmitSidebarUpload" style="background: #1e3e62; border-color: #1e3e62;">
+                        <i class="fas fa-upload mr-1"></i>Simpan &amp; Upload
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var sidebarPdfInput = document.getElementById('sidebarPdfInput');
+    var sidebarFileLabel = document.getElementById('sidebarFileLabel');
+    var sidebarDocTitle = document.getElementById('sidebarDocTitle');
+
+    if (sidebarPdfInput) {
+        sidebarPdfInput.addEventListener('change', function () {
+            if (this.files && this.files.length > 0) {
+                var f = this.files[0];
+                if (!f.name.toLowerCase().endsWith('.pdf')) {
+                    if (typeof Swal !== 'undefined') Swal.fire('Warning', 'Hanya file PDF (.pdf) yang diperbolehkan.', 'warning');
+                    else alert('Hanya file PDF (.pdf) yang diperbolehkan.');
+                    this.value = '';
+                    return;
+                }
+                if (f.size > 25 * 1024 * 1024) {
+                    if (typeof Swal !== 'undefined') Swal.fire('Warning', 'Ukuran file PDF melebihi batas 25MB.', 'warning');
+                    else alert('Ukuran file PDF melebihi batas 25MB.');
+                    this.value = '';
+                    return;
+                }
+                if (sidebarFileLabel) {
+                    var sizeMB = (f.size / (1024 * 1024)).toFixed(2) + ' MB';
+                    sidebarFileLabel.innerHTML = '<span class="text-success font-weight-bold"><i class="fas fa-check-circle mr-1"></i>' + f.name + ' (' + sizeMB + ')</span>';
+                }
+                if (sidebarDocTitle && !sidebarDocTitle.value.trim()) {
+                    sidebarDocTitle.value = f.name.replace(/\.pdf$/i, '');
+                }
+            }
+        });
+    }
+
+    var uploadSidebarForm = document.getElementById('uploadDocSidebarForm');
+    if (uploadSidebarForm) {
+        uploadSidebarForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+            var btn = document.getElementById('btnSubmitSidebarUpload');
+            var formData = new FormData(this);
+
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Mengunggah...';
+            }
+
+            fetch('api/manage_repository.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(function (res) { return res.json(); })
+            .then(function (data) {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-upload mr-1"></i>Simpan &amp; Upload';
+                }
+                if (data.success) {
+                    if (window.jQuery) {
+                        $('#uploadDocModalSidebar').modal('hide');
+                    }
+                    uploadSidebarForm.reset();
+                    if (sidebarFileLabel) {
+                        sidebarFileLabel.textContent = 'Klik untuk memilih file PDF (Maks. 25MB)';
+                    }
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({
+                            title: 'Berhasil!',
+                            text: data.message || 'File PDF berhasil diunggah ke repository.',
+                            icon: 'success',
+                            confirmButtonColor: '#1e3e62'
+                        });
+                    } else {
+                        alert(data.message || 'File PDF berhasil diunggah ke repository.');
+                    }
+                } else {
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire('Gagal', data.message || 'Terjadi kesalahan saat mengunggah file.', 'error');
+                    } else {
+                        alert(data.message || 'Terjadi kesalahan saat mengunggah file.');
+                    }
+                }
+            })
+            .catch(function () {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-upload mr-1"></i>Simpan &amp; Upload';
+                }
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire('Error', 'Terjadi kesalahan komunikasi dengan server.', 'error');
+                } else {
+                    alert('Terjadi kesalahan komunikasi dengan server.');
+                }
+            });
+        });
+    }
+});
+</script>
+<?php endif; ?>

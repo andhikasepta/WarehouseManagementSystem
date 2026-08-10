@@ -115,8 +115,12 @@ function checkModuleAccess($requiredModule = '') {
         return true;
     }
 
+    if ($requiredModule === 'repository' || $currentPage === 'repository.php') {
+        return true;
+    }
+
     if ($user['role'] === 'superadmin') {
-        if ($currentPage !== 'user_management.php' && $currentPage !== 'announcements.php') {
+        if ($currentPage !== 'user_management.php' && $currentPage !== 'announcements.php' && $currentPage !== 'repository.php' && $currentPage !== 'repository_management.php') {
             header("Location: user_management.php");
             exit;
         }

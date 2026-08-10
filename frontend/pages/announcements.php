@@ -30,7 +30,6 @@ include FRONTEND_PATH . 'components/header.php';
                     <div class="d-sm-flex align-items-center justify-content-between mb-4">
                         <div>
                             <h1 class="h3 mb-1 text-gray-800 font-weight-bold">Pengumuman &amp; Maintenance</h1>
-                            <p class="text-muted small mb-0">Kelola notifikasi pemeliharaan sistem dan pesan Pengumuman untuk seluruh pengguna portal.</p>
                         </div>
                         <button class="btn btn-primary shadow-sm mt-3 mt-sm-0 font-weight-bold" id="btn-add-announcement" data-toggle="modal" data-target="#announcementModal">
                             <i class="fas fa-bullhorn fa-sm text-white-50 mr-1"></i> Tambah Pengumuman Baru
