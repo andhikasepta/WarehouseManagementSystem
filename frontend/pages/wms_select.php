@@ -136,7 +136,7 @@ include FRONTEND_PATH . 'components/header.php';
                                 <div class="card-body p-4 text-center d-flex flex-column">
                                     <h4 class="font-weight-bold text-gray-800 mb-2">OUTBOUND</h4>
                                     <p class="text-muted small flex-grow-1">
-                                        Monitoring pemenuhan Material Request (MR) — dari approval, packing (PCK), penerbitan Delivery Note (DN), penunjukan Mover/Forwarder, hingga perangkat tiba di site.
+                                        Monitoring pemenuhan Material Request (MR) — MR Approved, Fulfilled, Packed, Shipped, Dalam Perjalanan, hingga Tiba di Lokasi.
                                     </p>
                                     <div class="mt-3">
                                         <a href="login.php?redirect=outbound.php" class="btn btn-warning btn-module btn-block text-white shadow-sm">
