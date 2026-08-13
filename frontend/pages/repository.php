@@ -11,12 +11,20 @@ if (!isLoggedIn()) {
 $user = getCurrentUser();
 $isSuperAdmin = ($user['role'] ?? '') === 'superadmin';
 $userRoleDisplay = 'User';
-if ($user['role'] === 'superadmin') $userRoleDisplay = 'Super Admin';
-elseif ($user['role'] === 'head_warehouse_admin' || $user['role'] === 'head_asset_warehouse_admin') $userRoleDisplay = 'Head Admin';
-elseif ($user['role'] === 'inbound_admin') $userRoleDisplay = 'Inbound Admin';
-elseif ($user['role'] === 'warehouse_admin') $userRoleDisplay = 'Storage Admin';
-elseif ($user['role'] === 'outbound_admin') $userRoleDisplay = 'Outbound Admin';
-elseif ($user['role'] === 'outsourcing') $userRoleDisplay = 'Outsourcing';
+if ($user['role'] === 'superadmin')
+    $userRoleDisplay = 'Super Admin';
+elseif ($user['role'] === 'head_warehouse_admin' || $user['role'] === 'head_asset_warehouse_admin')
+    $userRoleDisplay = 'Head Admin';
+elseif ($user['role'] === 'inbound_admin')
+    $userRoleDisplay = 'Inbound Admin';
+elseif ($user['role'] === 'warehouse_admin')
+    $userRoleDisplay = 'Storage Admin';
+elseif ($user['role'] === 'outbound_admin')
+    $userRoleDisplay = 'Outbound Admin';
+elseif ($user['role'] === 'outsourcing')
+    $userRoleDisplay = 'Outsourcing';
+elseif ($user['role'] === 'repository_admin')
+    $userRoleDisplay = 'Repository Admin';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -30,9 +38,12 @@ elseif ($user['role'] === 'outsourcing') $userRoleDisplay = 'Outsourcing';
 
     <title>Repository — PT. Aplikanusa Lintasarta</title>
 
-    <link rel="icon" href="frontend/img/LogoLintas.png">
+    <link rel="icon"
+        href="frontend/img/LogoLintas.png?v=<?= file_exists(__DIR__ . '/../img/LogoLintas.png') ? filemtime(__DIR__ . '/../img/LogoLintas.png') : time() ?>">
     <link href="frontend/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Outfit:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
     <link href="frontend/css/sb-admin-2.min.css" rel="stylesheet">
 
     <style>
@@ -45,27 +56,43 @@ elseif ($user['role'] === 'outsourcing') $userRoleDisplay = 'Outsourcing';
             --repo-border: #e2e8f0;
         }
 
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            width: 100%;
+            max-width: 100%;
+            overflow-x: clip;
+        }
+
         body {
             font-family: 'DM Sans', 'Outfit', sans-serif;
             background-color: var(--repo-bg);
             color: var(--repo-text-dark);
             margin: 0;
-            padding: 0;
+            padding: 58px 0 0 0;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
             -webkit-font-smoothing: antialiased;
         }
 
-        /* ── Top Bar ── */
+        /* ── Top Bar (Sticky / Fixed to Top) ── */
         .repo-nav {
             background: linear-gradient(135deg, #0b192c 0%, #112236 50%, #1e3e62 100%);
             color: #ffffff;
             padding: 8px 0;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            position: sticky;
+            position: fixed;
             top: 0;
-            z-index: 1000;
+            left: 0;
+            right: 0;
+            width: 100%;
+            z-index: 1050;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
         }
 
@@ -73,25 +100,30 @@ elseif ($user['role'] === 'outsourcing') $userRoleDisplay = 'Outsourcing';
             display: flex;
             align-items: center;
             justify-content: space-between;
-            max-width: 1040px;
-            margin: 0 auto;
-            padding: 0 20px;
+            width: 100%;
+            max-width: 100%;
+            margin: 0;
+            padding: 0 24px;
+            gap: 12px;
         }
 
         .repo-nav__brand {
             display: flex;
             align-items: center;
-            gap: 14px;
+            gap: 12px;
             text-decoration: none !important;
             color: #ffffff !important;
+            flex-shrink: 1;
+            min-width: 0;
         }
 
         .repo-nav__logo-img {
-            max-height: 46px;
-            height: 46px;
+            max-height: 42px;
+            height: 42px;
             width: auto;
             filter: brightness(0) invert(1);
             transition: transform 0.2s ease;
+            flex-shrink: 0;
         }
 
         .repo-nav__logo-img:hover {
@@ -100,21 +132,27 @@ elseif ($user['role'] === 'outsourcing') $userRoleDisplay = 'Outsourcing';
 
         .repo-nav__separator {
             width: 1.5px;
-            height: 38px;
+            height: 32px;
             background: rgba(255, 255, 255, 0.35);
+            flex-shrink: 0;
         }
 
         .repo-nav__subtitle {
-            font-size: 1rem;
+            font-size: 0.95rem;
             font-weight: 700;
             color: #93c5fd;
-            letter-spacing: 0.3px;
+            letter-spacing: 0.2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .repo-nav__actions {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
+            margin-left: auto;
+            flex-shrink: 0;
         }
 
         /* ── User Dropdown ── */
@@ -123,18 +161,27 @@ elseif ($user['role'] === 'outsourcing') $userRoleDisplay = 'Outsourcing';
             color: #ffffff !important;
             border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: 24px;
-            padding: 6px 14px;
+            padding: 5px 12px;
             font-size: 0.82rem;
             font-weight: 600;
             display: inline-flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             cursor: pointer;
             transition: all 0.2s ease;
             text-decoration: none !important;
+            white-space: nowrap;
+            max-width: 180px;
         }
 
-        .repo-user-btn:hover, .repo-user-btn:focus {
+        .repo-user-btn .repo-user-name {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .repo-user-btn:hover,
+        .repo-user-btn:focus {
             background: rgba(255, 255, 255, 0.22);
             color: #ffffff !important;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
@@ -428,17 +475,149 @@ elseif ($user['role'] === 'outsourcing') $userRoleDisplay = 'Outsourcing';
         }
 
         @media (max-width: 768px) {
-            .repo-hero__title {
-                font-size: 1.65rem;
+            body {
+                padding-top: 46px;
             }
+
+            .repo-nav {
+                padding: 6px 0;
+            }
+
+            .repo-nav__inner {
+                padding: 0 12px;
+                gap: 8px;
+                flex-wrap: nowrap;
+            }
+
+            .repo-nav__brand {
+                gap: 8px;
+                flex-shrink: 1;
+                min-width: 0;
+                overflow: hidden;
+            }
+
+            .repo-nav__logo-img {
+                max-height: 28px;
+                height: 28px;
+                flex-shrink: 0;
+            }
+
+            .repo-nav__separator {
+                height: 20px;
+                width: 1px;
+                flex-shrink: 0;
+            }
+
+            .repo-nav__subtitle {
+                font-size: 0.78rem;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .repo-nav__actions {
+                gap: 4px;
+                flex-shrink: 0;
+            }
+
+            .repo-user-btn {
+                padding: 4px 8px;
+                font-size: 0.75rem;
+                max-width: 140px;
+                gap: 4px;
+            }
+
+            .repo-user-btn .repo-user-name {
+                display: inline-block;
+                max-width: 95px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+            .repo-hero {
+                padding: 22px 12px 14px 12px;
+                width: 100%;
+                box-sizing: border-box;
+            }
+
+            .repo-hero__title {
+                font-size: 1.45rem;
+            }
+
+            .repo-hero__description {
+                font-size: 0.85rem;
+            }
+
+            .repo-main {
+                padding: 0 10px 30px 10px;
+                width: 100%;
+                box-sizing: border-box;
+            }
+
+            .repo-section {
+                padding: 14px 12px;
+                border-radius: 12px;
+                margin-bottom: 16px;
+                width: 100%;
+                box-sizing: border-box;
+            }
+
             .privy-doc-item {
                 flex-direction: column;
                 align-items: flex-start;
-                gap: 12px;
+                gap: 8px;
+                padding: 10px;
+                width: 100%;
+                box-sizing: border-box;
             }
+
+            .privy-doc-item__info {
+                width: 100%;
+                min-width: 0;
+            }
+
+            .privy-doc-item__name {
+                white-space: normal;
+                word-break: break-word;
+                overflow-wrap: anywhere;
+                font-size: 0.86rem;
+                line-height: 1.35;
+            }
+
             .privy-doc-item__actions {
                 width: 100%;
                 justify-content: flex-start;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .repo-nav__inner {
+                padding: 0 8px;
+                gap: 6px;
+            }
+
+            .repo-nav__logo-img {
+                max-height: 24px;
+                height: 24px;
+            }
+
+            .repo-nav__separator {
+                height: 16px;
+            }
+
+            .repo-nav__subtitle {
+                font-size: 0.72rem;
+            }
+
+            .repo-user-btn {
+                padding: 3px 6px;
+                font-size: 0.72rem;
+                max-width: 115px;
+            }
+
+            .repo-user-btn .repo-user-name {
+                max-width: 75px;
             }
         }
     </style>
@@ -452,16 +631,30 @@ elseif ($user['role'] === 'outsourcing') $userRoleDisplay = 'Outsourcing';
             <a href="index.php" class="repo-nav__brand">
                 <img src="frontend/img/Lintasarta.png" alt="Lintasarta" class="repo-nav__logo-img">
                 <span class="repo-nav__separator"></span>
-                <span class="repo-nav__subtitle">Asset &amp; Warehouse Repository</span>
+                <span class="repo-nav__subtitle"><span class="d-none d-md-inline">Asset &amp; Warehouse Documents
+                    </span>Repository</span>
             </a>
             <div class="repo-nav__actions">
                 <!-- User Dropdown Menu for Logout & Portal -->
                 <div class="dropdown">
-                    <button class="repo-user-btn dropdown-toggle" type="button" id="userDropdownMenu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <button class="repo-user-btn dropdown-toggle" type="button" id="userDropdownMenu"
+                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         <i class="fas fa-user-circle text-info"></i>
-                        <span><?php echo htmlspecialchars($user['name'] ?: $user['username']); ?></span>
+                        <span class="repo-user-name">
+                            <?php echo htmlspecialchars($user['name'] ?: $user['username']); ?>
+                        </span>
                     </button>
-                    <div class="dropdown-menu dropdown-menu-right repo-dropdown-menu shadow" aria-labelledby="userDropdownMenu">
+                    <div class="dropdown-menu dropdown-menu-right repo-dropdown-menu shadow"
+                        aria-labelledby="userDropdownMenu">
+                        <?php
+                        $allowedRepoMods = is_array($user['allowed_modules'] ?? null) ? $user['allowed_modules'] : [];
+                        $canManageRepo = $isSuperAdmin || ($user['role'] === 'repository_admin') || in_array('repository_management', $allowedRepoMods);
+                        if ($canManageRepo): ?>
+                            <a class="dropdown-item py-2 text-primary font-weight-bold" href="repository_management.php">
+                                <i class="fas fa-folder-open mr-2 text-primary"></i> Manage Documents
+                            </a>
+                            <div class="dropdown-divider my-1"></div>
+                        <?php endif; ?>
                         <a class="dropdown-item py-2" href="index.php">
                             <i class="fas fa-th mr-2 text-primary"></i> Landing Page Portal
                         </a>
@@ -491,7 +684,7 @@ elseif ($user['role'] === 'outsourcing') $userRoleDisplay = 'Outsourcing';
         <div class="repo-search-toolbar">
             <div class="repo-search-box">
                 <i class="fas fa-search"></i>
-                <input type="text" id="searchDocInput" placeholder="Cari nama dokumen PDF...">
+                <input type="text" id="searchDocInput" placeholder="Cari dokumen...">
             </div>
         </div>
 
@@ -505,7 +698,7 @@ elseif ($user['role'] === 'outsourcing') $userRoleDisplay = 'Outsourcing';
 
         <!-- 3 Segments Container -->
         <div id="repoSegmentsContainer" style="display: none;">
-            
+
             <!-- ── SEGMENT 1: Policy Document ── -->
             <section class="repo-section" id="section-policy">
                 <div class="repo-section__top">
@@ -587,7 +780,8 @@ elseif ($user['role'] === 'outsourcing') $userRoleDisplay = 'Outsourcing';
     <footer class="repo-footer">
         <div class="container">
             <p class="mb-0">
-                &copy; <?php echo date('Y'); ?> PT. Aplikanusa Lintasarta. All rights reserved.
+                &copy;
+                <?php echo date('Y'); ?> PT. Aplikanusa Lintasarta. All rights reserved.
             </p>
         </div>
     </footer>
@@ -598,110 +792,110 @@ elseif ($user['role'] === 'outsourcing') $userRoleDisplay = 'Outsourcing';
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
-    (function () {
-        let repoDocuments = [];
-        let currentSearch = '';
+        (function () {
+            let repoDocuments = [];
+            let currentSearch = '';
 
-        // Fetch Documents from API
-        function loadDocuments() {
-            $('#repoLoadingState').show();
-            $('#repoSegmentsContainer').hide();
-            $('#repoEmptyState').hide();
+            // Fetch Documents from API
+            function loadDocuments() {
+                $('#repoLoadingState').show();
+                $('#repoSegmentsContainer').hide();
+                $('#repoEmptyState').hide();
 
-            let url = 'api/manage_repository.php?action=list';
-            if (currentSearch.trim() !== '') {
-                url += '&search=' + encodeURIComponent(currentSearch.trim());
-            }
+                let url = 'api/manage_repository.php?action=list';
+                if (currentSearch.trim() !== '') {
+                    url += '&search=' + encodeURIComponent(currentSearch.trim());
+                }
 
-            $.ajax({
-                url: url,
-                type: 'GET',
-                dataType: 'json',
-                success: function (res) {
-                    $('#repoLoadingState').hide();
-                    if (res && res.success) {
-                        repoDocuments = res.data || [];
-                        renderSegmentedDocuments(repoDocuments);
-                    } else {
+                $.ajax({
+                    url: url,
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function (res) {
+                        $('#repoLoadingState').hide();
+                        if (res && res.success) {
+                            repoDocuments = res.data || [];
+                            renderSegmentedDocuments(repoDocuments);
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal Memuat File',
+                                text: (res && res.message) ? res.message : 'Terjadi kesalahan.'
+                            });
+                        }
+                    },
+                    error: function () {
+                        $('#repoLoadingState').hide();
                         Swal.fire({
                             icon: 'error',
-                            title: 'Gagal Memuat File',
-                            text: (res && res.message) ? res.message : 'Terjadi kesalahan.'
+                            title: 'Error Koneksi',
+                            text: 'Tidak dapat terhubung ke server.'
                         });
                     }
-                },
-                error: function () {
-                    $('#repoLoadingState').hide();
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error Koneksi',
-                        text: 'Tidak dapat terhubung ke server.'
-                    });
-                }
-            });
-        }
-
-        // Render 3 Segments
-        function renderSegmentedDocuments(docs) {
-            const isSearching = currentSearch.trim() !== '';
-
-            if (!docs || docs.length === 0) {
-                $('#repoSegmentsContainer').hide();
-                $('#repoEmptyState').show();
-                return;
+                });
             }
 
-            $('#repoEmptyState').hide();
-            $('#repoSegmentsContainer').show();
+            // Render 3 Segments
+            function renderSegmentedDocuments(docs) {
+                const isSearching = currentSearch.trim() !== '';
 
-            const policyDocs = [];
-            const procedureDocs = [];
-            const wiDocs = [];
-
-            docs.forEach(function (doc) {
-                let cat = (doc.category || '').trim();
-                if (cat === 'Policy Document') {
-                    policyDocs.push(doc);
-                } else if (cat === 'Procedure Document') {
-                    procedureDocs.push(doc);
-                } else {
-                    // Default / WI
-                    wiDocs.push(doc);
+                if (!docs || docs.length === 0) {
+                    $('#repoSegmentsContainer').hide();
+                    $('#repoEmptyState').show();
+                    return;
                 }
-            });
 
-            // Render Segment 1: Policy
-            renderSegmentList($('#list-policy'), $('#count-policy'), $('#empty-policy'), $('#section-policy'), policyDocs, isSearching);
+                $('#repoEmptyState').hide();
+                $('#repoSegmentsContainer').show();
 
-            // Render Segment 2: Procedure
-            renderSegmentList($('#list-procedure'), $('#count-procedure'), $('#empty-procedure'), $('#section-procedure'), procedureDocs, isSearching);
+                const policyDocs = [];
+                const procedureDocs = [];
+                const wiDocs = [];
 
-            // Render Segment 3: Working Instruction (WI)
-            renderSegmentList($('#list-wi'), $('#count-wi'), $('#empty-wi'), $('#section-wi'), wiDocs, isSearching);
-        }
+                docs.forEach(function (doc) {
+                    let cat = (doc.category || '').trim();
+                    if (cat === 'Policy Document') {
+                        policyDocs.push(doc);
+                    } else if (cat === 'Procedure Document') {
+                        procedureDocs.push(doc);
+                    } else {
+                        // Default / WI
+                        wiDocs.push(doc);
+                    }
+                });
 
-        // Helper to render individual segment list
-        function renderSegmentList(containerEl, countBadgeEl, emptyNoticeEl, sectionEl, items, isSearching) {
-            containerEl.empty();
-            countBadgeEl.text(items.length + ' Documents');
+                // Render Segment 1: Policy
+                renderSegmentList($('#list-policy'), $('#count-policy'), $('#empty-policy'), $('#section-policy'), policyDocs, isSearching);
 
-            if (items.length === 0) {
-                if (isSearching) {
-                    sectionEl.hide();
-                } else {
-                    sectionEl.show();
-                    emptyNoticeEl.show();
-                }
-                return;
+                // Render Segment 2: Procedure
+                renderSegmentList($('#list-procedure'), $('#count-procedure'), $('#empty-procedure'), $('#section-procedure'), procedureDocs, isSearching);
+
+                // Render Segment 3: Working Instruction (WI)
+                renderSegmentList($('#list-wi'), $('#count-wi'), $('#empty-wi'), $('#section-wi'), wiDocs, isSearching);
             }
 
-            sectionEl.show();
-            emptyNoticeEl.hide();
+            // Helper to render individual segment list
+            function renderSegmentList(containerEl, countBadgeEl, emptyNoticeEl, sectionEl, items, isSearching) {
+                containerEl.empty();
+                countBadgeEl.text(items.length + ' Documents');
 
-            items.forEach(function (doc) {
-                let displayName = doc.title || doc.original_name || 'Dokumen.pdf';
+                if (items.length === 0) {
+                    if (isSearching) {
+                        sectionEl.hide();
+                    } else {
+                        sectionEl.show();
+                        emptyNoticeEl.show();
+                    }
+                    return;
+                }
 
-                let itemHtml = `
+                sectionEl.show();
+                emptyNoticeEl.hide();
+
+                items.forEach(function (doc) {
+                    let displayName = doc.title || doc.original_name || 'Dokumen.pdf';
+
+                    let itemHtml = `
                     <div class="privy-doc-item">
                         <div class="privy-doc-item__left">
                             <div class="privy-doc-item__icon">
@@ -716,44 +910,45 @@ elseif ($user['role'] === 'outsourcing') $userRoleDisplay = 'Outsourcing';
                                 <i class="fas fa-eye"></i> Preview
                             </a>
                             <a href="api/manage_repository.php?action=download&id=${doc.id}" class="privy-doc-item__action-btn action-download" title="Unduh File PDF">
-                                <i class="fas fa-arrow-down"></i> Download
+                                <i class="fas fa-download"></i> Download
                             </a>
                         </div>
                     </div>
                 `;
-                containerEl.append(itemHtml);
+                    containerEl.append(itemHtml);
+                });
+            }
+
+            // Helper for XSS Escaping
+            function escapeHtml(string) {
+                if (!string) return '';
+                const entityMap = {
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    "'": '&#39;',
+                    '/': '&#x2F;'
+                };
+                return String(string).replace(/[&<>"'\/]/g, function (s) {
+                    return entityMap[s];
+                });
+            }
+
+            // Search Input
+            let searchTimeout = null;
+            $('#searchDocInput').on('input', function () {
+                clearTimeout(searchTimeout);
+                currentSearch = $(this).val();
+                searchTimeout = setTimeout(function () {
+                    loadDocuments();
+                }, 300);
             });
-        }
 
-        // Helper for XSS Escaping
-        function escapeHtml(string) {
-            if (!string) return '';
-            const entityMap = {
-                '&': '&amp;',
-                '<': '&lt;',
-                '>': '&gt;',
-                '"': '&quot;',
-                "'": '&#39;',
-                '/': '&#x2F;'
-            };
-            return String(string).replace(/[&<>"'\/]/g, function (s) {
-                return entityMap[s];
-            });
-        }
-
-        // Search Input
-        let searchTimeout = null;
-        $('#searchDocInput').on('input', function () {
-            clearTimeout(searchTimeout);
-            currentSearch = $(this).val();
-            searchTimeout = setTimeout(function () {
-                loadDocuments();
-            }, 300);
-        });
-
-        // Initial Load
-        loadDocuments();
-    })();
+            // Initial Load
+            loadDocuments();
+        })();
     </script>
 </body>
+
 </html>

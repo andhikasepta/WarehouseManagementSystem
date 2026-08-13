@@ -23,7 +23,7 @@ if (strpos($redirect, 'inbound') !== false) {
 } elseif (strpos($redirect, 'user_management') !== false) {
     $moduleSubtitle = 'User Management';
 } elseif (strpos($redirect, 'repository') !== false) {
-    $moduleSubtitle = 'Warehouse Management Repository';
+    $moduleSubtitle = 'Document Repository AWM';
 }
 
 // Handle Logout
@@ -31,9 +31,14 @@ if (isset($_GET['action']) && $_GET['action'] === 'logout') {
     $_SESSION = array();
     if (ini_get("session.use_cookies")) {
         $params = session_get_cookie_params();
-        setcookie(session_name(), '', time() - 42000,
-            $params["path"], $params["domain"],
-            $params["secure"], $params["httponly"]
+        setcookie(
+            session_name(),
+            '',
+            time() - 42000,
+            $params["path"],
+            $params["domain"],
+            $params["secure"],
+            $params["httponly"]
         );
     }
     session_destroy();
@@ -44,11 +49,18 @@ if (isset($_GET['action']) && $_GET['action'] === 'logout') {
 // If already logged in and no logout request
 if (isset($_SESSION['user_id']) && !empty($_SESSION['user_id']) && !isset($_GET['action'])) {
     if (($_SESSION['role'] ?? '') === 'superadmin') {
-        if ($redirect === 'repository.php' || $redirect === 'announcements.php') {
+        if ($redirect === 'repository.php' || $redirect === 'announcements.php' || $redirect === 'repository_management.php') {
             header("Location: " . $redirect);
             exit;
         }
         header("Location: user_management.php");
+        exit;
+    } elseif (($_SESSION['role'] ?? '') === 'repository_admin') {
+        if ($redirect === 'repository.php' || $redirect === 'repository_management.php') {
+            header("Location: " . $redirect);
+            exit;
+        }
+        header("Location: repository_management.php");
         exit;
     }
     header("Location: " . $redirect);
@@ -90,7 +102,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['name'] = $user['name'];
                 $_SESSION['role'] = $user['role'];
                 $_SESSION['last_activity'] = time();
-                
+
                 $decodedModules = json_decode($user['allowed_modules'], true);
                 $_SESSION['allowed_modules'] = is_array($decodedModules) ? $decodedModules : [];
 
@@ -107,19 +119,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $requestedModule = 'outbound';
                 } elseif (strpos($redirect, 'master_data') !== false) {
                     $requestedModule = 'master_data';
+                } elseif (strpos($redirect, 'repository_management') !== false) {
+                    $requestedModule = 'repository_management';
                 }
 
-                // Check module access (skip for superadmin)
-                if (!empty($requestedModule) && $user['role'] !== 'superadmin') {
+                // Check module access (skip for superadmin and repository_admin)
+                if (!empty($requestedModule) && $user['role'] !== 'superadmin' && !($user['role'] === 'repository_admin' && $requestedModule === 'repository_management')) {
                     $allowedModules = is_array($decodedModules) ? $decodedModules : [];
                     if (!in_array($requestedModule, $allowedModules)) {
                         // User doesn't have access — destroy session and redirect back
                         $_SESSION = array();
                         if (ini_get("session.use_cookies")) {
                             $params = session_get_cookie_params();
-                            setcookie(session_name(), '', time() - 42000,
-                                $params["path"], $params["domain"],
-                                $params["secure"], $params["httponly"]
+                            setcookie(
+                                session_name(),
+                                '',
+                                time() - 42000,
+                                $params["path"],
+                                $params["domain"],
+                                $params["secure"],
+                                $params["httponly"]
                             );
                         }
                         session_destroy();
@@ -129,10 +148,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
 
                 if ($user['role'] === 'superadmin') {
-                    if ($redirect === 'repository.php' || $redirect === 'announcements.php') {
+                    if ($redirect === 'repository.php' || $redirect === 'announcements.php' || $redirect === 'repository_management.php') {
                         header("Location: " . $redirect);
                     } else {
                         header("Location: user_management.php");
+                    }
+                } elseif ($user['role'] === 'repository_admin') {
+                    if ($redirect === 'repository.php' || $redirect === 'repository_management.php') {
+                        header("Location: " . $redirect);
+                    } else {
+                        header("Location: repository_management.php");
                     }
                 } elseif ($redirect === 'wms_select.php' || empty($redirect)) {
                     $allowed = is_array($decodedModules) ? $decodedModules : [];
@@ -144,6 +169,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         header("Location: inbound.php");
                     } elseif (in_array('outbound', $allowed)) {
                         header("Location: outbound.php");
+                    } elseif (in_array('repository_management', $allowed)) {
+                        header("Location: repository_management.php");
                     } elseif (!empty($allowed)) {
                         header("Location: " . $allowed[0] . ".php");
                     } else {
@@ -175,9 +202,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <title>WMS - PT. Aplikanusa Lintasarta</title>
 
-    <link rel="icon" href="frontend/img/LogoLintas.png">
+    <link rel="icon"
+        href="frontend/img/LogoLintas.png?v=<?= file_exists(__DIR__ . '/../img/LogoLintas.png') ? filemtime(__DIR__ . '/../img/LogoLintas.png') : time() ?>">
     <link href="frontend/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap"
+        rel="stylesheet">
     <link href="frontend/css/sb-admin-2.min.css" rel="stylesheet">
 
     <style>
@@ -276,14 +306,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="form-group text-left mb-3">
                 <label for="username" class="small font-weight-bold text-gray-300">Username</label>
                 <div class="input-group">
-                    <input type="text" class="form-control form-control-login" id="username" name="username" placeholder="Masukkan username" required value="<?php echo htmlspecialchars($_POST['username'] ?? ''); ?>">
+                    <input type="text" class="form-control form-control-login" id="username" name="username"
+                        placeholder="Masukkan username" required
+                        value="<?php echo htmlspecialchars($_POST['username'] ?? ''); ?>">
                 </div>
             </div>
 
             <div class="form-group text-left mb-4">
                 <label for="password" class="small font-weight-bold text-gray-300">Password</label>
                 <div class="input-group">
-                    <input type="password" class="form-control form-control-login" id="password" name="password" placeholder="Masukkan password" required>
+                    <input type="password" class="form-control form-control-login" id="password" name="password"
+                        placeholder="Masukkan password" required>
                 </div>
             </div>
 
@@ -305,7 +338,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
 
         <div class="footer-text">
-            <?php echo htmlspecialchars(function_exists('getSystemAppVersion') ? getSystemAppVersion($pdo ?? null) : 'Beta-v1.0.0'); ?> &copy; PT. Aplikanusa Lintasarta
+            <?php echo htmlspecialchars(function_exists('getSystemAppVersion') ? getSystemAppVersion($pdo ?? null) : 'Beta-v1.0.0'); ?>
+            &copy; PT. Aplikanusa Lintasarta
         </div>
     </div>
 

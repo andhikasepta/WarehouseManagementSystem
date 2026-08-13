@@ -86,6 +86,14 @@ function hasPermission($module, $action = 'view') {
     return $action === 'view';
 }
 
+function canAdd($module) {
+    return hasPermission($module, 'add');
+}
+
+function canDelete($module) {
+    return hasPermission($module, 'delete');
+}
+
 /**
  * Get the full permissions array for the current user.
  * @return array
@@ -119,6 +127,15 @@ function checkModuleAccess($requiredModule = '') {
         return true;
     }
 
+    if ($requiredModule === 'repository_management' || $currentPage === 'repository_management.php') {
+        $allowedModules = is_array($user['allowed_modules']) ? $user['allowed_modules'] : [];
+        if ($user['role'] === 'superadmin' || $user['role'] === 'repository_admin' || in_array('repository_management', $allowedModules)) {
+            return true;
+        }
+        renderAccessDeniedPage('repository_management', $user, 'Akun Anda tidak diberikan izin akses ke modul ini.');
+        exit;
+    }
+
     if ($user['role'] === 'superadmin') {
         if ($currentPage !== 'user_management.php' && $currentPage !== 'announcements.php' && $currentPage !== 'repository.php' && $currentPage !== 'repository_management.php') {
             header("Location: user_management.php");
@@ -139,11 +156,11 @@ function checkModuleAccess($requiredModule = '') {
             'storage_hub.php' => 'warehouse',
             'outbound.php' => 'outbound',
             'master_data.php' => 'master_data',
-            'inventory.php' => 'inventory',
-            'location.php' => 'location',
             'reports.php' => 'reports',
             'analytics.php' => 'analytics',
             'kpi_monitoring.php' => 'kpi_monitoring',
+            'repository_management.php' => 'repository_management',
+            'announcements.php' => 'announcements',
         ];
         $moduleKey = $pageMap[$currentPage] ?? '';
     }

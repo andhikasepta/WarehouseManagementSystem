@@ -96,7 +96,7 @@ if ($method === 'POST') {
     $permissions = is_array($data['permissions'] ?? null) ? $data['permissions'] : [];
 
     // Validate role is an allowed value
-    $validRoles = ['superadmin', 'head_asset_warehouse_admin', 'head_warehouse_admin', 'inbound_admin', 'outbound_admin', 'warehouse_admin', 'outsourcing'];
+    $validRoles = ['superadmin', 'head_asset_warehouse_admin', 'head_warehouse_admin', 'inbound_admin', 'outbound_admin', 'warehouse_admin', 'outsourcing', 'repository_admin'];
     if (!in_array($role, $validRoles)) {
         $role = 'outsourcing'; // Default to outsourcing for unknown roles
     }

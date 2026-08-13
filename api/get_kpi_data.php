@@ -67,6 +67,8 @@ try {
     $receivingSlaTarget = 95.0;
     $registrationSlaTarget = 98.0;
     $stockOpnameTarget = 99.5;
+    $stockOpnameHubTarget = 99.5;
+    $stockOpnameOutletTarget = 99.5;
     $slowMovingTarget = 15.0; // Max threshold
     $capacityTarget = 80.0;
     $deliveryEffectivenessTarget = 95.0;
@@ -78,6 +80,8 @@ try {
         $receivingSlaVal = 96.5;
         $registrationSlaVal = 98.2;
         $stockOpnameVal = 99.8;
+        $stockOpnameHubVal = 99.9;
+        $stockOpnameOutletVal = 99.0;
         $slowMovingVal = 12.8;
         $capacityVal = 76.4;
         $deliveryEffectivenessVal = 97.4;
@@ -142,6 +146,42 @@ try {
                 'formula' => '(Jumlah Item Fisik Match Sistem / Total Item Diaudit) × 100%',
                 'icon' => 'fa-boxes',
                 'color' => '#1cc88a'
+            ],
+            [
+                'id' => 'stock_opname_hub',
+                'code' => 'KPI-ST-01A',
+                'name' => 'Stock Opname Warehouse Hub',
+                'category' => 'Storage & Warehouse Management',
+                'unit' => '%',
+                'is_currency' => false,
+                'target' => $stockOpnameHubTarget,
+                'target_display' => '≥ 99.5%',
+                'actual' => $stockOpnameHubVal,
+                'actual_display' => '99,9%',
+                'achievement' => 100.4,
+                'status' => 'Achieved',
+                'description' => 'Akurasi kecocokan fisik inventori perangkat pada Warehouse Hub Utama terhadap pencatatan sistem WMS saat audit berkala.',
+                'formula' => '(Jumlah Item Fisik Match Sistem di Warehouse Hub / Total Item Diaudit di Warehouse Hub) × 100%',
+                'icon' => 'fa-warehouse',
+                'color' => '#1cc88a'
+            ],
+            [
+                'id' => 'stock_opname_outlet',
+                'code' => 'KPI-ST-01B',
+                'name' => 'Stock Opname Outlet Warehouse',
+                'category' => 'Storage & Warehouse Management',
+                'unit' => '%',
+                'is_currency' => false,
+                'target' => $stockOpnameOutletTarget,
+                'target_display' => '≥ 99.5%',
+                'actual' => $stockOpnameOutletVal,
+                'actual_display' => '99,0%',
+                'achievement' => 99.5,
+                'status' => 'Achieved',
+                'description' => 'Akurasi kecocokan fisik inventori perangkat pada Outlet Warehouse Regional terhadap pencatatan sistem WMS saat audit berkala.',
+                'formula' => '(Jumlah Item Fisik Match Sistem di Outlet Warehouse / Total Item Diaudit di Outlet Warehouse) × 100%',
+                'icon' => 'fa-store',
+                'color' => '#36b9cc'
             ],
             [
                 'id' => 'slow_moving',
@@ -250,6 +290,20 @@ try {
                     'target' => $stockOpnameTarget,
                     'unit' => '%'
                 ],
+                'stock_opname_hub' => [
+                    'name' => 'Stock Opname Warehouse Hub',
+                    'value' => $stockOpnameHubVal,
+                    'value_formatted' => '99,9%',
+                    'target' => $stockOpnameHubTarget,
+                    'unit' => '%'
+                ],
+                'stock_opname_outlet' => [
+                    'name' => 'Stock Opname Outlet Warehouse',
+                    'value' => $stockOpnameOutletVal,
+                    'value_formatted' => '99,0%',
+                    'target' => $stockOpnameOutletTarget,
+                    'unit' => '%'
+                ],
                 'slow_moving' => [
                     'name' => 'Slow Moving',
                     'value' => $slowMovingVal,
@@ -289,6 +343,10 @@ try {
     $slowMovingCount = 0;
     $soAuditedCount = 0;
     $soMatchedCount = 0;
+    $soHubAuditedCount = 0;
+    $soHubMatchedCount = 0;
+    $soOutletAuditedCount = 0;
+    $soOutletMatchedCount = 0;
 
     $inboundTotal = 0;
     $inboundOnTimeGr = 0;
@@ -324,7 +382,11 @@ try {
                       OR `range` LIKE '%>3%'
                     THEN 1 ELSE 0 END) as slow_moving_count,
                 SUM(CASE WHEN so_result IS NOT NULL AND so_result != '' THEN 1 ELSE 0 END) as so_audited,
-                SUM(CASE WHEN LOWER(so_result) LIKE '%match%' OR LOWER(so_result) LIKE '%sesuai%' OR LOWER(so_result) LIKE '%ok%' THEN 1 ELSE 0 END) as so_matched
+                SUM(CASE WHEN LOWER(so_result) LIKE '%match%' OR LOWER(so_result) LIKE '%sesuai%' OR LOWER(so_result) LIKE '%ok%' THEN 1 ELSE 0 END) as so_matched,
+                SUM(CASE WHEN (LOWER(so_location) NOT LIKE '%outlet%') AND so_result IS NOT NULL AND so_result != '' THEN 1 ELSE 0 END) as so_hub_audited,
+                SUM(CASE WHEN (LOWER(so_location) NOT LIKE '%outlet%') AND (LOWER(so_result) LIKE '%match%' OR LOWER(so_result) LIKE '%sesuai%' OR LOWER(so_result) LIKE '%ok%') THEN 1 ELSE 0 END) as so_hub_matched,
+                SUM(CASE WHEN LOWER(so_location) LIKE '%outlet%' AND so_result IS NOT NULL AND so_result != '' THEN 1 ELSE 0 END) as so_outlet_audited,
+                SUM(CASE WHEN LOWER(so_location) LIKE '%outlet%' AND (LOWER(so_result) LIKE '%match%' OR LOWER(so_result) LIKE '%sesuai%' OR LOWER(so_result) LIKE '%ok%') THEN 1 ELSE 0 END) as so_outlet_matched
             FROM assets
             $assetWhere
         ");
@@ -336,6 +398,10 @@ try {
             $slowMovingCount = (int)$assetSummary['slow_moving_count'];
             $soAuditedCount = (int)$assetSummary['so_audited'];
             $soMatchedCount = (int)$assetSummary['so_matched'];
+            $soHubAuditedCount = (int)$assetSummary['so_hub_audited'];
+            $soHubMatchedCount = (int)$assetSummary['so_hub_matched'];
+            $soOutletAuditedCount = (int)$assetSummary['so_outlet_audited'];
+            $soOutletMatchedCount = (int)$assetSummary['so_outlet_matched'];
             $hasDataInPeriod = true;
         }
 
@@ -383,6 +449,12 @@ try {
 
     $stockOpnameVal = ($soAuditedCount > 0) ? round(($soMatchedCount / $soAuditedCount) * 100, 1) : 0.0;
     if ($stockOpnameVal > 100) $stockOpnameVal = 100.0;
+
+    $stockOpnameHubVal = ($soHubAuditedCount > 0) ? round(($soHubMatchedCount / $soHubAuditedCount) * 100, 1) : 0.0;
+    if ($stockOpnameHubVal > 100) $stockOpnameHubVal = 100.0;
+
+    $stockOpnameOutletVal = ($soOutletAuditedCount > 0) ? round(($soOutletMatchedCount / $soOutletAuditedCount) * 100, 1) : 0.0;
+    if ($stockOpnameOutletVal > 100) $stockOpnameOutletVal = 100.0;
 
     $slowMovingVal = ($totalAssetsCount > 0) ? round(($slowMovingCount / $totalAssetsCount) * 100, 1) : 0.0;
     if ($slowMovingVal > 100) $slowMovingVal = 100.0;
@@ -454,6 +526,42 @@ try {
             'formula' => '(Jumlah Item Fisik Match Sistem / Total Item Diaudit) × 100%',
             'icon' => 'fa-boxes',
             'color' => '#1cc88a'
+        ],
+        [
+            'id' => 'stock_opname_hub',
+            'code' => 'KPI-ST-01A',
+            'name' => 'Stock Opname Warehouse Hub',
+            'category' => 'Storage & Warehouse Management',
+            'unit' => '%',
+            'is_currency' => false,
+            'target' => $stockOpnameHubTarget,
+            'target_display' => '≥ 99.5%',
+            'actual' => $stockOpnameHubVal,
+            'actual_display' => ($soHubAuditedCount > 0) ? number_format($stockOpnameHubVal, 1, ',', '.') . '%' : '-',
+            'achievement' => ($soHubAuditedCount > 0) ? round(($stockOpnameHubVal / $stockOpnameHubTarget) * 100, 1) : 0,
+            'status' => getStatus($soHubAuditedCount > 0, $stockOpnameHubVal, $stockOpnameHubTarget),
+            'description' => 'Akurasi kecocokan fisik inventori perangkat pada Warehouse Hub Utama terhadap pencatatan sistem WMS saat audit berkala.',
+            'formula' => '(Jumlah Item Fisik Match Sistem di Warehouse Hub / Total Item Diaudit di Warehouse Hub) × 100%',
+            'icon' => 'fa-warehouse',
+            'color' => '#1cc88a'
+        ],
+        [
+            'id' => 'stock_opname_outlet',
+            'code' => 'KPI-ST-01B',
+            'name' => 'Stock Opname Outlet Warehouse',
+            'category' => 'Storage & Warehouse Management',
+            'unit' => '%',
+            'is_currency' => false,
+            'target' => $stockOpnameOutletTarget,
+            'target_display' => '≥ 99.5%',
+            'actual' => $stockOpnameOutletVal,
+            'actual_display' => ($soOutletAuditedCount > 0) ? number_format($stockOpnameOutletVal, 1, ',', '.') . '%' : '-',
+            'achievement' => ($soOutletAuditedCount > 0) ? round(($stockOpnameOutletVal / $stockOpnameOutletTarget) * 100, 1) : 0,
+            'status' => getStatus($soOutletAuditedCount > 0, $stockOpnameOutletVal, $stockOpnameOutletTarget),
+            'description' => 'Akurasi kecocokan fisik inventori perangkat pada Outlet Warehouse Regional terhadap pencatatan sistem WMS saat audit berkala.',
+            'formula' => '(Jumlah Item Fisik Match Sistem di Outlet Warehouse / Total Item Diaudit di Outlet Warehouse) × 100%',
+            'icon' => 'fa-store',
+            'color' => '#36b9cc'
         ],
         [
             'id' => 'slow_moving',
@@ -560,6 +668,20 @@ try {
                 'value' => $stockOpnameVal,
                 'value_formatted' => ($soAuditedCount > 0) ? number_format($stockOpnameVal, 1, ',', '.') . '%' : '0.0%',
                 'target' => $stockOpnameTarget,
+                'unit' => '%'
+            ],
+            'stock_opname_hub' => [
+                'name' => 'Stock Opname Warehouse Hub',
+                'value' => $stockOpnameHubVal,
+                'value_formatted' => ($soHubAuditedCount > 0) ? number_format($stockOpnameHubVal, 1, ',', '.') . '%' : '0.0%',
+                'target' => $stockOpnameHubTarget,
+                'unit' => '%'
+            ],
+            'stock_opname_outlet' => [
+                'name' => 'Stock Opname Outlet Warehouse',
+                'value' => $stockOpnameOutletVal,
+                'value_formatted' => ($soOutletAuditedCount > 0) ? number_format($stockOpnameOutletVal, 1, ',', '.') . '%' : '0.0%',
+                'target' => $stockOpnameOutletTarget,
                 'unit' => '%'
             ],
             'slow_moving' => [

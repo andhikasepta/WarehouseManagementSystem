@@ -176,11 +176,27 @@ if ($action === 'list') {
 }
 
 // ----------------------------------------------------
-// Superadmin verification for Write/Edit/Delete actions
+// Verification for Write/Edit/Delete actions
 // ----------------------------------------------------
-if (!$isSuperAdmin) {
-    echo json_encode(['success' => false, 'message' => 'Akses ditolak: Hanya Super Admin yang dapat mengelola dokumen Work Instruction.']);
+$isRepoAdmin = ($currentUser['role'] ?? '') === 'repository_admin';
+$allowedModules = is_array($currentUser['allowed_modules'] ?? []) ? $currentUser['allowed_modules'] : [];
+$hasRepoMgmtAccess = $isSuperAdmin || $isRepoAdmin || in_array('repository_management', $allowedModules);
+
+if (!$hasRepoMgmtAccess) {
+    echo json_encode(['success' => false, 'message' => 'Akses ditolak: Anda tidak memiliki izin untuk mengelola dokumen Work Instruction.']);
     exit;
+}
+
+if ($action === 'upload' || $action === 'update') {
+    if (!$isSuperAdmin && !canAdd('repository_management')) {
+        echo json_encode(['success' => false, 'message' => 'Akses ditolak: Anda tidak memiliki izin untuk menambah atau mengubah dokumen.']);
+        exit;
+    }
+} elseif ($action === 'delete') {
+    if (!$isSuperAdmin && !canDelete('repository_management')) {
+        echo json_encode(['success' => false, 'message' => 'Akses ditolak: Anda tidak memiliki izin untuk menghapus dokumen.']);
+        exit;
+    }
 }
 
 // ----------------------------------------------------

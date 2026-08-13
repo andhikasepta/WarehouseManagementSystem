@@ -109,10 +109,10 @@ include FRONTEND_PATH . 'components/header.php';
                         </div>
                     </div>
 
-                    <!-- Metric Cards Row (1 Single Inline Row of 6 Cards with Tight Spacing) -->
+                    <!-- Metric Cards Row (1 Single Inline Row of 5 Cards with Tight Spacing) -->
                     <div class="row mx-n1 mb-4">
                         <!-- Total PO Aktif -->
-                        <div class="col-xl-2 col-md-4 col-sm-6 px-1 mb-2 mb-xl-0">
+                        <div class="col-xl col-md-4 col-sm-6 px-1 mb-2 mb-xl-0">
                             <div class="card border-left-primary shadow h-100 py-1 inbound-metric-card">
                                 <div class="card-body p-2 d-flex flex-column justify-content-between">
                                     <div class="text-xs font-weight-bold text-primary text-uppercase mb-1" style="font-size: 0.68rem; line-height: 1.15;">
@@ -123,7 +123,7 @@ include FRONTEND_PATH . 'components/header.php';
                         </div>
 
                         <!-- PO Terlambat (Belum GR) -->
-                        <div class="col-xl-2 col-md-4 col-sm-6 px-1 mb-2 mb-xl-0">
+                        <div class="col-xl col-md-4 col-sm-6 px-1 mb-2 mb-xl-0">
                             <div class="card border-left-danger shadow h-100 py-1 inbound-metric-card">
                                 <div class="card-body p-2 d-flex flex-column justify-content-between">
                                     <div class="text-xs font-weight-bold text-danger text-uppercase mb-1" style="font-size: 0.68rem; line-height: 1.15;">
@@ -134,7 +134,7 @@ include FRONTEND_PATH . 'components/header.php';
                         </div>
 
                         <!-- GR Tepat Waktu -->
-                        <div class="col-xl-2 col-md-4 col-sm-6 px-1 mb-2 mb-xl-0">
+                        <div class="col-xl col-md-4 col-sm-6 px-1 mb-2 mb-xl-0">
                             <div class="card border-left-success shadow h-100 py-1 inbound-metric-card">
                                 <div class="card-body p-2 d-flex flex-column justify-content-between">
                                     <div class="text-xs font-weight-bold text-success text-uppercase mb-1" style="font-size: 0.68rem; line-height: 1.15;">
@@ -145,7 +145,7 @@ include FRONTEND_PATH . 'components/header.php';
                         </div>
 
                         <!-- Rata-rata Keterlambatan GR -->
-                        <div class="col-xl-2 col-md-4 col-sm-6 px-1 mb-2 mb-xl-0">
+                        <div class="col-xl col-md-4 col-sm-6 px-1 mb-2 mb-xl-0">
                             <div class="card border-left-warning shadow h-100 py-1 inbound-metric-card">
                                 <div class="card-body p-2 d-flex flex-column justify-content-between">
                                     <div class="text-xs font-weight-bold text-warning text-uppercase mb-1" style="font-size: 0.68rem; line-height: 1.15;">
@@ -155,24 +155,13 @@ include FRONTEND_PATH . 'components/header.php';
                             </div>
                         </div>
 
-                        <!-- Nilai Barang Diterima -->
-                        <div class="col-xl-2 col-md-4 col-sm-6 px-1 mb-2 mb-xl-0">
+                        <!-- QTY Perangkat yang Diterima -->
+                        <div class="col-xl col-md-4 col-sm-6 px-1 mb-2 mb-xl-0">
                             <div class="card border-left-info shadow h-100 py-1 inbound-metric-card">
                                 <div class="card-body p-2 d-flex flex-column justify-content-between">
                                     <div class="text-xs font-weight-bold text-info text-uppercase mb-1" style="font-size: 0.68rem; line-height: 1.15;">
-                                        NILAI BARANG DITERIMA</div>
-                                    <div class="h5 mb-0 font-weight-bold text-gray-800 mt-auto" id="card-nilai-barang-diterima">Rp 0</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Menunggu Registrasi -->
-                        <div class="col-xl-2 col-md-4 col-sm-6 px-1 mb-2 mb-xl-0">
-                            <div class="card border-left-secondary shadow h-100 py-1 inbound-metric-card">
-                                <div class="card-body p-2 d-flex flex-column justify-content-between">
-                                    <div class="text-xs font-weight-bold text-secondary text-uppercase mb-1" style="font-size: 0.68rem; line-height: 1.15;">
-                                        MENUNGGU REGISTRASI</div>
-                                    <div class="h5 mb-0 font-weight-bold text-gray-800 mt-auto" id="card-menunggu-registrasi">0 Unit</div>
+                                        QTY PERANGKAT YANG DITERIMA</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800 mt-auto" id="card-qty-perangkat-diterima">0 Unit</div>
                                 </div>
                             </div>
                         </div>

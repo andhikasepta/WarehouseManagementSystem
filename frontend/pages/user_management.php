@@ -108,6 +108,7 @@ include FRONTEND_PATH . 'components/header.php';
                                                 <option value="inbound_admin">Inbound Administrator</option>
                                                 <option value="outbound_admin">Outbound Administrator</option>
                                                 <option value="warehouse_admin">Storage Administrator</option>
+                                                <option value="repository_admin">Repository Administrator</option>
                                                 <option value="outsourcing">Outsourcing</option>
                                             </select>
                                         </div>
@@ -313,57 +314,7 @@ include FRONTEND_PATH . 'components/header.php';
                                                     </div>
                                                 </div>
 
-                                                <!-- Inventory -->
-                                                <div class="module-perm-row mb-2" data-module="inventory">
-                                                    <div class="custom-control custom-checkbox d-inline-block">
-                                                        <input type="checkbox" class="custom-control-input module-checkbox" id="mod_inventory" value="inventory">
-                                                        <label class="custom-control-label font-weight-bold text-gray-800" for="mod_inventory">
-                                                            <i class="fas fa-boxes text-primary mr-1"></i> Inventory
-                                                        </label>
-                                                    </div>
-                                                    <div class="perm-checkboxes ml-4 mt-1" id="perm_inventory" style="display:none;">
-                                                        <div class="d-flex flex-wrap" style="gap: 8px;">
-                                                            <div class="custom-control custom-checkbox custom-control-inline">
-                                                                <input type="checkbox" class="custom-control-input perm-cb" id="perm_inventory_view" data-module="inventory" data-perm="view">
-                                                                <label class="custom-control-label text-muted" for="perm_inventory_view" style="font-size:0.75rem;"><i class="fas fa-eye mr-1"></i>View</label>
-                                                            </div>
-                                                            <div class="custom-control custom-checkbox custom-control-inline">
-                                                                <input type="checkbox" class="custom-control-input perm-cb" id="perm_inventory_add" data-module="inventory" data-perm="add">
-                                                                <label class="custom-control-label text-muted" for="perm_inventory_add" style="font-size:0.75rem;"><i class="fas fa-plus mr-1"></i>Add/Edit</label>
-                                                            </div>
-                                                            <div class="custom-control custom-checkbox custom-control-inline">
-                                                                <input type="checkbox" class="custom-control-input perm-cb" id="perm_inventory_delete" data-module="inventory" data-perm="delete">
-                                                                <label class="custom-control-label text-muted" for="perm_inventory_delete" style="font-size:0.75rem;"><i class="fas fa-trash mr-1"></i>Delete</label>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
 
-                                                <!-- Location -->
-                                                <div class="module-perm-row mb-2" data-module="location">
-                                                    <div class="custom-control custom-checkbox d-inline-block">
-                                                        <input type="checkbox" class="custom-control-input module-checkbox" id="mod_location" value="location">
-                                                        <label class="custom-control-label font-weight-bold text-gray-800" for="mod_location">
-                                                            <i class="fas fa-map-marker-alt text-primary mr-1"></i> Location
-                                                        </label>
-                                                    </div>
-                                                    <div class="perm-checkboxes ml-4 mt-1" id="perm_location" style="display:none;">
-                                                        <div class="d-flex flex-wrap" style="gap: 8px;">
-                                                            <div class="custom-control custom-checkbox custom-control-inline">
-                                                                <input type="checkbox" class="custom-control-input perm-cb" id="perm_location_view" data-module="location" data-perm="view">
-                                                                <label class="custom-control-label text-muted" for="perm_location_view" style="font-size:0.75rem;"><i class="fas fa-eye mr-1"></i>View</label>
-                                                            </div>
-                                                            <div class="custom-control custom-checkbox custom-control-inline">
-                                                                <input type="checkbox" class="custom-control-input perm-cb" id="perm_location_add" data-module="location" data-perm="add">
-                                                                <label class="custom-control-label text-muted" for="perm_location_add" style="font-size:0.75rem;"><i class="fas fa-plus mr-1"></i>Add/Edit</label>
-                                                            </div>
-                                                            <div class="custom-control custom-checkbox custom-control-inline">
-                                                                <input type="checkbox" class="custom-control-input perm-cb" id="perm_location_delete" data-module="location" data-perm="delete">
-                                                                <label class="custom-control-label text-muted" for="perm_location_delete" style="font-size:0.75rem;"><i class="fas fa-trash mr-1"></i>Delete</label>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
 
                                                 <hr class="my-2">
                                                 <!-- Report Section -->
@@ -420,6 +371,34 @@ include FRONTEND_PATH . 'components/header.php';
                                                         </div>
                                                     </div>
                                                 </div>
+
+                                                <hr class="my-2">
+                                                <!-- Repository Section -->
+                                                <p class="small text-muted mb-2 font-weight-bold" style="line-height:1.3;"><i class="fas fa-folder-open mr-1"></i>Repository:</p>
+                                                <div class="module-perm-row mb-2" data-module="repository_management">
+                                                    <div class="custom-control custom-checkbox d-inline-block">
+                                                        <input type="checkbox" class="custom-control-input module-checkbox" id="mod_repository_management" value="repository_management">
+                                                        <label class="custom-control-label font-weight-bold text-gray-800" for="mod_repository_management">
+                                                            <i class="fas fa-folder-open text-primary mr-1"></i> Repository Documents (WI)
+                                                        </label>
+                                                    </div>
+                                                    <div class="perm-checkboxes ml-4 mt-1" id="perm_repository_management" style="display:none;">
+                                                        <div class="d-flex flex-wrap" style="gap: 8px;">
+                                                            <div class="custom-control custom-checkbox custom-control-inline">
+                                                                <input type="checkbox" class="custom-control-input perm-cb" id="perm_repository_management_view" data-module="repository_management" data-perm="view">
+                                                                <label class="custom-control-label text-muted" for="perm_repository_management_view" style="font-size:0.75rem;"><i class="fas fa-eye mr-1"></i>View</label>
+                                                            </div>
+                                                            <div class="custom-control custom-checkbox custom-control-inline">
+                                                                <input type="checkbox" class="custom-control-input perm-cb" id="perm_repository_management_add" data-module="repository_management" data-perm="add">
+                                                                <label class="custom-control-label text-muted" for="perm_repository_management_add" style="font-size:0.75rem;"><i class="fas fa-plus mr-1"></i>Add/Edit</label>
+                                                            </div>
+                                                            <div class="custom-control custom-checkbox custom-control-inline">
+                                                                <input type="checkbox" class="custom-control-input perm-cb" id="perm_repository_management_delete" data-module="repository_management" data-perm="delete">
+                                                                <label class="custom-control-label text-muted" for="perm_repository_management_delete" style="font-size:0.75rem;"><i class="fas fa-trash mr-1"></i>Delete</label>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -443,7 +422,7 @@ include FRONTEND_PATH . 'components/header.php';
         var currentUsersList = [];
 
         // List of all modules that have permission checkboxes
-        var permModules = ['dashboard', 'inbound', 'warehouse', 'outbound', 'master_data', 'inventory', 'location', 'reports', 'analytics', 'kpi_monitoring'];
+        var permModules = ['dashboard', 'inbound', 'warehouse', 'outbound', 'master_data', 'reports', 'analytics', 'kpi_monitoring', 'repository_management'];
 
         function setModuleCheckbox(id, isChecked, isDisabled) {
             var cb = document.getElementById(id);
@@ -480,7 +459,7 @@ include FRONTEND_PATH . 'components/header.php';
             // Reset all module checkboxes to unchecked and enabled (superadmin decides everything)
             var allModuleIds = ['mod_dashboard', 'mod_inbound', 'mod_warehouse', 'mod_outbound',
                 'mod_master_data', 'mod_master_data_inbound', 'mod_master_data_storage', 'mod_master_data_outbound',
-                'mod_inventory', 'mod_location', 'mod_reports', 'mod_analytics', 'mod_kpi_monitoring'];
+                'mod_reports', 'mod_analytics', 'mod_kpi_monitoring', 'mod_repository_management'];
             allModuleIds.forEach(function(id) {
                 setModuleCheckbox(id, false, false);
             });
@@ -492,6 +471,12 @@ include FRONTEND_PATH . 'components/header.php';
             });
 
             toggleMasterDataSub(false);
+
+            if (val === 'repository_admin') {
+                setModuleCheckbox('mod_repository_management', true, false);
+                togglePermCheckboxes('repository_management', true);
+                setPermCheckboxes('repository_management', true, true, true, false);
+            }
 
             // Sync optional module permission visibility
             syncOptionalModulePerms();
@@ -617,6 +602,8 @@ include FRONTEND_PATH . 'components/header.php';
                     roleBadge = '<span class="badge badge-warning text-white px-2 py-1"><i class="fas fa-user mr-1"></i>Outbound Administrator</span>';
                 } else if (u.role === 'warehouse_admin') {
                     roleBadge = '<span class="badge badge-info px-2 py-1"><i class="fas fa-user mr-1"></i>Storage Administrator</span>';
+                } else if (u.role === 'repository_admin') {
+                    roleBadge = '<span class="badge text-white px-2 py-1" style="background-color: #20c997;"><i class="fas fa-folder-open mr-1"></i>Repository Administrator</span>';
                 } else if (u.role === 'outsourcing') {
                     roleBadge = '<span class="badge px-2 py-1" style="background-color: #e67e22; color: #fff;"><i class="fas fa-user-tie mr-1"></i>Outsourcing</span>';
                 } else {
@@ -654,17 +641,15 @@ include FRONTEND_PATH . 'components/header.php';
                         var subLabel = mdSubs.length > 0 ? ' (' + mdSubs.join(', ') + ')' : '';
                         modulesBadges += '<span class="badge badge-dark mr-1 mb-1"><i class="fas fa-database mr-1"></i>MASTER DATA' + subLabel + ' ' + buildPermBadges(perms, 'master_data', 'Master Data') + '</span>';
                     }
-                    if (mods.includes('inventory')) {
-                        modulesBadges += '<span class="badge badge-primary mr-1 mb-1"><i class="fas fa-boxes mr-1"></i>INVENTORY ' + buildPermBadges(perms, 'inventory', 'Inventory') + '</span>';
-                    }
-                    if (mods.includes('location')) {
-                        modulesBadges += '<span class="badge badge-info mr-1 mb-1"><i class="fas fa-map-marker-alt mr-1"></i>LOCATION ' + buildPermBadges(perms, 'location', 'Location') + '</span>';
-                    }
+
                     if (mods.includes('reports')) {
                         modulesBadges += '<span class="badge badge-info mr-1 mb-1"><i class="fas fa-file-alt mr-1"></i>REPORTS ' + buildPermBadges(perms, 'reports', 'Reports') + '</span>';
                     }
                     if (mods.includes('analytics')) {
                         modulesBadges += '<span class="badge badge-info mr-1 mb-1"><i class="fas fa-chart-line mr-1"></i>ANALYTICS ' + buildPermBadges(perms, 'analytics', 'Analytics') + '</span>';
+                    }
+                    if (mods.includes('repository_management')) {
+                        modulesBadges += '<span class="badge text-white mr-1 mb-1" style="background-color:#20c997;"><i class="fas fa-folder-open mr-1"></i>REPOSITORY (WI) ' + buildPermBadges(perms, 'repository_management', 'Repository') + '</span>';
                     }
                     if (!modulesBadges) {
                         modulesBadges = '<span class="text-muted font-italic" style="font-size:0.75rem;">Tidak ada modul</span>';
@@ -733,11 +718,11 @@ include FRONTEND_PATH . 'components/header.php';
             document.getElementById('mod_inbound').checked = mods.includes('inbound');
             document.getElementById('mod_warehouse').checked = mods.includes('warehouse');
             document.getElementById('mod_outbound').checked = mods.includes('outbound');
-            document.getElementById('mod_inventory').checked = mods.includes('inventory');
-            document.getElementById('mod_location').checked = mods.includes('location');
+
             document.getElementById('mod_reports').checked = mods.includes('reports');
             document.getElementById('mod_analytics').checked = mods.includes('analytics');
             document.getElementById('mod_kpi_monitoring').checked = mods.includes('kpi_monitoring');
+            document.getElementById('mod_repository_management').checked = mods.includes('repository_management');
             document.getElementById('mod_master_data').checked = mods.includes('master_data');
             document.getElementById('mod_master_data_inbound').checked = mods.includes('master_data_inbound');
             document.getElementById('mod_master_data_storage').checked = mods.includes('master_data_storage');

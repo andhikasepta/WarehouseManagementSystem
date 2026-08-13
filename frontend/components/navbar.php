@@ -44,6 +44,8 @@ elseif ($navUser['role'] === 'warehouse_admin')
     $navRoleTitle = 'Storage Administrator';
 elseif ($navUser['role'] === 'outsourcing')
     $navRoleTitle = 'Outsourcing';
+elseif ($navUser['role'] === 'repository_admin')
+    $navRoleTitle = 'Repository Administrator';
 
 // Fetch active announcement server-side for zero-latency instant navbar rendering
 if (!isset($pdo)) {
@@ -1414,13 +1416,14 @@ if (isset($pdo)) {
             $hasKpiMonitoringAccess = !$isSuperAdminNav && in_array('kpi_monitoring', $allowedNavModules);
             $hasMainMenuSection = $hasInboundAccess || $hasWarehouseAccess || $hasOutboundAccess || $hasKpiMonitoringAccess;
             $hasMasterDataAccess = !$isSuperAdminNav && in_array('master_data', $allowedNavModules);
-            $hasInventoryAccess = !$isSuperAdminNav && in_array('inventory', $allowedNavModules);
-            $hasLocationAccess = !$isSuperAdminNav && in_array('location', $allowedNavModules);
-            $hasDataSettingsSection = $hasMasterDataAccess || $hasInventoryAccess || $hasLocationAccess;
+            $hasDataSettingsSection = $hasMasterDataAccess;
             $hasReportsAccess = !$isSuperAdminNav && in_array('reports', $allowedNavModules);
             $hasAnalyticsAccess = !$isSuperAdminNav && in_array('analytics', $allowedNavModules);
             $hasReportSection = $hasReportsAccess || $hasAnalyticsAccess;
             $hasUserMgmtAccess = $isSuperAdminNav;
+            $hasAnnouncementsAccess = $isSuperAdminNav || in_array('announcements', $allowedNavModules);
+            $hasRepositoryManagementAccess = $isSuperAdminNav || ($navRole === 'repository_admin') || in_array('repository_management', $allowedNavModules);
+            $hasSystemSection = $hasUserMgmtAccess || $hasAnnouncementsAccess || $hasRepositoryManagementAccess;
             ?>
 
             <!-- Overview Section -->
@@ -1502,22 +1505,6 @@ if (isset($pdo)) {
                         </a>
                     </li>
                 <?php endif; ?>
-                <?php if ($hasInventoryAccess): ?>
-                    <li class="nav-item <?php echo ($activePage == 'inventory') ? 'active' : ''; ?>">
-                        <a class="nav-link" href="inventory.php">
-                            <i class="fas fa-boxes fa-fw"></i>
-                            <span>Inventory</span>
-                        </a>
-                    </li>
-                <?php endif; ?>
-                <?php if ($hasLocationAccess): ?>
-                    <li class="nav-item <?php echo ($activePage == 'location') ? 'active' : ''; ?>">
-                        <a class="nav-link" href="location.php">
-                            <i class="fas fa-map-marker-alt fa-fw"></i>
-                            <span>Location</span>
-                        </a>
-                    </li>
-                <?php endif; ?>
             <?php endif; ?>
 
             <!-- Report Section -->
@@ -1542,26 +1529,32 @@ if (isset($pdo)) {
             <?php endif; ?>
 
             <!-- System Section -->
-            <?php if ($hasUserMgmtAccess): ?>
+            <?php if ($hasSystemSection): ?>
                 <div class="sidebar-heading mt-2">System</div>
-                <li class="nav-item <?php echo ($activePage == 'user_management') ? 'active' : ''; ?>">
-                    <a class="nav-link" href="user_management.php">
-                        <i class="fas fa-users-cog fa-fw"></i>
-                        <span>User Management</span>
-                    </a>
-                </li>
-                <li class="nav-item <?php echo ($activePage == 'announcements') ? 'active' : ''; ?>">
-                    <a class="nav-link" href="announcements.php">
-                        <i class="fas fa-bullhorn fa-fw"></i>
-                        <span>Pengumuman</span>
-                    </a>
-                </li>
-                <li class="nav-item <?php echo ($activePage == 'repository_management') ? 'active' : ''; ?>">
-                    <a class="nav-link" href="repository_management.php">
-                        <i class="fas fa-folder-open fa-fw"></i>
-                        <span>Repository</span>
-                    </a>
-                </li>
+                <?php if ($hasUserMgmtAccess): ?>
+                    <li class="nav-item <?php echo ($activePage == 'user_management') ? 'active' : ''; ?>">
+                        <a class="nav-link" href="user_management.php">
+                            <i class="fas fa-users-cog fa-fw"></i>
+                            <span>User Management</span>
+                        </a>
+                    </li>
+                <?php endif; ?>
+                <?php if ($hasAnnouncementsAccess): ?>
+                    <li class="nav-item <?php echo ($activePage == 'announcements') ? 'active' : ''; ?>">
+                        <a class="nav-link" href="announcements.php">
+                            <i class="fas fa-bullhorn fa-fw"></i>
+                            <span>Pengumuman</span>
+                        </a>
+                    </li>
+                <?php endif; ?>
+                <?php if ($hasRepositoryManagementAccess): ?>
+                    <li class="nav-item <?php echo ($activePage == 'repository_management') ? 'active' : ''; ?>">
+                        <a class="nav-link" href="repository_management.php">
+                            <i class="fas fa-folder-open fa-fw"></i>
+                            <span>Repository</span>
+                        </a>
+                    </li>
+                <?php endif; ?>
             <?php endif; ?>
         </ul>
 

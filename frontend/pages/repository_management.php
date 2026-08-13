@@ -1,14 +1,21 @@
 <?php
-// frontend/pages/repository_management.php - Super Admin Management for Repository Documents & Work Instructions (WI)
+// frontend/pages/repository_management.php - Management for Repository Documents & Work Instructions (WI)
 require_once __DIR__ . '/../../backend/auth.php';
 
-checkModuleAccess('user_management'); // Enforce login & superadmin access
+checkModuleAccess('repository_management');
 $user = getCurrentUser();
+$isSuperAdmin = ($user['role'] === 'superadmin');
+$isRepoAdmin = ($user['role'] === 'repository_admin');
+$allowedModules = is_array($user['allowed_modules'] ?? null) ? $user['allowed_modules'] : [];
+$hasRepoAccess = $isSuperAdmin || $isRepoAdmin || in_array('repository_management', $allowedModules);
 
-if ($user['role'] !== 'superadmin') {
-    renderAccessDeniedPage('user_management', $user, 'Akun Anda tidak diberikan izin akses ke modul ini.');
+if (!$hasRepoAccess) {
+    renderAccessDeniedPage('repository_management', $user, 'Akun Anda tidak diberikan izin akses ke modul ini.');
     exit;
 }
+
+$canUploadDoc = $isSuperAdmin || canAdd('repository_management');
+$canDeleteDoc = $isSuperAdmin || canDelete('repository_management');
 
 $pageTitle = 'WMS - Repository Documents Management';
 include FRONTEND_PATH . 'components/header.php';
@@ -34,9 +41,11 @@ include FRONTEND_PATH . 'components/header.php';
                             </h1>
                             <p class="text-muted small mb-0">Format Dokumen : PDF (Maks. 25MB)</p>
                         </div>
+                        <?php if ($canUploadDoc): ?>
                         <button class="btn btn-primary shadow-sm mt-3 mt-sm-0 font-weight-bold" id="btn-add-document" data-toggle="modal" data-target="#uploadDocModal">
                             <i class="fas fa-file-upload fa-sm text-white-50 mr-1"></i> Upload Dokumen PDF
                         </button>
+                        <?php endif; ?>
                     </div>
 
                     <!-- Statistics / Summary Cards -->
@@ -243,18 +252,13 @@ include FRONTEND_PATH . 'components/header.php';
 
             <!-- Footer -->
             <?php include FRONTEND_PATH . 'components/footer.php'; ?>
-        </div>
-    </div>
 
-    <!-- Scripts -->
-    <script src="frontend/vendor/jquery/jquery.min.js"></script>
-    <script src="frontend/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
-    <script src="frontend/vendor/jquery-easing/jquery.easing.min.js"></script>
-    <script src="frontend/js/sb-admin-2.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
     (function () {
+        const CAN_UPLOAD_DOC = <?php echo ($canUploadDoc) ? 'true' : 'false'; ?>;
+        const CAN_DELETE_DOC = <?php echo ($canDeleteDoc) ? 'true' : 'false'; ?>;
         let loadedDocuments = [];
         let searchKeyword = '';
         let targetDeleteId = null;
@@ -337,6 +341,16 @@ include FRONTEND_PATH . 'components/header.php';
                     badgeHtml = '<span class="badge badge-info px-2 py-1"><i class="fas fa-project-diagram mr-1"></i>Procedure Document</span>';
                 }
 
+                let editBtnHtml = CAN_UPLOAD_DOC ? `
+                    <button type="button" class="btn btn-outline-info btn-edit-doc" data-id="${doc.id}" title="Edit Nama / Segment / File">
+                        <i class="fas fa-pencil-alt"></i>
+                    </button>` : '';
+
+                let deleteBtnHtml = CAN_DELETE_DOC ? `
+                    <button type="button" class="btn btn-outline-danger btn-delete-doc" data-id="${doc.id}" data-title="${escapeHtml(displayName)}" title="Hapus Dokumen">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>` : '';
+
                 let rowHtml = `
                     <tr>
                         <td class="text-center align-middle font-weight-bold text-gray-600">${index + 1}</td>
@@ -373,12 +387,8 @@ include FRONTEND_PATH . 'components/header.php';
                                 <a href="api/manage_repository.php?action=download&id=${doc.id}" class="btn btn-outline-success" title="Download PDF">
                                     <i class="fas fa-download"></i>
                                 </a>
-                                <button type="button" class="btn btn-outline-info btn-edit-doc" data-id="${doc.id}" title="Edit Nama / Segment / File">
-                                    <i class="fas fa-pencil-alt"></i>
-                                </button>
-                                <button type="button" class="btn btn-outline-danger btn-delete-doc" data-id="${doc.id}" data-title="${escapeHtml(displayName)}" title="Hapus Dokumen">
-                                    <i class="fas fa-trash-alt"></i>
-                                </button>
+                                ${editBtnHtml}
+                                ${deleteBtnHtml}
                             </div>
                         </td>
                     </tr>

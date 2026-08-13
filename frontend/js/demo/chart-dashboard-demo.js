@@ -538,5 +538,171 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
   applyStorageUtilColor();
+
+  // 6. Initialize KPI Monitoring Line Chart (12 Months Line Chart with Matriks Evaluasi 9 KPI Click Details)
+  var ctxKpiLine = document.getElementById("dashKpiMonitoringLineChart");
+  if (ctxKpiLine) {
+    var kpiMonthLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+    var targetMonthly = [95.0, 95.0, 95.0, 95.0, 95.0, 95.0, 95.0, 95.0, 95.0, 95.0, 95.0, 95.0];
+    var initial12Months = [96.8, null, null, null, null, null, null, null, null, null, null, null];
+
+    window.dashKpiMonitoringLineChart = new Chart(ctxKpiLine, {
+      type: 'line',
+      data: {
+        labels: kpiMonthLabels,
+        datasets: [
+          {
+            label: 'Target',
+            data: targetMonthly,
+            borderColor: '#4e73df',
+            backgroundColor: 'rgba(78, 115, 223, 0.04)',
+            borderDash: [6, 4],
+            pointBackgroundColor: '#4e73df',
+            pointBorderColor: '#ffffff',
+            pointBorderWidth: 2,
+            pointRadius: 4.5,
+            pointHoverRadius: 6.5,
+            borderWidth: 2.2,
+            fill: false,
+            lineTension: 0.2
+          },
+          {
+            label: 'Realisasi',
+            data: initial12Months.slice(),
+            borderColor: '#1cc88a',
+            backgroundColor: 'rgba(28, 200, 138, 0.08)',
+            pointBackgroundColor: '#1cc88a',
+            pointBorderColor: '#ffffff',
+            pointBorderWidth: 2,
+            pointRadius: 5.5,
+            pointHoverRadius: 7.5,
+            borderWidth: 3,
+            fill: false,
+            lineTension: 0.2
+          }
+        ]
+      },
+      options: {
+        maintainAspectRatio: false,
+        layout: {
+          padding: { left: 4, right: 12, top: 10, bottom: 0 }
+        },
+        scales: {
+          xAxes: [{
+            gridLines: { display: true, color: '#f8f9fc', zeroLineColor: '#eaecf4' },
+            ticks: {
+              fontSize: 11,
+              fontColor: '#4a5568',
+              fontStyle: 'bold',
+              padding: 8
+            }
+          }],
+          yAxes: [{
+            gridLines: { color: '#eaecf4', zeroLineColor: '#eaecf4', drawBorder: false, borderDash: [2] },
+            ticks: {
+              fontSize: 10,
+              fontColor: '#858796',
+              padding: 6,
+              beginAtZero: true,
+              suggestedMax: 105,
+              maxTicksLimit: 6,
+              callback: function (value) {
+                return value + '%';
+              }
+            }
+          }]
+        },
+        legend: {
+          display: true,
+          position: 'bottom',
+          onClick: function(e, legendItem) {
+            var index = legendItem.datasetIndex;
+            var ci = this.chart;
+            var meta = ci.getDatasetMeta(index);
+            meta.hidden = meta.hidden === null ? !ci.data.datasets[index].hidden : null;
+            ci.update();
+          },
+          labels: {
+            boxWidth: 14,
+            fontSize: 11.5,
+            fontColor: '#2d3748',
+            fontStyle: 'bold',
+            padding: 16,
+            usePointStyle: true
+          }
+        },
+        tooltips: {
+          backgroundColor: 'rgba(255,255,255,0.96)',
+          bodyFontColor: '#4a5568',
+          titleFontColor: '#2d3748',
+          titleFontSize: 11.5,
+          bodyFontSize: 11,
+          borderColor: '#e2e8f0',
+          borderWidth: 1,
+          xPadding: 12,
+          yPadding: 10,
+          displayColors: true,
+          boxWidth: 8,
+          boxHeight: 8,
+          callbacks: {
+            label: function (tooltipItem, data) {
+              var datasetLabel = data.datasets[tooltipItem.datasetIndex].label || '';
+              var val = tooltipItem.yLabel;
+              if (val === null || val === undefined || isNaN(val)) {
+                return datasetLabel + ': - (Klik untuk detail Matriks)';
+              }
+              return datasetLabel + ': ' + val + '% (Klik untuk detail)';
+            }
+          }
+        }
+      }
+    });
+
+    // Make chart interactive on hover & click
+    ctxKpiLine.style.cursor = 'pointer';
+    ctxKpiLine.addEventListener('click', function(evt) {
+      var chart = window.dashKpiMonitoringLineChart;
+      if (!chart) return;
+
+      var rect = ctxKpiLine.getBoundingClientRect();
+      var clickY = evt.clientY - rect.top;
+
+      // Prevent clicks on the bottom Target and Realisasi legend labels from triggering modal
+      if (chart.legend && chart.legend.top !== undefined && clickY >= chart.legend.top - 5) {
+        return;
+      }
+      if (chart.chartArea && clickY > chart.chartArea.bottom + 25) {
+        return;
+      }
+
+      var activePoints = chart.getElementsAtEvent(evt);
+      if (activePoints && activePoints.length > 0) {
+        var clickedIdx = activePoints[0]._index;
+        if (clickedIdx !== undefined && clickedIdx >= 0 && typeof window.openKpiMonthDetailModal === 'function') {
+          window.openKpiMonthDetailModal(clickedIdx);
+          return;
+        }
+      }
+      
+      // Fallback calculation by click X position on the chart area / month ticks
+      if (window.FormulaController && typeof window.FormulaController.getClickedChartIndex === 'function') {
+        var idx = window.FormulaController.getClickedChartIndex(chart, evt);
+        if (idx >= 0 && typeof window.openKpiMonthDetailModal === 'function') {
+          window.openKpiMonthDetailModal(idx);
+        }
+      }
+    });
+
+    window.updateDashKpiMonitoringChart = function (realisasiMonthlyData) {
+      if (!window.dashKpiMonitoringLineChart) return;
+      if (Array.isArray(realisasiMonthlyData)) {
+        window.dashKpiMonitoringLineChart.data.datasets[1].data = realisasiMonthlyData;
+      } else {
+        window.dashKpiMonitoringLineChart.data.datasets[1].data = [null, null, null, null, null, null, null, null, null, null, null, null];
+      }
+      window.dashKpiMonitoringLineChart.update();
+    };
+  }
+
   syncStorageFlowLabels();
 });

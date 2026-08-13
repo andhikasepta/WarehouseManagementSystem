@@ -1,5 +1,14 @@
 <?php
 require_once __DIR__ . '/../../backend/config/database.php';
+
+if (!function_exists('assetUrl')) {
+    function assetUrl($path)
+    {
+        $fullPath = __DIR__ . '/../../' . ltrim($path, '/');
+        $version = file_exists($fullPath) ? filemtime($fullPath) : time();
+        return $path . '?v=' . $version;
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -14,24 +23,30 @@ require_once __DIR__ . '/../../backend/config/database.php';
 
     <title>WMS - PT. Aplikanusa Lintasarta</title>
 
-    <link rel="icon" href="frontend/img/LogoLintas.png">
+    <link rel="icon" href="<?php echo assetUrl('frontend/img/LogoLintas.png'); ?>">
     <link href="frontend/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap"
+        rel="stylesheet">
     <link href="frontend/css/sb-admin-2.min.css" rel="stylesheet">
 
     <style>
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
         body {
             font-family: 'Outfit', 'Nunito', sans-serif;
             background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
-            min-height: 100vh;
-            min-height: 100dvh;
+            height: 100vh;
+            height: 100dvh;
             display: flex;
             flex-direction: column;
             color: #f8fafc;
-            margin: 0;
-            padding: 0;
-            overflow-x: hidden;
-            overflow-y: auto;
             position: relative;
         }
 
@@ -60,29 +75,33 @@ require_once __DIR__ . '/../../backend/config/database.php';
         }
 
         .main-container {
-            flex: 1;
-            flex-grow: 1;
+            height: 100vh;
+            height: 100dvh;
+            max-height: 100vh;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
             position: relative;
             z-index: 1;
-            min-height: 100vh;
-            min-height: 100dvh;
+            padding-top: 12px;
+            padding-bottom: 6px;
         }
 
         .brand-header {
-            padding-top: 30px;
-            padding-bottom: 10px;
+            padding-top: 10px;
+            padding-bottom: 2px;
         }
 
         .brand-logo {
-            max-width: 180px;
+            width: 185px;
+            max-width: 100%;
+            height: auto;
+            object-fit: contain;
             filter: brightness(0) invert(1);
         }
 
         .hero-title {
-            font-size: 2.2rem;
+            font-size: 1.85rem;
             font-weight: 800;
             letter-spacing: -0.5px;
             color: #ffffff;
@@ -90,7 +109,7 @@ require_once __DIR__ . '/../../backend/config/database.php';
 
         .hero-subtitle {
             color: #94a3b8;
-            font-size: 1.1rem;
+            font-size: 0.95rem;
             max-width: 600px;
             margin: 0 auto;
         }
@@ -98,7 +117,7 @@ require_once __DIR__ . '/../../backend/config/database.php';
         .portal-card-link {
             display: block;
             width: 100%;
-            max-width: 310px;
+            max-width: 295px;
             margin: 0 auto;
             text-decoration: none !important;
             border-radius: 14px;
@@ -127,51 +146,77 @@ require_once __DIR__ . '/../../backend/config/database.php';
         }
 
         .portal-card-body {
-            padding: 10px 14px 14px 14px;
+            padding: 9px 14px 12px 14px;
             text-align: left;
         }
 
         .portal-card-title {
             color: #ffffff;
-            font-size: 1rem;
+            font-size: 0.95rem;
             font-weight: 700;
             margin-bottom: 2px;
         }
 
         .portal-card-desc {
             color: #94a3b8;
-            font-size: 0.8rem;
-            line-height: 1.4;
+            font-size: 0.78rem;
+            line-height: 1.35;
             margin-bottom: 0;
         }
 
         .footer-text {
             color: #64748b;
-            font-size: 0.9rem;
-            padding: 24px 0;
+            font-size: 0.8rem;
+            padding: 8px 0;
             margin-top: auto;
+            width: 100%;
         }
 
         @media (max-width: 768px) {
+
+            html,
+            body {
+                height: auto;
+                min-height: 100%;
+                overflow-x: hidden;
+                overflow-y: auto;
+            }
+
+            .main-container {
+                height: auto;
+                max-height: none;
+                min-height: 100vh;
+                min-height: 100dvh;
+                padding-top: 10px;
+                padding-bottom: 10px;
+            }
+
             .brand-header {
-                padding-top: 20px;
+                padding-top: 15px;
                 padding-bottom: 5px;
             }
+
             .brand-logo {
-                max-width: 140px;
+                width: 150px;
+                max-width: 100%;
+                height: auto;
             }
+
             .hero-title {
-                font-size: 1.5rem;
+                font-size: 1.4rem;
             }
+
             .hero-subtitle {
-                font-size: 0.9rem;
+                font-size: 0.85rem;
             }
+
             .portal-card-link {
                 max-width: 100%;
             }
+
             .footer-text {
                 font-size: 0.75rem;
-                padding: 16px 0;
+                padding: 12px 0;
             }
         }
     </style>
@@ -183,20 +228,22 @@ require_once __DIR__ . '/../../backend/config/database.php';
     <div class="bg-shape-1"></div>
     <div class="bg-shape-2"></div>
 
-    <div class="container main-container h-100">
+    <div class="container main-container">
         <!-- Header Text on Top -->
-        <div class="brand-header text-center my-2">
-            <img src="frontend/img/Lintasarta.png" alt="Lintasarta Logo" class="brand-logo mb-3">
-            <h1 class="hero-title mb-2">Internal Portal System</h1>
-            <p class="hero-subtitle">Asset And Warehouse Management</p>
+        <div class="brand-header text-center my-1">
+            <img src="<?php echo assetUrl('frontend/img/Lintasarta.png'); ?>" alt="Lintasarta Logo"
+                class="brand-logo mb-2">
+            <h1 class="hero-title mb-1">Internal Portal System</h1>
+            <p class="hero-subtitle mb-0">Asset And Warehouse Management</p>
         </div>
 
         <!-- Cards Row: Glassmorphism Card Container with Closer Padding -->
-        <div class="row justify-content-center align-items-stretch my-auto py-3 px-md-4">
+        <div class="row justify-content-center align-items-stretch my-auto py-2 px-md-3">
             <!-- Card 1: AWan System -->
-            <div class="col-md-4 col-lg-4 mb-4 text-center px-md-2 px-lg-2">
+            <div class="col-md-4 col-lg-4 mb-3 mb-md-0 text-center px-md-2 px-lg-2">
                 <a href="https://centrals.lintasarta.net/assets/" class="portal-card-link h-100 d-flex flex-column">
-                    <img src="frontend/img/AWan.png" alt="AWan System" class="portal-card-img">
+                    <img src="<?php echo assetUrl('frontend/img/AWan.png'); ?>" alt="AWan System"
+                        class="portal-card-img">
                     <div class="portal-card-body flex-grow-1 d-flex flex-column justify-content-between">
                         <div>
                             <div class="portal-card-title">AWan</div>
@@ -207,9 +254,10 @@ require_once __DIR__ . '/../../backend/config/database.php';
             </div>
 
             <!-- Card 2: WMS System -->
-            <div class="col-md-4 col-lg-4 mb-4 text-center px-md-2 px-lg-2">
+            <div class="col-md-4 col-lg-4 mb-3 mb-md-0 text-center px-md-2 px-lg-2">
                 <a href="wms_select.php" class="portal-card-link h-100 d-flex flex-column">
-                    <img src="frontend/img/WMS.png" alt="Warehouse Management System" class="portal-card-img">
+                    <img src="<?php echo assetUrl('frontend/img/WMS.png'); ?>" alt="Warehouse Management System"
+                        class="portal-card-img">
                     <div class="portal-card-body flex-grow-1 d-flex flex-column justify-content-between">
                         <div>
                             <div class="portal-card-title">Warehouse Management System</div>
@@ -219,14 +267,16 @@ require_once __DIR__ . '/../../backend/config/database.php';
                 </a>
             </div>
 
-            <!-- Card 3: Warehouse Repository -->
-            <div class="col-md-4 col-lg-4 mb-4 text-center px-md-2 px-lg-2">
+            <!-- Card 3: CentraDocs / Warehouse Repository -->
+            <div class="col-md-4 col-lg-4 mb-3 mb-md-0 text-center px-md-2 px-lg-2">
                 <a href="repository.php" class="portal-card-link h-100 d-flex flex-column">
-                    <img src="frontend/img/Repository.png" alt="Warehouse Repository" class="portal-card-img" style="background: rgba(255, 255, 255, 0.05); min-height: 140px;">
+                    <img src="<?php echo assetUrl('frontend/img/centradocs.png'); ?>" alt="CentraDocs"
+                        class="portal-card-img">
                     <div class="portal-card-body flex-grow-1 d-flex flex-column justify-content-between">
                         <div>
                             <div class="portal-card-title">Sentralisasi Dokumen AWM</div>
-                            <p class="portal-card-desc">Repository panduan &amp; work instruction (WI).</p>
+                            <p class="portal-card-desc">Repository dokumen AWM, panduan, &amp; work instruction (WI) .
+                            </p>
                         </div>
                     </div>
                 </a>
@@ -235,7 +285,11 @@ require_once __DIR__ . '/../../backend/config/database.php';
 
         <!-- Footer -->
         <div class="footer-text text-center">
-            <p class="mb-0"><?php echo htmlspecialchars(function_exists('getSystemAppVersion') ? getSystemAppVersion($pdo ?? null) : 'Beta-v1.0.0'); ?> &copy; PT. Aplikanusa Lintasarta</p>
+            <p class="mb-0">
+
+                <?php echo htmlspecialchars(function_exists('getSystemAppVersion') ? getSystemAppVersion($pdo ?? null) : 'Beta-v1.0.0'); ?>
+                &copy; PT. Aplikanusa Lintasarta
+            </p>
         </div>
     </div>
 
