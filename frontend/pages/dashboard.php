@@ -564,19 +564,19 @@ include FRONTEND_PATH . 'components/header.php';
                                             <div class="col-xl-7 col-lg-7 col-md-12 mb-3 mb-lg-0 pr-xl-3">
                                                 <div class="d-flex align-items-center justify-content-between text-center flex-nowrap w-100"
                                                     id="outbound-steps-container">
-                                                    <!-- Step 1: MR Pending -->
+                                                    <!-- Step 1: Total MR -->
                                                     <div class="flow-step text-center flex-fill px-1 py-1 outbound-summary-clickable"
-                                                        onclick="openOutboundSummaryModal('mr_pending')"
-                                                        style="cursor: pointer;" title="Klik untuk detail MR Pending">
+                                                        onclick="openOutboundSummaryModal('total_mr')"
+                                                        style="cursor: pointer;" title="Klik untuk detail Total MR">
                                                         <div class="rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center shadow-sm"
                                                             style="width: 36px; height: 36px; background-color: #eef2ff;">
                                                             <i class="fas fa-file-alt text-primary"
                                                                 style="font-size: 0.95rem;"></i>
                                                         </div>
                                                         <div class="font-weight-bold text-gray-700 text-nowrap mt-3 mb-1"
-                                                            style="font-size: 0.62rem;">MR Pending</div>
+                                                            style="font-size: 0.62rem;">Total MR</div>
                                                         <div class="font-weight-bold text-primary"
-                                                            style="font-size: 0.82rem;" id="outbound-total-mr">0 Order
+                                                            style="font-size: 0.82rem;" id="outbound-total-mr">0 MR
                                                         </div>
                                                     </div>
 
@@ -646,28 +646,18 @@ include FRONTEND_PATH . 'components/header.php';
                                                 </div>
                                             </div>
 
-                                            <!-- KPI Cards Column (Right Side: TOTAL ORDER, MR CLOSED, Fulfill, Packing, Shipped) -->
+                                            <!-- KPI Cards Column (Right Side: MR CLOSED, Fulfill, Packing, Shipped) -->
                                             <div class="col-xl-5 col-lg-5 col-md-12 border-left pl-xl-3 my-auto">
                                                 <div class="bg-light rounded p-2 mb-2 border">
                                                     <div class="row align-items-center text-center">
-                                                        <div class="col-6 border-right outbound-summary-clickable"
-                                                            onclick="openOutboundSummaryModal('total_order')"
-                                                            style="cursor: pointer;"
-                                                            title="Klik untuk detail Total Order">
-                                                            <div class="text-uppercase text-muted font-weight-bold text-nowrap"
-                                                                style="font-size: 0.6rem;">TOTAL ORDER</div>
-                                                            <div class="font-weight-bold text-gray-800"
-                                                                style="font-size: 1.1rem;" id="outbound-total-order">0
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-6 outbound-summary-clickable"
+                                                        <div class="col-12 outbound-summary-clickable"
                                                             onclick="openOutboundSummaryModal('mr_closed')"
                                                             style="cursor: pointer;"
                                                             title="Klik untuk detail MR Closed">
                                                             <div class="text-uppercase text-success font-weight-bold text-nowrap"
-                                                                style="font-size: 0.6rem;">MR CLOSED</div>
+                                                                style="font-size: 0.65rem;">MR CLOSED</div>
                                                             <div class="font-weight-bold text-success"
-                                                                style="font-size: 1.1rem;" id="outbound-terkirim">0
+                                                                style="font-size: 1.25rem;" id="outbound-terkirim">0
                                                             </div>
                                                         </div>
                                                     </div>
@@ -777,7 +767,10 @@ include FRONTEND_PATH . 'components/header.php';
                                         <!-- Sub metrics -->
                                         <div class="row text-center">
                                             <div class="col-4 pr-1">
-                                                <div class="py-1.5 rounded border bg-light">
+                                                <div class="py-1.5 rounded border bg-light status-card-clickable"
+                                                    onclick="openStorageUtilizationModal('total_capacity')"
+                                                    style="cursor: pointer; transition: all 0.2s ease;"
+                                                    title="Klik untuk melihat detail Total Capacity">
                                                     <i class="fas fa-th text-primary" style="font-size: 0.72rem;"></i>
                                                     <div class="font-weight-bold text-muted text-uppercase text-nowrap mt-1"
                                                         style="font-size: 0.55rem;">Total Capacity</div>
@@ -788,7 +781,10 @@ include FRONTEND_PATH . 'components/header.php';
                                                 </div>
                                             </div>
                                             <div class="col-4 px-1">
-                                                <div class="py-1.5 rounded border bg-light">
+                                                <div class="py-1.5 rounded border bg-light status-card-clickable"
+                                                    onclick="openStorageUtilizationModal('used')"
+                                                    style="cursor: pointer; transition: all 0.2s ease;"
+                                                    title="Klik untuk melihat detail Used Capacity">
                                                     <i class="fas fa-boxes text-warning"
                                                         style="font-size: 0.72rem;"></i>
                                                     <div class="font-weight-bold text-muted text-uppercase text-nowrap mt-1"
@@ -800,7 +796,10 @@ include FRONTEND_PATH . 'components/header.php';
                                                 </div>
                                             </div>
                                             <div class="col-4 pl-1">
-                                                <div class="py-1.5 rounded border bg-light">
+                                                <div class="py-1.5 rounded border bg-light status-card-clickable"
+                                                    onclick="openStorageUtilizationModal('available')"
+                                                    style="cursor: pointer; transition: all 0.2s ease;"
+                                                    title="Klik untuk melihat detail Available Capacity">
                                                     <i class="fas fa-cube text-success" style="font-size: 0.72rem;"></i>
                                                     <div class="font-weight-bold text-muted text-uppercase text-nowrap mt-1"
                                                         style="font-size: 0.55rem;">Available</div>
@@ -908,6 +907,84 @@ include FRONTEND_PATH . 'components/header.php';
                                     class="modal-footer bg-light py-2 px-3.5 justify-content-between align-items-center">
                                     <span class="small text-muted">Total Data: <strong id="summaryModalRecordCount"
                                             class="text-gray-800">0</strong></span>
+                                    <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Tutup</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Storage Utilisasi Area / Rack Detail Modal (Matching UTILISASI AREA / RACK in Storage Management) -->
+                    <div class="modal fade" id="storageUtilisasiDetailModal" tabindex="-1" role="dialog"
+                        aria-labelledby="storageUtilModalTitle" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+                            <div class="modal-content border-0 shadow" style="border-radius: 12px; overflow: hidden;">
+                                <div class="modal-header border-bottom py-2.5 px-3.5 align-items-center"
+                                    style="background-color: #f8f9fc;">
+                                    <div>
+                                        <h6 class="modal-title font-weight-bold text-primary my-0" style="font-size: 0.95rem;">
+                                            <i class="fas fa-boxes mr-1.5"></i> UTILISASI AREA / RACK
+                                            <span class="badge badge-primary px-2 py-0.5 font-weight-bold ml-2"
+                                                id="storageUtilModalBadge" style="font-size: 0.72rem;">Total Capacity</span>
+                                        </h6>
+                                        <small class="text-muted font-weight-normal">Kapasitas Rack &amp; Area Storage</small>
+                                    </div>
+                                    <button type="button" class="close text-gray-600 my-auto" data-dismiss="modal"
+                                        aria-label="Close" style="padding: 0.25rem 0.5rem; margin: 0;">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body p-3.5 bg-white">
+                                    <!-- Status Dots Summary (Green <= 50%, Yellow 51-75%, Red > 75%) -->
+                                    <div class="d-flex flex-wrap align-items-center justify-content-between mb-2.5 pb-2 border-bottom">
+                                        <div id="modal-rack-status-dots" class="d-flex align-items-center" style="gap: 6px;"></div>
+                                        <div class="d-flex align-items-center" style="gap: 8px;">
+                                            <div class="btn-group btn-group-sm" role="group" aria-label="Filter Type">
+                                                <button type="button" class="btn btn-outline-primary btn-sm active font-weight-bold py-0.5 px-2" id="btn-modal-filter-all" onclick="filterModalUtilisasiData('all')" style="font-size: 0.75rem;">Semua</button>
+                                                <button type="button" class="btn btn-outline-warning btn-sm font-weight-bold py-0.5 px-2" id="btn-modal-filter-used" onclick="filterModalUtilisasiData('used')" style="font-size: 0.75rem;">Terisi</button>
+                                                <button type="button" class="btn btn-outline-success btn-sm font-weight-bold py-0.5 px-2" id="btn-modal-filter-available" onclick="filterModalUtilisasiData('available')" style="font-size: 0.75rem;">Tersedia</button>
+                                            </div>
+                                            <div class="input-group input-group-sm" style="max-width: 200px;">
+                                                <input type="text" class="form-control form-control-sm" id="searchModalUtilisasiInput" placeholder="Cari Rack/Area..." style="font-size: 0.75rem;">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Utilisasi Area / Rack Table (Identical format to warehouse.php) -->
+                                    <div class="table-responsive border rounded" style="max-height: 360px; overflow-y: auto;">
+                                        <table class="table table-hover mb-0 w-100" id="tableStorageUtilisasiDetail" style="font-size: 0.82rem;">
+                                            <thead class="bg-light font-weight-bold text-gray-800" style="position: sticky; top: 0; z-index: 2; background-color: #f8f9fc; border-bottom: 2px solid #e3e6f0;">
+                                                <tr>
+                                                    <th class="py-2 px-3 text-left">RACK / AREA</th>
+                                                    <th class="py-2 px-3 text-center" style="width: 55%;">CAPACITY</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="tableStorageUtilisasiBody">
+                                                <tr>
+                                                    <td colspan="2" class="py-4 text-center text-muted bg-white font-italic">
+                                                        <i class="fas fa-inbox fa-2x mb-2 d-block text-gray-300"></i>
+                                                        Pilih periode data untuk menampilkan utilisasi area / rack
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                <div class="modal-footer bg-light py-2 px-3.5 justify-content-between align-items-center">
+                                    <span class="small text-muted">Total: <strong id="modal-util-rendered-count" class="text-gray-800">0</strong> Rack/Area</span>
+                                    <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Tutup</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                <div class="modal-footer bg-light py-2 px-3.5 justify-content-between align-items-center">
+                                    <span class="small text-muted">Menampilkan: <strong id="modal-util-rendered-count" class="text-gray-800">0</strong> lokasi</span>
+                                    <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Tutup</button>
                                 </div>
                             </div>
                         </div>
@@ -1200,20 +1277,18 @@ include FRONTEND_PATH . 'components/header.php';
                             var totalOrderNum = totalOrderEl ? (parseInt(totalOrderEl.textContent) || 0) : 0;
                             var progressPct = progressPctEl ? progressPctEl.textContent.trim() : '0%';
 
-                            if (metricKey === 'mr_pending') {
-                                title = 'Detail MR Pending';
-                                metricLabel = 'MR PENDING';
-                                qtyVal = totalMrEl ? totalMrEl.textContent.trim() : '0 Order';
-                                var mrNum = parseInt(qtyVal) || 0;
-                                var mrPct = totalOrderNum > 0 ? Math.round((mrNum / totalOrderNum) * 100) : 0;
-                                pctVal = mrPct + '% dari Total Order';
+                            if (metricKey === 'total_mr' || metricKey === 'mr_pending') {
+                                title = 'Detail Total MR';
+                                metricLabel = 'TOTAL MR';
+                                qtyVal = totalMrEl ? totalMrEl.textContent.trim() : '0 MR';
+                                pctVal = 'Total Permintaan Material (MR)';
+                                showPct = false;
                             } else if (metricKey === 'pr_po_mover') {
                                 title = 'Detail Total PR/PO Mover';
                                 metricLabel = 'TOTAL PR/PO MOVER';
                                 qtyVal = totalMoverEl ? totalMoverEl.textContent.trim() : '0 PO';
-                                var moverNum = parseInt(qtyVal) || 0;
-                                var moverPct = totalOrderNum > 0 ? Math.round((moverNum / totalOrderNum) * 100) : 0;
-                                pctVal = moverPct + '% rasio pemenuhan mover';
+                                pctVal = 'Total Pemenuhan via Mover';
+                                showPct = false;
                             } else if (metricKey === 'nilai_po_mover') {
                                 title = 'Detail Nilai PO Mover';
                                 metricLabel = 'NILAI PO MOVER';
@@ -1224,15 +1299,10 @@ include FRONTEND_PATH . 'components/header.php';
                                 metricLabel = 'SAVING';
                                 qtyVal = savingEl ? savingEl.textContent.trim() : 'Rp 0';
                                 pctVal = 'Efisiensi Biaya (Cost Saving)';
-                            } else if (metricKey === 'total_order') {
-                                title = 'Detail Total Order';
-                                metricLabel = 'TOTAL ORDER';
-                                qtyVal = totalOrderEl ? totalOrderEl.textContent.trim() + ' Order' : '0 Order';
-                                pctVal = '100% (Baseline Total Order)';
                             } else if (metricKey === 'mr_closed' || metricKey === 'progress_closed') {
                                 title = 'Detail MR Closed';
                                 metricLabel = 'MR CLOSED';
-                                qtyVal = terkirimEl ? terkirimEl.textContent.trim() + ' Order' : '0 Order';
+                                qtyVal = terkirimEl ? terkirimEl.textContent.trim() + ' Closed' : '0 Closed';
                                 pctVal = progressPct + ' Selesai (Closed)';
                             } else if (metricKey === 'fulfill') {
                                 title = 'Detail Pemenuhan (Fulfill)';
@@ -1501,6 +1571,198 @@ include FRONTEND_PATH . 'components/header.php';
                                     }
                                 });
                         }
+
+                        // Storage Utilization (Area / Rack) Dashboard Integration & Modal Handlers
+                        var rawUtilisasiRows = [];
+                        var currentUtilisasiFilter = 'all';
+
+                        window.openStorageUtilizationModal = function (filterType) {
+                            currentUtilisasiFilter = filterType || 'all';
+                            $('#storageUtilisasiDetailModal').modal('show');
+
+                            $('#searchModalUtilisasiInput').val('');
+                            updateUtilisasiModalFilterUI(currentUtilisasiFilter);
+                            fetchAndRenderUtilisasiModal(currentUtilisasiFilter);
+                        };
+
+                        window.filterModalUtilisasiData = function (filterType) {
+                            currentUtilisasiFilter = filterType;
+                            updateUtilisasiModalFilterUI(currentUtilisasiFilter);
+                            renderUtilisasiModalTable();
+                        };
+
+                        function updateUtilisasiModalFilterUI(filterType) {
+                            $('#btn-modal-filter-all, #btn-modal-filter-used, #btn-modal-filter-available').removeClass('active');
+                            if (filterType === 'used') {
+                                $('#btn-modal-filter-used').addClass('active');
+                                $('#storageUtilModalBadge').text('Terisi (Used)').removeClass().addClass('badge badge-warning px-2 py-0.5 font-weight-bold ml-2');
+                            } else if (filterType === 'available') {
+                                $('#btn-modal-filter-available').addClass('active');
+                                $('#storageUtilModalBadge').text('Tersedia (Available)').removeClass().addClass('badge badge-success px-2 py-0.5 font-weight-bold ml-2');
+                            } else {
+                                $('#btn-modal-filter-all').addClass('active');
+                                $('#storageUtilModalBadge').text('Total Capacity').removeClass().addClass('badge badge-primary px-2 py-0.5 font-weight-bold ml-2');
+                            }
+                        }
+
+                        function fetchAndRenderUtilisasiModal(filterType) {
+                            var tbody = $('#tableStorageUtilisasiBody');
+                            tbody.html('<tr><td colspan="2" class="py-4 text-center text-muted bg-white"><i class="fas fa-spinner fa-spin fa-2x text-primary mb-2 d-block"></i>Memuat data Utilisasi Area / Rack...</td></tr>');
+
+                            var currentPeriodEl = document.getElementById('selected-period-text');
+                            var currentPeriodStr = currentPeriodEl ? currentPeriodEl.textContent.trim() : '';
+                            var periodMonth = '';
+                            var periodYear = '';
+                            if (currentPeriodStr && currentPeriodStr !== 'PILIH DATA' && currentPeriodStr !== 'PILIH PERIODE DATA' && currentPeriodStr !== '-') {
+                                var periodParts = currentPeriodStr.split(' ');
+                                if (periodParts.length >= 2) {
+                                    var rawMonth = periodParts[0];
+                                    periodMonth = rawMonth.charAt(0).toUpperCase() + rawMonth.slice(1).toLowerCase();
+                                    periodYear = periodParts[1];
+                                }
+                            }
+
+                            var utilisasiUrl = 'api/get_rack_utilisasi.php';
+                            if (periodMonth && periodYear) {
+                                utilisasiUrl += '?month=' + encodeURIComponent(periodMonth) + '&year=' + encodeURIComponent(periodYear);
+                            }
+
+                            $.ajax({
+                                url: utilisasiUrl,
+                                type: 'GET',
+                                dataType: 'json',
+                                success: function (res) {
+                                    if (res.status === 'success' && res.data) {
+                                        rawUtilisasiRows = res.data;
+                                        renderUtilisasiModalTable();
+                                    } else {
+                                        tbody.html('<tr><td colspan="2" class="py-4 text-center text-muted bg-white font-italic"><i class="fas fa-inbox fa-2x mb-2 d-block text-gray-300"></i>Belum ada data utilisasi area/rack tersimpan untuk periode ini.</td></tr>');
+                                        renderEmptyDots();
+                                    }
+                                },
+                                error: function () {
+                                    tbody.html('<tr><td colspan="2" class="py-4 text-center text-danger bg-white"><i class="fas fa-exclamation-circle fa-2x mb-2 d-block"></i>Gagal memuat data dari server.</td></tr>');
+                                    renderEmptyDots();
+                                }
+                            });
+                        }
+
+                        function renderEmptyDots() {
+                            var dotContainer = document.getElementById('modal-rack-status-dots');
+                            if (dotContainer) {
+                                dotContainer.innerHTML = '<span class="badge badge-light border text-muted px-2 py-1" style="font-size: 0.72rem;"><i class="fas fa-circle text-success mr-1"></i>0</span> ' +
+                                    '<span class="badge badge-light border text-muted px-2 py-1" style="font-size: 0.72rem;"><i class="fas fa-circle text-warning mr-1"></i>0</span> ' +
+                                    '<span class="badge badge-light border text-muted px-2 py-1" style="font-size: 0.72rem;"><i class="fas fa-circle text-danger mr-1"></i>0</span>';
+                            }
+                            $('#modal-util-rendered-count').text('0');
+                        }
+
+                        function renderUtilisasiModalTable() {
+                            var searchVal = ($('#searchModalUtilisasiInput').val() || '').toLowerCase().trim();
+                            var tbody = $('#tableStorageUtilisasiBody');
+
+                            // Group by rack_group for display
+                            var rackGroups = {};
+                            for (var i = 0; i < rawUtilisasiRows.length; i++) {
+                                var row = rawUtilisasiRows[i];
+                                var rackName = String(row.rack_group || row.label || 'Unknown').trim();
+                                if (!rackGroups[rackName]) {
+                                    rackGroups[rackName] = { totalQty: 0, capacities: [], count: 0 };
+                                }
+                                rackGroups[rackName].totalQty += parseInt(row.qty) || 0;
+                                rackGroups[rackName].capacities.push(parseFloat(row.capacity) || 0);
+                                rackGroups[rackName].count++;
+                            }
+
+                            var rackNames = Object.keys(rackGroups);
+                            rackNames.sort();
+
+                            var greenCount = 0;
+                            var yellowCount = 0;
+                            var redCount = 0;
+                            var renderedItems = [];
+
+                            for (var q = 0; q < rackNames.length; q++) {
+                                var rName = rackNames[q];
+                                var group = rackGroups[rName];
+                                var totalQty = group.totalQty;
+
+                                var avgCap = 0;
+                                if (group.capacities.length > 0) {
+                                    var sumC = 0;
+                                    for (var c = 0; c < group.capacities.length; c++) {
+                                        sumC += group.capacities[c];
+                                    }
+                                    avgCap = Math.round(sumC / group.capacities.length);
+                                }
+                                if (avgCap > 100) avgCap = 100;
+
+                                var isUsed = (avgCap > 0 || totalQty > 0);
+                                if (currentUtilisasiFilter === 'used' && !isUsed) continue;
+                                if (currentUtilisasiFilter === 'available' && isUsed && avgCap >= 100) continue;
+
+                                if (searchVal && !rName.toLowerCase().includes(searchVal)) {
+                                    continue;
+                                }
+
+                                var barColorClass = 'bg-success';
+                                if (avgCap <= 50) {
+                                    barColorClass = 'bg-success';
+                                    greenCount++;
+                                } else if (avgCap <= 75) {
+                                    barColorClass = 'bg-warning';
+                                    yellowCount++;
+                                } else {
+                                    barColorClass = 'bg-danger';
+                                    redCount++;
+                                }
+
+                                renderedItems.push({
+                                    name: rName,
+                                    avgCap: avgCap,
+                                    totalQty: totalQty,
+                                    barColorClass: barColorClass
+                                });
+                            }
+
+                            // Update status dots
+                            var dotContainer = document.getElementById('modal-rack-status-dots');
+                            if (dotContainer) {
+                                dotContainer.innerHTML = '<span class="badge badge-light border text-dark px-2 py-1" style="font-size: 0.72rem;" title="Kapasitas <= 50%"><i class="fas fa-circle text-success mr-1"></i>' + greenCount + '</span> ' +
+                                    '<span class="badge badge-light border text-dark px-2 py-1" style="font-size: 0.72rem;" title="Kapasitas 51-75%"><i class="fas fa-circle text-warning mr-1"></i>' + yellowCount + '</span> ' +
+                                    '<span class="badge badge-light border text-dark px-2 py-1" style="font-size: 0.72rem;" title="Kapasitas > 75%"><i class="fas fa-circle text-danger mr-1"></i>' + redCount + '</span>';
+                            }
+
+                            $('#modal-util-rendered-count').text(renderedItems.length);
+
+                            if (renderedItems.length === 0) {
+                                tbody.html('<tr><td colspan="2" class="py-4 text-center text-muted bg-white font-italic"><i class="fas fa-inbox fa-2x mb-2 d-block text-gray-300"></i>Tidak ada data rack/area yang sesuai dengan filter.</td></tr>');
+                                return;
+                            }
+
+                            var html = '';
+                            renderedItems.forEach(function (item) {
+                                html += '<tr>' +
+                                    '<td class="text-left font-weight-bold text-gray-800 py-2.5 px-3" style="font-size: 0.85rem; white-space: nowrap;">' +
+                                        item.name +
+                                    '</td>' +
+                                    '<td class="py-2.5 px-3">' +
+                                        '<div class="d-flex align-items-center">' +
+                                            '<span class="mr-2 font-weight-bold text-gray-800 text-right" style="min-width: 38px; font-size: 0.8rem;">' + item.avgCap + '%</span>' +
+                                            '<div class="progress progress-sm flex-grow-1" style="height: 10px; border-radius: 5px; background-color: #eaecf4;">' +
+                                                '<div class="progress-bar ' + item.barColorClass + '" role="progressbar" style="width: ' + item.avgCap + '%; border-radius: 5px; transition: width 0.6s ease;" aria-valuenow="' + item.avgCap + '" aria-valuemin="0" aria-valuemax="100"></div>' +
+                                            '</div>' +
+                                        '</div>' +
+                                    '</td>' +
+                                '</tr>';
+                            });
+
+                            tbody.html(html);
+                        }
+
+                        $('#searchModalUtilisasiInput').on('keyup input', function () {
+                            renderUtilisasiModalTable();
+                        });
 
                         loadPeriods();
                         window.loadPeriods = loadPeriods;

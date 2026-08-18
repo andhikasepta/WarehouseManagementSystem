@@ -26,6 +26,8 @@ try {
 
     $month = isset($_GET['month']) ? trim($_GET['month']) : '';
     $year = isset($_GET['year']) ? trim($_GET['year']) : '';
+    $filter = isset($_GET['filter']) ? strtolower(trim($_GET['filter'])) : 'all'; // all, used, available
+    $action = isset($_GET['action']) ? strtolower(trim($_GET['action'])) : 'data';
 
     // Validate month against allow-list if provided
     $validMonths = [
@@ -33,18 +35,18 @@ try {
         'July', 'August', 'September', 'October', 'November', 'December'
     ];
 
-    if ($month !== '' && $year !== '') {
-        if (!in_array($month, $validMonths, true)) {
-            echo json_encode(['status' => 'error', 'message' => 'Invalid month value']);
-            exit;
+    // If no month/year is specified, find the latest period in rack_utilisasi
+    if ($month === '' || $year === '') {
+        $latestStmt = $pdo->query("SELECT `month`, `year` FROM rack_utilisasi ORDER BY `year` DESC, FIELD(`month`, 'January','February','March','April','May','June','July','August','September','October','November','December') DESC LIMIT 1");
+        $latest = $latestStmt->fetch(PDO::FETCH_ASSOC);
+        if ($latest) {
+            $month = $latest['month'];
+            $year = $latest['year'];
         }
-        if (!preg_match('/^\d{4}$/', $year)) {
-            echo json_encode(['status' => 'error', 'message' => 'Invalid year value']);
-            exit;
-        }
+    }
 
+    if ($month !== '' && $year !== '' && in_array($month, $validMonths, true) && preg_match('/^\d{4}$/', $year)) {
         // Return ALL labels from rack_master, left-joined with rack_utilisasi for this period.
-        // Labels without data get qty=0, capacity=0.
         $stmt = $pdo->prepare(
             "SELECT rm.label, rm.rack AS rack_group, rm.category,
                     ? AS `month`, ? AS `year`,
@@ -57,20 +59,73 @@ try {
         );
         $stmt->execute([$month, $year, $month, $year]);
     } else {
-        // Return only saved data (for dashboard or unfiltered views)
+        // Return from rack_master or rack_utilisasi
         $stmt = $pdo->prepare(
-            "SELECT ru.id, ru.label, ru.month, ru.year, ru.qty, ru.capacity,
-                    COALESCE(rm.rack, '') AS rack_group, COALESCE(rm.category, '') AS category
-             FROM rack_utilisasi ru
-             LEFT JOIN rack_master rm ON ru.label = rm.label
-             ORDER BY ru.year DESC, FIELD(ru.month, 'January','February','March','April','May','June','July','August','September','October','November','December') DESC, rm.category, rm.rack, ru.label"
+            "SELECT rm.label, rm.rack AS rack_group, rm.category,
+                    COALESCE(ru.month, '') AS `month`, COALESCE(ru.year, '') AS `year`,
+                    COALESCE(ru.qty, 0) AS qty,
+                    COALESCE(ru.capacity, 0.00) AS capacity,
+                    ru.id AS id
+             FROM rack_master rm
+             LEFT JOIN (
+                 SELECT * FROM rack_utilisasi ORDER BY id DESC
+             ) ru ON rm.label = ru.label
+             GROUP BY rm.label, rm.rack, rm.category
+             ORDER BY rm.category, rm.rack, rm.label"
         );
         $stmt->execute();
     }
 
-    $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $allResults = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    echo json_encode(['status' => 'success', 'data' => $results]);
+    // Calculate Summary Metrics
+    $totalLocations = count($allResults);
+    $usedLocations = 0;
+    $availableLocations = 0;
+    $totalCapSum = 0;
+    $totalQtySum = 0;
+
+    $filteredResults = [];
+    foreach ($allResults as $row) {
+        $cap = (float) $row['capacity'];
+        $qty = (int) $row['qty'];
+        $totalCapSum += $cap;
+        $totalQtySum += $qty;
+
+        $isUsed = ($cap > 0 || $qty > 0);
+        if ($isUsed) {
+            $usedLocations++;
+        } else {
+            $availableLocations++;
+        }
+
+        if ($filter === 'used') {
+            if ($isUsed) $filteredResults[] = $row;
+        } elseif ($filter === 'available') {
+            if (!$isUsed || $cap < 100) $filteredResults[] = $row;
+        } else {
+            $filteredResults[] = $row;
+        }
+    }
+
+    $avgUtilization = $totalLocations > 0 ? round($totalCapSum / $totalLocations, 1) : 0;
+
+    echo json_encode([
+        'status' => 'success',
+        'period' => [
+            'month' => $month,
+            'year' => $year
+        ],
+        'summary' => [
+            'total_capacity' => $totalLocations,
+            'used' => $usedLocations,
+            'available' => $availableLocations,
+            'avg_utilization' => $avgUtilization,
+            'total_qty' => $totalQtySum
+        ],
+        'count' => count($filteredResults),
+        'data' => $filteredResults
+    ]);
 } catch (PDOException $e) {
     error_log("Database error fetching rack utilisasi: " . $e->getMessage());
     http_response_code(500);

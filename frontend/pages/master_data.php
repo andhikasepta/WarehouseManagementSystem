@@ -10,8 +10,19 @@ $canAccessInboundMaster = hasPermission('master_data_inbound', 'view');
 $canAccessStorageMaster = hasPermission('master_data_storage', 'view');
 $canAccessOutboundMaster = hasPermission('master_data_outbound', 'view');
 
-// If superadmin or if master_data is granted without specific sub-modules, grant access to all 3 tabs
-if ($userRole === 'superadmin' || (hasPermission('master_data', 'view') && !$canAccessInboundMaster && !$canAccessStorageMaster && !$canAccessOutboundMaster)) {
+// Fallback: If user has main module access and no other master data sub-modules assigned
+if (!$canAccessInboundMaster && hasPermission('inbound', 'view') && !in_array('master_data_storage', $userModules) && !in_array('master_data_outbound', $userModules)) {
+    $canAccessInboundMaster = true;
+}
+if (!$canAccessStorageMaster && hasPermission('warehouse', 'view') && !in_array('master_data_inbound', $userModules) && !in_array('master_data_outbound', $userModules)) {
+    $canAccessStorageMaster = true;
+}
+if (!$canAccessOutboundMaster && hasPermission('outbound', 'view') && !in_array('master_data_inbound', $userModules) && !in_array('master_data_storage', $userModules)) {
+    $canAccessOutboundMaster = true;
+}
+
+// Superadmin has full access to all 3 tabs
+if ($userRole === 'superadmin') {
     $canAccessInboundMaster = true;
     $canAccessStorageMaster = true;
     $canAccessOutboundMaster = true;
@@ -26,14 +37,14 @@ if ($canAccessInboundMaster) {
     $defaultMasterSegment = 'outbound';
 }
 
-$canAddInbound = canAdd('master_data_inbound');
-$canDeleteInbound = canDelete('master_data_inbound');
+$canAddInbound = ($userRole === 'superadmin') || canAdd('master_data_inbound') || canAdd('inbound');
+$canDeleteInbound = ($userRole === 'superadmin') || canDelete('master_data_inbound') || canDelete('inbound');
 
-$canAddStorage = canAdd('master_data_storage');
-$canDeleteStorage = canDelete('master_data_storage');
+$canAddStorage = ($userRole === 'superadmin') || canAdd('master_data_storage') || canAdd('warehouse');
+$canDeleteStorage = ($userRole === 'superadmin') || canDelete('master_data_storage') || canDelete('warehouse');
 
-$canAddOutbound = canAdd('master_data_outbound');
-$canDeleteOutbound = canDelete('master_data_outbound');
+$canAddOutbound = ($userRole === 'superadmin') || canAdd('master_data_outbound') || canAdd('outbound');
+$canDeleteOutbound = ($userRole === 'superadmin') || canDelete('master_data_outbound') || canDelete('outbound');
 
 $pageTitle = 'WMS - PT. Aplikanusa Lintasarta';
 include FRONTEND_PATH . 'components/header.php';

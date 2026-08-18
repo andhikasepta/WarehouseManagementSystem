@@ -381,12 +381,25 @@ include FRONTEND_PATH . 'components/header.php';
                 });
             }
 
-            // Toggle parent module sub-checkboxes visibility
+            // Toggle parent module sub-checkboxes visibility and sync children
             parentModulesWithChildren.forEach(function(parentKey) {
                 var parentCb = document.getElementById('mod_' + parentKey);
                 if (parentCb) {
                     parentCb.addEventListener('change', function() {
                         toggleSubModuleContainer(parentKey, this.checked);
+                        if (!this.checked) {
+                            var parentInfo = MODULE_REGISTRY[parentKey];
+                            if (parentInfo && parentInfo.children) {
+                                Object.keys(parentInfo.children).forEach(function(childKey) {
+                                    var childCb = document.getElementById('mod_' + childKey);
+                                    if (childCb) {
+                                        childCb.checked = false;
+                                        togglePermCheckboxes(childKey, false);
+                                        setPermCheckboxes(childKey, false, false, false, false);
+                                    }
+                                });
+                            }
+                        }
                     });
                 }
             });
@@ -397,11 +410,19 @@ include FRONTEND_PATH . 'components/header.php';
                 if (modCb) {
                     modCb.addEventListener('change', function() {
                         togglePermCheckboxes(mod, this.checked);
+                        if (this.checked) {
+                            var viewCb = document.getElementById('perm_' + mod + '_view');
+                            if (viewCb && !viewCb.checked) {
+                                viewCb.checked = true;
+                            }
+                        } else {
+                            setPermCheckboxes(mod, false, false, false, false);
+                        }
                     });
                 }
             });
 
-            // Cascade parent module permission changes to child sub-modules
+            // Cascade parent module permission changes only to active (checked) child sub-modules
             parentModulesWithChildren.forEach(function(parentKey) {
                 ['view', 'add', 'delete'].forEach(function(perm) {
                     var parentPermCb = document.getElementById('perm_' + parentKey + '_' + perm);
@@ -411,9 +432,12 @@ include FRONTEND_PATH . 'components/header.php';
                             var parentInfo = MODULE_REGISTRY[parentKey];
                             if (parentInfo && parentInfo.children) {
                                 Object.keys(parentInfo.children).forEach(function(childKey) {
-                                    var childPermCb = document.getElementById('perm_' + childKey + '_' + perm);
-                                    if (childPermCb) {
-                                        childPermCb.checked = isChecked;
+                                    var childCb = document.getElementById('mod_' + childKey);
+                                    if (childCb && childCb.checked) {
+                                        var childPermCb = document.getElementById('perm_' + childKey + '_' + perm);
+                                        if (childPermCb) {
+                                            childPermCb.checked = isChecked;
+                                        }
                                     }
                                 });
                             }

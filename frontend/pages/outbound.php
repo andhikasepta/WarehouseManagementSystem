@@ -94,12 +94,12 @@ include FRONTEND_PATH . 'components/header.php';
                                             </div>
                                         </div>
 
-                                        <!-- 3. Shipped -->
+                                        <!-- 3. Total Shipped -->
                                         <div class="col-md border-right-divider mb-3 mb-md-0 status-card-clickable py-2 px-2 rounded"
                                             data-toggle="modal" data-target="#mrStatusDetailModal"
-                                            data-status="SHIPPED">
+                                            data-status="TOTAL SHIPPED">
                                             <div class="h3 font-weight-bold text-danger mb-1" id="card-shipped">0</div>
-                                            <div class="text-xs font-weight-bold text-uppercase text-muted mb-2">SHIPPED
+                                            <div class="text-xs font-weight-bold text-uppercase text-muted mb-2">TOTAL SHIPPED
                                             </div>
                                             <div class="progress progress-sm" style="height: 6px; border-radius: 4px;">
                                                 <div class="progress-bar bg-danger" role="progressbar" style="width: 0%"
@@ -590,7 +590,7 @@ include FRONTEND_PATH . 'components/header.php';
             <!-- MR Status Detail Modal -->
             <div class="modal fade" id="mrStatusDetailModal" tabindex="-1" role="dialog"
                 aria-labelledby="mrStatusDetailModalLabel" aria-hidden="true">
-                <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+                <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
                     <div class="modal-content border-0 shadow"
                         style="border-radius: 10px; background-color: #ffffff; overflow: hidden;">
                         <div class="modal-header border-bottom py-3 px-4 align-items-center"
@@ -725,21 +725,14 @@ include FRONTEND_PATH . 'components/header.php';
                                 </div>
                             </div>
 
-                            <div class="table-responsive border rounded" style="border-color: #eaecf4 !important;">
-                                <table class="table text-center mb-0" id="tableMrStatusDetail"
-                                    style="font-size: 0.85rem;">
-                                    <thead class="bg-light text-gray-700 font-weight-bold"
-                                        style="border-bottom: 2px solid #eaecf4;">
-                                        <tr>
-                                            <th class="py-2 border-top-0">No. MR</th>
-                                            <th class="py-2 border-top-0">No. PO</th>
-                                            <th class="py-2 border-top-0">Tujuan Site</th>
-                                            <th class="py-2 border-top-0">Kota Tujuan</th>
-                                            <th class="py-2 border-top-0">Tanggal MR</th>
-                                            <th class="py-2 border-top-0">Status</th>
-                                        </tr>
+                            <div class="table-responsive border rounded" style="border-color: #eaecf4 !important; max-height: 500px; overflow-y: auto;">
+                                <table class="table table-hover table-striped text-center mb-0" id="tableMrStatusDetail"
+                                    style="font-size: 0.85rem; width: 100%;">
+                                    <thead class="bg-light text-gray-700 font-weight-bold" id="tableMrStatusDetailHead"
+                                        style="border-bottom: 2px solid #eaecf4; position: sticky; top: 0; z-index: 1; background-color: #f8f9fc;">
+                                        <!-- Rendered dynamically by JS -->
                                     </thead>
-                                    <tbody>
+                                    <tbody id="tableMrStatusDetailBody">
                                         <tr>
                                             <td colspan="6" class="py-5 text-muted bg-white">
                                                 <i class="fas fa-folder-open fa-2x mb-2 d-block text-gray-300"></i>
@@ -762,52 +755,125 @@ include FRONTEND_PATH . 'components/header.php';
 
             <script>
                 $(document).ready(function () {
-                    // Segment data for SHIPPED
-                    var shippedSegmentData = {
-                        internal: {
-                            delivery: 0,
-                            pickup: 0,
-                            handcarry: 0
+                    // Status Table Configuration Map
+                    var statusColumnConfig = {
+                        'TOTAL MR': {
+                            headers: ['NO MR', 'User', 'Tujuan', 'Pickup by', 'Ket'],
+                            keys: ['no_mr', 'user', 'tujuan', 'pickup_by', 'ket']
                         },
-                        external: {
-                            mover: 0
+                        'TOTAL PACKED': {
+                            headers: ['NO PCK', 'PCK DETAIL', 'User', 'Tujuan', 'NO MR', 'NO DN'],
+                            keys: ['no_pck', 'pck_detail', 'user', 'tujuan', 'no_mr', 'no_dn']
+                        },
+                        'TOTAL SHIPPED': {
+                            headers: ['NO MR', 'NO DN', 'User', 'Tujuan', 'Pickup Type', 'Via', 'LT', 'Delivery Target', 'Last Log'],
+                            keys: ['no_mr', 'no_dn', 'user', 'tujuan', 'pickup_type', 'via', 'lt', 'delivery_target', 'last_log']
+                        },
+                        'DALAM PERJALANAN': {
+                            headers: ['NO MR', 'NO DN', 'User', 'Tujuan', 'Status MR', 'LT', 'Status DN', 'Delivery Target', 'Last Log'],
+                            keys: ['no_mr', 'no_dn', 'user', 'tujuan', 'status_mr', 'lt', 'status_dn', 'delivery_target', 'last_log']
+                        },
+                        'TIBA DI LOKASI': {
+                            headers: ['NO MR', 'NO DN', 'User', 'Tujuan', 'Status MR', 'LT', 'Status DN', 'Delivery Target', 'Last Log'],
+                            keys: ['no_mr', 'no_dn', 'user', 'tujuan', 'status_mr', 'lt', 'status_dn', 'delivery_target', 'last_log']
                         }
                     };
 
-                    function getShippedTotals() {
-                        var intTotal = (parseInt(shippedSegmentData.internal.delivery) || 0) +
-                            (parseInt(shippedSegmentData.internal.pickup) || 0) +
-                            (parseInt(shippedSegmentData.internal.handcarry) || 0);
-                        var extTotal = (parseInt(shippedSegmentData.external.mover) || 0);
-                        var grandTotal = intTotal + extTotal;
-                        return {
-                            internalTotal: intTotal,
-                            externalTotal: extTotal,
-                            grandTotal: grandTotal
-                        };
+                    // Function to load and render table rows inside the modal
+                    function loadModalStatusTable(statusName) {
+                        var cfg = statusColumnConfig[statusName] || statusColumnConfig['TOTAL MR'];
+                        var thead = $('#tableMrStatusDetailHead');
+                        var tbody = $('#tableMrStatusDetailBody');
+
+                        // Build table headers
+                        var headHtml = '<tr>';
+                        cfg.headers.forEach(function (h) {
+                            headHtml += '<th class="py-2.5 px-3 border-top-0 whitespace-nowrap">' + h + '</th>';
+                        });
+                        headHtml += '</tr>';
+                        thead.html(headHtml);
+
+                        // Show Loading Spinner
+                        var colCount = cfg.headers.length;
+                        tbody.html('<tr><td colspan="' + colCount + '" class="py-5 text-center text-muted bg-white"><i class="fas fa-spinner fa-spin fa-2x text-primary mb-2 d-block"></i>Memuat data detail status...</td></tr>');
+
+                        // Fetch live rows from API
+                        $.ajax({
+                            url: 'api/get_outbound_status_detail.php',
+                            type: 'GET',
+                            data: { status: statusName },
+                            dataType: 'json',
+                            success: function (res) {
+                                if (res.status === 'success' && res.data && res.data.length > 0) {
+                                    var rowsHtml = '';
+                                    res.data.forEach(function (row) {
+                                        rowsHtml += '<tr>';
+                                        cfg.keys.forEach(function (k) {
+                                            var val = row[k] !== undefined && row[k] !== null && row[k] !== '' ? row[k] : '-';
+                                            rowsHtml += '<td class="py-2 px-3 align-middle text-gray-800">' + val + '</td>';
+                                        });
+                                        rowsHtml += '</tr>';
+                                    });
+                                    tbody.html(rowsHtml);
+                                } else {
+                                    tbody.html('<tr><td colspan="' + colCount + '" class="py-5 text-muted bg-white"><i class="fas fa-folder-open fa-2x mb-2 d-block text-gray-300"></i>Belum ada data tersedia untuk status ini.</td></tr>');
+                                }
+                            },
+                            error: function () {
+                                tbody.html('<tr><td colspan="' + colCount + '" class="py-4 text-danger bg-white"><i class="fas fa-exclamation-circle fa-2x mb-2 d-block"></i>Gagal memuat data dari server.</td></tr>');
+                            }
+                        });
                     }
 
-                    function updateShippedUI() {
-                        var totals = getShippedTotals();
+                    // Function to refresh top summary cards from database
+                    function loadStatusCardCounts() {
+                        $.ajax({
+                            url: 'api/get_outbound_status_detail.php',
+                            type: 'GET',
+                            data: { action: 'counts' },
+                            dataType: 'json',
+                            success: function (res) {
+                                if (res.status === 'success' && res.counts) {
+                                    var c = res.counts;
+                                    var total = c.total_mr || 0;
 
-                        // Update card in main Alur Pemenuhan MR
-                        $('#card-shipped').text(totals.grandTotal);
+                                    $('#card-total-mr').text(total);
+                                    $('#card-total-packed').text(c.total_packed || 0);
+                                    $('#card-shipped').text(c.total_shipped || 0);
+                                    $('#card-dalam-perjalanan').text(c.dalam_perjalanan || 0);
+                                    $('#card-tiba-lokasi').text(c.tiba_di_lokasi || 0);
 
-                        // Update modal internal segment
-                        $('#qty-internal-delivery').text((shippedSegmentData.internal.delivery || 0) + ' QTY');
-                        $('#qty-internal-pickup').text((shippedSegmentData.internal.pickup || 0) + ' QTY');
-                        $('#qty-internal-handcarry').text((shippedSegmentData.internal.handcarry || 0) + ' QTY');
-                        $('#internal-segment-total-qty').text(totals.internalTotal);
-                        $('#tab-internal-qty').text(totals.internalTotal);
+                                    // Update progress bars
+                                    if (total > 0) {
+                                        $('#card-total-mr').closest('.status-card-clickable').find('.progress-bar').css('width', '100%');
+                                        $('#card-total-packed').closest('.status-card-clickable').find('.progress-bar').css('width', Math.min(100, Math.round((c.total_packed / total) * 100)) + '%');
+                                        $('#card-shipped').closest('.status-card-clickable').find('.progress-bar').css('width', Math.min(100, Math.round((c.total_shipped / total) * 100)) + '%');
+                                        $('#card-dalam-perjalanan').closest('.status-card-clickable').find('.progress-bar').css('width', Math.min(100, Math.round((c.dalam_perjalanan / total) * 100)) + '%');
+                                        $('#card-tiba-lokasi').closest('.status-card-clickable').find('.progress-bar').css('width', Math.min(100, Math.round((c.tiba_di_lokasi / total) * 100)) + '%');
+                                    }
 
-                        // Update modal external segment
-                        $('#qty-external-mover').text((shippedSegmentData.external.mover || 0) + ' QTY');
-                        $('#external-segment-total-qty').text(totals.externalTotal);
-                        $('#tab-external-qty').text(totals.externalTotal);
+                                    // Update segment numbers if present
+                                    if (c.segments) {
+                                        var s = c.segments;
+                                        $('#qty-internal-delivery').text((s.internal_delivery || 0) + ' QTY');
+                                        $('#qty-internal-pickup').text((s.internal_pickup || 0) + ' QTY');
+                                        $('#qty-internal-handcarry').text((s.internal_handcarry || 0) + ' QTY');
+                                        var intTotal = (s.internal_delivery || 0) + (s.internal_pickup || 0) + (s.internal_handcarry || 0);
+                                        $('#internal-segment-total-qty').text(intTotal);
+                                        $('#tab-internal-qty').text(intTotal);
 
-                        // Update title badge
-                        $('#shipped-total-qty').text(totals.grandTotal);
+                                        $('#qty-external-mover').text((s.external_mover || 0) + ' QTY');
+                                        $('#external-segment-total-qty').text(s.external_mover || 0);
+                                        $('#tab-external-qty').text(s.external_mover || 0);
+                                        $('#shipped-total-qty').text(c.total_shipped || 0);
+                                    }
+                                }
+                            }
+                        });
                     }
+
+                    // Initial Load
+                    loadStatusCardCounts();
 
                     // Tab button click handlers for Carousel slider
                     $('#btn-tab-internal').on('click', function () {
@@ -829,24 +895,23 @@ include FRONTEND_PATH . 'components/header.php';
                         }
                     });
 
-                    // Initialize UI
-                    updateShippedUI();
-
+                    // Card click handler to show specific table
                     $('.status-card-clickable').on('click', function () {
                         var statusName = $(this).attr('data-status');
                         $('#modalMrStatusTitleText').text(statusName);
 
-                        if (statusName === 'SHIPPED') {
+                        if (statusName === 'TOTAL SHIPPED' || statusName === 'SHIPPED') {
                             $('#shipped-segment-container').removeClass('d-none');
                             $('#shipped-modal-total-badge').removeClass('d-none');
                             $('#shippedSegmentCarousel').carousel(0);
                             $('#btn-tab-internal').removeClass('btn-light text-muted').addClass('btn-info text-white active');
                             $('#btn-tab-external').removeClass('btn-warning text-white active').addClass('btn-light text-muted');
-                            updateShippedUI();
                         } else {
                             $('#shipped-segment-container').addClass('d-none');
                             $('#shipped-modal-total-badge').addClass('d-none');
                         }
+
+                        loadModalStatusTable(statusName);
                     });
                 });
             </script>

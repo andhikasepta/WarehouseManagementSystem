@@ -23,7 +23,7 @@ $navUser = [
 
 $allowedNavModules = $_SESSION['allowed_modules'] ?? [];
 $isSuperAdminNav = ($navUser['role'] === 'superadmin');
-$canAccessMasterData = $navUser['is_logged_in'] && ($isSuperAdminNav || in_array('master_data', $allowedNavModules));
+$canAccessMasterData = $navUser['is_logged_in'] && ($isSuperAdminNav || in_array('master_data', $allowedNavModules) || in_array('master_data_inbound', $allowedNavModules) || in_array('master_data_storage', $allowedNavModules) || in_array('master_data_outbound', $allowedNavModules) || in_array('site_location', $allowedNavModules));
 
 $shouldHideNavLinks = isset($hideNavLinks) && $hideNavLinks;
 $shouldHideNavbarUl = isset($hideNavbarUl) && $hideNavbarUl;
@@ -1415,7 +1415,7 @@ if (isset($pdo)) {
             $hasOutboundAccess = !$isSuperAdminNav && in_array('outbound', $allowedNavModules);
             $hasKpiMonitoringAccess = !$isSuperAdminNav && in_array('kpi_monitoring', $allowedNavModules);
             $hasMainMenuSection = $hasInboundAccess || $hasWarehouseAccess || $hasOutboundAccess || $hasKpiMonitoringAccess;
-            $hasMasterDataAccess = !$isSuperAdminNav && in_array('master_data', $allowedNavModules);
+            $hasMasterDataAccess = !$isSuperAdminNav && (in_array('master_data', $allowedNavModules) || in_array('master_data_inbound', $allowedNavModules) || in_array('master_data_storage', $allowedNavModules) || in_array('master_data_outbound', $allowedNavModules) || in_array('site_location', $allowedNavModules));
             $hasDataSettingsSection = $hasMasterDataAccess;
             $hasReportsAccess = !$isSuperAdminNav && in_array('reports', $allowedNavModules);
             $hasAnalyticsAccess = !$isSuperAdminNav && in_array('analytics', $allowedNavModules);

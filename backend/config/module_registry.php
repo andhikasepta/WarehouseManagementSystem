@@ -61,17 +61,20 @@ return [
             'master_data_inbound' => [
                 'label' => 'Inbound Master Data',
                 'icon'  => 'fas fa-box-open text-success',
-                'pages' => []
+                'pages' => [],
+                'permissions' => ['view', 'add', 'delete']
             ],
             'master_data_storage' => [
                 'label' => 'Storage Master Data',
                 'icon'  => 'fas fa-warehouse text-primary',
-                'pages' => []
+                'pages' => [],
+                'permissions' => ['view', 'add', 'delete']
             ],
             'master_data_outbound' => [
                 'label' => 'Outbound Master Data',
                 'icon'  => 'fas fa-truck-loading text-warning',
-                'pages' => []
+                'pages' => [],
+                'permissions' => ['view', 'add', 'delete']
             ],
             'site_location' => [
                 'label' => 'Site Location Warehouse',

@@ -47,11 +47,11 @@ function isLoggedIn() {
 /**
  * Get current logged in user details (auto-synced with DB for real-time UAC updates).
  */
-function getCurrentUser() {
+function getCurrentUser($forceRefresh = false) {
     if (!isLoggedIn()) return null;
 
     static $cachedUser = null;
-    if ($cachedUser !== null) {
+    if ($cachedUser !== null && !$forceRefresh) {
         return $cachedUser;
     }
 
@@ -117,49 +117,14 @@ function hasPermission($module, $action = 'view') {
     $allowedModules = is_array($user['allowed_modules'] ?? null) ? $user['allowed_modules'] : [];
     $permissions    = is_array($user['permissions'] ?? null) ? $user['permissions'] : [];
 
-    // Module hierarchy mapping (sub-module => potential parent/related modules)
-    $relatedMap = [
-        'master_data_inbound'  => ['master_data', 'inbound'],
-        'master_data_storage'  => ['master_data', 'warehouse'],
-        'master_data_outbound' => ['master_data', 'outbound'],
-        'site_location'        => ['master_data'],
-        'inbound'              => ['master_data_inbound', 'master_data'],
-        'warehouse'            => ['master_data_storage', 'master_data'],
-        'outbound'             => ['master_data_outbound', 'master_data'],
-        'master_data'          => ['master_data_inbound', 'master_data_storage', 'master_data_outbound', 'site_location']
-    ];
-
-    // 1. Direct check on the requested module
+    // Direct check on requested module
     if (in_array($module, $allowedModules)) {
         if (isset($permissions[$module]) && is_array($permissions[$module])) {
-            if (!empty($permissions[$module][$action])) {
-                return true;
+            if (isset($permissions[$module][$action])) {
+                return !empty($permissions[$module][$action]);
             }
         }
-    }
-
-    // 2. Check related/parent modules for inherited permissions
-    $candidates = $relatedMap[$module] ?? [];
-    foreach ($candidates as $candidate) {
-        if (in_array($candidate, $allowedModules)) {
-            if (isset($permissions[$candidate]) && is_array($permissions[$candidate])) {
-                if (!empty($permissions[$candidate][$action])) {
-                    return true;
-                }
-            }
-        }
-    }
-
-    // 3. Fallback for 'view' action: if the module or any candidate is in allowed_modules
-    if ($action === 'view') {
-        if (in_array($module, $allowedModules)) {
-            return true;
-        }
-        foreach ($candidates as $candidate) {
-            if (in_array($candidate, $allowedModules)) {
-                return true;
-            }
-        }
+        return ($action === 'view');
     }
 
     return false;
@@ -313,9 +278,20 @@ function checkModuleAccess($requiredModule = '') {
         $hasAccess = in_array($moduleKey, $allowedModules);
         if (!$hasAccess) {
             $registry = getModuleRegistry();
+            // 1. Check if module is a child of an allowed parent
             foreach ($registry as $parentKey => $parentMod) {
                 if (!empty($parentMod['children']) && array_key_exists($moduleKey, $parentMod['children'])) {
                     if (in_array($parentKey, $allowedModules)) {
+                        $hasAccess = true;
+                        break;
+                    }
+                }
+            }
+            // 2. If checking parent (e.g. master_data), allow if user has access to any child or equivalent
+            if (!$hasAccess && $moduleKey === 'master_data') {
+                $checkSub = ['master_data_inbound', 'master_data_storage', 'master_data_outbound', 'site_location', 'inbound', 'warehouse', 'outbound'];
+                foreach ($checkSub as $sub) {
+                    if (in_array($sub, $allowedModules)) {
                         $hasAccess = true;
                         break;
                     }

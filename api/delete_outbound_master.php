@@ -14,7 +14,7 @@ $currentUser = getCurrentUser();
 $userRole = $currentUser['role'] ?? 'admin';
 $userModules = is_array($currentUser['allowed_modules'] ?? null) ? $currentUser['allowed_modules'] : [];
 
-$canDelete = ($userRole === 'head_warehouse_admin' || $userRole === 'superadmin' || canDelete('master_data_outbound') || canDelete('outbound') || canDelete('master_data'));
+$canDelete = ($userRole === 'superadmin' || canDelete('master_data_outbound') || canDelete('outbound'));
 if (!$canDelete) {
     echo json_encode(['status' => 'error', 'message' => 'Anda tidak memiliki hak akses untuk menghapus data Outbound. Silakan request hak akses Delete ke Superadmin.']);
     exit;

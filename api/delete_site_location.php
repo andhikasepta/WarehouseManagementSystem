@@ -12,7 +12,7 @@ validateCsrf();
 
 $currentUser = getCurrentUser();
 $userRole = $currentUser['role'] ?? 'admin';
-$canDelete = ($userRole === 'head_warehouse_admin' || $userRole === 'superadmin' || canDelete('site_location') || canDelete('master_data'));
+$canDelete = ($userRole === 'superadmin' || canDelete('site_location'));
 if (!$canDelete) {
     echo json_encode(['status' => 'error', 'message' => 'Anda tidak memiliki hak akses untuk menghapus data Site Location. Silakan request hak akses Delete ke Superadmin.']);
     exit;

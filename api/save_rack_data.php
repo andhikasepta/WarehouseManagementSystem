@@ -14,9 +14,9 @@ $currentUser = getCurrentUser();
 $userRole = $currentUser['role'] ?? 'admin';
 $isSuperAdmin = ($userRole === 'superadmin');
 $userModules = is_array($currentUser['allowed_modules'] ?? null) ? $currentUser['allowed_modules'] : [];
-$canManageRack = ($isSuperAdmin || $userRole === 'head_warehouse_admin' || in_array('master_data', $userModules) || in_array('warehouse', $userModules));
+$canManageRack = ($isSuperAdmin || canAdd('master_data_storage') || canAdd('warehouse'));
 
-if (!$canManageRack || (!$isSuperAdmin && !canAdd('master_data') && !canAdd('warehouse') && $userRole !== 'head_warehouse_admin')) {
+if (!$canManageRack) {
     echo json_encode(['status' => 'error', 'message' => 'Anda tidak memiliki hak akses untuk mengunggah atau mengubah master layout rak.']);
     exit;
 }
