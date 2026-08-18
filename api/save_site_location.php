@@ -12,7 +12,8 @@ if (!isLoggedIn()) {
 }
 validateCsrf();
 
-function ensureSiteLocationTableExists($pdo) {
+function ensureSiteLocationTableExists($pdo)
+{
     $driver = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
     $idCol = ($driver === 'pgsql') ? "id SERIAL PRIMARY KEY" : "id INT AUTO_INCREMENT PRIMARY KEY";
     $jsonCol = ($driver === 'pgsql') ? "raw_data JSONB" : "raw_data JSON";
@@ -51,14 +52,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     try {
         ensureSiteLocationTableExists($pdo);
+        $canAdd = canAdd('site_location') || canAdd('master_data');
+        if (!$canAdd) {
+            echo json_encode(['status' => 'error', 'message' => 'Anda tidak memiliki hak akses untuk menambah/mengimpor data Site Location.']);
+            exit;
+        }
+
         $action = $data['action'] ?? 'append';
 
         if ($action === 'init') {
             // Truncate table
-            $currentUser = getCurrentUser();
-            $userRole = $currentUser['role'] ?? 'admin';
-            if ($userRole !== 'superadmin' && $userRole !== 'head_warehouse_admin') {
-                echo json_encode(['status' => 'error', 'message' => 'Hanya Super Admin atau Head Warehouse yang diizinkan mengosongkan seluruh tabel.']);
+            $canDelete = canDelete('site_location') || canDelete('master_data');
+            if (!$canDelete) {
+                echo json_encode(['status' => 'error', 'message' => 'Anda tidak memiliki hak akses untuk menghapus seluruh data Site Location.']);
                 exit;
             }
             $pdo->exec("TRUNCATE TABLE site_location");
@@ -85,21 +91,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $insertedCount = 0;
             foreach ($rows as $row) {
-                if (!is_array($row)) continue;
+                if (!is_array($row))
+                    continue;
 
-                $siteId      = isset($row['site_id'])      ? trim((string)$row['site_id'])      : '';
-                $category    = isset($row['category'])     ? trim((string)$row['category'])     : '';
-                $intan       = isset($row['intan'])        ? trim((string)$row['intan'])        : '';
-                $region      = isset($row['region'])       ? trim((string)$row['region'])       : '';
-                $areaCluster = isset($row['area_cluster']) ? trim((string)$row['area_cluster']) : '';
-                $address     = isset($row['address'])      ? trim((string)$row['address'])      : '';
-                $province    = isset($row['province'])     ? trim((string)$row['province'])     : '';
-                $city        = isset($row['city'])         ? trim((string)$row['city'])         : '';
-                $subDistrict = isset($row['sub_district']) ? trim((string)$row['sub_district']) : '';
-                $village     = isset($row['village'])      ? trim((string)$row['village'])      : '';
-                $postalCode  = isset($row['postal_code'])  ? trim((string)$row['postal_code'])  : '';
-                $latitude    = isset($row['latitude'])     ? trim((string)$row['latitude'])     : '';
-                $longitude   = isset($row['longitude'])    ? trim((string)$row['longitude'])    : '';
+                $siteId = isset($row['site_id']) ? trim((string) $row['site_id']) : '';
+                $category = isset($row['category']) ? trim((string) $row['category']) : '';
+                $intan = isset($row['intan']) ? trim((string) $row['intan']) : '';
+                $region = isset($row['region']) ? trim((string) $row['region']) : '';
+                $areaCluster = isset($row['area_cluster']) ? trim((string) $row['area_cluster']) : '';
+                $address = isset($row['address']) ? trim((string) $row['address']) : '';
+                $province = isset($row['province']) ? trim((string) $row['province']) : '';
+                $city = isset($row['city']) ? trim((string) $row['city']) : '';
+                $subDistrict = isset($row['sub_district']) ? trim((string) $row['sub_district']) : '';
+                $village = isset($row['village']) ? trim((string) $row['village']) : '';
+                $postalCode = isset($row['postal_code']) ? trim((string) $row['postal_code']) : '';
+                $latitude = isset($row['latitude']) ? trim((string) $row['latitude']) : '';
+                $longitude = isset($row['longitude']) ? trim((string) $row['longitude']) : '';
 
                 // Raw data: use the _raw key if available, otherwise store the mapped row
                 $rawData = isset($row['_raw']) ? $row['_raw'] : $row;
@@ -110,12 +117,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     && empty($areaCluster) && empty($address) && empty($province) && empty($city)
                     && empty($subDistrict) && empty($village) && empty($postalCode)
                     && empty($latitude) && empty($longitude);
-                if ($allEmpty) continue;
+                if ($allEmpty)
+                    continue;
 
                 $stmt->execute([
-                    $siteId, $category, $intan, $region, $areaCluster,
-                    $address, $province, $city, $subDistrict, $village,
-                    $postalCode, $latitude, $longitude, $rawJson
+                    $siteId,
+                    $category,
+                    $intan,
+                    $region,
+                    $areaCluster,
+                    $address,
+                    $province,
+                    $city,
+                    $subDistrict,
+                    $village,
+                    $postalCode,
+                    $latitude,
+                    $longitude,
+                    $rawJson
                 ]);
                 $insertedCount++;
             }
@@ -132,11 +151,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         echo json_encode(['status' => 'error', 'message' => 'Unknown action: ' . $action]);
 
     } catch (PDOException $e) {
-        if ($pdo->inTransaction()) $pdo->rollBack();
+        if ($pdo->inTransaction())
+            $pdo->rollBack();
         error_log("save_site_location error: " . $e->getMessage());
         echo json_encode(['status' => 'error', 'message' => 'Database error: ' . $e->getMessage()]);
     } catch (Exception $e) {
-        if ($pdo->inTransaction()) $pdo->rollBack();
+        if ($pdo->inTransaction())
+            $pdo->rollBack();
         error_log("save_site_location error: " . $e->getMessage());
         echo json_encode(['status' => 'error', 'message' => 'Error: ' . $e->getMessage()]);
     }

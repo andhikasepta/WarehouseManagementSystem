@@ -32,7 +32,123 @@ if (window.jQuery) {
 var inboundTable = null;
 var assetTable = null;
 var rackTable = null;
+var outboundTable = null;
 var existingInboundPeriods = [];
+
+// Refresh outbound filter dropdowns from server
+function refreshOutboundFilters() {
+    $.getJSON('api/get_outbound_filters.php', function (json) {
+        if (json.status === 'success' && json.data) {
+            if (json.data.site_destinations) {
+                var $destSel = $('#filter-tujuan-site-outbound');
+                $destSel.find('option:not(:first)').remove();
+                json.data.site_destinations.forEach(function (d) {
+                    $destSel.append('<option value="' + d + '">' + d + '</option>');
+                });
+            }
+            if (json.data.mr_statuses) {
+                var $mrSel = $('#filter-mr-status-outbound');
+                $mrSel.find('option:not(:first)').remove();
+                json.data.mr_statuses.forEach(function (s) {
+                    $mrSel.append('<option value="' + s + '">' + s + '</option>');
+                });
+            }
+            if (json.data.dn_statuses) {
+                var $dnSel = $('#filter-dn-status-outbound');
+                $dnSel.find('option:not(:first)').remove();
+                json.data.dn_statuses.forEach(function (s) {
+                    $dnSel.append('<option value="' + s + '">' + s + '</option>');
+                });
+            }
+        }
+    });
+}
+
+function initOutboundTable() {
+    if (outboundTable || $('#dataTableOutbound').length === 0) return;
+
+    refreshOutboundFilters();
+
+    outboundTable = $('#dataTableOutbound').DataTable({
+        processing: true,
+        serverSide: true,
+        responsive: false,
+        scrollX: true,
+        ajax: {
+            url: 'api/get_outbound_master.php',
+            type: 'GET',
+            data: function (d) {
+                d.site_destination = $('#filter-tujuan-site-outbound').val();
+                d.mr_status = $('#filter-mr-status-outbound').val();
+                d.dn_status = $('#filter-dn-status-outbound').val();
+                d.mr_no = $('#filter-outbound-mr').val();
+            }
+        },
+        columns: [
+            { data: 'mr_no', defaultContent: '-' },
+            { data: 'mr_type', defaultContent: '-' },
+            { data: 'mr_desc', defaultContent: '-' },
+            { data: 'mr_status', defaultContent: '-' },
+            { data: 'pck_no', defaultContent: '-' },
+            { data: 'pck_detail', defaultContent: '-' },
+            { data: 'pck_status', defaultContent: '-' },
+            { data: 'awb', defaultContent: '-' },
+            { data: 'dn_no', defaultContent: '-' },
+            { data: 'pr_no', defaultContent: '-' },
+            { data: 'po_no', defaultContent: '-' },
+            { data: 'origin_from', defaultContent: '-' },
+            { data: 'site_origin', defaultContent: '-' },
+            { data: 'site_origin_addr', defaultContent: '-' },
+            { data: 'destination_to', defaultContent: '-' },
+            { data: 'site_destination', defaultContent: '-' },
+            { data: 'site_destination_addr', defaultContent: '-' },
+            { data: 'pickup_type', defaultContent: '-' },
+            { data: 'via', defaultContent: '-' },
+            { data: 'lt', defaultContent: '-' },
+            { data: 'delivery_target', defaultContent: '-' },
+            { data: 'dn_status', defaultContent: '-' },
+            { data: 'last_log', defaultContent: '-' }
+        ],
+        order: [[0, 'desc']],
+        pageLength: 25,
+        lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
+        dom: "<'row'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6'f>>" +
+             "<'row'<'col-sm-12'tr>>" +
+             "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+        language: {
+            search: "Cari Cepat:",
+            lengthMenu: "Tampilkan _MENU_ data",
+            info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ data",
+            infoEmpty: "Menampilkan 0 sampai 0 dari 0 data",
+            infoFiltered: "(disaring dari _MAX_ total data)",
+            zeroRecords: "Tidak ada data yang cocok",
+            emptyTable: "Belum ada data Master Outbound.",
+            paginate: {
+                first: "Pertama",
+                last: "Terakhir",
+                next: "Selanjutnya",
+                previous: "Sebelumnya"
+            }
+        }
+    });
+
+    // Reactive dropdown and search filters
+    $('#filter-tujuan-site-outbound, #filter-mr-status-outbound, #filter-dn-status-outbound').on('change', function () {
+        outboundTable.ajax.reload();
+    });
+
+    $('#filter-outbound-mr').on('keyup input change', function () {
+        outboundTable.ajax.reload();
+    });
+
+    $('#btn-reset-filter-outbound').on('click', function () {
+        $('#filter-tujuan-site-outbound').val('');
+        $('#filter-mr-status-outbound').val('');
+        $('#filter-dn-status-outbound').val('');
+        $('#filter-outbound-mr').val('');
+        outboundTable.search('').columns().search('').ajax.reload();
+    });
+}
 
 // Refresh inbound filter dropdowns from server (called after upload/delete)
 function refreshInboundFilters() {
@@ -411,6 +527,11 @@ function loadActiveMasterTabTable() {
                 setTimeout(function () { rackTable.columns.adjust(); }, 150);
             }
         }
+    } else if (activeSeg === '#seg-outbound') {
+        initOutboundTable();
+        if (outboundTable) {
+            setTimeout(function () { outboundTable.columns.adjust(); }, 150);
+        }
     }
 }
 
@@ -551,14 +672,15 @@ $(document).ready(function () {
                         inputQty.value = parseInt(row.qty) || 0;
                         inputQty.style.textAlign = 'center';
                         inputQty.setAttribute('data-label', row.label || '');
-                        if (window.currentUserRole === 'head_warehouse_admin') {
+                        var canEditStorage = (window.currentUserRole === 'superadmin' || window.userCanAddStorage === true) && window.currentUserRole !== 'head_warehouse_admin';
+                        if (!canEditStorage) {
                             inputQty.disabled = true;
                             inputQty.style.backgroundColor = '#eaecf4';
                         }
                         tdQty.appendChild(inputQty);
                         tr.appendChild(tdQty);
 
-                        // Capacity (editable for admins, view-only for head_warehouse_admin)
+                        // Capacity (editable for admins with Add/Edit permission)
                         var tdCap = document.createElement('td');
                         var inputCap = document.createElement('input');
                         inputCap.type = 'number';
@@ -569,7 +691,7 @@ $(document).ready(function () {
                         inputCap.value = parseFloat(row.capacity) || 0;
                         inputCap.style.textAlign = 'center';
                         inputCap.setAttribute('data-label', row.label || '');
-                        if (window.currentUserRole === 'head_warehouse_admin') {
+                        if (!canEditStorage) {
                             inputCap.disabled = true;
                             inputCap.style.backgroundColor = '#eaecf4';
                         }
@@ -933,20 +1055,166 @@ $(document).ready(function () {
         $(this).val('');
     });
 
+    // Outbound Excel Template Generator
     $('#btn-template-outbound').on('click', function () {
         if (typeof XLSX === 'undefined') return;
         var wb = XLSX.utils.book_new();
         var sampleData = [{
-            'CUSTOMER CODE': 'CUST-2001',
-            'CUSTOMER NAME': 'PT Logistics Global',
-            'DESTINATION': 'Surakarta Branch',
-            'CARRIER': 'JNE Express',
-            'SERVICE TYPE': 'REGULAR',
-            'STATUS': 'ACTIVE'
+            'MR NO': 'MR-2026-0001',
+            'MR TYPE': 'PROJECT',
+            'MR DESC': 'Material Router & Switch Deployment',
+            'MR STATUS': 'RELEASED',
+            'PCK NO': 'PCK-2026-001',
+            'PCK DETAIL': 'Box 1 of 2 (Router C9200)',
+            'PCK STATUS': 'PACKED',
+            'AWB': 'AWB-JNE-998822',
+            'DN NO': 'DN-2026-0801',
+            'PR NO': 'PR-100293',
+            'PO NO': 'PO-450001234',
+            'FROM': 'WH-CENTRAL-JKT',
+            'SITE ORIGIN': 'JKT-HO-01',
+            'SITE ORIGIN ADDR': 'Jl. Medan Merdeka Barat No. 1, Jakarta Pusat',
+            'TO': 'SITE-SUB-01',
+            'SITE DESTINATION': 'SUB-RNG-02',
+            'SITE DESTINATION ADDR': 'Jl. Pemuda No. 45, Surabaya',
+            'PICKUP TYPE': 'COURIER PICKUP',
+            'VIA': 'JNE TRUCKING',
+            'LT': '3 DAYS',
+            'DELIVERY TARGET': '2026-08-25',
+            'DN STATUS': 'IN TRANSIT',
+            'LAST LOG': 'Departed from Jakarta Sorting Hub'
         }];
         var ws = XLSX.utils.json_to_sheet(sampleData);
+        ws['!cols'] = [
+            { wch: 18 }, { wch: 14 }, { wch: 35 }, { wch: 14 },
+            { wch: 18 }, { wch: 30 }, { wch: 14 }, { wch: 20 },
+            { wch: 18 }, { wch: 16 }, { wch: 18 }, { wch: 18 },
+            { wch: 18 }, { wch: 35 }, { wch: 18 }, { wch: 18 },
+            { wch: 35 }, { wch: 18 }, { wch: 18 }, { wch: 12 },
+            { wch: 18 }, { wch: 16 }, { wch: 35 }
+        ];
         XLSX.utils.book_append_sheet(wb, ws, "Master Outbound");
         XLSX.writeFile(wb, "Template_Import_Master_Data_Outbound.xlsx");
+    });
+
+    // Outbound Excel File Upload Handler with intelligent 23-column mapping
+    $('#excel-file-outbound-input').on('change', function (e) {
+        var file = e.target.files[0];
+        if (!file) return;
+
+        if (typeof XLSX === 'undefined') {
+            if (typeof Swal !== 'undefined') Swal.fire('Error', 'SheetJS (XLSX) library tidak ditemukan.', 'error');
+            return;
+        }
+
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                title: 'Data Is Processing Please Wait',
+                html: 'Membaca dan memproses file Excel Outbound...',
+                allowOutsideClick: false,
+                didOpen: () => { Swal.showLoading(); }
+            });
+        }
+
+        var reader = new FileReader();
+        reader.onload = function (e) {
+            try {
+                var data = new Uint8Array(e.target.result);
+                var workbook = XLSX.read(data, { type: 'array' });
+                var firstSheet = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheet];
+                var rawJson = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
+
+                if (rawJson.length === 0) {
+                    if (typeof Swal !== 'undefined') Swal.fire('Warning', 'File Excel kosong.', 'warning');
+                    return;
+                }
+
+                // 23-Field Alias Definitions for intelligent fuzzy matching
+                var FIELD_MAP = {
+                    mr_no:                 ['mr no', 'mr_no', 'mrno', 'no mr', 'nomr', 'no. mr', 'mr number'],
+                    mr_type:               ['mr type', 'mr_type', 'mrtype', 'tipe mr', 'type mr'],
+                    mr_desc:               ['mr desc', 'mr_desc', 'mrdesc', 'mr description', 'deskripsi mr', 'keterangan mr'],
+                    mr_status:             ['mr status', 'mr_status', 'mrstatus', 'status mr'],
+                    pck_no:                ['pck no', 'pck_no', 'pckno', 'packing no', 'no pck', 'no. pck', 'package no'],
+                    pck_detail:            ['pck detail', 'pck_detail', 'pckdetail', 'packing detail', 'detail pck'],
+                    pck_status:            ['pck status', 'pck_status', 'pckstatus', 'packing status', 'status pck'],
+                    awb:                   ['awb', 'no awb', 'airwaybill', 'resi', 'no resi', 'no. awb'],
+                    dn_no:                 ['dn no', 'dn_no', 'dnno', 'delivery note no', 'no dn', 'no. dn', 'dn number'],
+                    pr_no:                 ['pr no', 'pr_no', 'prno', 'no pr', 'no. pr', 'purchase request no', 'pr number'],
+                    po_no:                 ['po no', 'po_no', 'pono', 'no po', 'no. po', 'purchase order no', 'po number'],
+                    origin_from:           ['from', 'origin from', 'origin_from', 'dari', 'asal'],
+                    site_origin:           ['site origin', 'site_origin', 'siteorigin', 'origin site', 'site asal'],
+                    site_origin_addr:      ['site origin addr', 'site_origin_addr', 'site origin address', 'alamat origin', 'alamat site asal'],
+                    destination_to:        ['to', 'destination to', 'destination_to', 'tujuan', 'ke'],
+                    site_destination:      ['site destination', 'site_destination', 'sitedestination', 'destination site', 'tujuan site', 'site tujuan'],
+                    site_destination_addr: ['site destination addr', 'site_destination_addr', 'site destination address', 'alamat destination', 'alamat site tujuan', 'alamat tujuan'],
+                    pickup_type:           ['pickup type', 'pickup_type', 'pickuptype', 'tipe pickup', 'jenis pickup'],
+                    via:                   ['via', 'pengiriman via', 'ekspedisi', 'kurir', 'transport'],
+                    lt:                    ['lt', 'lead time', 'leadtime', 'lead_time'],
+                    delivery_target:       ['delivery target', 'delivery_target', 'target delivery', 'target_delivery', 'tgl target delivery'],
+                    dn_status:             ['dn status', 'dn_status', 'dnstatus', 'status dn'],
+                    last_log:              ['last log', 'last_log', 'lastlog', 'log terakhir', 'status log']
+                };
+
+                function normalizeKey(str) {
+                    return String(str || '').toLowerCase().replace(/[^a-z0-9]/g, ' ').trim().replace(/\s+/g, ' ');
+                }
+
+                // Map raw Excel rows to normalized 23-column format
+                var mappedRows = rawJson.map(function (rawRow) {
+                    var out = { _raw: rawRow };
+                    var rawKeys = Object.keys(rawRow);
+
+                    Object.keys(FIELD_MAP).forEach(function (canonical) {
+                        var aliases = FIELD_MAP[canonical];
+                        var foundKey = rawKeys.find(function (k) {
+                            var norm = normalizeKey(k);
+                            return aliases.includes(norm);
+                        });
+                        out[canonical] = foundKey ? String(rawRow[foundKey]).trim() : '';
+                    });
+
+                    return out;
+                });
+
+                // Send to backend API
+                fetch('api/save_outbound_master.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'batch',
+                        data: mappedRows
+                    })
+                })
+                .then(r => r.json())
+                .then(res => {
+                    if (res.status === 'success') {
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire('Sukses', res.message || 'Import Data Outbound Berhasil!', 'success');
+                        }
+                        $('#uploadExcelModalOutbound').modal('hide');
+                        if (outboundTable) {
+                            outboundTable.ajax.reload();
+                            refreshOutboundFilters();
+                        } else {
+                            location.reload();
+                        }
+                    } else {
+                        if (typeof Swal !== 'undefined') Swal.fire('Error', res.message || 'Gagal import data.', 'error');
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    if (typeof Swal !== 'undefined') Swal.fire('Error', 'Terjadi kesalahan server saat menyimpan data.', 'error');
+                });
+            } catch (err) {
+                console.error(err);
+                if (typeof Swal !== 'undefined') Swal.fire('Error', 'Format file Excel tidak valid.', 'error');
+            }
+        };
+        reader.readAsArrayBuffer(file);
+        $(this).val('');
     });
 
 });

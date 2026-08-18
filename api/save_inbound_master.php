@@ -12,7 +12,8 @@ if (!isLoggedIn()) {
 }
 validateCsrf();
 
-function ensureInboundMasterTableExists($pdo) {
+function ensureInboundMasterTableExists($pdo)
+{
     $driver = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
     $idCol = ($driver === 'pgsql') ? "id SERIAL PRIMARY KEY" : "id INT AUTO_INCREMENT PRIMARY KEY";
     $jsonCol = ($driver === 'pgsql') ? "raw_data JSONB" : "raw_data JSON";
@@ -47,31 +48,36 @@ function ensureInboundMasterTableExists($pdo) {
     $pdo->exec($sql);
 }
 
-function getValCI($row, $keys) {
-    if (!is_array($keys)) $keys = [$keys];
+function getValCI($row, $keys)
+{
+    if (!is_array($keys))
+        $keys = [$keys];
     foreach ($row as $k => $v) {
         foreach ($keys as $targetKey) {
             $cleanK = strtolower(preg_replace('/[^a-zA-Z0-9]/', '', $k));
             $cleanTarget = strtolower(preg_replace('/[^a-zA-Z0-9]/', '', $targetKey));
             if ($cleanK === $cleanTarget) {
-                return (string)$v;
+                return (string) $v;
             }
         }
     }
     return null;
 }
 
-function parseDateVal($val) {
-    if (!$val) return null;
-    $str = trim((string)$val);
-    if (empty($str)) return null;
-    
+function parseDateVal($val)
+{
+    if (!$val)
+        return null;
+    $str = trim((string) $val);
+    if (empty($str))
+        return null;
+
     // Check if numeric (Excel serial date number)
-    if (is_numeric($str) && (float)$str > 25000 && (float)$str < 80000) {
-        $unixTimestamp = ((float)$str - 25569) * 86400;
+    if (is_numeric($str) && (float) $str > 25000 && (float) $str < 80000) {
+        $unixTimestamp = ((float) $str - 25569) * 86400;
         return date('Y-m-d', $unixTimestamp);
     }
-    
+
     // Handle DD/MM/YYYY or DD-MM-YYYY formats
     if (preg_match('/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/', $str, $m)) {
         return sprintf('%04d-%02d-%02d', $m[3], $m[2], $m[1]);
@@ -81,7 +87,7 @@ function parseDateVal($val) {
     if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $str)) {
         return $str;
     }
-    
+
     $timestamp = strtotime($str);
     if ($timestamp !== false) {
         return date('Y-m-d', $timestamp);
@@ -89,14 +95,23 @@ function parseDateVal($val) {
     return null;
 }
 
-function parseNumberVal($val) {
-    if ($val === null || $val === '') return 0;
-    if (is_numeric($val)) return (float)$val;
-    $clean = preg_replace('/[^0-9.]/', '', str_replace(',', '.', (string)$val));
-    return is_numeric($clean) ? (float)$clean : 0;
+function parseNumberVal($val)
+{
+    if ($val === null || $val === '')
+        return 0;
+    if (is_numeric($val))
+        return (float) $val;
+    $clean = preg_replace('/[^0-9.]/', '', str_replace(',', '.', (string) $val));
+    return is_numeric($clean) ? (float) $clean : 0;
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $canAdd = canAdd('master_data_inbound') || canAdd('inbound') || canAdd('master_data');
+    if (!$canAdd) {
+        echo json_encode(['status' => 'error', 'message' => 'Anda tidak memiliki hak akses untuk menambah/mengimpor data Inbound.']);
+        exit;
+    }
+
     $input = file_get_contents('php://input');
     $data = json_decode($input, true);
 
@@ -108,10 +123,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($action === 'init') {
                 $clearAll = !empty($data['clear_all']);
                 if ($clearAll) {
-                    $currentUser = getCurrentUser();
-                    $userRole = $currentUser['role'] ?? 'admin';
-                    if ($userRole !== 'superadmin' && $userRole !== 'head_warehouse_admin') {
-                        echo json_encode(['status' => 'error', 'message' => 'Hanya Super Admin atau Head Warehouse yang diizinkan mengosongkan seluruh tabel.']);
+                    $canDelete = canDelete('master_data_inbound') || canDelete('inbound') || canDelete('master_data');
+                    if (!$canDelete) {
+                        echo json_encode(['status' => 'error', 'message' => 'Anda tidak memiliki hak akses untuk menghapus seluruh data Inbound.']);
                         exit;
                     }
                     $pdo->exec("TRUNCATE TABLE inbound_master");
@@ -126,9 +140,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
 
                 // Determine Periode Group
-                $month = trim((string)($data['month'] ?? ''));
-                $year = trim((string)($data['year'] ?? ''));
-                $periodeGroup = !empty($data['periode_group']) ? trim((string)$data['periode_group']) : null;
+                $month = trim((string) ($data['month'] ?? ''));
+                $year = trim((string) ($data['year'] ?? ''));
+                $periodeGroup = !empty($data['periode_group']) ? trim((string) $data['periode_group']) : null;
                 if (!$periodeGroup && !empty($month) && !empty($year)) {
                     $periodeGroup = $month . ' ' . $year;
                 }
@@ -137,7 +151,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if (!empty($periodeGroup) && empty($data['clear_existing_period'])) {
                     $chkStmt = $pdo->prepare("SELECT COUNT(*) FROM inbound_master WHERE periode_group = ?");
                     $chkStmt->execute([$periodeGroup]);
-                    if ((int)$chkStmt->fetchColumn() > 0) {
+                    if ((int) $chkStmt->fetchColumn() > 0) {
                         echo json_encode([
                             'status' => 'error',
                             'message' => "Data untuk Periode '$periodeGroup' sudah ada di database."
@@ -166,7 +180,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                     $insertedCount = 0;
                     foreach ($rows as $row) {
-                        if (!is_array($row)) continue;
+                        if (!is_array($row))
+                            continue;
 
                         $prNomor = getValCI($row, ['PR Nomor', 'pr_nomor', 'PR_Nomor']);
                         $prKodeSite = getValCI($row, ['PR Kode Site', 'pr_kode_site', 'Kode Site']);
@@ -199,10 +214,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         }
 
                         $stmt->execute([
-                            $prNomor, $prKodeSite, $prNamaSite, $prItemKategori, $prPicTeknis,
-                            $prNamaBagian, $prNamaDivisi, $prRegional, $prJenisMa, $poNomor,
-                            $poDeskripsi, $poVendor, $poTglGen, $poNamaItem, $poQty,
-                            $poUomItem, $poTargetDel, $projectId, $rowPeriod, json_encode($row)
+                            $prNomor,
+                            $prKodeSite,
+                            $prNamaSite,
+                            $prItemKategori,
+                            $prPicTeknis,
+                            $prNamaBagian,
+                            $prNamaDivisi,
+                            $prRegional,
+                            $prJenisMa,
+                            $poNomor,
+                            $poDeskripsi,
+                            $poVendor,
+                            $poTglGen,
+                            $poNamaItem,
+                            $poQty,
+                            $poUomItem,
+                            $poTargetDel,
+                            $projectId,
+                            $rowPeriod,
+                            json_encode($row)
                         ]);
                         $insertedCount++;
                     }
@@ -211,7 +242,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 echo json_encode(['status' => 'success', 'message' => "$insertedCount data berhasil disimpan" . ($periodeGroup ? " untuk periode $periodeGroup" : "") . "!"]);
                 exit;
             } elseif ($action === 'single_save') {
-                $id = isset($data['id']) && is_numeric($data['id']) ? (int)$data['id'] : null;
+                $id = isset($data['id']) && is_numeric($data['id']) ? (int) $data['id'] : null;
 
                 if ($id) {
                     $stmt = $pdo->prepare("UPDATE inbound_master SET 
@@ -221,14 +252,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         po_uom_item=?, po_target_delivery=?, project_id=?, periode_group=?
                         WHERE id=?");
                     $stmt->execute([
-                        $data['pr_nomor'] ?? null, $data['pr_kode_site'] ?? null, $data['pr_nama_site'] ?? null,
-                        $data['pr_item_kategori'] ?? null, $data['pr_pic_teknis_nama'] ?? null, $data['pr_nama_bagian'] ?? null,
-                        $data['pr_nama_divisi'] ?? null, $data['pr_regional'] ?? null, $data['pr_jenis_ma'] ?? null,
-                        $data['po_nomor'] ?? null, $data['po_deskripsi'] ?? null, $data['po_vendor'] ?? null,
-                        parseDateVal($data['po_tgl_generate'] ?? null), $data['po_nama_item'] ?? null,
+                        $data['pr_nomor'] ?? null,
+                        $data['pr_kode_site'] ?? null,
+                        $data['pr_nama_site'] ?? null,
+                        $data['pr_item_kategori'] ?? null,
+                        $data['pr_pic_teknis_nama'] ?? null,
+                        $data['pr_nama_bagian'] ?? null,
+                        $data['pr_nama_divisi'] ?? null,
+                        $data['pr_regional'] ?? null,
+                        $data['pr_jenis_ma'] ?? null,
+                        $data['po_nomor'] ?? null,
+                        $data['po_deskripsi'] ?? null,
+                        $data['po_vendor'] ?? null,
+                        parseDateVal($data['po_tgl_generate'] ?? null),
+                        $data['po_nama_item'] ?? null,
                         parseNumberVal($data['po_qty_item'] ?? 0),
-                        $data['po_uom_item'] ?? null, parseDateVal($data['po_target_delivery'] ?? null),
-                        $data['project_id'] ?? null, $data['periode_group'] ?? null, $id
+                        $data['po_uom_item'] ?? null,
+                        parseDateVal($data['po_target_delivery'] ?? null),
+                        $data['project_id'] ?? null,
+                        $data['periode_group'] ?? null,
+                        $id
                     ]);
                     echo json_encode(['status' => 'success', 'message' => 'Record updated successfully']);
                 } else {
@@ -239,14 +282,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         po_uom_item, po_target_delivery, project_id, periode_group
                     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
                     $stmt->execute([
-                        $data['pr_nomor'] ?? null, $data['pr_kode_site'] ?? null, $data['pr_nama_site'] ?? null,
-                        $data['pr_item_kategori'] ?? null, $data['pr_pic_teknis_nama'] ?? null, $data['pr_nama_bagian'] ?? null,
-                        $data['pr_nama_divisi'] ?? null, $data['pr_regional'] ?? null, $data['pr_jenis_ma'] ?? null,
-                        $data['po_nomor'] ?? null, $data['po_deskripsi'] ?? null, $data['po_vendor'] ?? null,
-                        parseDateVal($data['po_tgl_generate'] ?? null), $data['po_nama_item'] ?? null,
+                        $data['pr_nomor'] ?? null,
+                        $data['pr_kode_site'] ?? null,
+                        $data['pr_nama_site'] ?? null,
+                        $data['pr_item_kategori'] ?? null,
+                        $data['pr_pic_teknis_nama'] ?? null,
+                        $data['pr_nama_bagian'] ?? null,
+                        $data['pr_nama_divisi'] ?? null,
+                        $data['pr_regional'] ?? null,
+                        $data['pr_jenis_ma'] ?? null,
+                        $data['po_nomor'] ?? null,
+                        $data['po_deskripsi'] ?? null,
+                        $data['po_vendor'] ?? null,
+                        parseDateVal($data['po_tgl_generate'] ?? null),
+                        $data['po_nama_item'] ?? null,
                         parseNumberVal($data['po_qty_item'] ?? 0),
-                        $data['po_uom_item'] ?? null, parseDateVal($data['po_target_delivery'] ?? null),
-                        $data['project_id'] ?? null, $data['periode_group'] ?? null
+                        $data['po_uom_item'] ?? null,
+                        parseDateVal($data['po_target_delivery'] ?? null),
+                        $data['project_id'] ?? null,
+                        $data['periode_group'] ?? null
                     ]);
                     echo json_encode(['status' => 'success', 'message' => 'Record created successfully']);
                 }

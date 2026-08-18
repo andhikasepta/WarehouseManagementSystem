@@ -14,9 +14,9 @@ $currentUser = getCurrentUser();
 $userRole = $currentUser['role'] ?? 'admin';
 $userModules = is_array($currentUser['allowed_modules'] ?? null) ? $currentUser['allowed_modules'] : [];
 
-$canAccess = ($userRole === 'head_warehouse_admin' || $userRole === 'superadmin' || $userRole === 'inbound_admin' || in_array('master_data_inbound', $userModules) || in_array('master_data', $userModules));
-if (!$canAccess) {
-    echo json_encode(['status' => 'error', 'message' => 'Forbidden']);
+$canDelete = ($userRole === 'head_warehouse_admin' || $userRole === 'superadmin' || canDelete('master_data_inbound') || canDelete('inbound') || canDelete('master_data'));
+if (!$canDelete) {
+    echo json_encode(['status' => 'error', 'message' => 'Anda tidak memiliki hak akses untuk menghapus data Inbound. Silakan request hak akses Delete ke Superadmin.']);
     exit;
 }
 
@@ -28,14 +28,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $action = $data['action'] ?? 'delete_period';
 
         if ($action === 'delete_single') {
-            $id = isset($data['id']) && is_numeric($data['id']) ? (int)$data['id'] : null;
+            $id = isset($data['id']) && is_numeric($data['id']) ? (int) $data['id'] : null;
             if (!$id) {
                 echo json_encode(['status' => 'error', 'message' => 'Missing ID']);
                 exit;
             }
             $stmt = $pdo->prepare("DELETE FROM inbound_master WHERE id = ?");
             $stmt->execute([$id]);
-            echo json_encode(['status' => 'success', 'message' => 'Data successfully deleted']);
+            echo json_encode(['status' => 'success', 'message' => 'Data Inbound berhasil dihapus']);
             exit;
         }
 
@@ -49,11 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->execute([$periode]);
             echo json_encode(['status' => 'success', 'message' => "Data Inbound periode $periode berhasil dihapus"]);
             exit;
-        } elseif ($action === 'truncate_all') {
-            if ($userRole !== 'superadmin' && $userRole !== 'head_warehouse_admin') {
-                echo json_encode(['status' => 'error', 'message' => 'Hanya Super Admin atau Head Warehouse yang diizinkan mengosongkan seluruh tabel.']);
-                exit;
-            }
+        } elseif ($action === 'truncate_all' || empty($periode)) {
             $pdo->exec("TRUNCATE TABLE inbound_master");
             echo json_encode(['status' => 'success', 'message' => 'Semua data Inbound berhasil dihapus']);
             exit;

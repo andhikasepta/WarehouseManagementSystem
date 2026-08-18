@@ -10,6 +10,14 @@ if (!isLoggedIn()) {
 }
 validateCsrf();
 
+$currentUser = getCurrentUser();
+$userRole = $currentUser['role'] ?? 'admin';
+$canDelete = ($userRole === 'head_warehouse_admin' || $userRole === 'superadmin' || canDelete('master_data_storage') || canDelete('warehouse') || canDelete('master_data'));
+if (!$canDelete) {
+    echo json_encode(['status' => 'error', 'message' => 'Anda tidak memiliki hak akses untuk menghapus data Storage. Silakan request hak akses Delete ke Superadmin.']);
+    exit;
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $input = file_get_contents('php://input');
     $data = json_decode($input, true);

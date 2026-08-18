@@ -45,11 +45,51 @@ function isLoggedIn() {
 }
 
 /**
- * Get current logged in user details.
+ * Get current logged in user details (auto-synced with DB for real-time UAC updates).
  */
 function getCurrentUser() {
     if (!isLoggedIn()) return null;
-    return [
+
+    static $cachedUser = null;
+    if ($cachedUser !== null) {
+        return $cachedUser;
+    }
+
+    $userId = $_SESSION['user_id'] ?? null;
+    if ($userId) {
+        global $pdo;
+        if (!isset($pdo)) {
+            require_once __DIR__ . '/config/database.php';
+        }
+        try {
+            $stmt = $pdo->prepare("SELECT id, username, name, role, allowed_modules, permissions FROM users WHERE id = ?");
+            $stmt->execute([$userId]);
+            $dbUser = $stmt->fetch(PDO::FETCH_ASSOC);
+            if ($dbUser) {
+                $decodedModules = json_decode($dbUser['allowed_modules'] ?? '[]', true);
+                $decodedPermissions = json_decode($dbUser['permissions'] ?? '{}', true);
+
+                $_SESSION['role'] = $dbUser['role'];
+                $_SESSION['name'] = $dbUser['name'];
+                $_SESSION['allowed_modules'] = is_array($decodedModules) ? $decodedModules : [];
+                $_SESSION['permissions'] = is_array($decodedPermissions) ? $decodedPermissions : [];
+
+                $cachedUser = [
+                    'id' => $dbUser['id'],
+                    'username' => $dbUser['username'],
+                    'name' => $dbUser['name'],
+                    'role' => $dbUser['role'],
+                    'allowed_modules' => $_SESSION['allowed_modules'],
+                    'permissions' => $_SESSION['permissions']
+                ];
+                return $cachedUser;
+            }
+        } catch (Exception $e) {
+            error_log("getCurrentUser DB sync error: " . $e->getMessage());
+        }
+    }
+
+    $cachedUser = [
         'id' => $_SESSION['user_id'] ?? null,
         'username' => $_SESSION['username'] ?? '',
         'name' => $_SESSION['name'] ?? '',
@@ -57,11 +97,13 @@ function getCurrentUser() {
         'allowed_modules' => $_SESSION['allowed_modules'] ?? [],
         'permissions' => $_SESSION['permissions'] ?? []
     ];
+    return $cachedUser;
 }
 
 /**
  * Check if the current user has a specific permission on a module.
- * @param string $module  Module key (e.g. 'inbound', 'warehouse', 'master_data')
+ * Strictly driven by Superadmin User Management permissions.
+ * @param string $module  Module key (e.g. 'inbound', 'warehouse', 'master_data', 'site_location')
  * @param string $action  Permission action: 'view', 'add', or 'delete'
  * @return bool
  */
@@ -69,21 +111,58 @@ function hasPermission($module, $action = 'view') {
     if (!isLoggedIn()) return false;
     $user = getCurrentUser();
 
-    // Superadmin has all permissions
-    if ($user['role'] === 'superadmin') return true;
+    // Superadmin has master full permissions
+    if (($user['role'] ?? '') === 'superadmin') return true;
 
-    $allowedModules = $user['allowed_modules'] ?? [];
-    if (!is_array($allowedModules) || !in_array($module, $allowedModules)) {
-        return false;
+    $allowedModules = is_array($user['allowed_modules'] ?? null) ? $user['allowed_modules'] : [];
+    $permissions    = is_array($user['permissions'] ?? null) ? $user['permissions'] : [];
+
+    // Module hierarchy mapping (sub-module => potential parent/related modules)
+    $relatedMap = [
+        'master_data_inbound'  => ['master_data', 'inbound'],
+        'master_data_storage'  => ['master_data', 'warehouse'],
+        'master_data_outbound' => ['master_data', 'outbound'],
+        'site_location'        => ['master_data'],
+        'inbound'              => ['master_data_inbound', 'master_data'],
+        'warehouse'            => ['master_data_storage', 'master_data'],
+        'outbound'             => ['master_data_outbound', 'master_data'],
+        'master_data'          => ['master_data_inbound', 'master_data_storage', 'master_data_outbound', 'site_location']
+    ];
+
+    // 1. Direct check on the requested module
+    if (in_array($module, $allowedModules)) {
+        if (isset($permissions[$module]) && is_array($permissions[$module])) {
+            if (!empty($permissions[$module][$action])) {
+                return true;
+            }
+        }
     }
 
-    $permissions = $user['permissions'] ?? [];
-    if (is_array($permissions) && isset($permissions[$module]) && is_array($permissions[$module])) {
-        return !empty($permissions[$module][$action]);
+    // 2. Check related/parent modules for inherited permissions
+    $candidates = $relatedMap[$module] ?? [];
+    foreach ($candidates as $candidate) {
+        if (in_array($candidate, $allowedModules)) {
+            if (isset($permissions[$candidate]) && is_array($permissions[$candidate])) {
+                if (!empty($permissions[$candidate][$action])) {
+                    return true;
+                }
+            }
+        }
     }
 
-    // If module is in allowed_modules but no explicit permissions entry, default to view only
-    return $action === 'view';
+    // 3. Fallback for 'view' action: if the module or any candidate is in allowed_modules
+    if ($action === 'view') {
+        if (in_array($module, $allowedModules)) {
+            return true;
+        }
+        foreach ($candidates as $candidate) {
+            if (in_array($candidate, $allowedModules)) {
+                return true;
+            }
+        }
+    }
+
+    return false;
 }
 
 function canAdd($module) {

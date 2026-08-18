@@ -61,21 +61,29 @@ include FRONTEND_PATH . 'components/header.php';
                     </div>
 
                     <!-- Action Bar -->
-                    <?php if ($userRole !== 'head_warehouse_admin'): ?>
+                    <?php 
+                    $canAddSiteLocation = canAdd('site_location');
+                    $canDeleteSiteLocation = canDelete('site_location');
+                    ?>
+                    <?php if ($canAddSiteLocation || $canDeleteSiteLocation): ?>
                         <div
                             class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between mb-3 bg-white p-3 rounded shadow-sm border">
                             <h6 class="m-0 font-weight-bold text-success">
                                 <i class="fas fa-map-marked-alt mr-2"></i>Menu Site Location Warehouse
                             </h6>
                             <div class="mt-2 mt-sm-0">
-                                <button class="btn btn-success btn-sm shadow-sm font-weight-bold mr-2" data-toggle="modal"
-                                    data-target="#uploadSiteLocationModal">
-                                    <i class="fas fa-file-import mr-1"></i> Import Excel
-                                </button>
-                                <button class="btn btn-danger btn-sm shadow-sm font-weight-bold" data-toggle="modal"
-                                    data-target="#deleteSiteLocationModal">
-                                    <i class="fas fa-trash-alt mr-1"></i> Hapus Semua Data
-                                </button>
+                                <?php if ($canAddSiteLocation): ?>
+                                    <button class="btn btn-success btn-sm shadow-sm font-weight-bold mr-2" data-toggle="modal"
+                                        data-target="#uploadSiteLocationModal">
+                                        <i class="fas fa-file-import mr-1"></i> Import Excel
+                                    </button>
+                                <?php endif; ?>
+                                <?php if ($canDeleteSiteLocation): ?>
+                                    <button class="btn btn-danger btn-sm shadow-sm font-weight-bold" data-toggle="modal"
+                                        data-target="#deleteSiteLocationModal">
+                                        <i class="fas fa-trash-alt mr-1"></i> Hapus Semua Data
+                                    </button>
+                                <?php endif; ?>
                             </div>
                         </div>
                     <?php endif; ?>
@@ -189,7 +197,7 @@ include FRONTEND_PATH . 'components/header.php';
                                     <h3 class="text-danger font-weight-bold mb-3"><i
                                             class="fas fa-exclamation-triangle mr-2"></i>Peringatan</h3>
                                     <p class="mb-0" style="font-size: 1.1rem;">Semua data Site Location akan dihapus
-                                        secara permanen dari sistem dan tidak dapat dikembalikan.</p>
+                                        secara permanen dari sistem.</p>
                                 </div>
                                 <div class="d-flex justify-content-end mt-4">
                                     <button class="btn btn-light px-4 mr-2" type="button" data-dismiss="modal"
@@ -643,8 +651,7 @@ include FRONTEND_PATH . 'components/header.php';
                             btnDelete.addEventListener('click', function () {
                                 if (typeof Swal !== 'undefined') {
                                     Swal.fire({
-                                        title: 'Apakah Anda YAKIN?',
-                                        text: 'Semua data Site Location akan dihapus permanen!',
+                                        title: 'Apakah Anda YAKIN ingin menghapus semua data site location?',
                                         icon: 'warning',
                                         showCancelButton: true,
                                         confirmButtonColor: '#e74a3b',

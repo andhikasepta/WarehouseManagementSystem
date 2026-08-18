@@ -9,7 +9,14 @@ if (!isLoggedIn()) {
     echo json_encode(['status' => 'error', 'message' => 'Unauthorized']);
     exit;
 }
-validateCsrf();
+$currentUser = getCurrentUser();
+$userRole = $currentUser['role'] ?? 'admin';
+$canDelete = ($userRole === 'head_warehouse_admin' || $userRole === 'superadmin' || canDelete('master_data_storage') || canDelete('warehouse') || canDelete('master_data'));
+if (!$canDelete) {
+    http_response_code(403);
+    echo json_encode(['status' => 'error', 'message' => 'Forbidden: Missing delete permission']);
+    exit;
+}
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);

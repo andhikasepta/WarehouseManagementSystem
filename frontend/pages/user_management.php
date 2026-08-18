@@ -401,6 +401,27 @@ include FRONTEND_PATH . 'components/header.php';
                 }
             });
 
+            // Cascade parent module permission changes to child sub-modules
+            parentModulesWithChildren.forEach(function(parentKey) {
+                ['view', 'add', 'delete'].forEach(function(perm) {
+                    var parentPermCb = document.getElementById('perm_' + parentKey + '_' + perm);
+                    if (parentPermCb) {
+                        parentPermCb.addEventListener('change', function() {
+                            var isChecked = this.checked;
+                            var parentInfo = MODULE_REGISTRY[parentKey];
+                            if (parentInfo && parentInfo.children) {
+                                Object.keys(parentInfo.children).forEach(function(childKey) {
+                                    var childPermCb = document.getElementById('perm_' + childKey + '_' + perm);
+                                    if (childPermCb) {
+                                        childPermCb.checked = isChecked;
+                                    }
+                                });
+                            }
+                        });
+                    }
+                });
+            });
+
             // Form Submit (Create / Update)
             document.getElementById('userForm').addEventListener('submit', function (e) {
                 e.preventDefault();

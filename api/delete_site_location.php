@@ -10,6 +10,14 @@ if (!isLoggedIn()) {
 }
 validateCsrf();
 
+$currentUser = getCurrentUser();
+$userRole = $currentUser['role'] ?? 'admin';
+$canDelete = ($userRole === 'head_warehouse_admin' || $userRole === 'superadmin' || canDelete('site_location') || canDelete('master_data'));
+if (!$canDelete) {
+    echo json_encode(['status' => 'error', 'message' => 'Anda tidak memiliki hak akses untuk menghapus data Site Location. Silakan request hak akses Delete ke Superadmin.']);
+    exit;
+}
+
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     echo json_encode(['status' => 'error', 'message' => 'Only POST method allowed']);
     exit;
