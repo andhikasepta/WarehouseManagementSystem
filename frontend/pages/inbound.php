@@ -50,57 +50,58 @@ include FRONTEND_PATH . 'components/header.php';
                         }
                     </style>
 
-                    <?php 
-                    $monthsIndo = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
-                    $currentDateStr = date('d') . ' ' . $monthsIndo[date('n') - 1] . ' ' . date('Y');
-                    ?>
                     <div class="row">
                         <div class="col-12 mb-4">
                             <div class="card shadow border-0 py-2">
                                 <div class="card-header bg-white border-bottom-0 pb-0 pt-3 px-4 d-flex align-items-center justify-content-between">
                                     <h6 class="m-0 font-weight-bold text-primary">
-                                        Alur Status PO Inbound <span class="text-muted font-weight-normal ml-1" id="large-card-date">(<?php echo $currentDateStr; ?>)</span>
+                                        Alur Status PO Inbound
                                     </h6>
                                 </div>
                                 <div class="card-body py-3 px-4">
                                     <div class="row text-center align-items-center">
-                                        <div class="col-md border-right-divider mb-3 mb-md-0 status-card-clickable py-2 px-2 rounded" data-toggle="modal" data-target="#poStatusDetailModal" data-status="PO DITERBITKAN">
-                                            <div class="h3 font-weight-bold text-primary mb-1" id="card-po-diterbitkan">0</div>
-                                            <div class="text-xs font-weight-bold text-uppercase text-muted mb-2">PO DITERBITKAN</div>
+                                        <!-- 1. Total PO Inbound -->
+                                        <div class="col-md border-right-divider mb-3 mb-md-0 status-card-clickable py-2 px-2 rounded" data-toggle="modal" data-target="#poStatusDetailModal" data-status="TOTAL PO INBOUND">
+                                            <div class="h3 font-weight-bold text-primary mb-1" id="card-total-po-inbound">0</div>
+                                            <div class="text-xs font-weight-bold text-uppercase text-muted mb-2">TOTAL PO INBOUND</div>
                                             <div class="progress progress-sm" style="height: 6px; border-radius: 4px;">
-                                                <div class="progress-bar bg-primary" role="progressbar" id="bar-po-diterbitkan" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
-                                            </div>
-                                        </div>
-                                        <div class="col-md border-right-divider mb-3 mb-md-0 status-card-clickable py-2 px-2 rounded" data-toggle="modal" data-target="#poStatusDetailModal" data-status="JATUH TEMPO ≤14 HARI">
-                                            <div class="h3 font-weight-bold text-warning mb-1" id="card-jatuh-tempo-14">0</div>
-                                            <div class="text-xs font-weight-bold text-uppercase text-muted mb-2">JATUH TEMPO ≤14 HARI</div>
-                                            <div class="progress progress-sm" style="height: 6px; border-radius: 4px;">
-                                                <div class="progress-bar bg-warning" role="progressbar" id="bar-jatuh-tempo-14" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
-                                            </div>
-                                        </div>
-                                        <div class="col-md border-right-divider mb-3 mb-md-0 status-card-clickable py-2 px-2 rounded" data-toggle="modal" data-target="#poStatusDetailModal" data-status="TERLAMBAT (BELUM GR)">
-                                            <div class="h3 font-weight-bold text-danger mb-1" id="card-terlambat-belum-gr">0</div>
-                                            <div class="text-xs font-weight-bold text-uppercase text-muted mb-2">TERLAMBAT (BELUM GR)</div>
-                                            <div class="progress progress-sm" style="height: 6px; border-radius: 4px;">
-                                                <div class="progress-bar bg-danger" role="progressbar" id="bar-terlambat-belum-gr" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                                                <div class="progress-bar bg-primary" role="progressbar" id="bar-total-po-inbound" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
                                             </div>
                                         </div>
 
-                                        <!-- Sudah GR -->
-                                        <div class="col-md border-right-divider mb-3 mb-md-0 status-card-clickable py-2 px-2 rounded" data-toggle="modal" data-target="#poStatusDetailModal" data-status="SUDAH GR">
-                                            <div class="h3 font-weight-bold text-success mb-1" id="card-sudah-gr">0</div>
-                                            <div class="text-xs font-weight-bold text-uppercase text-muted mb-2">SUDAH GR</div>
+                                        <!-- 2. PO Ontime Delivery -->
+                                        <div class="col-md border-right-divider mb-3 mb-md-0 status-card-clickable py-2 px-2 rounded" data-toggle="modal" data-target="#poStatusDetailModal" data-status="PO ONTIME DELIVERY">
+                                            <div class="h3 font-weight-bold text-success mb-1" id="card-po-ontime-delivery">0</div>
+                                            <div class="text-xs font-weight-bold text-uppercase text-muted mb-2">PO ONTIME DELIVERY</div>
                                             <div class="progress progress-sm" style="height: 6px; border-radius: 4px;">
-                                                <div class="progress-bar bg-success" role="progressbar" id="bar-sudah-gr" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                                                <div class="progress-bar bg-success" role="progressbar" id="bar-po-ontime-delivery" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
                                             </div>
                                         </div>
 
-                                        <!-- Sudah Registrasi -->
-                                        <div class="col-md mb-3 mb-md-0 status-card-clickable py-2 px-2 rounded" data-toggle="modal" data-target="#poStatusDetailModal" data-status="SUDAH REGISTRASI">
-                                            <div class="h3 font-weight-bold text-info mb-1" id="card-sudah-registrasi">0</div>
-                                            <div class="text-xs font-weight-bold text-uppercase text-muted mb-2">SUDAH REGISTRASI</div>
+                                        <!-- 3. PO Terlambat Delivery -->
+                                        <div class="col-md border-right-divider mb-3 mb-md-0 status-card-clickable py-2 px-2 rounded" data-toggle="modal" data-target="#poStatusDetailModal" data-status="PO TERLAMBAT DELIVERY">
+                                            <div class="h3 font-weight-bold text-danger mb-1" id="card-po-terlambat-delivery">0</div>
+                                            <div class="text-xs font-weight-bold text-uppercase text-muted mb-2">PO TERLAMBAT DELIVERY</div>
                                             <div class="progress progress-sm" style="height: 6px; border-radius: 4px;">
-                                                <div class="progress-bar bg-info" role="progressbar" id="bar-sudah-registrasi" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                                                <div class="progress-bar bg-danger" role="progressbar" id="bar-po-terlambat-delivery" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                                            </div>
+                                        </div>
+
+                                        <!-- 4. PO Sudah GR -->
+                                        <div class="col-md border-right-divider mb-3 mb-md-0 status-card-clickable py-2 px-2 rounded" data-toggle="modal" data-target="#poStatusDetailModal" data-status="PO SUDAH GR">
+                                            <div class="h3 font-weight-bold text-info mb-1" id="card-po-sudah-gr">0</div>
+                                            <div class="text-xs font-weight-bold text-uppercase text-muted mb-2">PO SUDAH GR</div>
+                                            <div class="progress progress-sm" style="height: 6px; border-radius: 4px;">
+                                                <div class="progress-bar bg-info" role="progressbar" id="bar-po-sudah-gr" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                                            </div>
+                                        </div>
+
+                                        <!-- 5. PO Sudah Registrasi -->
+                                        <div class="col-md mb-3 mb-md-0 status-card-clickable py-2 px-2 rounded" data-toggle="modal" data-target="#poStatusDetailModal" data-status="PO SUDAH REGISTRASI">
+                                            <div class="h3 font-weight-bold mb-1" style="color: #6f42c1;" id="card-po-sudah-registrasi">0</div>
+                                            <div class="text-xs font-weight-bold text-uppercase text-muted mb-2">PO SUDAH REGISTRASI</div>
+                                            <div class="progress progress-sm" style="height: 6px; border-radius: 4px;">
+                                                <div class="progress-bar" role="progressbar" id="bar-po-sudah-registrasi" style="width: 0%; background-color: #6f42c1;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
                                             </div>
                                         </div>
                                     </div>
@@ -109,71 +110,49 @@ include FRONTEND_PATH . 'components/header.php';
                         </div>
                     </div>
 
-                    <!-- Metric Cards Row (1 Single Inline Row of 5 Cards with Tight Spacing) -->
+                    <!-- Metric Cards Row (1 Single Inline Row of 3 Cards: GR Non PO, Total GR, Total Registrasi) -->
                     <div class="row mx-n1 mb-4">
-                        <!-- Total PO Aktif -->
-                        <div class="col-xl col-md-4 col-sm-6 px-1 mb-2 mb-xl-0">
-                            <div class="card border-left-primary shadow h-100 py-1 inbound-metric-card">
+                        <!-- 1. GR Non PO -->
+                        <div class="col-xl-4 col-md-4 col-sm-6 px-1 mb-2 mb-xl-0">
+                            <div class="card border-left-primary shadow h-100 py-1 inbound-metric-card status-card-clickable" data-toggle="modal" data-target="#poStatusDetailModal" data-status="GR NON PO">
                                 <div class="card-body p-2 d-flex flex-column justify-content-between">
                                     <div class="text-xs font-weight-bold text-primary text-uppercase mb-1" style="font-size: 0.68rem; line-height: 1.15;">
-                                        TOTAL PO AKTIF</div>
-                                    <div class="h5 mb-0 font-weight-bold text-gray-800 mt-auto" id="card-total-po-aktif">0</div>
+                                        GR NON PO</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800 mt-auto" id="card-gr-non-po">0</div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- PO Terlambat (Belum GR) -->
-                        <div class="col-xl col-md-4 col-sm-6 px-1 mb-2 mb-xl-0">
-                            <div class="card border-left-danger shadow h-100 py-1 inbound-metric-card">
-                                <div class="card-body p-2 d-flex flex-column justify-content-between">
-                                    <div class="text-xs font-weight-bold text-danger text-uppercase mb-1" style="font-size: 0.68rem; line-height: 1.15;">
-                                        PO TERLAMBAT (BELUM GR)</div>
-                                    <div class="h5 mb-0 font-weight-bold text-gray-800 mt-auto" id="card-po-terlambat">0</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- GR Tepat Waktu -->
-                        <div class="col-xl col-md-4 col-sm-6 px-1 mb-2 mb-xl-0">
-                            <div class="card border-left-success shadow h-100 py-1 inbound-metric-card">
+                        <!-- 2. Total GR -->
+                        <div class="col-xl-4 col-md-4 col-sm-6 px-1 mb-2 mb-xl-0">
+                            <div class="card border-left-success shadow h-100 py-1 inbound-metric-card status-card-clickable" data-toggle="modal" data-target="#poStatusDetailModal" data-status="TOTAL GR">
                                 <div class="card-body p-2 d-flex flex-column justify-content-between">
                                     <div class="text-xs font-weight-bold text-success text-uppercase mb-1" style="font-size: 0.68rem; line-height: 1.15;">
-                                        GR TEPAT WAKTU</div>
-                                    <div class="h5 mb-0 font-weight-bold text-gray-800 mt-auto" id="card-gr-tepat-waktu">0%</div>
+                                        TOTAL GR</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800 mt-auto" id="card-total-gr">0</div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Rata-rata Keterlambatan GR -->
-                        <div class="col-xl col-md-4 col-sm-6 px-1 mb-2 mb-xl-0">
-                            <div class="card border-left-warning shadow h-100 py-1 inbound-metric-card">
+                        <!-- 3. Total Registrasi -->
+                        <div class="col-xl-4 col-md-4 col-sm-6 px-1 mb-2 mb-xl-0">
+                            <div class="card border-left-warning shadow h-100 py-1 inbound-metric-card status-card-clickable" data-toggle="modal" data-target="#poStatusDetailModal" data-status="TOTAL REGISTRASI">
                                 <div class="card-body p-2 d-flex flex-column justify-content-between">
                                     <div class="text-xs font-weight-bold text-warning text-uppercase mb-1" style="font-size: 0.68rem; line-height: 1.15;">
-                                        RATA-RATA KETERLAMBATAN GR</div>
-                                    <div class="h5 mb-0 font-weight-bold text-gray-800 mt-auto" id="card-avg-keterlambatan-gr">0 Hari</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- QTY Perangkat yang Diterima -->
-                        <div class="col-xl col-md-4 col-sm-6 px-1 mb-2 mb-xl-0">
-                            <div class="card border-left-info shadow h-100 py-1 inbound-metric-card">
-                                <div class="card-body p-2 d-flex flex-column justify-content-between">
-                                    <div class="text-xs font-weight-bold text-info text-uppercase mb-1" style="font-size: 0.68rem; line-height: 1.15;">
-                                        QTY PERANGKAT YANG DITERIMA</div>
-                                    <div class="h5 mb-0 font-weight-bold text-gray-800 mt-auto" id="card-qty-perangkat-diterima">0 Unit</div>
+                                        TOTAL REGISTRASI</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800 mt-auto" id="card-total-registrasi">0</div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Inbound Charts Row (3 Cards: Distribusi Status PO, Nilai PO per Bagian, Tren GR Bulanan) -->
+                    <!-- Inbound Charts Row (3 Cards: Distribusi Status Delivery, QTY PO For Department, Tren GR Bulanan) -->
                     <div class="row" style="margin-left: -4px; margin-right: -4px;">
-                        <!-- Distribusi Status PO (Circle Graph / Doughnut Chart) -->
+                        <!-- Distribusi Status Delivery (Circle Graph / Doughnut Chart) -->
                         <div class="col-xl-4 col-lg-4 mb-4" style="padding-left: 4px; padding-right: 4px;">
                             <div class="card shadow h-100 py-2">
                                 <div class="card-header bg-white py-3 d-flex flex-row align-items-center justify-content-between">
-                                    <h6 class="m-0 font-weight-bold text-primary">Distribusi Status PO</h6>
+                                    <h6 class="m-0 font-weight-bold text-primary">Distribusi Status Delivery</h6>
                                 </div>
                                 <div class="card-body">
                                     <div class="chart-pie pt-2 pb-2" style="height: 300px; position: relative;">
@@ -183,11 +162,11 @@ include FRONTEND_PATH . 'components/header.php';
                             </div>
                         </div>
 
-                        <!-- Nilai PO per Bagian (Bar Chart) -->
+                        <!-- QTY PO For Department (Bar Chart) -->
                         <div class="col-xl-4 col-lg-4 mb-4" style="padding-left: 4px; padding-right: 4px;">
                             <div class="card shadow h-100 py-2">
                                 <div class="card-header bg-white py-3 d-flex flex-row align-items-center justify-content-between">
-                                    <h6 class="m-0 font-weight-bold text-primary">Nilai PO per Bagian</h6>
+                                    <h6 class="m-0 font-weight-bold text-primary">QTY PO For Department</h6>
                                 </div>
                                 <div class="card-body">
                                     <div class="chart-bar pt-2 pb-2" style="height: 300px; position: relative;">
@@ -217,12 +196,12 @@ include FRONTEND_PATH . 'components/header.php';
 
             <!-- PO Status Detail Modal -->
             <div class="modal fade" id="poStatusDetailModal" tabindex="-1" role="dialog" aria-labelledby="poStatusDetailModalLabel" aria-hidden="true">
-                <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+                <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
                     <div class="modal-content border-0 shadow" style="border-radius: 10px; background-color: #ffffff; overflow: hidden;">
                         <!-- Header with distinct light background -->
                         <div class="modal-header border-bottom py-3 px-4 align-items-center" style="background-color: #f8f9fc; border-bottom: 1px solid #e3e6f0;">
                             <h5 class="modal-title font-weight-bold text-gray-800 my-auto" id="poStatusDetailModalLabel" style="line-height: 1.5; margin-top: 2px;">
-                                <span id="modalStatusTitleText" class="font-weight-bold text-primary"></span>
+                                <i class="fas fa-stream text-primary mr-2"></i>Detail <span id="modalStatusTitleText" class="font-weight-bold text-primary"></span>
                             </h5>
                             <button type="button" class="close text-gray-600 my-auto" data-dismiss="modal" aria-label="Close" style="padding: 0.5rem; margin: 0;">
                                 <span aria-hidden="true">&times;</span>
@@ -230,23 +209,29 @@ include FRONTEND_PATH . 'components/header.php';
                         </div>
                         <!-- Clean White Body -->
                         <div class="modal-body p-4 bg-white" style="max-height: 75vh; overflow-y: auto;">
+                            <!-- Filter Controls Container -->
+                            <div class="card mb-3 border bg-light shadow-sm" style="border-radius: 8px; border-color: #eaecf4 !important;">
+                                <div class="card-body py-2 px-3">
+                                    <div class="d-flex flex-wrap align-items-center w-100" id="modalDynamicFilterRow" style="gap: 8px;">
+                                        <!-- Dynamic dropdown filters & search bar will be injected here -->
+                                    </div>
+                                </div>
+                            </div>
+
                             <!-- Table Container (Clean Minimalist White) -->
-                            <div class="table-responsive border rounded" style="border-color: #eaecf4 !important;">
-                                <table class="table text-center mb-0" id="tablePoStatusDetail" style="font-size: 0.85rem;">
-                                    <thead class="bg-light text-gray-700 font-weight-bold" style="border-bottom: 2px solid #eaecf4;">
+                            <div class="table-responsive border rounded shadow-sm" style="border-color: #eaecf4 !important; background: #ffffff;">
+                                <table class="table table-hover table-striped text-center mb-0" id="tablePoStatusDetail" style="font-size: 0.84rem;">
+                                    <thead class="thead-light text-gray-800 font-weight-bold" style="border-bottom: 2px solid #e3e6f0;">
                                         <tr>
                                             <th class="py-2 border-top-0">No. PO</th>
-                                            <th class="py-2 border-top-0">Item / Deskripsi</th>
-                                            <th class="py-2 border-top-0">Bagian</th>
-                                            <th class="py-2 border-top-0">PIC PO</th>
-                                            <th class="py-2 border-top-0">Tanggal PO</th>
-                                            <th class="py-2 border-top-0">Jatuh Tempo</th>
-                                            <th class="py-2 border-top-0">Status</th>
+                                            <th class="py-2 border-top-0">Deskripsi PO</th>
+                                            <th class="py-2 border-top-0">PIC Asset Planner</th>
+                                            <th class="py-2 border-top-0">Department</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <tr>
-                                            <td colspan="7" class="py-5 text-muted bg-white">
+                                            <td colspan="4" class="py-5 text-muted bg-white">
                                                 <i class="fas fa-folder-open fa-2x mb-2 d-block text-gray-300"></i>
                                                 Belum ada data tersedia untuk status ini.
                                             </td>
@@ -263,21 +248,70 @@ include FRONTEND_PATH . 'components/header.php';
 
 <!-- Page level plugins & Custom Chart script -->
 <script src="frontend/vendor/chart.js/Chart.min.js"></script>
-<script src="frontend/js/demo/chart-inbound-demo.js"></script>
+<script src="frontend/js/demo/chart-inbound-demo.js?v=<?php echo time(); ?>"></script>
 
 <script>
 $(document).ready(function() {
+    // Dynamic column configuration per status
+    var statusColumnMap = {
+        'TOTAL PO INBOUND': ['No. PO', 'Deskripsi PO', 'PIC Asset Planner', 'Department'],
+        'TOTAL INBOUND': ['No. PO', 'Deskripsi PO', 'PIC Asset Planner', 'Department'],
+        'PO ONTIME DELIVERY': ['No. PO', 'Deskripsi PO', 'PIC Asset Planner', 'Department'],
+        'PO TERLAMBAT DELIVERY': ['No. PO', 'Deskripsi PO', 'PIC Asset Planner', 'Department'],
+        'PO SUDAH GR': ['No. PO', 'Deskripsi PO', 'PIC Asset Planner', 'Department', 'PIC GR'],
+        'GR NON PO': ['Deskripsi Perangkat', 'PIC Asset Planner', 'Department'],
+        'PO SUDAH REGISTRASI': ['No. PO', 'Deskripsi PO', 'PIC Asset Planner', 'Department', 'PIC Registrasi'],
+        'TOTAL GR': ['No. PO', 'Deskripsi PO', 'PIC Asset Planner', 'Department', 'PIC GR'],
+        'TOTAL REGISTRASI': ['No. PO', 'Deskripsi PO', 'PIC Asset Planner', 'Department', 'PIC Registrasi']
+    };
+
+    function updateModalFilters(statusName) {
+        var statusKey = (statusName || '').trim().toUpperCase();
+        var cols = statusColumnMap[statusKey] || ['No. PO', 'Deskripsi PO', 'PIC Asset Planner', 'Department'];
+
+        var html = '';
+        cols.forEach(function(col) {
+            var filterId = 'filter-modal-' + col.toLowerCase().replace(/[^a-z0-9]/g, '-');
+            html += '<div class="flex-grow-1" style="min-width: 140px;">';
+            html += '<select class="form-control form-control-sm custom-select custom-select-sm" id="' + filterId + '">';
+            html += '<option value="">Semua ' + col + '</option>';
+            html += '</select>';
+            html += '</div>';
+        });
+
+        // Fixed compact Search Bar
+        html += '<div style="flex: 0 0 180px; width: 180px; min-width: 150px;">';
+        html += '<input type="text" class="form-control form-control-sm" id="filter-modal-search" placeholder="Search...">';
+        html += '</div>';
+
+        $('#modalDynamicFilterRow').html(html);
+    }
+
+    function updateModalTable(statusName) {
+        var statusKey = (statusName || '').trim().toUpperCase();
+        var cols = statusColumnMap[statusKey] || ['No. PO', 'Deskripsi PO', 'PIC Asset Planner', 'Department'];
+
+        var theadHtml = '<tr>';
+        cols.forEach(function(col) {
+            theadHtml += '<th class="py-2 border-top-0">' + col + '</th>';
+        });
+        theadHtml += '</tr>';
+        $('#tablePoStatusDetail thead').html(theadHtml);
+
+        var tbodyHtml = '<tr>' +
+            '<td colspan="' + cols.length + '" class="py-5 text-muted bg-white">' +
+                '<i class="fas fa-folder-open fa-2x mb-2 d-block text-gray-300"></i>' +
+                'Belum ada data tersedia untuk status ini.' +
+            '</td>' +
+        '</tr>';
+        $('#tablePoStatusDetail tbody').html(tbodyHtml);
+    }
+
     $('.status-card-clickable').on('click', function() {
         var statusName = $(this).attr('data-status');
         $('#modalStatusTitleText').text(statusName);
-    });
-
-    window.addEventListener('dateRangeChanged', function(e) {
-        if (e.detail && e.detail.displayRange) {
-            $('#large-card-date').text('(' + e.detail.displayRange + ')');
-        } else {
-            $('#large-card-date').text('(<?php echo $currentDateStr; ?>)');
-        }
+        updateModalFilters(statusName);
+        updateModalTable(statusName);
     });
 });
 </script>

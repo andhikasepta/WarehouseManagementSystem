@@ -8,6 +8,7 @@ if (!isLoggedIn()) {
     echo json_encode(['status' => 'error', 'message' => 'Unauthorized']);
     exit;
 }
+validateCsrf();
 
 $currentUser = getCurrentUser();
 $userRole = $currentUser['role'] ?? 'admin';
@@ -48,9 +49,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->execute([$periode]);
             echo json_encode(['status' => 'success', 'message' => "Data Inbound periode $periode berhasil dihapus"]);
             exit;
-        } else {
+        } elseif ($action === 'truncate_all') {
+            if ($userRole !== 'superadmin' && $userRole !== 'head_warehouse_admin') {
+                echo json_encode(['status' => 'error', 'message' => 'Hanya Super Admin atau Head Warehouse yang diizinkan mengosongkan seluruh tabel.']);
+                exit;
+            }
             $pdo->exec("TRUNCATE TABLE inbound_master");
             echo json_encode(['status' => 'success', 'message' => 'Semua data Inbound berhasil dihapus']);
+            exit;
+        } else {
+            echo json_encode(['status' => 'error', 'message' => 'Periode tidak ditentukan untuk penghapusan data.']);
             exit;
         }
     } catch (PDOException $e) {

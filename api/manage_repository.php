@@ -170,7 +170,8 @@ if ($action === 'list') {
             'is_superadmin' => $isSuperAdmin
         ]);
     } catch (PDOException $e) {
-        echo json_encode(['success' => false, 'message' => 'Gagal memuat daftar dokumen: ' . $e->getMessage()]);
+        error_log('manage_repository.php list error: ' . $e->getMessage());
+        echo json_encode(['success' => false, 'message' => 'Gagal memuat daftar dokumen.']);
     }
     exit;
 }
@@ -186,6 +187,9 @@ if (!$hasRepoMgmtAccess) {
     echo json_encode(['success' => false, 'message' => 'Akses ditolak: Anda tidak memiliki izin untuk mengelola dokumen Work Instruction.']);
     exit;
 }
+
+// Validate CSRF on all write/mutating actions
+validateCsrf();
 
 if ($action === 'upload' || $action === 'update') {
     if (!$isSuperAdmin && !canAdd('repository_management')) {
@@ -289,7 +293,8 @@ if ($action === 'upload') {
             'message' => 'Dokumen Work Instruction berhasil diunggah!'
         ]);
     } catch (Throwable $e) {
-        echo json_encode(['success' => false, 'message' => 'Terjadi kesalahan sistem: ' . $e->getMessage()]);
+        error_log('manage_repository.php upload error: ' . $e->getMessage());
+        echo json_encode(['success' => false, 'message' => 'Terjadi kesalahan sistem saat mengunggah dokumen.']);
     }
     exit;
 }
@@ -385,7 +390,8 @@ if ($action === 'update') {
 
         echo json_encode(['success' => true, 'message' => 'Dokumen berhasil diperbarui!']);
     } catch (Throwable $e) {
-        echo json_encode(['success' => false, 'message' => 'Gagal memperbarui dokumen: ' . $e->getMessage()]);
+        error_log('manage_repository.php update error: ' . $e->getMessage());
+        echo json_encode(['success' => false, 'message' => 'Gagal memperbarui dokumen karena kesalahan sistem.']);
     }
     exit;
 }
@@ -423,7 +429,8 @@ if ($action === 'delete') {
 
         echo json_encode(['success' => true, 'message' => 'Dokumen Work Instruction berhasil dihapus.']);
     } catch (Throwable $e) {
-        echo json_encode(['success' => false, 'message' => 'Gagal menghapus dokumen: ' . $e->getMessage()]);
+        error_log('manage_repository.php delete error: ' . $e->getMessage());
+        echo json_encode(['success' => false, 'message' => 'Gagal menghapus dokumen karena kesalahan sistem.']);
     }
     exit;
 }

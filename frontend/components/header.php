@@ -28,3 +28,6 @@ if (!isset($pageTitle)) {
     <link href="frontend/css/excel-upload.css?v=<?= time() ?>" rel="stylesheet">
     <link href="frontend/css/custom-datatables.css?v=<?= time() ?>" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+
+    <!-- CSRF Token (used by AJAX requests) -->
+    <meta name="csrf-token" content="<?= htmlspecialchars(getCsrfToken()) ?>">

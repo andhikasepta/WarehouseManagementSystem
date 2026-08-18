@@ -125,17 +125,17 @@ include FRONTEND_PATH . 'components/header.php';
                                     <div class="mt-3 pt-1 pb-2 mb-3">
                                         <div class="d-flex align-items-center justify-content-between text-center flex-nowrap w-100"
                                             id="inbound-steps-container">
-                                            <!-- Step 1: Total PO -->
+                                            <!-- Step 1: Total PO Inbound -->
                                             <div class="flow-step text-center flex-fill px-1 py-1 outbound-summary-clickable"
                                                 onclick="openInboundSummaryModal(0)" style="cursor: pointer;"
-                                                title="Klik untuk detail Total PO">
+                                                title="Klik untuk detail Total PO Inbound">
                                                 <div class="rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center shadow-sm"
                                                     style="width: 36px; height: 36px; background-color: #eef2ff;">
                                                     <i class="fas fa-file-invoice text-primary"
                                                         style="font-size: 0.95rem;"></i>
                                                 </div>
                                                 <div class="font-weight-bold text-gray-700 text-nowrap mt-3 mb-1"
-                                                    style="font-size: 0.62rem;">Total PO</div>
+                                                    style="font-size: 0.62rem;">Total PO Inbound</div>
                                                 <div class="font-weight-bold text-primary" style="font-size: 0.82rem;"
                                                     id="flow-po-count">0 PO</div>
                                             </div>
@@ -144,17 +144,17 @@ include FRONTEND_PATH . 'components/header.php';
                                             <div class="text-gray-300 align-self-center mx-1"
                                                 style="font-size: 0.7rem;"><i class="fas fa-chevron-right"></i></div>
 
-                                            <!-- Step 2: PO Proses Delivery -->
+                                            <!-- Step 2: PO Ontime Delivery -->
                                             <div class="flow-step text-center flex-fill px-1 py-1 outbound-summary-clickable"
                                                 onclick="openInboundSummaryModal(1)" style="cursor: pointer;"
-                                                title="Klik untuk detail PO Proses Delivery">
+                                                title="Klik untuk detail PO Ontime Delivery">
                                                 <div class="rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center shadow-sm"
                                                     style="width: 36px; height: 36px; background-color: #e0f2fe;">
                                                     <i class="fas fa-file-alt text-info"
                                                         style="font-size: 0.95rem;"></i>
                                                 </div>
                                                 <div class="font-weight-bold text-gray-700 text-nowrap mt-3 mb-1"
-                                                    style="font-size: 0.62rem;">PO Proses Delivery</div>
+                                                    style="font-size: 0.62rem;">PO Ontime Delivery</div>
                                                 <div class="font-weight-bold text-info" style="font-size: 0.82rem;"
                                                     id="flow-po-proses-delivery">0 PO</div>
                                             </div>
@@ -281,20 +281,20 @@ include FRONTEND_PATH . 'components/header.php';
                                                     style="max-height: 145px; overflow-y: auto;">
                                                     <div class="mb-1 d-flex align-items-center text-nowrap filter-legend-item outbound-summary-clickable"
                                                         id="inbound-flow-legend-0" onclick="openInboundSummaryModal(0)"
-                                                        style="cursor: pointer;" title="Klik untuk detail Total PO">
+                                                        style="cursor: pointer;" title="Klik untuk detail Total PO Inbound">
                                                         <i class="fas fa-circle mr-2.5"
                                                             style="font-size: 0.42rem; color: #4e73df;"></i>
                                                         <span class="text-gray-800 font-weight-bold text-nowrap"
-                                                            style="font-size: 0.58rem;">Total PO</span>
+                                                            style="font-size: 0.58rem;">Total PO Inbound</span>
                                                     </div>
                                                     <div class="mb-1 d-flex align-items-center text-nowrap filter-legend-item outbound-summary-clickable"
                                                         id="inbound-flow-legend-1" onclick="openInboundSummaryModal(1)"
                                                         style="cursor: pointer;"
-                                                        title="Klik untuk detail PO Proses Delivery">
+                                                        title="Klik untuk detail PO Ontime Delivery">
                                                         <i class="fas fa-circle mr-2.5"
                                                             style="font-size: 0.42rem; color: #36b9cc;"></i>
                                                         <span class="text-gray-800 font-weight-bold text-nowrap"
-                                                            style="font-size: 0.58rem;">PO Proses Delivery</span>
+                                                            style="font-size: 0.58rem;">PO Ontime Delivery</span>
                                                     </div>
                                                     <div class="mb-1 d-flex align-items-center text-nowrap filter-legend-item outbound-summary-clickable"
                                                         id="inbound-flow-legend-2" onclick="openInboundSummaryModal(2)"
@@ -848,27 +848,7 @@ include FRONTEND_PATH . 'components/header.php';
 
                     </div>
 
-                    <!-- Row 6: KPI Monitoring Overview (Full Width Line Chart of Months) -->
-                    <div class="row mt-2" style="margin-left: -4px; margin-right: -4px;">
-                        <div class="col-12 mb-4" style="padding-left: 4px; padding-right: 4px;">
-                            <div class="card shadow border-0 h-100">
-                                <div class="card-body py-3 px-3 d-flex flex-column">
-                                    <div class="d-flex align-items-center justify-content-between mb-3 text-nowrap">
-                                        <div class="d-flex align-items-center">
-                                            <span class="font-weight-bold text-primary text-nowrap"
-                                                style="font-size: 0.85rem;"><i
-                                                    class="fas fa-tachometer-alt mr-2"></i>KPI Monitoring</span>
-                                        </div>
-                                    </div>
 
-                                    <!-- Chart Container with 9 KPI Lines across Months -->
-                                    <div class="my-auto" style="position: relative; height: 320px; width: 100%;">
-                                        <canvas id="dashKpiMonitoringLineChart"></canvas>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                     <!-- Dashboard Summary Detail Modal (Empty Content Table / Detail for Inbound & Outbound) -->
                     <div class="modal fade" id="dashboardSummaryDetailModal" tabindex="-1" role="dialog"
                         aria-labelledby="summaryModalTitle" aria-hidden="true">
@@ -1141,8 +1121,8 @@ include FRONTEND_PATH . 'components/header.php';
                         // Inbound Summary interactive modal handler
                         window.openInboundSummaryModal = function (stepIndex) {
                             var titles = [
-                                'Detail Total PO',
-                                'Detail PO Proses Delivery',
+                                'Detail Total PO Inbound',
+                                'Detail PO Ontime Delivery',
                                 'Detail PO Terlambat Delivery',
                                 'Detail PO Sudah GR',
                                 'Detail PO Sudah Registrasi',
@@ -1150,8 +1130,8 @@ include FRONTEND_PATH . 'components/header.php';
                                 'Detail Total Registrasi'
                             ];
                             var labels = [
-                                'TOTAL PO',
-                                'PO PROSES DELIVERY',
+                                'TOTAL PO INBOUND',
+                                'PO ONTIME DELIVERY',
                                 'PO TERLAMBAT DELIVERY',
                                 'PO SUDAH GR',
                                 'PO SUDAH REGISTRASI',
@@ -1178,10 +1158,10 @@ include FRONTEND_PATH . 'components/header.php';
                             var pctVal = '';
                             var showPct = true;
                             if (stepIndex === 0) {
-                                pctVal = '100% (Baseline Total PO)';
+                                pctVal = '100% (Baseline Total PO Inbound)';
                             } else if (stepIndex >= 1 && stepIndex <= 4) {
                                 var pct = totalPoNum > 0 ? Math.round((qtyNum / totalPoNum) * 100) : 0;
-                                pctVal = pct + '% dari Total PO';
+                                pctVal = pct + '% dari Total PO Inbound';
                             } else {
                                 var pctOther = totalPoNum > 0 ? Math.round((qtyNum / totalPoNum) * 100) : 0;
                                 pctVal = pctOther + '% rasio pemenuhan';
@@ -1476,15 +1456,10 @@ include FRONTEND_PATH . 'components/header.php';
                             var fetchYearly = fetch('api/get_yearly_in_out.php?year=' + encodeURIComponent(yr))
                                 .then(function (response) { return response.json(); });
 
-                            var fetchKpi = fetch('api/get_kpi_data.php?periode=' + encodeURIComponent(period))
-                                .then(function (response) { return response.json(); })
-                                .catch(function () { return null; });
-
-                            Promise.all([fetchDashboard, fetchYearly, fetchKpi])
+                            Promise.all([fetchDashboard, fetchYearly])
                                 .then(function (results) {
                                     var result = results[0];
                                     var resData = results[1];
-                                    var resKpi = results[2];
 
                                     if (result && result.status === 'success' && result.data && result.data.length > 0) {
                                         var headers = Object.keys(result.data[0]);
@@ -1514,31 +1489,6 @@ include FRONTEND_PATH . 'components/header.php';
                                     } else {
                                         if (window.updateDashReceivingTrendChart) {
                                             window.updateDashReceivingTrendChart([], [], [], [], yr);
-                                        }
-                                    }
-
-                                    if (resKpi && resKpi.status === 'success' && Array.isArray(resKpi.kpi_list)) {
-                                        var totalAch = 0;
-                                        var countAch = 0;
-                                        resKpi.kpi_list.forEach(function (item) {
-                                            if (typeof item.achievement === 'number' && !isNaN(item.achievement)) {
-                                                totalAch += item.achievement;
-                                                countAch++;
-                                            }
-                                        });
-                                        var monthVal = countAch > 0 ? parseFloat((totalAch / countAch).toFixed(1)) : 95.0;
-                                        var mName = parts[0] || '';
-                                        var mIdx = ALL_MONTHS.indexOf(mName);
-                                        var monthlyArr = [null, null, null, null, null, null, null, null, null, null, null, null];
-                                        if (mIdx !== -1) {
-                                            monthlyArr[mIdx] = monthVal;
-                                        }
-                                        if (window.updateDashKpiMonitoringChart) {
-                                            window.updateDashKpiMonitoringChart(monthlyArr);
-                                        }
-                                    } else {
-                                        if (window.updateDashKpiMonitoringChart) {
-                                            window.updateDashKpiMonitoringChart([null, null, null, null, null, null, null, null, null, null, null, null]);
                                         }
                                     }
 

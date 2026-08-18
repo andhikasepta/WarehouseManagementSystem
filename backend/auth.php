@@ -103,6 +103,63 @@ function getUserPermissions() {
     return $_SESSION['permissions'] ?? [];
 }
 
+// ── CSRF Protection ─────────────────────────────────────────────────
+/**
+ * Generate or retrieve the current CSRF token.
+ * Token is created once per session and reused until session expires.
+ * @return string The CSRF token
+ */
+function getCsrfToken() {
+    if (empty($_SESSION['csrf_token'])) {
+        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+    }
+    return $_SESSION['csrf_token'];
+}
+
+/**
+ * Validate CSRF token from request.
+ * Checks POST body ('csrf_token'), JSON body, and X-CSRF-Token header.
+ * On failure, sends 403 JSON response and exits.
+ */
+function validateCsrf() {
+    $sessionToken = $_SESSION['csrf_token'] ?? '';
+    if (empty($sessionToken)) {
+        http_response_code(403);
+        echo json_encode(['status' => 'error', 'message' => 'Session expired. Please refresh the page.']);
+        exit;
+    }
+
+    // 1. Check X-CSRF-Token header (AJAX requests)
+    $headerToken = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
+    if (!empty($headerToken) && hash_equals($sessionToken, $headerToken)) {
+        return true;
+    }
+
+    // 2. Check POST field
+    $postToken = $_POST['csrf_token'] ?? '';
+    if (!empty($postToken) && hash_equals($sessionToken, $postToken)) {
+        return true;
+    }
+
+    // 3. Check JSON body (for fetch with Content-Type: application/json)
+    $contentType = $_SERVER['CONTENT_TYPE'] ?? '';
+    if (stripos($contentType, 'application/json') !== false) {
+        $rawInput = file_get_contents('php://input');
+        $jsonData = json_decode($rawInput, true);
+        $jsonToken = $jsonData['csrf_token'] ?? '';
+        if (!empty($jsonToken) && hash_equals($sessionToken, $jsonToken)) {
+            return true;
+        }
+    }
+
+    http_response_code(403);
+    echo json_encode(['status' => 'error', 'message' => 'Invalid security token. Please refresh the page and try again.']);
+    exit;
+}
+
+// Ensure CSRF token is always available in session
+getCsrfToken();
+
 function checkModuleAccess($requiredModule = '') {
     if (!isLoggedIn()) {
         $currentPage = basename($_SERVER['PHP_SELF']);
@@ -150,29 +207,66 @@ function checkModuleAccess($requiredModule = '') {
     $moduleKey = $requiredModule;
     if (empty($moduleKey)) {
         $pageMap = [
-            'dashboard.php' => 'dashboard',
-            'inbound.php' => 'inbound',
-            'warehouse.php' => 'warehouse',
-            'storage_hub.php' => 'warehouse',
-            'outbound.php' => 'outbound',
-            'master_data.php' => 'master_data',
-            'reports.php' => 'reports',
-            'analytics.php' => 'analytics',
-            'kpi_monitoring.php' => 'kpi_monitoring',
-            'repository_management.php' => 'repository_management',
             'announcements.php' => 'announcements',
         ];
+        $registry = getModuleRegistry();
+        foreach ($registry as $key => $mod) {
+            if (!empty($mod['pages']) && is_array($mod['pages'])) {
+                foreach ($mod['pages'] as $p) {
+                    $pageMap[$p] = $key;
+                }
+            }
+            if (!empty($mod['children']) && is_array($mod['children'])) {
+                foreach ($mod['children'] as $childKey => $child) {
+                    if (!empty($child['pages']) && is_array($child['pages'])) {
+                        foreach ($child['pages'] as $cp) {
+                            $pageMap[$cp] = $childKey;
+                        }
+                    }
+                }
+            }
+        }
         $moduleKey = $pageMap[$currentPage] ?? '';
     }
 
     if (!empty($moduleKey)) {
-        if (!in_array($moduleKey, $allowedModules)) {
+        // If it's a child module, user has access if they have access to the child OR parent module
+        $hasAccess = in_array($moduleKey, $allowedModules);
+        if (!$hasAccess) {
+            $registry = getModuleRegistry();
+            foreach ($registry as $parentKey => $parentMod) {
+                if (!empty($parentMod['children']) && array_key_exists($moduleKey, $parentMod['children'])) {
+                    if (in_array($parentKey, $allowedModules)) {
+                        $hasAccess = true;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (!$hasAccess) {
             renderAccessDeniedPage($moduleKey, $user, 'Akun Anda tidak diberikan izin akses ke modul ini.');
             exit;
         }
     }
 
     return true;
+}
+
+/**
+ * Get module registry definitions
+ */
+function getModuleRegistry() {
+    static $registry = null;
+    if ($registry === null) {
+        $registryPath = __DIR__ . '/config/module_registry.php';
+        if (file_exists($registryPath)) {
+            $registry = include $registryPath;
+        } else {
+            $registry = [];
+        }
+    }
+    return $registry;
 }
 
 /**

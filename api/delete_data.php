@@ -8,6 +8,7 @@ if (!isLoggedIn()) {
     echo json_encode(['status' => 'error', 'message' => 'Unauthorized']);
     exit;
 }
+validateCsrf();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $input = file_get_contents('php://input');
@@ -32,7 +33,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'deleted_rows' => $deletedRows
             ]);
         } catch(PDOException $e) {
-            echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
+            error_log('delete_data.php error: ' . $e->getMessage());
+            echo json_encode(['status' => 'error', 'message' => 'Terjadi kesalahan saat menghapus data.']);
         }
     } else {
         echo json_encode(['status' => 'error', 'message' => 'No period specified for deletion.']);

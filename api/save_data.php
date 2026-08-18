@@ -8,6 +8,7 @@ if (!isLoggedIn()) {
     echo json_encode(['status' => 'error', 'message' => 'Unauthorized']);
     exit;
 }
+validateCsrf();
 
 function formatPeriode($rawDate) {
     if (!$rawDate) return 'Unknown Period';

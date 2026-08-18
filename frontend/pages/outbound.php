@@ -54,11 +54,6 @@ include FRONTEND_PATH . 'components/header.php';
                         }
                     </style>
 
-                    <?php
-                    $monthsIndo = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
-                    $currentDateStr = date('d') . ' ' . $monthsIndo[date('n') - 1] . ' ' . date('Y');
-                    ?>
-
                     <!-- Alur Status MR Outbound Card -->
                     <div class="row">
                         <div class="col-12 mb-4">
@@ -66,47 +61,40 @@ include FRONTEND_PATH . 'components/header.php';
                                 <div
                                     class="card-header bg-white border-bottom-0 pb-0 pt-3 px-4 d-flex align-items-center justify-content-between">
                                     <h6 class="m-0 font-weight-bold text-primary">
-                                        Alur Pemenuhan MR <span class="text-muted font-weight-normal ml-1"
-                                            id="large-card-date-outbound">(<?php echo $currentDateStr; ?>)</span>
+                                        Alur Pemenuhan MR
                                     </h6>
                                 </div>
                                 <div class="card-body py-3 px-4">
                                     <div class="row text-center align-items-center">
+                                        <!-- 1. Total MR -->
                                         <div class="col-md border-right-divider mb-3 mb-md-0 status-card-clickable py-2 px-2 rounded"
                                             data-toggle="modal" data-target="#mrStatusDetailModal"
-                                            data-status="MR APPROVED">
-                                            <div class="h3 font-weight-bold text-primary mb-1" id="card-mr-approved">0
+                                            data-status="TOTAL MR">
+                                            <div class="h3 font-weight-bold text-primary mb-1" id="card-total-mr">0
                                             </div>
-                                            <div class="text-xs font-weight-bold text-uppercase text-muted mb-2">MR
-                                                APPROVED</div>
+                                            <div class="text-xs font-weight-bold text-uppercase text-muted mb-2">TOTAL
+                                                MR</div>
                                             <div class="progress progress-sm" style="height: 6px; border-radius: 4px;">
                                                 <div class="progress-bar bg-primary" role="progressbar"
                                                     style="width: 0%" aria-valuenow="0" aria-valuemin="0"
                                                     aria-valuemax="100"></div>
                                             </div>
                                         </div>
+
+                                        <!-- 2. Total Packed -->
                                         <div class="col-md border-right-divider mb-3 mb-md-0 status-card-clickable py-2 px-2 rounded"
                                             data-toggle="modal" data-target="#mrStatusDetailModal"
-                                            data-status="FULFILLED">
-                                            <div class="h3 font-weight-bold text-info mb-1" id="card-fulfilled">0</div>
+                                            data-status="TOTAL PACKED">
+                                            <div class="h3 font-weight-bold text-info mb-1" id="card-total-packed">0</div>
                                             <div class="text-xs font-weight-bold text-uppercase text-muted mb-2">
-                                                FULFILLED</div>
+                                                TOTAL PACKED</div>
                                             <div class="progress progress-sm" style="height: 6px; border-radius: 4px;">
                                                 <div class="progress-bar bg-info" role="progressbar" style="width: 0%"
                                                     aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
                                             </div>
                                         </div>
-                                        <div class="col-md border-right-divider mb-3 mb-md-0 status-card-clickable py-2 px-2 rounded"
-                                            data-toggle="modal" data-target="#mrStatusDetailModal" data-status="PACKED">
-                                            <div class="h3 font-weight-bold text-warning mb-1" id="card-packed">0</div>
-                                            <div class="text-xs font-weight-bold text-uppercase text-muted mb-2">PACKED
-                                            </div>
-                                            <div class="progress progress-sm" style="height: 6px; border-radius: 4px;">
-                                                <div class="progress-bar bg-warning" role="progressbar"
-                                                    style="width: 0%" aria-valuenow="0" aria-valuemin="0"
-                                                    aria-valuemax="100"></div>
-                                            </div>
-                                        </div>
+
+                                        <!-- 3. Shipped -->
                                         <div class="col-md border-right-divider mb-3 mb-md-0 status-card-clickable py-2 px-2 rounded"
                                             data-toggle="modal" data-target="#mrStatusDetailModal"
                                             data-status="SHIPPED">
@@ -118,6 +106,8 @@ include FRONTEND_PATH . 'components/header.php';
                                                     aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
                                             </div>
                                         </div>
+
+                                        <!-- 4. Dalam Perjalanan -->
                                         <div class="col-md border-right-divider mb-3 mb-md-0 status-card-clickable py-2 px-2 rounded"
                                             data-toggle="modal" data-target="#mrStatusDetailModal"
                                             data-status="DALAM PERJALANAN">
@@ -131,6 +121,8 @@ include FRONTEND_PATH . 'components/header.php';
                                                     aria-valuemax="100"></div>
                                             </div>
                                         </div>
+
+                                        <!-- 5. Tiba di Lokasi -->
                                         <div class="col-md mb-3 mb-md-0 status-card-clickable py-2 px-2 rounded"
                                             data-toggle="modal" data-target="#mrStatusDetailModal"
                                             data-status="TIBA DI LOKASI">
@@ -150,7 +142,7 @@ include FRONTEND_PATH . 'components/header.php';
                         </div>
                     </div>
 
-                    <!-- Metric Cards Row 1 (3 Cards) -->
+                    <!-- Metric Cards Row 1 (3 Cards: Total PO Price, Total PO, Saving) -->
                     <div class="row" style="margin-left: -4px; margin-right: -4px;">
                         <!-- Total PO Price -->
                         <div class="col-xl-4 col-md-4 col-sm-6 mb-4" style="padding-left: 4px; padding-right: 4px;">
@@ -176,27 +168,11 @@ include FRONTEND_PATH . 'components/header.php';
                                 </div>
                             </div>
                         </div>
-                        <!-- Total MR -->
+                        <!-- Saving -->
                         <div class="col-xl-4 col-md-4 col-sm-6 mb-4" style="padding-left: 4px; padding-right: 4px;">
                             <div class="card border-left-success shadow h-100 py-2">
                                 <div class="card-body p-3 d-flex flex-column justify-content-between">
                                     <div class="text-xs font-weight-bold text-success text-uppercase mb-1"
-                                        style="font-size: 0.72rem; line-height: 1.15;">
-                                        TOTAL MR</div>
-                                    <div class="h4 mb-0 font-weight-bold text-gray-800 mt-auto"
-                                        style="line-height: 1.1;" id="card-total-mr">0</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Metric Cards Row 2 (3 Cards) -->
-                    <div class="row" style="margin-left: -4px; margin-right: -4px;">
-                        <!-- Saving -->
-                        <div class="col-xl-4 col-md-4 col-sm-6 mb-4" style="padding-left: 4px; padding-right: 4px;">
-                            <div class="card border-left-warning shadow h-100 py-2">
-                                <div class="card-body p-3 d-flex flex-column justify-content-between">
-                                    <div class="text-xs font-weight-bold text-warning text-uppercase mb-1"
                                         style="font-size: 0.72rem; line-height: 1.15;">
                                         SAVING</div>
                                     <div class="h4 mb-0 font-weight-bold text-gray-800 mt-auto"
@@ -204,8 +180,12 @@ include FRONTEND_PATH . 'components/header.php';
                                 </div>
                             </div>
                         </div>
+                    </div>
+
+                    <!-- Metric Cards Row 2 (2 Cards: Most Cost Delivery, Most Moda Delivery) -->
+                    <div class="row" style="margin-left: -4px; margin-right: -4px;">
                         <!-- Most Cost Delivery -->
-                        <div class="col-xl-4 col-md-4 col-sm-6 mb-4" style="padding-left: 4px; padding-right: 4px;">
+                        <div class="col-xl-6 col-md-6 col-sm-6 mb-4" style="padding-left: 4px; padding-right: 4px;">
                             <div class="card border-left-danger shadow h-100 py-2">
                                 <div class="card-body p-3 d-flex flex-column justify-content-between">
                                     <div class="text-xs font-weight-bold text-danger text-uppercase mb-1"
@@ -217,7 +197,7 @@ include FRONTEND_PATH . 'components/header.php';
                             </div>
                         </div>
                         <!-- Most Moda Delivery -->
-                        <div class="col-xl-4 col-md-4 col-sm-6 mb-4" style="padding-left: 4px; padding-right: 4px;">
+                        <div class="col-xl-6 col-md-6 col-sm-6 mb-4" style="padding-left: 4px; padding-right: 4px;">
                             <div class="card border-left-secondary shadow h-100 py-2">
                                 <div class="card-body p-3 d-flex flex-column justify-content-between">
                                     <div class="text-xs font-weight-bold text-secondary text-uppercase mb-1"
@@ -241,87 +221,67 @@ include FRONTEND_PATH . 'components/header.php';
                                 </div>
                                 <div class="card-body pt-0 pb-3 px-4">
                                     <div class="row">
-                                        <!-- Left Column: 5 Kota PO Terbanyak & 5 Kota PO Value Terbanyak -->
+                                        <!-- Left Column: 5 Kota Shipped Terbanyak, 5 Kota PO Value, & 5 Kota PO Terbanyak -->
                                         <div class="col-lg-6 d-flex flex-column justify-content-between mb-4 mb-lg-0">
-                                            <!-- Inner Grouping Card 1: 5 Kota PO Terbanyak -->
+                                            <!-- Inner Card 1: 5 Kota Shipped Terbanyak -->
                                             <div class="card border shadow-sm mb-3" style="border-radius: 8px;">
                                                 <div class="card-body p-3">
                                                     <h6 class="font-weight-bold text-primary mb-3 pb-2 border-bottom small text-uppercase"
                                                         style="letter-spacing: 0.5px;">
-                                                        5 Kota PO Terbanyak
+                                                        5 Kota Shipped Terbanyak
                                                     </h6>
-                                                    <div id="list-5-kota-po-terbanyak">
+                                                    <div id="list-5-kota-shipped-terbanyak">
                                                         <div class="mb-2">
-                                                            <div
-                                                                class="d-flex justify-content-between align-items-center mb-1">
-                                                                <span class="small font-weight-bold text-gray-700">1.
-                                                                    Jakarta</span>
-                                                                <span class="small font-weight-bold text-primary">0
-                                                                    PO</span>
+                                                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                                                <span class="small font-weight-bold text-gray-700">1. Jakarta</span>
+                                                                <span class="small font-weight-bold text-success">0 Shipped</span>
                                                             </div>
-                                                            <div class="progress progress-sm"
-                                                                style="height: 5px; border-radius: 4px;">
-                                                                <div class="progress-bar bg-primary" role="progressbar"
+                                                            <div class="progress progress-sm" style="height: 5px; border-radius: 4px;">
+                                                                <div class="progress-bar bg-success" role="progressbar"
                                                                     style="width: 0%" aria-valuenow="0"
                                                                     aria-valuemin="0" aria-valuemax="100"></div>
                                                             </div>
                                                         </div>
                                                         <div class="mb-2">
-                                                            <div
-                                                                class="d-flex justify-content-between align-items-center mb-1">
-                                                                <span class="small font-weight-bold text-gray-700">2.
-                                                                    Surabaya</span>
-                                                                <span class="small font-weight-bold text-primary">0
-                                                                    PO</span>
+                                                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                                                <span class="small font-weight-bold text-gray-700">2. Surabaya</span>
+                                                                <span class="small font-weight-bold text-success">0 Shipped</span>
                                                             </div>
-                                                            <div class="progress progress-sm"
-                                                                style="height: 5px; border-radius: 4px;">
-                                                                <div class="progress-bar bg-primary" role="progressbar"
+                                                            <div class="progress progress-sm" style="height: 5px; border-radius: 4px;">
+                                                                <div class="progress-bar bg-success" role="progressbar"
                                                                     style="width: 0%" aria-valuenow="0"
                                                                     aria-valuemin="0" aria-valuemax="100"></div>
                                                             </div>
                                                         </div>
                                                         <div class="mb-2">
-                                                            <div
-                                                                class="d-flex justify-content-between align-items-center mb-1">
-                                                                <span class="small font-weight-bold text-gray-700">3.
-                                                                    Medan</span>
-                                                                <span class="small font-weight-bold text-primary">0
-                                                                    PO</span>
+                                                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                                                <span class="small font-weight-bold text-gray-700">3. Medan</span>
+                                                                <span class="small font-weight-bold text-success">0 Shipped</span>
                                                             </div>
-                                                            <div class="progress progress-sm"
-                                                                style="height: 5px; border-radius: 4px;">
-                                                                <div class="progress-bar bg-primary" role="progressbar"
+                                                            <div class="progress progress-sm" style="height: 5px; border-radius: 4px;">
+                                                                <div class="progress-bar bg-success" role="progressbar"
                                                                     style="width: 0%" aria-valuenow="0"
                                                                     aria-valuemin="0" aria-valuemax="100"></div>
                                                             </div>
                                                         </div>
                                                         <div class="mb-2">
-                                                            <div
-                                                                class="d-flex justify-content-between align-items-center mb-1">
-                                                                <span class="small font-weight-bold text-gray-700">4.
-                                                                    Bandung</span>
-                                                                <span class="small font-weight-bold text-primary">0
-                                                                    PO</span>
+                                                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                                                <span class="small font-weight-bold text-gray-700">4. Bandung</span>
+                                                                <span class="small font-weight-bold text-success">0 Shipped</span>
                                                             </div>
-                                                            <div class="progress progress-sm"
-                                                                style="height: 5px; border-radius: 4px;">
-                                                                <div class="progress-bar bg-primary" role="progressbar"
+                                                            <div class="progress progress-sm" style="height: 5px; border-radius: 4px;">
+                                                                <div class="progress-bar bg-success" role="progressbar"
                                                                     style="width: 0%" aria-valuenow="0"
                                                                     aria-valuemin="0" aria-valuemax="100"></div>
                                                             </div>
                                                         </div>
                                                         <div class="mb-0">
-                                                            <div
-                                                                class="d-flex justify-content-between align-items-center mb-1">
-                                                                <span class="small font-weight-bold text-gray-700">5.
-                                                                    Semarang</span>
-                                                                <span class="small font-weight-bold text-primary">0
-                                                                    PO</span>
+                                                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                                                <span class="small font-weight-bold text-gray-700">5. Semarang</span>
+                                                                <span class="small font-weight-bold text-success">0 Shipped</span>
                                                             </div>
-                                                            <div class="progress progress-sm"
-                                                                style="height: 5px; border-radius: 4px;">
-                                                                <div class="progress-bar bg-primary" role="progressbar"
+                                                            <div class="progress progress-sm" style="height: 5px; border-radius: 4px;">
+                                                                <div class="progress-bar bg-success" role="progressbar"
                                                                     style="width: 0%" aria-valuenow="0"
                                                                     aria-valuemin="0" aria-valuemax="100"></div>
                                                             </div>
@@ -330,85 +290,132 @@ include FRONTEND_PATH . 'components/header.php';
                                                 </div>
                                             </div>
 
-                                            <!-- Inner Grouping Card 2: 5 Kota PO Value Terbanyak -->
-                                            <div class="card border shadow-sm mb-0" style="border-radius: 8px;">
+                                            <!-- Inner Card 2: 5 Kota PO Value -->
+                                            <div class="card border shadow-sm mb-3" style="border-radius: 8px;">
                                                 <div class="card-body p-3">
                                                     <h6 class="font-weight-bold text-primary mb-3 pb-2 border-bottom small text-uppercase"
                                                         style="letter-spacing: 0.5px;">
-                                                        5 Kota PO Value Terbanyak
+                                                        5 Kota PO Value
                                                     </h6>
                                                     <div id="list-5-kota-po-value">
                                                         <div class="mb-2">
-                                                            <div
-                                                                class="d-flex justify-content-between align-items-center mb-1">
-                                                                <span class="small font-weight-bold text-gray-700">1.
-                                                                    Jakarta</span>
-                                                                <span class="small font-weight-bold text-info">Rp
-                                                                    0</span>
+                                                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                                                <span class="small font-weight-bold text-gray-700">1. Jakarta</span>
+                                                                <span class="small font-weight-bold text-info">Rp 0</span>
                                                             </div>
-                                                            <div class="progress progress-sm"
-                                                                style="height: 5px; border-radius: 4px;">
+                                                            <div class="progress progress-sm" style="height: 5px; border-radius: 4px;">
                                                                 <div class="progress-bar bg-info" role="progressbar"
                                                                     style="width: 0%" aria-valuenow="0"
                                                                     aria-valuemin="0" aria-valuemax="100"></div>
                                                             </div>
                                                         </div>
                                                         <div class="mb-2">
-                                                            <div
-                                                                class="d-flex justify-content-between align-items-center mb-1">
-                                                                <span class="small font-weight-bold text-gray-700">2.
-                                                                    Surabaya</span>
-                                                                <span class="small font-weight-bold text-info">Rp
-                                                                    0</span>
+                                                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                                                <span class="small font-weight-bold text-gray-700">2. Surabaya</span>
+                                                                <span class="small font-weight-bold text-info">Rp 0</span>
                                                             </div>
-                                                            <div class="progress progress-sm"
-                                                                style="height: 5px; border-radius: 4px;">
+                                                            <div class="progress progress-sm" style="height: 5px; border-radius: 4px;">
                                                                 <div class="progress-bar bg-info" role="progressbar"
                                                                     style="width: 0%" aria-valuenow="0"
                                                                     aria-valuemin="0" aria-valuemax="100"></div>
                                                             </div>
                                                         </div>
                                                         <div class="mb-2">
-                                                            <div
-                                                                class="d-flex justify-content-between align-items-center mb-1">
-                                                                <span class="small font-weight-bold text-gray-700">3.
-                                                                    Medan</span>
-                                                                <span class="small font-weight-bold text-info">Rp
-                                                                    0</span>
+                                                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                                                <span class="small font-weight-bold text-gray-700">3. Medan</span>
+                                                                <span class="small font-weight-bold text-info">Rp 0</span>
                                                             </div>
-                                                            <div class="progress progress-sm"
-                                                                style="height: 5px; border-radius: 4px;">
+                                                            <div class="progress progress-sm" style="height: 5px; border-radius: 4px;">
                                                                 <div class="progress-bar bg-info" role="progressbar"
                                                                     style="width: 0%" aria-valuenow="0"
                                                                     aria-valuemin="0" aria-valuemax="100"></div>
                                                             </div>
                                                         </div>
                                                         <div class="mb-2">
-                                                            <div
-                                                                class="d-flex justify-content-between align-items-center mb-1">
-                                                                <span class="small font-weight-bold text-gray-700">4.
-                                                                    Bandung</span>
-                                                                <span class="small font-weight-bold text-info">Rp
-                                                                    0</span>
+                                                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                                                <span class="small font-weight-bold text-gray-700">4. Bandung</span>
+                                                                <span class="small font-weight-bold text-info">Rp 0</span>
                                                             </div>
-                                                            <div class="progress progress-sm"
-                                                                style="height: 5px; border-radius: 4px;">
+                                                            <div class="progress progress-sm" style="height: 5px; border-radius: 4px;">
                                                                 <div class="progress-bar bg-info" role="progressbar"
                                                                     style="width: 0%" aria-valuenow="0"
                                                                     aria-valuemin="0" aria-valuemax="100"></div>
                                                             </div>
                                                         </div>
                                                         <div class="mb-0">
-                                                            <div
-                                                                class="d-flex justify-content-between align-items-center mb-1">
-                                                                <span class="small font-weight-bold text-gray-700">5.
-                                                                    Semarang</span>
-                                                                <span class="small font-weight-bold text-info">Rp
-                                                                    0</span>
+                                                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                                                <span class="small font-weight-bold text-gray-700">5. Semarang</span>
+                                                                <span class="small font-weight-bold text-info">Rp 0</span>
                                                             </div>
-                                                            <div class="progress progress-sm"
-                                                                style="height: 5px; border-radius: 4px;">
+                                                            <div class="progress progress-sm" style="height: 5px; border-radius: 4px;">
                                                                 <div class="progress-bar bg-info" role="progressbar"
+                                                                    style="width: 0%" aria-valuenow="0"
+                                                                    aria-valuemin="0" aria-valuemax="100"></div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Inner Card 3: 5 Kota PO Terbanyak (Bellow 5 Kota PO Value) -->
+                                            <div class="card border shadow-sm mb-0" style="border-radius: 8px;">
+                                                <div class="card-body p-3">
+                                                    <h6 class="font-weight-bold text-primary mb-3 pb-2 border-bottom small text-uppercase"
+                                                        style="letter-spacing: 0.5px;">
+                                                        5 Kota PO Terbanyak
+                                                    </h6>
+                                                    <div id="list-5-kota-po-terbanyak">
+                                                        <div class="mb-2">
+                                                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                                                <span class="small font-weight-bold text-gray-700">1. Jakarta</span>
+                                                                <span class="small font-weight-bold text-primary">0 PO</span>
+                                                            </div>
+                                                            <div class="progress progress-sm" style="height: 5px; border-radius: 4px;">
+                                                                <div class="progress-bar bg-primary" role="progressbar"
+                                                                    style="width: 0%" aria-valuenow="0"
+                                                                    aria-valuemin="0" aria-valuemax="100"></div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="mb-2">
+                                                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                                                <span class="small font-weight-bold text-gray-700">2. Surabaya</span>
+                                                                <span class="small font-weight-bold text-primary">0 PO</span>
+                                                            </div>
+                                                            <div class="progress progress-sm" style="height: 5px; border-radius: 4px;">
+                                                                <div class="progress-bar bg-primary" role="progressbar"
+                                                                    style="width: 0%" aria-valuenow="0"
+                                                                    aria-valuemin="0" aria-valuemax="100"></div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="mb-2">
+                                                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                                                <span class="small font-weight-bold text-gray-700">3. Medan</span>
+                                                                <span class="small font-weight-bold text-primary">0 PO</span>
+                                                            </div>
+                                                            <div class="progress progress-sm" style="height: 5px; border-radius: 4px;">
+                                                                <div class="progress-bar bg-primary" role="progressbar"
+                                                                    style="width: 0%" aria-valuenow="0"
+                                                                    aria-valuemin="0" aria-valuemax="100"></div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="mb-2">
+                                                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                                                <span class="small font-weight-bold text-gray-700">4. Bandung</span>
+                                                                <span class="small font-weight-bold text-primary">0 PO</span>
+                                                            </div>
+                                                            <div class="progress progress-sm" style="height: 5px; border-radius: 4px;">
+                                                                <div class="progress-bar bg-primary" role="progressbar"
+                                                                    style="width: 0%" aria-valuenow="0"
+                                                                    aria-valuemin="0" aria-valuemax="100"></div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="mb-0">
+                                                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                                                <span class="small font-weight-bold text-gray-700">5. Semarang</span>
+                                                                <span class="small font-weight-bold text-primary">0 PO</span>
+                                                            </div>
+                                                            <div class="progress progress-sm" style="height: 5px; border-radius: 4px;">
+                                                                <div class="progress-bar bg-primary" role="progressbar"
                                                                     style="width: 0%" aria-valuenow="0"
                                                                     aria-valuemin="0" aria-valuemax="100"></div>
                                                             </div>
@@ -418,25 +425,22 @@ include FRONTEND_PATH . 'components/header.php';
                                             </div>
                                         </div>
 
-                                        <!-- Right Column: 10 Outlet dengan MR Open -->
+                                        <!-- Right Column: 10 Site MR Open (Full Right) -->
                                         <div class="col-lg-6 d-flex flex-column mb-4 mb-lg-0">
-                                            <!-- Inner Grouping Card 3: 10 Outlet dengan MR Open -->
+                                            <!-- Inner Card 4: 10 Site MR Open -->
                                             <div class="card border shadow-sm h-100" style="border-radius: 8px;">
                                                 <div class="card-body p-3 d-flex flex-column">
                                                     <h6 class="font-weight-bold text-primary mb-3 pb-2 border-bottom small text-uppercase"
                                                         style="letter-spacing: 0.5px;">
-                                                        10 Outlet dengan MR Open
+                                                        10 Site MR Open
                                                     </h6>
-                                                    <div id="list-10-outlet-mr-open"
+                                                    <div id="list-10-site-mr-open"
                                                         class="d-flex flex-column justify-content-between flex-grow-1">
                                                         <?php for ($i = 1; $i <= 10; $i++): ?>
-                                                            <div
-                                                                class="d-flex flex-column justify-content-center flex-grow-1">
-                                                                <div
-                                                                    class="d-flex justify-content-between align-items-center mb-1">
-                                                                    <span
-                                                                        class="small font-weight-bold text-gray-700"><?php echo $i; ?>.
-                                                                        Outlet <?php echo chr(64 + $i); ?></span>
+                                                            <div class="d-flex flex-column justify-content-center flex-grow-1 mb-2">
+                                                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                                                    <span class="small font-weight-bold text-gray-700"><?php echo $i; ?>.
+                                                                        Site <?php echo chr(64 + $i); ?></span>
                                                                     <span class="small font-weight-bold text-warning">0
                                                                         MR</span>
                                                                 </div>
@@ -842,14 +846,6 @@ include FRONTEND_PATH . 'components/header.php';
                         } else {
                             $('#shipped-segment-container').addClass('d-none');
                             $('#shipped-modal-total-badge').addClass('d-none');
-                        }
-                    });
-
-                    window.addEventListener('dateRangeChanged', function (e) {
-                        if (e.detail && e.detail.displayRange) {
-                            $('#large-card-date-outbound').text('(' + e.detail.displayRange + ')');
-                        } else {
-                            $('#large-card-date-outbound').text('(<?php echo $currentDateStr; ?>)');
                         }
                     });
                 });

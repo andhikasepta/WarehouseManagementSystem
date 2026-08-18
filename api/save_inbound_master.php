@@ -10,6 +10,7 @@ if (!isLoggedIn()) {
     echo json_encode(['status' => 'error', 'message' => 'Unauthorized']);
     exit;
 }
+validateCsrf();
 
 function ensureInboundMasterTableExists($pdo) {
     $driver = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
@@ -107,6 +108,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($action === 'init') {
                 $clearAll = !empty($data['clear_all']);
                 if ($clearAll) {
+                    $currentUser = getCurrentUser();
+                    $userRole = $currentUser['role'] ?? 'admin';
+                    if ($userRole !== 'superadmin' && $userRole !== 'head_warehouse_admin') {
+                        echo json_encode(['status' => 'error', 'message' => 'Hanya Super Admin atau Head Warehouse yang diizinkan mengosongkan seluruh tabel.']);
+                        exit;
+                    }
                     $pdo->exec("TRUNCATE TABLE inbound_master");
                 }
                 echo json_encode(['status' => 'success', 'message' => 'Inbound master batch initialized']);
@@ -250,14 +257,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $pdo->rollBack();
             }
             error_log("Database error in save_inbound_master.php: " . $e->getMessage());
-            echo json_encode(['status' => 'error', 'message' => 'Database error: ' . $e->getMessage()]);
+            echo json_encode(['status' => 'error', 'message' => 'Terjadi kesalahan database saat menyimpan data inbound.']);
             exit;
         } catch (Exception $e) {
             if ($pdo->inTransaction()) {
                 $pdo->rollBack();
             }
             error_log("General error in save_inbound_master.php: " . $e->getMessage());
-            echo json_encode(['status' => 'error', 'message' => 'Error: ' . $e->getMessage()]);
+            echo json_encode(['status' => 'error', 'message' => 'Terjadi kesalahan sistem saat menyimpan data inbound.']);
             exit;
         }
     }

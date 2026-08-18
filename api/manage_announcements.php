@@ -17,6 +17,11 @@ if (($currentUser['role'] ?? '') !== 'superadmin') {
 
 $action = $_GET['action'] ?? $_POST['action'] ?? 'list';
 
+// Validate CSRF on state-changing actions
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    validateCsrf();
+}
+
 try {
     // Ensure 'type' and 'version' columns exist
     try {
@@ -119,7 +124,8 @@ try {
 
     echo json_encode(['success' => false, 'message' => 'Aksi tidak dikenal']);
 } catch (PDOException $e) {
-    echo json_encode(['success' => false, 'message' => 'Database Error: ' . $e->getMessage()]);
+    error_log('manage_announcements.php error: ' . $e->getMessage());
+    echo json_encode(['success' => false, 'message' => 'Terjadi kesalahan database pada pengumuman.']);
 }
 
 

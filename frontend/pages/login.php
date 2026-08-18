@@ -6,6 +6,19 @@ require_once __DIR__ . '/../../backend/auth.php';
 $error = '';
 $redirect = $_GET['redirect'] ?? $_POST['redirect'] ?? 'wms_select.php';
 
+// ── Open Redirect Protection ──────────────────────────────────────
+// Only allow redirects to known internal pages (no external URLs, no path traversal)
+$allowedRedirectPages = [
+    'wms_select.php', 'dashboard.php', 'inbound.php', 'warehouse.php',
+    'outbound.php', 'master_data.php', 'reports.php', 'analytics.php',
+    'kpi_monitoring.php', 'repository.php', 'repository_management.php',
+    'user_management.php', 'announcements.php', 'storage_hub.php'
+];
+$redirectBase = basename(parse_url($redirect, PHP_URL_PATH) ?: '');
+if (!in_array($redirectBase, $allowedRedirectPages, true)) {
+    $redirect = 'wms_select.php';
+}
+
 // Show access denied notification if redirected back
 if (isset($_GET['access_denied']) && $_GET['access_denied'] == '1') {
     $error = 'User tidak mendapatkan hak akses modul.';
@@ -72,9 +85,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = trim($_POST['username'] ?? '');
     $password = trim($_POST['password'] ?? '');
 
-    if (empty($username) || empty($password)) {
+    // Validate CSRF token
+    $submittedToken = $_POST['csrf_token'] ?? '';
+    $sessionToken = $_SESSION['csrf_token'] ?? '';
+    if (empty($sessionToken) || !hash_equals($sessionToken, $submittedToken)) {
+        $error = 'Sesi keamanan tidak valid. Silakan muat ulang halaman.';
+    }
+
+    // ── Rate Limiting (Brute-force protection) ──────────────────────
+    $maxAttempts = 5;
+    $lockoutDuration = 900; // 15 minutes in seconds
+    $now = time();
+
+    if (isset($_SESSION['login_lockout']) && $_SESSION['login_lockout'] > $now) {
+        $remainingMin = ceil(($_SESSION['login_lockout'] - $now) / 60);
+        $error = "Terlalu banyak percobaan login yang gagal. Akun sementara dikunci. Silakan coba lagi dalam {$remainingMin} menit.";
+    }
+
+    if (empty($error) && (empty($username) || empty($password))) {
         $error = 'Username dan password wajib diisi.';
-    } else {
+    } elseif (empty($error)) {
         try {
             $stmt = $pdo->prepare("SELECT * FROM users WHERE username = ?");
             $stmt->execute([$username]);
@@ -94,6 +124,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             if ($passwordValid) {
+                // Reset failed login counter on success
+                unset($_SESSION['login_attempts'], $_SESSION['login_lockout']);
+
                 // Prevent session fixation attack
                 session_regenerate_id(true);
 
@@ -181,9 +214,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
                 exit;
             } else {
-                $error = 'Username atau password salah.';
+                $_SESSION['login_attempts'] = ($_SESSION['login_attempts'] ?? 0) + 1;
+                if ($_SESSION['login_attempts'] >= $maxAttempts) {
+                    $_SESSION['login_lockout'] = $now + $lockoutDuration;
+                    $error = "Terlalu banyak percobaan login yang gagal. Akun dikunci selama 15 menit.";
+                } else {
+                    $remaining = $maxAttempts - $_SESSION['login_attempts'];
+                    $error = "Username atau password salah. (Sisa percobaan: {$remaining})";
+                }
             }
         } catch (PDOException $e) {
+            error_log("Login error: " . $e->getMessage());
             $error = 'Terjadi kesalahan sistem saat memproses login.';
         }
     }
@@ -301,6 +342,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <?php endif; ?>
 
         <form method="POST" action="login.php">
+            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(getCsrfToken()); ?>">
             <input type="hidden" name="redirect" value="<?php echo htmlspecialchars($redirect); ?>">
 
             <div class="form-group text-left mb-3">

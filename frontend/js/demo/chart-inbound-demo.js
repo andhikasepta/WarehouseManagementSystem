@@ -8,23 +8,22 @@ function formatRupiah(num) {
 }
 
 document.addEventListener('DOMContentLoaded', function () {
-    // 1. Distribusi Status PO (Circle Graph / Doughnut Chart)
+    // 1. Distribusi Status Delivery (Circle Graph / Doughnut Chart)
     var ctxDistribusi = document.getElementById("distribusiStatusPoChart");
     if (ctxDistribusi) {
         window.distribusiStatusPoChart = new Chart(ctxDistribusi, {
             type: 'doughnut',
             data: {
                 labels: [
-                    "Terlambat (Belum GR)", 
-                    "Jatuh Tempo Dekat", 
-                    "Diterima Terlambat", 
-                    "Menunggu Registrasi", 
-                    "Selesai"
+                    "Total PO Inbound", 
+                    "Total PO Terlambat", 
+                    "Total PO Terlambat Delivery", 
+                    "PO Sudah GR"
                 ],
                 datasets: [{
-                    data: [0, 0, 0, 0, 0],
-                    backgroundColor: ['#4e73df', '#f6c23e', '#e74a3b', '#1cc88a', '#36b9cc'],
-                    hoverBackgroundColor: ['#2e59d9', '#dfa827', '#be2617', '#17a673', '#2c9faf'],
+                    data: [0, 0, 0, 0],
+                    backgroundColor: ['#4e73df', '#f6c23e', '#e74a3b', '#1cc88a'],
+                    hoverBackgroundColor: ['#2e59d9', '#dfa827', '#be2617', '#17a673'],
                     hoverBorderColor: "rgba(234, 236, 244, 1)",
                 }],
             },
@@ -55,7 +54,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // 2. Nilai PO per Bagian (Bar Chart)
+    // 2. QTY PO For Department (Bar Chart)
     var ctxNilaiPo = document.getElementById("nilaiPoBagianChart");
     if (ctxNilaiPo) {
         window.nilaiPoBagianChart = new Chart(ctxNilaiPo, {
@@ -64,7 +63,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 labels: [],
                 datasets: [
                     {
-                        label: "Sudah Diterima (GR)",
+                        label: "Sudah di GR",
                         backgroundColor: "#1cc88a",
                         hoverBackgroundColor: "#17a673",
                         borderColor: "#1cc88a",
@@ -72,7 +71,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         maxBarThickness: 40,
                     },
                     {
-                        label: "Belum Diterima",
+                        label: "Belum di GR",
                         backgroundColor: "#e74a3b",
                         hoverBackgroundColor: "#be2617",
                         borderColor: "#e74a3b",
@@ -106,8 +105,9 @@ document.addEventListener('DOMContentLoaded', function () {
                             min: 0,
                             maxTicksLimit: 5,
                             padding: 10,
+                            precision: 0,
                             callback: function(value) {
-                                return formatRupiah(value);
+                                return new Intl.NumberFormat('id-ID').format(value);
                             }
                         },
                         gridLines: {
@@ -144,7 +144,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     callbacks: {
                         label: function(tooltipItem, chartData) {
                             var dataset = chartData.datasets[tooltipItem.datasetIndex];
-                            return dataset.label + ': ' + formatRupiah(tooltipItem.yLabel);
+                            return dataset.label + ': ' + new Intl.NumberFormat('id-ID').format(tooltipItem.yLabel) + ' PO';
                         }
                     }
                 },

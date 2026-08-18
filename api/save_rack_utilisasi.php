@@ -9,6 +9,7 @@ if (!isLoggedIn()) {
     echo json_encode(['status' => 'error', 'message' => 'Unauthorized']);
     exit;
 }
+validateCsrf();
 
 $currentUser = getCurrentUser();
 if (($currentUser['role'] ?? '') === 'head_warehouse_admin') {

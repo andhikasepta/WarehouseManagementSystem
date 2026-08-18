@@ -29,12 +29,14 @@ if ($method === 'GET') {
 
         echo json_encode(['status' => 'success', 'data' => $users]);
     } catch (PDOException $e) {
-        echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
+        error_log('manage_users.php GET error: ' . $e->getMessage());
+        echo json_encode(['status' => 'error', 'message' => 'Terjadi kesalahan saat memuat data user.']);
     }
     exit;
 }
 
 if ($method === 'POST') {
+    validateCsrf();
     $rawInput = file_get_contents('php://input');
     $data = json_decode($rawInput, true);
 
@@ -59,7 +61,8 @@ if ($method === 'POST') {
             $stmt->execute([$hash, $userId]);
             echo json_encode(['status' => 'success', 'message' => 'Password user berhasil di-reset.']);
         } catch (PDOException $e) {
-            echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
+            error_log('manage_users.php reset_password error: ' . $e->getMessage());
+            echo json_encode(['status' => 'error', 'message' => 'Terjadi kesalahan saat mereset password.']);
         }
         exit;
     }
@@ -81,7 +84,8 @@ if ($method === 'POST') {
             $stmt->execute([$userId]);
             echo json_encode(['status' => 'success', 'message' => 'User berhasil dihapus.']);
         } catch (PDOException $e) {
-            echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
+            error_log('manage_users.php delete error: ' . $e->getMessage());
+            echo json_encode(['status' => 'error', 'message' => 'Terjadi kesalahan saat menghapus user.']);
         }
         exit;
     }
@@ -162,7 +166,8 @@ if ($method === 'POST') {
             }
             echo json_encode(['status' => 'success', 'message' => 'User berhasil diperbarui.']);
         } catch (PDOException $e) {
-            echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
+            error_log('manage_users.php update error: ' . $e->getMessage());
+            echo json_encode(['status' => 'error', 'message' => 'Terjadi kesalahan saat memperbarui user.']);
         }
     } else {
         // CREATE New User
@@ -180,7 +185,8 @@ if ($method === 'POST') {
             if (strpos($e->getMessage(), 'Duplicate entry') !== false) {
                 echo json_encode(['status' => 'error', 'message' => 'Username sudah digunakan. Silakan pilih username lain.']);
             } else {
-                echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
+                error_log('manage_users.php create error: ' . $e->getMessage());
+                echo json_encode(['status' => 'error', 'message' => 'Terjadi kesalahan saat membuat user baru.']);
             }
         }
     }

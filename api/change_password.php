@@ -8,6 +8,7 @@ if (!isLoggedIn()) {
     echo json_encode(['status' => 'error', 'message' => 'Anda harus login terlebih dahulu.']);
     exit;
 }
+validateCsrf();
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     echo json_encode(['status' => 'error', 'message' => 'Metode permintaan tidak valid.']);
@@ -79,8 +80,9 @@ try {
         'message' => 'Password Anda berhasil diperbarui.'
     ]);
 } catch (PDOException $e) {
+    error_log('change_password.php error: ' . $e->getMessage());
     echo json_encode([
         'status' => 'error',
-        'message' => 'Terjadi kesalahan pada server: ' . $e->getMessage()
+        'message' => 'Terjadi kesalahan pada server saat memperbarui password.'
     ]);
 }

@@ -8,6 +8,18 @@ if (!isLoggedIn()) {
     echo json_encode(['status' => 'error', 'message' => 'Unauthorized']);
     exit;
 }
+validateCsrf();
+
+$currentUser = getCurrentUser();
+$userRole = $currentUser['role'] ?? 'admin';
+$isSuperAdmin = ($userRole === 'superadmin');
+$userModules = is_array($currentUser['allowed_modules'] ?? null) ? $currentUser['allowed_modules'] : [];
+$canManageRack = ($isSuperAdmin || $userRole === 'head_warehouse_admin' || in_array('master_data', $userModules) || in_array('warehouse', $userModules));
+
+if (!$canManageRack || (!$isSuperAdmin && !canAdd('master_data') && !canAdd('warehouse') && $userRole !== 'head_warehouse_admin')) {
+    echo json_encode(['status' => 'error', 'message' => 'Anda tidak memiliki hak akses untuk mengunggah atau mengubah master layout rak.']);
+    exit;
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $input = file_get_contents('php://input');

@@ -49,7 +49,8 @@ try {
     echo json_encode(['success' => true, 'active' => false, 'status' => 'none']);
 
 } catch (PDOException $e) {
-    echo json_encode(['success' => false, 'active' => false, 'error' => $e->getMessage()]);
+    error_log('get_active_announcement.php error: ' . $e->getMessage());
+    echo json_encode(['success' => false, 'active' => false, 'error' => 'Database error']);
 }
 
 function formatPeriod($ann, $months) {

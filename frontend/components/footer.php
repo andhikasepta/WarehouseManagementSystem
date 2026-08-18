@@ -69,6 +69,51 @@ $currentAppVer = function_exists('getSystemAppVersion') ? getSystemAppVersion($p
     <script src="frontend/vendor/jquery/jquery.min.js"></script>
     <script src="frontend/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
 
+    <!-- CSRF Auto-Configuration (must run after jQuery) -->
+    <script>
+    (function() {
+        var csrfMeta = document.querySelector('meta[name="csrf-token"]');
+        var csrfToken = csrfMeta ? csrfMeta.getAttribute('content') : '';
+
+        // Auto-configure jQuery $.ajax to include CSRF token header
+        if (window.jQuery && csrfToken) {
+            $.ajaxSetup({
+                beforeSend: function(xhr, settings) {
+                    if (settings.type && settings.type.toUpperCase() !== 'GET') {
+                        xhr.setRequestHeader('X-CSRF-TOKEN', csrfToken);
+                    }
+                }
+            });
+        }
+
+        // Monkey-patch window.fetch to auto-inject CSRF header on mutating requests
+        if (csrfToken) {
+            var originalFetch = window.fetch;
+            window.fetch = function(url, options) {
+                options = options || {};
+                var method = (options.method || 'GET').toUpperCase();
+                if (method !== 'GET' && method !== 'HEAD') {
+                    options.headers = options.headers || {};
+                    // Support both Headers object and plain object
+                    if (options.headers instanceof Headers) {
+                        if (!options.headers.has('X-CSRF-TOKEN')) {
+                            options.headers.set('X-CSRF-TOKEN', csrfToken);
+                        }
+                    } else {
+                        if (!options.headers['X-CSRF-TOKEN']) {
+                            options.headers['X-CSRF-TOKEN'] = csrfToken;
+                        }
+                    }
+                }
+                return originalFetch.call(this, url, options);
+            };
+        }
+
+        // Expose token globally for manual use
+        window.WMS_CSRF_TOKEN = csrfToken;
+    })();
+    </script>
+
     <!-- Core plugin JavaScript-->
     <script src="frontend/vendor/jquery-easing/jquery.easing.min.js"></script>
 

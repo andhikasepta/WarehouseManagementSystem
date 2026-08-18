@@ -31,6 +31,7 @@ try {
         'sites' => $sites
     ]);
 } catch(PDOException $e) {
-    echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
+    error_log('get_periods.php error: ' . $e->getMessage());
+    echo json_encode(['status' => 'error', 'message' => 'Terjadi kesalahan saat mengambil data periode.']);
 }
 ?>
