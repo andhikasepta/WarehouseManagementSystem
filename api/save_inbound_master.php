@@ -142,9 +142,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // Determine Periode Group
                 $month = trim((string) ($data['month'] ?? ''));
                 $year = trim((string) ($data['year'] ?? ''));
+                $batch = trim((string) ($data['batch'] ?? '1'));
                 $periodeGroup = !empty($data['periode_group']) ? trim((string) $data['periode_group']) : null;
                 if (!$periodeGroup && !empty($month) && !empty($year)) {
-                    $periodeGroup = $month . ' ' . $year;
+                    $periodeGroup = $month . ' ' . $year . '-Batch' . intval($batch);
                 }
 
                 // Check if data for this period already exists in database

@@ -17,7 +17,7 @@ if (!$hasRepoAccess) {
 $canUploadDoc = $isSuperAdmin || canAdd('repository_management');
 $canDeleteDoc = $isSuperAdmin || canDelete('repository_management');
 
-$pageTitle = 'WMS - Repository Documents Management';
+$pageTitle = 'WMS - Documents Repository Management';
 include FRONTEND_PATH . 'components/header.php';
 ?>
 
@@ -37,7 +37,7 @@ include FRONTEND_PATH . 'components/header.php';
                     <div class="d-sm-flex align-items-center justify-content-between mb-4">
                         <div>
                             <h1 class="h3 mb-1 text-gray-800 font-weight-bold">
-                                Repository Documents (WI)
+                                Documents Repository (WI)
                             </h1>
                             <p class="text-muted small mb-0">Format Dokumen : PDF (Maks. 25MB)</p>
                         </div>
@@ -75,7 +75,7 @@ include FRONTEND_PATH . 'components/header.php';
                             </h6>
                             <div class="d-flex align-items-center gap-2 mt-2 mt-sm-0">
                                 <div class="input-group input-group-sm" style="max-width: 250px;">
-                                    <input type="text" class="form-control" id="tableSearchInput" placeholder="Cari nama dokumen...">
+                                    <input type="text" class="form-control" id="tableSearchInput" placeholder="Search...">
                                     <div class="input-group-append">
                                         <span class="input-group-text"><i class="fas fa-search"></i></span>
                                     </div>
@@ -147,6 +147,38 @@ include FRONTEND_PATH . 'components/header.php';
                                     </select>
                                 </div>
 
+                                <div class="form-group mb-3">
+                                    <label class="small font-weight-bold text-gray-700">Divisi <span class="text-danger">*</span></label>
+                                    <select class="form-control" name="division" id="uploadDivisionSelect" required>
+                                        <option value="Supply Chain Management" selected>Supply Chain Management</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group mb-3">
+                                    <label class="small font-weight-bold text-gray-700">Bagian <span class="text-danger">*</span></label>
+                                    <select class="form-control" name="bagian" id="uploadBagianSelect" required>
+                                        <option value="">-- Pilih Bagian --</option>
+                                        <option value="Asset And Warehouse Management">Asset And Warehouse Management</option>
+                                        <option value="Facility Management">Facility Management</option>
+                                        <option value="Procurement Center Of Excellence">Procurement Center Of Excellence</option>
+                                        <option value="Procurement Operation">Procurement Operation</option>
+                                        <option value="Regional Procurement">Regional Procurement</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group mb-3">
+                                    <label class="small font-weight-bold text-gray-700">Sub Bagian <span class="text-danger">*</span></label>
+                                    <select class="form-control" name="sub_bagian" id="uploadSubBagianSelect" required>
+                                        <option value="">-- Pilih Sub Bagian --</option>
+                                        <option value="ASP and System Governance">ASP and System Governance</option>
+                                        <option value="Asset Management">Asset Management</option>
+                                        <option value="Warehouse Management">Warehouse Management</option>
+                                        <option value="Partner Care">Partner Care</option>
+                                        <option value="Partner Sourcing">Partner Sourcing</option>
+                                        <option value="Strategic Sourcing">Strategic Sourcing</option>
+                                    </select>
+                                </div>
+
                                 <div class="form-group mb-2">
                                     <label class="small font-weight-bold text-gray-700">File Dokumen PDF <span class="text-danger">*</span></label>
                                     <div class="p-4 text-center rounded border" id="uploadDropZone" style="background: #f8fafc; border: 2px dashed #cbd5e1 !important; cursor: pointer;" onclick="document.getElementById('uploadFileInput').click();">
@@ -200,6 +232,38 @@ include FRONTEND_PATH . 'components/header.php';
                                         <option value="Policy Document">Policy Document</option>
                                         <option value="Procedure Document">Procedure Document</option>
                                         <option value="Working Instruction (WI) Document">Working Instruction (WI) Document</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group mb-3">
+                                    <label class="small font-weight-bold text-gray-700">Divisi <span class="text-danger">*</span></label>
+                                    <select class="form-control" name="division" id="editDocDivision" required>
+                                        <option value="Supply Chain Management" selected>Supply Chain Management</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group mb-3">
+                                    <label class="small font-weight-bold text-gray-700">Bagian <span class="text-danger">*</span></label>
+                                    <select class="form-control" name="bagian" id="editDocBagian" required>
+                                        <option value="">-- Pilih Bagian --</option>
+                                        <option value="Asset And Warehouse Management">Asset And Warehouse Management</option>
+                                        <option value="Facility Management">Facility Management</option>
+                                        <option value="Procurement Center Of Excellence">Procurement Center Of Excellence</option>
+                                        <option value="Procurement Operation">Procurement Operation</option>
+                                        <option value="Regional Procurement">Regional Procurement</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group mb-3">
+                                    <label class="small font-weight-bold text-gray-700">Sub Bagian <span class="text-danger">*</span></label>
+                                    <select class="form-control" name="sub_bagian" id="editDocSubBagian" required>
+                                        <option value="">-- Pilih Sub Bagian --</option>
+                                        <option value="ASP and System Governance">ASP and System Governance</option>
+                                        <option value="Asset Management">Asset Management</option>
+                                        <option value="Warehouse Management">Warehouse Management</option>
+                                        <option value="Partner Care">Partner Care</option>
+                                        <option value="Partner Sourcing">Partner Sourcing</option>
+                                        <option value="Strategic Sourcing">Strategic Sourcing</option>
                                     </select>
                                 </div>
 
@@ -341,6 +405,9 @@ include FRONTEND_PATH . 'components/header.php';
                     badgeHtml = '<span class="badge badge-info px-2 py-1"><i class="fas fa-project-diagram mr-1"></i>Procedure Document</span>';
                 }
 
+                let bagianBadge = doc.bagian ? `<span class="badge badge-light border text-primary" style="font-size: 0.72rem;">${escapeHtml(doc.bagian)}</span>` : '';
+                let subBagianBadge = doc.sub_bagian ? `<span class="badge badge-light border text-info" style="font-size: 0.72rem;">${escapeHtml(doc.sub_bagian)}</span>` : '';
+
                 let editBtnHtml = CAN_UPLOAD_DOC ? `
                     <button type="button" class="btn btn-outline-info btn-edit-doc" data-id="${doc.id}" title="Edit Nama / Segment / File">
                         <i class="fas fa-pencil-alt"></i>
@@ -361,7 +428,11 @@ include FRONTEND_PATH . 'components/header.php';
                                 </div>
                                 <div>
                                     <div class="font-weight-bold text-gray-800" style="font-size: 0.92rem;">${escapeHtml(displayName)}</div>
-                                    <small class="text-muted">${escapeHtml(doc.original_name || '')}</small>
+                                    <div class="d-flex flex-wrap align-items-center mt-1" style="gap: 5px;">
+                                        <small class="text-muted mr-1">${escapeHtml(doc.original_name || '')}</small>
+                                        ${bagianBadge}
+                                        ${subBagianBadge}
+                                    </div>
                                 </div>
                             </div>
                         </td>
@@ -532,6 +603,9 @@ include FRONTEND_PATH . 'components/header.php';
                 currentCat = 'Working Instruction (WI) Document';
             }
             $('#editDocCategory').val(currentCat);
+            $('#editDocDivision').val(doc.division || 'Supply Chain Management');
+            $('#editDocBagian').val(doc.bagian || '');
+            $('#editDocSubBagian').val(doc.sub_bagian || '');
             if (editFileLabel) {
                 editFileLabel.innerText = 'Klik untuk memilih file PDF pengganti (Opsional)';
             }

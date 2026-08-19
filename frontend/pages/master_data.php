@@ -287,7 +287,7 @@ include FRONTEND_PATH . 'components/header.php';
                                                             class="small font-weight-bold text-gray-700 mb-1">No. PR /
                                                             PO</label>
                                                         <input type="text" class="form-control form-control-sm"
-                                                            id="filter-inbound-po" placeholder="Cari No. PR / PO (Tekan Enter)...">
+                                                            id="filter-inbound-po" placeholder="Search...">
                                                     </div>
 
                                                     <!-- Reset Filter Button -->
@@ -637,8 +637,19 @@ include FRONTEND_PATH . 'components/header.php';
                                         <div class="card shadow-sm border mb-4" style="border-radius: 8px;">
                                             <div class="card-body py-3 px-4">
                                                 <div class="form-row align-items-end">
+                                                    <!-- Periode Dropdown -->
+                                                    <div class="col-md-2 col-sm-6 mb-2 mb-md-0">
+                                                        <label for="filter-outbound-periode"
+                                                            class="small font-weight-bold text-gray-700 mb-1">Periode</label>
+                                                        <select
+                                                            class="form-control form-control-sm custom-select custom-select-sm"
+                                                            id="filter-outbound-periode">
+                                                            <option value="">Semua Periode</option>
+                                                        </select>
+                                                    </div>
+
                                                     <!-- Site Destination Dropdown -->
-                                                    <div class="col-md-3 col-sm-6 mb-2 mb-md-0">
+                                                    <div class="col-md-2 col-sm-6 mb-2 mb-md-0">
                                                         <label for="filter-tujuan-site-outbound"
                                                             class="small font-weight-bold text-gray-700 mb-1">Site
                                                             Destination</label>
@@ -674,13 +685,13 @@ include FRONTEND_PATH . 'components/header.php';
                                                     </div>
 
                                                     <!-- Search No. MR / PCK / DN / PO -->
-                                                    <div class="col-md-3 col-sm-6 mb-2 mb-md-0">
+                                                    <div class="col-md-2 col-sm-6 mb-2 mb-md-0">
                                                         <label for="filter-outbound-mr"
                                                             class="small font-weight-bold text-gray-700 mb-1">Cari
                                                             Dokumen</label>
                                                         <input type="text" class="form-control form-control-sm"
                                                             id="filter-outbound-mr"
-                                                            placeholder="Cari MR / PCK / DN / PO (Tekan Enter)...">
+                                                            placeholder="Search...">
                                                     </div>
 
                                                     <!-- Reset Filter Button -->
@@ -723,6 +734,7 @@ include FRONTEND_PATH . 'components/header.php';
                                                         <th>DELIVERY TARGET</th>
                                                         <th>DN STATUS</th>
                                                         <th>LAST LOG</th>
+                                                        <th>PERIODE GROUP</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -774,11 +786,25 @@ include FRONTEND_PATH . 'components/header.php';
                                         <option value="">-- Pilih Bulan --</option>
                                     </select>
                                 </div>
+                                <div class="form-group mb-3">
+                                    <label for="deleteBatchSelect"
+                                        class="small font-weight-bold text-gray-600">Batch</label>
+                                    <select class="form-control form-control-sm" id="deleteBatchSelect">
+                                        <option value="">-- Pilih Batch --</option>
+                                        <option value="1">Batch 1</option>
+                                        <option value="2">Batch 2</option>
+                                    </select>
+                                </div>
                                 <div class="form-group mb-4">
                                     <label for="deleteYearSelect"
                                         class="small font-weight-bold text-gray-600">Tahun</label>
                                     <select class="form-control form-control-sm" id="deleteYearSelect">
                                         <option value="">-- Pilih Tahun --</option>
+                                        <?php
+                                        $curY = (int) date('Y');
+                                        for ($y = 2024; $y <= $curY + 5; $y++): ?>
+                                            <option value="<?php echo $y; ?>" <?php echo ($y === $curY) ? 'selected' : ''; ?>><?php echo $y; ?></option>
+                                        <?php endfor; ?>
                                     </select>
                                 </div>
                                 <div class="d-flex justify-content-end mt-4">
@@ -835,6 +861,45 @@ include FRONTEND_PATH . 'components/header.php';
                                             <option value="asset">Data Asset</option>
                                             <option value="rack">Data Utilisasi Rack</option>
                                         </select>
+                                    </div>
+                                    <div class="form-row mb-3" id="upload-period-selectors">
+                                        <div class="col-4">
+                                            <label for="upload-bulan-select" class="small font-weight-bold text-gray-600">Bulan <span class="text-danger">*</span></label>
+                                            <select class="form-control form-control-sm" id="upload-bulan-select">
+                                                <option value="">-- Pilih Bulan --</option>
+                                                <option value="January">January</option>
+                                                <option value="February">February</option>
+                                                <option value="March">March</option>
+                                                <option value="April">April</option>
+                                                <option value="May">May</option>
+                                                <option value="June">June</option>
+                                                <option value="July">July</option>
+                                                <option value="August">August</option>
+                                                <option value="September">September</option>
+                                                <option value="October">October</option>
+                                                <option value="November">November</option>
+                                                <option value="December">December</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-4">
+                                            <label for="upload-batch-select" class="small font-weight-bold text-gray-600">Batch <span class="text-danger">*</span></label>
+                                            <select class="form-control form-control-sm" id="upload-batch-select">
+                                                <option value="">-- Pilih Batch --</option>
+                                                <option value="1">Batch 1</option>
+                                                <option value="2">Batch 2</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-4">
+                                            <label for="upload-tahun-select" class="small font-weight-bold text-gray-600">Tahun <span class="text-danger">*</span></label>
+                                            <select class="form-control form-control-sm" id="upload-tahun-select">
+                                                <option value="">-- Pilih Tahun --</option>
+                                                <?php
+                                                $curY = (int) date('Y');
+                                                for ($y = 2024; $y <= $curY + 5; $y++): ?>
+                                                    <option value="<?php echo $y; ?>" <?php echo ($y === $curY) ? 'selected' : ''; ?>><?php echo $y; ?></option>
+                                                <?php endfor; ?>
+                                            </select>
+                                        </div>
                                     </div>
                                     <div class="upload-drop-zone" id="upload-drop-zone">
                                         <input type="file" id="excel-file-input" accept=".xlsx,.xls,.csv"
@@ -906,9 +971,9 @@ include FRONTEND_PATH . 'components/header.php';
                                 </div>
                             </div>
 
-                            <!-- Periode Group Selectors (Month & Year) -->
+                            <!-- Periode Group Selectors (Month, Batch & Year) -->
                             <div class="form-row mb-2">
-                                <div class="col-6">
+                                <div class="col-4">
                                     <label for="uploadInboundMonthSelect"
                                         class="small font-weight-bold text-gray-700 mb-1">Bulan Periode <span
                                             class="text-danger">*</span></label>
@@ -928,12 +993,27 @@ include FRONTEND_PATH . 'components/header.php';
                                         <option value="December">December</option>
                                     </select>
                                 </div>
-                                <div class="col-6">
+                                <div class="col-4">
+                                    <label for="uploadInboundBatchSelect"
+                                        class="small font-weight-bold text-gray-700 mb-1">Batch <span
+                                            class="text-danger">*</span></label>
+                                    <select class="form-control form-control-sm" id="uploadInboundBatchSelect">
+                                        <option value="">-- Pilih Batch --</option>
+                                        <option value="1">Batch 1</option>
+                                        <option value="2">Batch 2</option>
+                                    </select>
+                                </div>
+                                <div class="col-4">
                                     <label for="uploadInboundYearSelect"
                                         class="small font-weight-bold text-gray-700 mb-1">Tahun Periode <span
                                             class="text-danger">*</span></label>
                                     <select class="form-control form-control-sm" id="uploadInboundYearSelect">
                                         <option value="">-- Pilih Tahun --</option>
+                                        <?php
+                                        $curY = (int) date('Y');
+                                        for ($y = 2024; $y <= $curY + 5; $y++): ?>
+                                            <option value="<?php echo $y; ?>" <?php echo ($y === $curY) ? 'selected' : ''; ?>><?php echo $y; ?></option>
+                                        <?php endfor; ?>
                                     </select>
                                 </div>
                             </div>
@@ -985,6 +1065,54 @@ include FRONTEND_PATH . 'components/header.php';
                                     </button>
                                 </div>
                             </div>
+
+                            <!-- Periode Group Selectors (Month, Batch & Year) -->
+                            <div class="form-row mb-2">
+                                <div class="col-4">
+                                    <label for="uploadOutboundMonthSelect"
+                                        class="small font-weight-bold text-gray-700 mb-1">Bulan Periode <span
+                                            class="text-danger">*</span></label>
+                                    <select class="form-control form-control-sm" id="uploadOutboundMonthSelect">
+                                        <option value="">-- Pilih Bulan --</option>
+                                        <option value="January">January</option>
+                                        <option value="February">February</option>
+                                        <option value="March">March</option>
+                                        <option value="April">April</option>
+                                        <option value="May">May</option>
+                                        <option value="June">June</option>
+                                        <option value="July">July</option>
+                                        <option value="August">August</option>
+                                        <option value="September">September</option>
+                                        <option value="October">October</option>
+                                        <option value="November">November</option>
+                                        <option value="December">December</option>
+                                    </select>
+                                </div>
+                                <div class="col-4">
+                                    <label for="uploadOutboundBatchSelect"
+                                        class="small font-weight-bold text-gray-700 mb-1">Batch <span
+                                            class="text-danger">*</span></label>
+                                    <select class="form-control form-control-sm" id="uploadOutboundBatchSelect">
+                                        <option value="">-- Pilih Batch --</option>
+                                        <option value="1">Batch 1</option>
+                                        <option value="2">Batch 2</option>
+                                    </select>
+                                </div>
+                                <div class="col-4">
+                                    <label for="uploadOutboundYearSelect"
+                                        class="small font-weight-bold text-gray-700 mb-1">Tahun Periode <span
+                                            class="text-danger">*</span></label>
+                                    <select class="form-control form-control-sm" id="uploadOutboundYearSelect">
+                                        <option value="">-- Pilih Tahun --</option>
+                                        <?php
+                                        $curY = (int) date('Y');
+                                        for ($y = 2024; $y <= $curY + 5; $y++): ?>
+                                            <option value="<?php echo $y; ?>" <?php echo ($y === $curY) ? 'selected' : ''; ?>><?php echo $y; ?></option>
+                                        <?php endfor; ?>
+                                    </select>
+                                </div>
+                            </div>
+
                             <div class="upload-drop-zone border rounded p-4 text-center bg-light">
                                 <i class="fas fa-cloud-upload-alt fa-3x text-primary mb-3"></i>
                                 <h5 class="font-weight-bold">Drag &amp; Drop Excel File Outbound</h5>
@@ -1044,11 +1172,25 @@ include FRONTEND_PATH . 'components/header.php';
                                         <option value="December">December</option>
                                     </select>
                                 </div>
+                                <div class="form-group mb-3">
+                                    <label for="deleteInboundBatchSelect"
+                                        class="small font-weight-bold text-gray-600">Batch</label>
+                                    <select class="form-control form-control-sm" id="deleteInboundBatchSelect">
+                                        <option value="">-- Pilih Batch --</option>
+                                        <option value="1">Batch 1</option>
+                                        <option value="2">Batch 2</option>
+                                    </select>
+                                </div>
                                 <div class="form-group mb-4">
                                     <label for="deleteInboundYearSelect"
                                         class="small font-weight-bold text-gray-600">Tahun</label>
                                     <select class="form-control form-control-sm" id="deleteInboundYearSelect">
                                         <option value="">-- Pilih Tahun --</option>
+                                        <?php
+                                        $curY = (int) date('Y');
+                                        for ($y = 2024; $y <= $curY + 5; $y++): ?>
+                                            <option value="<?php echo $y; ?>" <?php echo ($y === $curY) ? 'selected' : ''; ?>><?php echo $y; ?></option>
+                                        <?php endfor; ?>
                                     </select>
                                 </div>
                                 <div class="d-flex justify-content-end mt-4">
@@ -1237,6 +1379,7 @@ include FRONTEND_PATH . 'components/header.php';
                 if (btnConfirmDelete) {
                     btnConfirmDelete.addEventListener('click', function () {
                         var delMonth = document.getElementById('deleteMonthSelect');
+                        var delBatch = document.getElementById('deleteBatchSelect');
                         var delYear = document.getElementById('deleteYearSelect');
                         if (!delMonth || !delMonth.value || !delYear || !delYear.value) {
                             if (typeof Swal !== 'undefined') {
@@ -1246,14 +1389,20 @@ include FRONTEND_PATH . 'components/header.php';
                             }
                             return;
                         }
-                        var periodToDelete = delMonth.value + ' ' + delYear.value;
+                        var bVal = delBatch && delBatch.value ? delBatch.value : '';
+                        var periodToDelete = delMonth.value + ' ' + delYear.value + (bVal ? '-Batch' + bVal : '');
 
                         var executeStorageDelete = function () {
                             showProcessingModal();
                             fetch('api/delete_data.php', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ periode: periodToDelete })
+                                body: JSON.stringify({
+                                    periode: periodToDelete,
+                                    month: delMonth.value,
+                                    year: delYear.value,
+                                    batch: bVal
+                                })
                             })
                                 .then(r => r.json())
                                 .then(res => {
@@ -1285,7 +1434,7 @@ include FRONTEND_PATH . 'components/header.php';
                         if (typeof Swal !== 'undefined') {
                             Swal.fire({
                                 title: 'Apakah Anda YAKIN?',
-                                text: "Ingin menghapus semua data Storage untuk periode " + periodToDelete.toUpperCase() + "?",
+                                text: "Ingin menghapus data Storage untuk periode " + periodToDelete.toUpperCase() + "?",
                                 icon: 'warning',
                                 showCancelButton: true,
                                 confirmButtonColor: '#e74a3b',
@@ -1297,7 +1446,7 @@ include FRONTEND_PATH . 'components/header.php';
                                 }
                             });
                         } else {
-                            if (confirm("Apakah Anda YAKIN ingin menghapus semua data Storage untuk periode " + periodToDelete.toUpperCase() + "?")) {
+                            if (confirm("Apakah Anda YAKIN ingin menghapus data Storage untuk periode " + periodToDelete.toUpperCase() + "?")) {
                                 executeStorageDelete();
                             }
                         }
@@ -1309,8 +1458,9 @@ include FRONTEND_PATH . 'components/header.php';
                 if (btnConfirmDeleteInbound) {
                     btnConfirmDeleteInbound.addEventListener('click', function () {
                         var m = document.getElementById('deleteInboundMonthSelect') ? document.getElementById('deleteInboundMonthSelect').value : '';
+                        var b = document.getElementById('deleteInboundBatchSelect') ? document.getElementById('deleteInboundBatchSelect').value : '';
                         var y = document.getElementById('deleteInboundYearSelect') ? document.getElementById('deleteInboundYearSelect').value : '';
-                        var period = (m && y) ? (m + ' ' + y) : null;
+                        var period = (m && y) ? (m + ' ' + y + (b ? '-Batch' + b : '')) : null;
 
                         var msg = period
                             ? "Ingin menghapus data Inbound untuk periode " + period.toUpperCase() + "?"
@@ -1321,7 +1471,7 @@ include FRONTEND_PATH . 'components/header.php';
                             fetch('api/delete_inbound_master.php', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ action: 'delete_period', periode: period, month: m, year: y })
+                                body: JSON.stringify({ action: 'delete_period', periode: period, month: m, year: y, batch: b })
                             })
                                 .then(r => r.json())
                                 .then(res => {

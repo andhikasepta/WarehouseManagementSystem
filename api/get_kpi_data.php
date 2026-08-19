@@ -37,12 +37,22 @@ try {
         stripos($year, 'dummy') !== false
     );
 
-    // If periode is provided like "June 2026", parse into month and year
+    // If periode is provided like "June 2026-Batch1", parse into month, year, batch
     if (!$isDummy && !empty($periode) && $periode !== '-' && $periode !== 'PILIH PERIODE DATA') {
-        $parts = explode(' ', $periode);
-        if (count($parts) >= 2) {
-            $month = ucfirst(strtolower($parts[0]));
-            $year = $parts[1];
+        // Handle new "Month Year-BatchN" format
+        if (preg_match('/^(\w+)\s+(\d{4})-Batch(\d+)$/i', $periode, $pParts)) {
+            $month = ucfirst(strtolower($pParts[1]));
+            $year = $pParts[2];
+        } elseif (preg_match('/^(\w+)\s+(\d{4})$/', $periode, $pParts)) {
+            // Legacy "Month Year" format
+            $month = ucfirst(strtolower($pParts[1]));
+            $year = $pParts[2];
+        } else {
+            $parts = explode(' ', $periode);
+            if (count($parts) >= 2) {
+                $month = ucfirst(strtolower($parts[0]));
+                $year = $parts[1];
+            }
         }
     }
 
@@ -360,8 +370,9 @@ try {
 
     if ($hasPeriod && $monthNumber > 0) {
         // A. Assets Table Calculations (for Slow Moving & Stock Opname)
-        $assetWhere = "WHERE (periode_group = ? OR periode_group = ?)";
-        $assetParams = [$selectedPeriodGroup, $monthIndoName . ' ' . $year];
+        // Match the selected periode_group and also legacy format without batch
+        $assetWhere = "WHERE (periode_group = ? OR periode_group = ? OR periode_group LIKE ?)";
+        $assetParams = [$selectedPeriodGroup, $monthIndoName . ' ' . $year, $month . ' ' . $year . '-Batch%'];
         if (!empty($site)) {
             $assetWhere .= " AND so_location = ?";
             $assetParams[] = $site;

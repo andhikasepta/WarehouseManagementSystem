@@ -39,6 +39,13 @@ var existingInboundPeriods = [];
 function refreshOutboundFilters() {
     $.getJSON('api/get_outbound_filters.php', function (json) {
         if (json.status === 'success' && json.data) {
+            if (json.data.periods) {
+                var $pSel = $('#filter-outbound-periode');
+                $pSel.find('option:not(:first)').remove();
+                json.data.periods.forEach(function (p) {
+                    $pSel.append('<option value="' + p + '">' + p + '</option>');
+                });
+            }
             if (json.data.site_destinations) {
                 var $destSel = $('#filter-tujuan-site-outbound');
                 $destSel.find('option:not(:first)').remove();
@@ -78,6 +85,7 @@ function initOutboundTable() {
             url: 'api/get_outbound_master.php',
             type: 'GET',
             data: function (d) {
+                d.periode = $('#filter-outbound-periode').val();
                 d.site_destination = $('#filter-tujuan-site-outbound').val();
                 d.mr_status = $('#filter-mr-status-outbound').val();
                 d.dn_status = $('#filter-dn-status-outbound').val();
@@ -107,7 +115,8 @@ function initOutboundTable() {
             { data: 'lt', defaultContent: '-' },
             { data: 'delivery_target', defaultContent: '-' },
             { data: 'dn_status', defaultContent: '-' },
-            { data: 'last_log', defaultContent: '-' }
+            { data: 'last_log', defaultContent: '-' },
+            { data: 'periode_group', defaultContent: '-' }
         ],
         order: [[0, 'desc']],
         pageLength: 25,
@@ -134,7 +143,7 @@ function initOutboundTable() {
             var api = this.api();
             var $input = $('#dataTableOutbound_filter input');
             if ($input.length) {
-                $input.attr('placeholder', 'Cari lalu tekan Enter...');
+                $input.attr('placeholder', 'Search...');
                 $input.unbind();
                 $input.on('keydown', function (e) {
                     if (e.key === 'Enter' || e.keyCode === 13) {
@@ -147,7 +156,7 @@ function initOutboundTable() {
     });
 
     // Reactive dropdown filters
-    $('#filter-tujuan-site-outbound, #filter-mr-status-outbound, #filter-dn-status-outbound').on('change', function () {
+    $('#filter-outbound-periode, #filter-tujuan-site-outbound, #filter-mr-status-outbound, #filter-dn-status-outbound').on('change', function () {
         outboundTable.ajax.reload();
     });
 
@@ -162,6 +171,7 @@ function initOutboundTable() {
     });
 
     $('#btn-reset-filter-outbound').on('click', function () {
+        $('#filter-outbound-periode').val('');
         $('#filter-tujuan-site-outbound').val('');
         $('#filter-mr-status-outbound').val('');
         $('#filter-dn-status-outbound').val('');
@@ -331,7 +341,7 @@ function initInboundTable() {
             var api = this.api();
             var $input = $('#dataTableInbound_filter input');
             if ($input.length) {
-                $input.attr('placeholder', 'Cari lalu tekan Enter...');
+                $input.attr('placeholder', 'Search...');
                 $input.unbind();
                 $input.on('keydown', function (e) {
                     if (e.key === 'Enter' || e.keyCode === 13) {
@@ -343,19 +353,39 @@ function initInboundTable() {
         }
     });
 
-    // Populate Year dropdowns for Inbound Upload & Delete Modals
-    var currentYear = new Date().getFullYear();
-    ['uploadInboundYearSelect', 'deleteInboundYearSelect'].forEach(function (id) {
-        var ySel = document.getElementById(id);
-        if (ySel && ySel.options.length <= 1) {
-            for (var y = 2024; y <= currentYear + 5; y++) {
-                var opt = document.createElement('option');
-                opt.value = String(y);
-                opt.textContent = String(y);
-                ySel.appendChild(opt);
+    // Populate Year dropdowns for All Upload & Delete Modals (Storage, Inbound, Outbound)
+    function populateAllYearDropdowns() {
+        var currentYear = new Date().getFullYear();
+        var yearSelectIds = [
+            'upload-tahun-select',
+            'uploadInboundYearSelect',
+            'uploadOutboundYearSelect',
+            'deleteYearSelect',
+            'deleteInboundYearSelect',
+            'deleteOutboundYearSelect'
+        ];
+        yearSelectIds.forEach(function (id) {
+            var ySel = document.getElementById(id);
+            if (ySel) {
+                var currentVal = ySel.value;
+                if (ySel.options.length <= 1) {
+                    for (var y = 2024; y <= currentYear + 5; y++) {
+                        var opt = document.createElement('option');
+                        opt.value = String(y);
+                        opt.textContent = String(y);
+                        ySel.appendChild(opt);
+                    }
+                    if (!currentVal) {
+                        ySel.value = String(currentYear);
+                    }
+                }
             }
-            ySel.value = String(currentYear);
-        }
+        });
+    }
+    populateAllYearDropdowns();
+
+    $('#uploadExcelModal, #uploadExcelModalInbound, #uploadExcelModalOutbound, #deleteDataModal, #deleteDataModalInbound, #deleteDataModalOutbound').on('show.bs.modal', function () {
+        populateAllYearDropdowns();
     });
 
     $('#uploadInboundMonthSelect, #uploadInboundYearSelect').off('change.inbound').on('change.inbound', checkInboundPeriodStatus);
@@ -476,7 +506,7 @@ function initAssetTable() {
             $searchBar.css({ 'text-align': 'right', 'width': '100%' });
             $searchBar.find('label').css({ 'margin-bottom': '0', 'display': 'inline-flex', 'align-items': 'center' });
             var $input = $searchBar.find('input');
-            $input.css('margin-left', '0.5em').attr('placeholder', 'Cari lalu tekan Enter...');
+            $input.css('margin-left', '0.5em').attr('placeholder', 'Search...');
             $input.unbind();
             $input.on('keydown', function (e) {
                 if (e.key === 'Enter' || e.keyCode === 13) {
@@ -533,7 +563,7 @@ function initRackTable() {
             $searchBar.css({ 'text-align': 'right', 'width': '100%' });
             $searchBar.find('label').css({ 'margin-bottom': '0', 'display': 'inline-flex', 'align-items': 'center' });
             var $input = $searchBar.find('input');
-            $input.css('margin-left', '0.5em').attr('placeholder', 'Cari lalu tekan Enter...');
+            $input.css('margin-left', '0.5em').attr('placeholder', 'Search...');
             $input.unbind();
             $input.on('keydown', function (e) {
                 if (e.key === 'Enter' || e.keyCode === 13) {
@@ -1021,13 +1051,14 @@ $(document).ready(function () {
         if (!file) return;
 
         var monthVal = $('#uploadInboundMonthSelect').val();
+        var batchVal = $('#uploadInboundBatchSelect').val();
         var yearVal = $('#uploadInboundYearSelect').val();
 
-        if (!monthVal || !yearVal) {
+        if (!monthVal || !batchVal || !yearVal) {
             if (typeof Swal !== 'undefined') {
-                Swal.fire('Peringatan', 'Silakan pilih Bulan dan Tahun Periode terlebih dahulu sebelum mengupload file.', 'warning');
+                Swal.fire('Peringatan', 'Silakan pilih Bulan, Batch, dan Tahun Periode terlebih dahulu sebelum mengupload file.', 'warning');
             } else {
-                alert('Silakan pilih Bulan dan Tahun Periode terlebih dahulu sebelum mengupload file.');
+                alert('Silakan pilih Bulan, Batch, dan Tahun Periode terlebih dahulu sebelum mengupload file.');
             }
             $(this).val('');
             return;
@@ -1041,7 +1072,7 @@ $(document).ready(function () {
         if (typeof Swal !== 'undefined') {
             Swal.fire({
                 title: 'Data Is Processing Please Wait',
-                html: 'Memproses file Excel Inbound untuk periode <b>' + monthVal + ' ' + yearVal + '</b>...',
+                html: 'Memproses file Excel Inbound untuk periode <b>' + monthVal + ' ' + yearVal + '-Batch' + batchVal + '</b>...',
                 allowOutsideClick: false,
                 didOpen: () => { Swal.showLoading(); }
             });
@@ -1069,6 +1100,7 @@ $(document).ready(function () {
                         action: 'batch',
                         month: monthVal,
                         year: yearVal,
+                        batch: batchVal,
                         data: jsonRows
                     })
                 })
@@ -1149,6 +1181,20 @@ $(document).ready(function () {
     $('#excel-file-outbound-input').on('change', function (e) {
         var file = e.target.files[0];
         if (!file) return;
+
+        var outMonthVal = $('#uploadOutboundMonthSelect').val();
+        var outBatchVal = $('#uploadOutboundBatchSelect').val();
+        var outYearVal = $('#uploadOutboundYearSelect').val();
+
+        if (!outMonthVal || !outBatchVal || !outYearVal) {
+            if (typeof Swal !== 'undefined') {
+                Swal.fire('Peringatan', 'Silakan pilih Bulan, Batch, dan Tahun Periode terlebih dahulu sebelum mengupload file.', 'warning');
+            } else {
+                alert('Silakan pilih Bulan, Batch, dan Tahun Periode terlebih dahulu sebelum mengupload file.');
+            }
+            $(this).val('');
+            return;
+        }
 
         if (typeof XLSX === 'undefined') {
             if (typeof Swal !== 'undefined') Swal.fire('Error', 'SheetJS (XLSX) library tidak ditemukan.', 'error');
@@ -1232,6 +1278,9 @@ $(document).ready(function () {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         action: 'batch',
+                        month: outMonthVal,
+                        year: outYearVal,
+                        batch: outBatchVal,
                         data: mappedRows
                     })
                 })

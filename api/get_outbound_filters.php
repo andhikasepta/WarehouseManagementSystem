@@ -52,6 +52,7 @@ try {
     $mrStatuses   = $pdo->query("SELECT DISTINCT mr_status FROM outbound_master WHERE mr_status IS NOT NULL AND mr_status != '' ORDER BY mr_status ASC")->fetchAll(PDO::FETCH_COLUMN);
     $dnStatuses   = $pdo->query("SELECT DISTINCT dn_status FROM outbound_master WHERE dn_status IS NOT NULL AND dn_status != '' ORDER BY dn_status ASC")->fetchAll(PDO::FETCH_COLUMN);
     $pickupTypes  = $pdo->query("SELECT DISTINCT pickup_type FROM outbound_master WHERE pickup_type IS NOT NULL AND pickup_type != '' ORDER BY pickup_type ASC")->fetchAll(PDO::FETCH_COLUMN);
+    $periods      = $pdo->query("SELECT DISTINCT periode_group FROM outbound_master WHERE periode_group IS NOT NULL AND periode_group != '' ORDER BY periode_group DESC")->fetchAll(PDO::FETCH_COLUMN);
 
     echo json_encode([
         'status' => 'success',
@@ -59,7 +60,8 @@ try {
             'site_destinations' => $destinations,
             'mr_statuses'       => $mrStatuses,
             'dn_statuses'       => $dnStatuses,
-            'pickup_types'      => $pickupTypes
+            'pickup_types'      => $pickupTypes,
+            'periods'           => $periods
         ]
     ]);
 

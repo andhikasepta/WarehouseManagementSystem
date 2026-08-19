@@ -976,7 +976,7 @@ include FRONTEND_PATH . 'components/header.php';
                         html += '<div style="flex: 1 1 170px; max-width: 230px; min-width: 140px;">';
                         html += '<div class="input-group input-group-sm">';
                         html += '<div class="input-group-prepend"><span class="input-group-text bg-white border-right-0 text-muted" style="border-radius: 6px 0 0 6px;"><i class="fas fa-search" style="font-size: 0.72rem;"></i></span></div>';
-                        html += '<input type="text" class="form-control form-control-sm border-left-0" id="filter-modal-search" placeholder="Cari dokumen..." style="font-size: 0.78rem; border-radius: 0 6px 6px 0;">';
+                        html += '<input type="text" class="form-control form-control-sm border-left-0" id="filter-modal-search" placeholder="Search..." style="font-size: 0.78rem; border-radius: 0 6px 6px 0;">';
                         html += '</div>';
                         html += '</div>';
 
@@ -1030,11 +1030,11 @@ include FRONTEND_PATH . 'components/header.php';
                         $('#modalDynamicFilterRow').empty();
                         $('#outbound-modal-count-display').text('Memuat...');
 
-                        // Fetch live rows from API
+                        // Fetch live rows from API with period
                         $.ajax({
                             url: 'api/get_outbound_status_detail.php',
                             type: 'GET',
-                            data: { status: statusName },
+                            data: { status: statusName, periode: currentPeriod },
                             dataType: 'json',
                             success: function (res) {
                                 if (res.status === 'success' && res.data && res.data.length > 0) {
@@ -1052,12 +1052,132 @@ include FRONTEND_PATH . 'components/header.php';
                         });
                     }
 
+                    var currentPeriod = '';
+                    var ALL_MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+                    function updateLoadButton() {
+                        var m = document.getElementById('period-month-select');
+                        var b = document.getElementById('period-batch-select');
+                        var y = document.getElementById('period-year-select');
+                        var btn = document.getElementById('btn-load-period');
+                        if (btn) {
+                            btn.disabled = !(m && m.value && b && b.value && y && y.value);
+                        }
+                    }
+
+                    var monthSel = document.getElementById('period-month-select');
+                    var batchSel = document.getElementById('period-batch-select');
+                    var yearSel = document.getElementById('period-year-select');
+                    if (monthSel) monthSel.addEventListener('change', updateLoadButton);
+                    if (batchSel) batchSel.addEventListener('change', updateLoadButton);
+                    if (yearSel) yearSel.addEventListener('change', updateLoadButton);
+
+                    function populateSelect(selectId, items, placeholder) {
+                        var sel = document.getElementById(selectId);
+                        if (!sel) return;
+                        sel.replaceChildren();
+                        var defOpt = document.createElement('option');
+                        defOpt.value = '';
+                        defOpt.textContent = placeholder;
+                        sel.appendChild(defOpt);
+                        items.forEach(function (item) {
+                            var opt = document.createElement('option');
+                            opt.value = item;
+                            opt.textContent = item.toUpperCase();
+                            sel.appendChild(opt);
+                        });
+                    }
+
+                    function loadPeriods() {
+                        fetch('api/get_periods.php')
+                            .then(function (r) { return r.json(); })
+                            .then(function (result) {
+                                var yearsSet = {};
+                                if (result.status === 'success' && result.data) {
+                                    result.data.forEach(function (pg) {
+                                        if (!pg || pg === 'Unknown Period') return;
+                                        var match = pg.match(/^(\w+)\s+(\d{4})(?:-Batch(\d+))?$/);
+                                        if (match) {
+                                            yearsSet[match[2]] = true;
+                                        }
+                                    });
+                                }
+                                var availableYears = (result.years && result.years.length > 0) ? result.years : Object.keys(yearsSet).sort();
+                                populateSelect('period-month-select', ALL_MONTHS, '-- Pilih Bulan --');
+                                populateSelect('period-year-select', availableYears, '-- Pilih Tahun --');
+
+                                var pText = document.getElementById('selected-period-text');
+                                if (pText) pText.textContent = "PILIH PERIODE DATA";
+
+                                currentPeriod = '';
+                                resetOutboundCards();
+                            })
+                            .catch(function (err) {
+                                console.error('Error fetching periods:', err);
+                            });
+                    }
+
+                    function resetOutboundCards() {
+                        $('#card-total-mr').text(0);
+                        $('#card-total-packed').text(0);
+                        $('#card-shipped').text(0);
+                        $('#card-dalam-perjalanan').text(0);
+                        $('#card-tiba-lokasi').text(0);
+                        $('.progress-bar').css('width', '0%');
+                        $('#qty-internal-delivery').text('0 QTY');
+                        $('#qty-internal-pickup').text('0 QTY');
+                        $('#qty-internal-handcarry').text('0 QTY');
+                        $('#internal-segment-total-qty').text(0);
+                        $('#tab-internal-qty').text(0);
+                        $('#qty-external-mover').text('0 QTY');
+                        $('#external-segment-total-qty').text(0);
+                        $('#tab-external-qty').text(0);
+                        $('#shipped-total-qty').text(0);
+                    }
+
+                    var btnLoad = document.getElementById('btn-load-period');
+                    if (btnLoad) {
+                        btnLoad.addEventListener('click', function () {
+                            var m = document.getElementById('period-month-select');
+                            var b = document.getElementById('period-batch-select');
+                            var y = document.getElementById('period-year-select');
+                            if (m && m.value && b && b.value && y && y.value) {
+                                currentPeriod = m.value + ' ' + y.value + '-Batch' + b.value;
+                                var pText = document.getElementById('selected-period-text');
+                                if (pText) pText.textContent = currentPeriod.toUpperCase();
+                                loadStatusCardCounts(currentPeriod);
+                                if (window.jQuery) {
+                                    $('#periodDropdown').dropdown('toggle');
+                                }
+                            }
+                        });
+                    }
+
+                    var btnReset = document.getElementById('btn-reset-period');
+                    if (btnReset) {
+                        btnReset.addEventListener('click', function () {
+                            if (monthSel) monthSel.value = '';
+                            if (batchSel) batchSel.value = '';
+                            if (yearSel) yearSel.value = '';
+                            updateLoadButton();
+                            currentPeriod = '';
+                            var pText = document.getElementById('selected-period-text');
+                            if (pText) pText.textContent = "PILIH PERIODE DATA";
+                            resetOutboundCards();
+                        });
+                    }
+
                     // Function to refresh top summary cards from database
-                    function loadStatusCardCounts() {
+                    function loadStatusCardCounts(period) {
+                        if (!period) {
+                            resetOutboundCards();
+                            return;
+                        }
+
                         $.ajax({
                             url: 'api/get_outbound_status_detail.php',
                             type: 'GET',
-                            data: { action: 'counts' },
+                            data: { action: 'counts', periode: period },
                             dataType: 'json',
                             success: function (res) {
                                 if (res.status === 'success' && res.counts) {
@@ -1077,6 +1197,8 @@ include FRONTEND_PATH . 'components/header.php';
                                         $('#card-shipped').closest('.status-card-clickable').find('.progress-bar').css('width', Math.min(100, Math.round((c.total_shipped / total) * 100)) + '%');
                                         $('#card-dalam-perjalanan').closest('.status-card-clickable').find('.progress-bar').css('width', Math.min(100, Math.round((c.dalam_perjalanan / total) * 100)) + '%');
                                         $('#card-tiba-lokasi').closest('.status-card-clickable').find('.progress-bar').css('width', Math.min(100, Math.round((c.tiba_di_lokasi / total) * 100)) + '%');
+                                    } else {
+                                        $('.progress-bar').css('width', '0%');
                                     }
 
                                     // Update segment numbers if present
@@ -1099,8 +1221,8 @@ include FRONTEND_PATH . 'components/header.php';
                         });
                     }
 
-                    // Initial Load
-                    loadStatusCardCounts();
+                    // Initial Load: periods dropdown & empty cards default
+                    loadPeriods();
 
                     // Tab button click handlers for Carousel slider
                     $('#btn-tab-internal').on('click', function () {

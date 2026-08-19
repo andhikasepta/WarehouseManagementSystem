@@ -26,9 +26,18 @@ try {
         $allPeriods = $stmtPeriods->fetchAll(PDO::FETCH_COLUMN);
         
         usort($allPeriods, function($a, $b) {
-            $da = strtotime("01 " . $a);
-            $db = strtotime("01 " . $b);
-            return $da - $db;
+            // Parse "Month Year-BatchN" format
+            $pa = preg_match('/^(\w+)\s+(\d{4})(?:-Batch(\d+))?$/i', $a, $ma);
+            $pb = preg_match('/^(\w+)\s+(\d{4})(?:-Batch(\d+))?$/i', $b, $mb);
+            if (!$pa && !$pb) return 0;
+            if (!$pa) return 1;
+            if (!$pb) return -1;
+            $da = strtotime("01 " . $ma[1] . " " . $ma[2]);
+            $db = strtotime("01 " . $mb[1] . " " . $mb[2]);
+            if ($da !== $db) return $da - $db;
+            $ba = isset($ma[3]) ? intval($ma[3]) : 1;
+            $bb = isset($mb[3]) ? intval($mb[3]) : 1;
+            return $ba - $bb;
         });
         
         $currentIndex = array_search($periodeGroup, $allPeriods);

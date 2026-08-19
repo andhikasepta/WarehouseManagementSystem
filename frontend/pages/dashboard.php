@@ -947,7 +947,7 @@ include FRONTEND_PATH . 'components/header.php';
                                         <div class="d-flex align-items-center">
                                             <div class="input-group input-group-sm" style="max-width: 220px;">
                                                 <input type="text" class="form-control form-control-sm"
-                                                    id="searchModalUtilisasiInput" placeholder="Cari Rack/Area..."
+                                                    id="searchModalUtilisasiInput" placeholder="Search..."
                                                     style="font-size: 0.75rem;">
                                             </div>
                                         </div>
@@ -1389,16 +1389,19 @@ include FRONTEND_PATH . 'components/header.php';
 
                         function updateLoadButton() {
                             var m = document.getElementById('period-month-select');
+                            var b = document.getElementById('period-batch-select');
                             var y = document.getElementById('period-year-select');
                             var btn = document.getElementById('btn-load-period');
                             if (btn) {
-                                btn.disabled = !(m && m.value && y && y.value);
+                                btn.disabled = !(m && m.value && b && b.value && y && y.value);
                             }
                         }
 
                         var monthSel = document.getElementById('period-month-select');
+                        var batchSel = document.getElementById('period-batch-select');
                         var yearSel = document.getElementById('period-year-select');
                         if (monthSel) monthSel.addEventListener('change', updateLoadButton);
+                        if (batchSel) batchSel.addEventListener('change', updateLoadButton);
                         if (yearSel) yearSel.addEventListener('change', updateLoadButton);
 
                         function fetchTrendsData(year) {
@@ -1441,7 +1444,7 @@ include FRONTEND_PATH . 'components/header.php';
                                             }
                                         });
                                     }
-                                    var availableYears = Object.keys(yearsSet).sort();
+                                    var availableYears = (result.years && result.years.length > 0) ? result.years : Object.keys(yearsSet).sort();
                                     populateSelect('period-month-select', ALL_MONTHS, '-- Pilih Bulan --');
                                     populateSelect('period-year-select', availableYears, '-- Pilih Tahun --');
 
@@ -1451,9 +1454,12 @@ include FRONTEND_PATH . 'components/header.php';
                                     if (window.FormulaController) {
                                         window.FormulaController.updateDashboardCards([], []);
                                     }
-
-                                    var defaultYear = availableYears.length > 0 ? availableYears[availableYears.length - 1] : new Date().getFullYear().toString();
-                                    fetchTrendsData(defaultYear);
+                                    if (window.updateDashReceivingTrendChart) {
+                                        window.updateDashReceivingTrendChart([], [], [], [], '');
+                                    }
+                                    if (window.updateDashKpiMonitoringChart) {
+                                        window.updateDashKpiMonitoringChart([null, null, null, null, null, null, null, null, null]);
+                                    }
                                 })
                                 .catch(function (err) {
                                     console.error('Error fetching periods:', err);
@@ -1464,9 +1470,10 @@ include FRONTEND_PATH . 'components/header.php';
                         if (btnLoad) {
                             btnLoad.addEventListener('click', function () {
                                 var m = document.getElementById('period-month-select');
+                                var b = document.getElementById('period-batch-select');
                                 var y = document.getElementById('period-year-select');
-                                if (m && m.value && y && y.value) {
-                                    var period = m.value + ' ' + y.value;
+                                if (m && m.value && b && b.value && y && y.value) {
+                                    var period = m.value + ' ' + y.value + '-Batch' + b.value;
                                     loadDashboardData(period);
                                     if (window.jQuery) {
                                         $('#periodDropdown').dropdown('toggle');
@@ -1479,8 +1486,10 @@ include FRONTEND_PATH . 'components/header.php';
                         if (btnReset) {
                             btnReset.addEventListener('click', function () {
                                 var m = document.getElementById('period-month-select');
+                                var b = document.getElementById('period-batch-select');
                                 var y = document.getElementById('period-year-select');
                                 if (m) m.value = '';
+                                if (b) b.value = '';
                                 if (y) y.value = '';
                                 updateLoadButton();
 
@@ -1492,10 +1501,9 @@ include FRONTEND_PATH . 'components/header.php';
                                 if (window.FormulaController) {
                                     window.FormulaController.updateDashboardCards([], []);
                                 }
-                                if (window.updateDashKpiMonitoringChart) {
-                                    window.updateDashKpiMonitoringChart([null, null, null, null, null, null, null, null, null]);
+                                if (window.updateDashReceivingTrendChart) {
+                                    window.updateDashReceivingTrendChart([], [], [], [], '');
                                 }
-                                fetchTrendsData();
                             });
                         }
 
@@ -1512,8 +1520,8 @@ include FRONTEND_PATH . 'components/header.php';
                                 });
                             }
 
-                            var parts = period.split(' ');
-                            var yr = parts.length > 1 ? parts[parts.length - 1] : new Date().getFullYear().toString();
+                            var parts = period.match(/^(\w+)\s+(\d{4})(?:-Batch(\d+))?$/);
+                            var yr = parts ? parts[2] : new Date().getFullYear().toString();
 
                             var fetchDashboard = fetch('api/get_data.php?periode=' + encodeURIComponent(period))
                                 .then(function (response) { return response.json(); });

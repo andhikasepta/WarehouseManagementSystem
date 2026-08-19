@@ -1629,9 +1629,6 @@ if (isset($pdo)) {
     <?php if (!$shouldHideNavbarUl): ?>
         <ul class="navbar-nav ml-auto align-items-center text-nowrap" style="white-space: nowrap;">
             <?php if (!isset($hidePeriodSelector) || !$hidePeriodSelector): ?>
-                <?php
-                $isDateRangePage = in_array($activePage, ['inbound', 'outbound']);
-                ?>
                 <li class="nav-item dropdown no-arrow mx-1">
                     <a class="nav-link dropdown-toggle text-nowrap d-flex align-items-center" href="#" id="periodDropdown"
                         role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -1642,60 +1639,46 @@ if (isset($pdo)) {
                     </a>
                     <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in p-3" aria-labelledby="periodDropdown"
                         id="period-dropdown-menu" style="min-width: 290px;">
-                        <?php if ($isDateRangePage): ?>
-                            <h6 class="dropdown-header px-0 pt-0 text-primary font-weight-bold mb-2">
-                                <i class="far fa-calendar-alt mr-1"></i> PILIH PERIODE DATA
-                            </h6>
-                            <div class="form-group mb-2">
-                                <label for="period-start-date" class="small font-weight-bold text-gray-600 mb-1">Tanggal
-                                    Mulai</label>
-                                <input type="date" class="form-control form-control-sm" id="period-start-date">
-                            </div>
-                            <div class="form-group mb-3">
-                                <label for="period-end-date" class="small font-weight-bold text-gray-600 mb-1">Tanggal
-                                    Selesai</label>
-                                <input type="date" class="form-control form-control-sm" id="period-end-date">
-                            </div>
-                            <button class="btn btn-primary btn-sm btn-block font-weight-bold" id="btn-load-period" disabled>
-                                <i class="fas fa-filter mr-1"></i>Tampilkan Data
-                            </button>
-                            <button class="btn btn-outline-secondary btn-sm btn-block font-weight-bold mt-2" id="btn-reset-period">
-                                <i class="fas fa-undo mr-1"></i>Reset
-                            </button>
-                        <?php else: ?>
-                            <h6 class="dropdown-header px-0 pt-0 text-primary font-weight-bold mb-2">
-                                <i class="far fa-calendar-alt mr-1"></i> PILIH PERIODE DATA
-                            </h6>
+                        <h6 class="dropdown-header px-0 pt-0 text-primary font-weight-bold mb-2">
+                            <i class="far fa-calendar-alt mr-1"></i> PILIH PERIODE DATA
+                        </h6>
 
-                            <?php if ($activePage == 'storage_hub'): ?>
-                                <div class="form-group mb-2" id="site-select-group">
-                                    <label for="period-site-select" class="small font-weight-bold text-gray-600 mb-1">HUB/Outlet
-                                        Warehouse</label>
-                                    <select class="form-control form-control-sm" id="period-site-select">
-                                        <option value="">-- Pilih HUB/Outlet Warehouse --</option>
-                                    </select>
-                                </div>
-                            <?php endif; ?>
-
-                            <div class="form-group mb-2">
-                                <label for="period-month-select" class="small font-weight-bold text-gray-600 mb-1">Bulan</label>
-                                <select class="form-control form-control-sm" id="period-month-select">
-                                    <option value="">-- Pilih Bulan --</option>
+                        <?php if ($activePage == 'storage_hub'): ?>
+                            <div class="form-group mb-2" id="site-select-group">
+                                <label for="period-site-select" class="small font-weight-bold text-gray-600 mb-1">HUB/Outlet
+                                    Warehouse</label>
+                                <select class="form-control form-control-sm" id="period-site-select">
+                                    <option value="">-- Pilih HUB/Outlet Warehouse --</option>
                                 </select>
                             </div>
-                            <div class="form-group mb-2">
-                                <label for="period-year-select" class="small font-weight-bold text-gray-600 mb-1">Tahun</label>
-                                <select class="form-control form-control-sm" id="period-year-select">
-                                    <option value="">-- Pilih Tahun --</option>
-                                </select>
-                            </div>
-                            <button class="btn btn-primary btn-sm btn-block font-weight-bold mt-3" id="btn-load-period" disabled>
-                                <i class="fas fa-check mr-1"></i>Tampilkan Data
-                            </button>
-                            <button class="btn btn-outline-secondary btn-sm btn-block font-weight-bold mt-2" id="btn-reset-period">
-                                <i class="fas fa-undo mr-1"></i>Reset
-                            </button>
                         <?php endif; ?>
+
+                        <div class="form-group mb-2">
+                            <label for="period-month-select" class="small font-weight-bold text-gray-600 mb-1">Bulan</label>
+                            <select class="form-control form-control-sm" id="period-month-select">
+                                <option value="">-- Pilih Bulan --</option>
+                            </select>
+                        </div>
+                        <div class="form-group mb-2">
+                            <label for="period-batch-select" class="small font-weight-bold text-gray-600 mb-1">Batch</label>
+                            <select class="form-control form-control-sm" id="period-batch-select">
+                                <option value="">-- Pilih Batch --</option>
+                                <option value="1">Batch 1</option>
+                                <option value="2">Batch 2</option>
+                            </select>
+                        </div>
+                        <div class="form-group mb-2">
+                            <label for="period-year-select" class="small font-weight-bold text-gray-600 mb-1">Tahun</label>
+                            <select class="form-control form-control-sm" id="period-year-select">
+                                <option value="">-- Pilih Tahun --</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-primary btn-sm btn-block font-weight-bold mt-3" id="btn-load-period" disabled>
+                            <i class="fas fa-check mr-1"></i>Tampilkan Data
+                        </button>
+                        <button class="btn btn-outline-secondary btn-sm btn-block font-weight-bold mt-2" id="btn-reset-period">
+                            <i class="fas fa-undo mr-1"></i>Reset
+                        </button>
                     </div>
                 </li>
             <?php endif; ?>

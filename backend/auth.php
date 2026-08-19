@@ -20,8 +20,8 @@ if (session_status() === PHP_SESSION_NONE) {
 
 require_once CONFIG_PATH . 'database.php';
 
-// Session inactivity timeout (30 minutes)
-$maxInactivity = 1800;
+// Session inactivity timeout (15 minutes)
+$maxInactivity = 900;
 if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity'] > $maxInactivity)) {
     $_SESSION = array();
     if (ini_get("session.use_cookies")) {

@@ -69,7 +69,7 @@ try {
     $orderColIdx = isset($_GET['order'][0]['column']) ? intval($_GET['order'][0]['column']) : 0;
     $orderDir    = (isset($_GET['order'][0]['dir']) && strtolower($_GET['order'][0]['dir']) === 'asc') ? 'ASC' : 'DESC';
 
-    // 23 Column mapping (must match DataTables column order)
+    // 24 Column mapping (must match DataTables column order)
     $columns = [
         'mr_no',                 // 0
         'mr_type',               // 1
@@ -93,7 +93,8 @@ try {
         'lt',                    // 19
         'delivery_target',       // 20
         'dn_status',             // 21
-        'last_log'               // 22
+        'last_log',              // 22
+        'periode_group'          // 23
     ];
 
     $orderColumn = isset($columns[$orderColIdx]) ? $columns[$orderColIdx] : 'id';
@@ -106,6 +107,7 @@ try {
     $mrStatusFilter  = $_GET['mr_status'] ?? null;
     $dnStatusFilter  = $_GET['dn_status'] ?? null;
     $mrNoFilter      = $_GET['mr_no'] ?? null;
+    $periodeFilter   = $_GET['periode'] ?? $_GET['periode_group'] ?? null;
 
     // ─── Build WHERE clause ───
     $whereConditions = [];
@@ -122,6 +124,10 @@ try {
     if (!empty($dnStatusFilter)) {
         $whereConditions[] = "dn_status = ?";
         $params[] = $dnStatusFilter;
+    }
+    if (!empty($periodeFilter)) {
+        $whereConditions[] = "periode_group = ?";
+        $params[] = $periodeFilter;
     }
     if (!empty($mrNoFilter)) {
         $whereConditions[] = "(mr_no LIKE ? OR pck_no LIKE ? OR dn_no LIKE ? OR pr_no LIKE ? OR po_no LIKE ?)";
@@ -142,9 +148,9 @@ try {
             awb LIKE ? OR dn_no LIKE ? OR pr_no LIKE ? OR po_no LIKE ? OR
             origin_from LIKE ? OR site_origin LIKE ? OR
             destination_to LIKE ? OR site_destination LIKE ? OR
-            pickup_type LIKE ? OR via LIKE ? OR dn_status LIKE ? OR last_log LIKE ?
+            pickup_type LIKE ? OR via LIKE ? OR dn_status LIKE ? OR last_log LIKE ? OR periode_group LIKE ?
         )";
-        for ($i = 0; $i < 18; $i++) {
+        for ($i = 0; $i < 19; $i++) {
             $params[] = $searchTerm;
         }
     }
@@ -168,7 +174,7 @@ try {
                        origin_from, site_origin, site_origin_addr,
                        destination_to, site_destination, site_destination_addr,
                        pickup_type, via, lt, delivery_target,
-                       dn_status, last_log
+                       dn_status, last_log, periode_group
                 FROM outbound_master" . $whereClause . "
                 ORDER BY " . $orderColumnEscaped . " " . $orderDir;
 

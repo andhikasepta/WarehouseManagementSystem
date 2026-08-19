@@ -41,7 +41,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $periode = $data['periode'] ?? $data['periode_group'] ?? null;
         if (!$periode && !empty($data['month']) && !empty($data['year'])) {
+            $batch = !empty($data['batch']) ? intval($data['batch']) : '';
             $periode = trim($data['month']) . ' ' . trim($data['year']);
+            if ($batch) {
+                $periode .= '-Batch' . $batch;
+            }
         }
 
         if (!empty($periode)) {

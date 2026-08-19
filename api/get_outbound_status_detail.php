@@ -52,38 +52,73 @@ try {
 
     $action = isset($_GET['action']) ? trim($_GET['action']) : 'detail';
     $status = isset($_GET['status']) ? strtoupper(trim($_GET['status'])) : 'TOTAL MR';
+    $periode = isset($_GET['periode']) ? trim($_GET['periode']) : (isset($_GET['periode_group']) ? trim($_GET['periode_group']) : '');
 
     // Normalize status names
     if ($status === 'SHIPPED') {
         $status = 'TOTAL SHIPPED';
     }
 
+    // Build base period condition
+    $periodWhere = "1=1";
+    $periodParams = [];
+    if (!empty($periode) && $periode !== 'PILIH PERIODE DATA' && $periode !== '-') {
+        $periodWhere = "(periode_group = ? OR periode_group LIKE ?)";
+        $periodParams = [$periode, $periode . '%'];
+    }
+
     if ($action === 'counts') {
-        // Return summary metrics for top cards
-        // Total MR: count of No MR field (if duplicate count as 1)
-        $totalMr = (int) $pdo->query("SELECT COUNT(DISTINCT mr_no) FROM outbound_master WHERE mr_no IS NOT NULL AND TRIM(mr_no) != ''")->fetchColumn();
+        // If no period is specified and user requested empty default, return 0s
+        if (empty($periode) || $periode === 'PILIH PERIODE DATA' || $periode === '-') {
+            echo json_encode([
+                'status' => 'success',
+                'counts' => [
+                    'total_mr' => 0,
+                    'total_packed' => 0,
+                    'total_shipped' => 0,
+                    'dalam_perjalanan' => 0,
+                    'tiba_di_lokasi' => 0,
+                    'segments' => [
+                        'internal_delivery' => 0,
+                        'internal_pickup' => 0,
+                        'internal_handcarry' => 0,
+                        'external_mover' => 0
+                    ]
+                ]
+            ]);
+            exit;
+        }
+
+        // Return summary metrics for top cards with period filter
+        $stmtMr = $pdo->prepare("SELECT COUNT(DISTINCT mr_no) FROM outbound_master WHERE $periodWhere AND mr_no IS NOT NULL AND TRIM(mr_no) != ''");
+        $stmtMr->execute($periodParams);
+        $totalMr = (int) $stmtMr->fetchColumn();
         
-        // Total Packed: count of NO PCK (if duplicate count as 1)
-        $totalPacked = (int) $pdo->query("SELECT COUNT(DISTINCT pck_no) FROM outbound_master WHERE pck_no IS NOT NULL AND TRIM(pck_no) != ''")->fetchColumn();
+        $stmtPck = $pdo->prepare("SELECT COUNT(DISTINCT pck_no) FROM outbound_master WHERE $periodWhere AND pck_no IS NOT NULL AND TRIM(pck_no) != ''");
+        $stmtPck->execute($periodParams);
+        $totalPacked = (int) $stmtPck->fetchColumn();
         
-        // Dalam perjalanan: count of NO DN (if duplicate count as 1)
-        $dalamPerjalanan = (int) $pdo->query("SELECT COUNT(DISTINCT dn_no) FROM outbound_master WHERE (dn_no IS NOT NULL AND TRIM(dn_no) != '') AND (
+        $stmtJalan = $pdo->prepare("SELECT COUNT(DISTINCT dn_no) FROM outbound_master WHERE $periodWhere AND (dn_no IS NOT NULL AND TRIM(dn_no) != '') AND (
             LOWER(dn_status) LIKE '%jalan%' OR LOWER(mr_status) LIKE '%jalan%' 
             OR LOWER(dn_status) LIKE '%perjalanan%' OR LOWER(mr_status) LIKE '%perjalanan%'
             OR LOWER(dn_status) LIKE '%transit%' OR LOWER(mr_status) LIKE '%transit%'
             OR LOWER(dn_status) LIKE '%on delivery%' OR LOWER(mr_status) LIKE '%on delivery%'
-        )")->fetchColumn();
+        )");
+        $stmtJalan->execute($periodParams);
+        $dalamPerjalanan = (int) $stmtJalan->fetchColumn();
 
-        // Tiba Di Lokasi: count of NO DN (if duplicate count as 1)
-        $tibaLokasi = (int) $pdo->query("SELECT COUNT(DISTINCT dn_no) FROM outbound_master WHERE (dn_no IS NOT NULL AND TRIM(dn_no) != '') AND (
+        $stmtTiba = $pdo->prepare("SELECT COUNT(DISTINCT dn_no) FROM outbound_master WHERE $periodWhere AND (dn_no IS NOT NULL AND TRIM(dn_no) != '') AND (
             LOWER(dn_status) LIKE '%tiba%' OR LOWER(mr_status) LIKE '%tiba%' 
             OR LOWER(dn_status) LIKE '%delivered%' OR LOWER(mr_status) LIKE '%delivered%'
             OR LOWER(dn_status) LIKE '%close%' OR LOWER(mr_status) LIKE '%close%'
             OR LOWER(dn_status) LIKE '%selesai%' OR LOWER(mr_status) LIKE '%selesai%'
-        )")->fetchColumn();
+        )");
+        $stmtTiba->execute($periodParams);
+        $tibaLokasi = (int) $stmtTiba->fetchColumn();
 
-        // Shipped segments lookup strictly on pickup_type (Internal vs External)
-        $allPickupTypes = $pdo->query("SELECT pickup_type, COUNT(*) as cnt FROM outbound_master WHERE pickup_type IS NOT NULL AND TRIM(pickup_type) != '' GROUP BY pickup_type")->fetchAll(PDO::FETCH_ASSOC);
+        $stmtPt = $pdo->prepare("SELECT pickup_type, COUNT(*) as cnt FROM outbound_master WHERE $periodWhere AND pickup_type IS NOT NULL AND TRIM(pickup_type) != '' GROUP BY pickup_type");
+        $stmtPt->execute($periodParams);
+        $allPickupTypes = $stmtPt->fetchAll(PDO::FETCH_ASSOC);
 
         $deliveryCount = 0;
         $pickupCount = 0;
@@ -130,8 +165,8 @@ try {
     }
 
     // Detail Action: fetch rows for the selected status
-    $where = "1=1";
-    $params = [];
+    $where = $periodWhere;
+    $params = $periodParams;
 
     if ($status === 'TOTAL PACKED') {
         $where .= " AND ((pck_no IS NOT NULL AND TRIM(pck_no) != '') OR (pck_status IS NOT NULL AND TRIM(pck_status) != ''))";
@@ -141,7 +176,7 @@ try {
         $where .= " AND (LOWER(dn_status) LIKE '%jalan%' OR LOWER(mr_status) LIKE '%jalan%' OR LOWER(dn_status) LIKE '%perjalanan%' OR LOWER(mr_status) LIKE '%perjalanan%' OR LOWER(dn_status) LIKE '%transit%' OR LOWER(mr_status) LIKE '%transit%' OR LOWER(dn_status) LIKE '%on delivery%' OR LOWER(mr_status) LIKE '%on delivery%')";
     } elseif ($status === 'TIBA DI LOKASI') {
         $where .= " AND (LOWER(dn_status) LIKE '%tiba%' OR LOWER(mr_status) LIKE '%tiba%' OR LOWER(dn_status) LIKE '%delivered%' OR LOWER(mr_status) LIKE '%delivered%' OR LOWER(dn_status) LIKE '%close%' OR LOWER(mr_status) LIKE '%close%' OR LOWER(dn_status) LIKE '%selesai%' OR LOWER(mr_status) LIKE '%selesai%')";
-    } // else TOTAL MR returns all records
+    }
 
     $stmt = $pdo->prepare("SELECT mr_no, mr_type, mr_desc, mr_status, pck_no, pck_detail, pck_status, awb, dn_no, pr_no, po_no, origin_from, site_origin, site_origin_addr, destination_to, site_destination, site_destination_addr, pickup_type, via, lt, delivery_target, dn_status, last_log FROM outbound_master WHERE $where ORDER BY id DESC LIMIT 500");
     $stmt->execute($params);

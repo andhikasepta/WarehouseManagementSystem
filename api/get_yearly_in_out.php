@@ -38,25 +38,37 @@ try {
     
     // Sort periods chronologically
     usort($allPeriods, function($a, $b) {
-        $da = strtotime("01 " . $a);
-        $db = strtotime("01 " . $b);
-        return $da - $db;
+        // Parse "Month Year-BatchN" format
+        $pa = preg_match('/^(\w+)\s+(\d{4})(?:-Batch(\d+))?$/i', $a, $ma);
+        $pb = preg_match('/^(\w+)\s+(\d{4})(?:-Batch(\d+))?$/i', $b, $mb);
+        if (!$pa && !$pb) return 0;
+        if (!$pa) return 1;
+        if (!$pb) return -1;
+        $da = strtotime("01 " . $ma[1] . " " . $ma[2]);
+        $db = strtotime("01 " . $mb[1] . " " . $mb[2]);
+        if ($da !== $db) return $da - $db;
+        $ba = isset($ma[3]) ? intval($ma[3]) : 1;
+        $bb = isset($mb[3]) ? intval($mb[3]) : 1;
+        return $ba - $bb;
     });
     
     // We will preload all assets for the required periods to avoid 24 separate queries
     // Required periods: all months in the target year, PLUS the period immediately preceding the earliest month in the target year (for January diff)
     $periodsToLoad = [];
     foreach ($months as $m) {
-        $p = $m . ' ' . $year;
-        if (in_array($p, $allPeriods)) {
-            $periodsToLoad[] = $p;
-            
-            // Add the preceding period for diff
-            $idx = array_search($p, $allPeriods);
-            if ($idx !== false && $idx > 0) {
-                $prevP = $allPeriods[$idx - 1];
-                if (!in_array($prevP, $periodsToLoad)) {
-                    $periodsToLoad[] = $prevP;
+        // Match all batch variants for this month+year (e.g. "January 2026-Batch1", "January 2026-Batch2")
+        foreach ($allPeriods as $ap) {
+            if (preg_match('/^' . preg_quote($m, '/') . '\s+' . preg_quote($year, '/') . '(?:-Batch\d+)?$/i', $ap)) {
+                if (!in_array($ap, $periodsToLoad)) {
+                    $periodsToLoad[] = $ap;
+                }
+                // Add the preceding period for diff
+                $idx = array_search($ap, $allPeriods);
+                if ($idx !== false && $idx > 0) {
+                    $prevP = $allPeriods[$idx - 1];
+                    if (!in_array($prevP, $periodsToLoad)) {
+                        $periodsToLoad[] = $prevP;
+                    }
                 }
             }
         }
@@ -82,18 +94,37 @@ try {
         $assetsByPeriod[$row['periode_group']][$row['reg_no']] = $row;
     }
     
-    // Now compute IN/OUT for each month
+    // Now compute IN/OUT for each month (aggregate all batches for that month)
     foreach ($months as $i => $month) {
-        $targetPeriod = $month . ' ' . $year;
+        // Find all period entries for this month+year (could be Batch1, Batch2)
+        $monthPeriods = [];
+        foreach ($allPeriods as $ap) {
+            if (preg_match('/^' . preg_quote($month, '/') . '\s+' . preg_quote($year, '/') . '(?:-Batch\d+)?$/i', $ap)) {
+                $monthPeriods[] = $ap;
+            }
+        }
         
-        if (!in_array($targetPeriod, $allPeriods) || !isset($assetsByPeriod[$targetPeriod])) {
+        if (empty($monthPeriods)) {
             continue; // No data uploaded for this month yet -> 0
+        }
+
+        // Use the last batch for this month as the "current" for comparison
+        $targetPeriod = end($monthPeriods);
+        
+        if (!isset($assetsByPeriod[$targetPeriod])) {
+            continue;
         }
         
         $idx = array_search($targetPeriod, $allPeriods);
         $prevPeriod = ($idx !== false && $idx > 0) ? $allPeriods[$idx - 1] : null;
         
-        $currAssetsMap = $assetsByPeriod[$targetPeriod];
+        // Merge all batches of this month for the current period
+        $currAssetsMap = [];
+        foreach ($monthPeriods as $mp) {
+            if (isset($assetsByPeriod[$mp])) {
+                $currAssetsMap = array_merge($currAssetsMap, $assetsByPeriod[$mp]);
+            }
+        }
         $prevAssetsMap = $prevPeriod ? ($assetsByPeriod[$prevPeriod] ?? []) : [];
         
         $countIn = 0;

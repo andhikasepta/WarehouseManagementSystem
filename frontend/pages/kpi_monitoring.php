@@ -483,6 +483,7 @@ include FRONTEND_PATH . 'components/header.php';
                         }
 
                         var monthSel = document.getElementById('period-month-select');
+                        var batchSel = document.getElementById('period-batch-select');
                         var yearSel = document.getElementById('period-year-select');
                         if (monthSel) {
                             monthSel.addEventListener('change', function () {
@@ -494,20 +495,22 @@ include FRONTEND_PATH . 'components/header.php';
                                 updateLoadButton();
                             });
                         }
+                        if (batchSel) batchSel.addEventListener('change', updateLoadButton);
                         if (yearSel) yearSel.addEventListener('change', updateLoadButton);
 
                         var btnLoad = document.getElementById('btn-load-period');
                         if (btnLoad) {
                             btnLoad.addEventListener('click', function () {
                                 var m = document.getElementById('period-month-select');
+                                var b = document.getElementById('period-batch-select');
                                 var y = document.getElementById('period-year-select');
                                 if (m && m.value === 'DATA DUMMY') {
                                     loadDataForPeriod('DATA DUMMY');
                                     if (periodMenu && typeof $ !== 'undefined') {
                                         $(periodMenu).closest('.dropdown').find('.dropdown-toggle').dropdown('toggle');
                                     }
-                                } else if (m && m.value && y && y.value) {
-                                    var period = m.value + ' ' + y.value;
+                                } else if (m && m.value && b && b.value && y && y.value) {
+                                    var period = m.value + ' ' + y.value + '-Batch' + b.value;
                                     loadDataForPeriod(period);
                                     if (periodMenu && typeof $ !== 'undefined') {
                                         $(periodMenu).closest('.dropdown').find('.dropdown-toggle').dropdown('toggle');
@@ -520,6 +523,7 @@ include FRONTEND_PATH . 'components/header.php';
                         if (btnReset) {
                             btnReset.addEventListener('click', function () {
                                 if (monthSel) monthSel.value = '';
+                                if (batchSel) batchSel.value = '';
                                 if (yearSel) yearSel.value = '';
                                 updateLoadButton();
                                 resetKpiState();
@@ -560,13 +564,14 @@ include FRONTEND_PATH . 'components/header.php';
 
                     function updateLoadButton() {
                         var m = document.getElementById('period-month-select');
+                        var b = document.getElementById('period-batch-select');
                         var y = document.getElementById('period-year-select');
                         var btn = document.getElementById('btn-load-period');
                         if (btn) {
                             if (m && m.value === 'DATA DUMMY') {
                                 btn.disabled = false;
                             } else {
-                                btn.disabled = !(m && m.value && y && y.value);
+                                btn.disabled = !(m && m.value && b && b.value && y && y.value);
                             }
                         }
                     }
@@ -586,7 +591,7 @@ include FRONTEND_PATH . 'components/header.php';
                                     });
                                 }
 
-                                var availableYears = Object.keys(yearsSet).sort();
+                                var availableYears = (result.years && result.years.length > 0) ? result.years : Object.keys(yearsSet).sort();
                                 if (availableYears.length === 0) {
                                     var currentY = new Date().getFullYear();
                                     availableYears = [currentY.toString()];
@@ -601,13 +606,25 @@ include FRONTEND_PATH . 'components/header.php';
                                         if (mSel) mSel.value = 'DATA DUMMY';
                                         updateLoadButton();
                                     } else {
-                                        var parts = selectPeriod.split(' ');
-                                        if (parts.length >= 2) {
+                                        // Parse "Month Year-BatchN"
+                                        var match = selectPeriod.match(/^(\w+)\s+(\d{4})-Batch(\d+)$/i);
+                                        if (match) {
                                             var mSel = document.getElementById('period-month-select');
+                                            var bSel = document.getElementById('period-batch-select');
                                             var ySel = document.getElementById('period-year-select');
-                                            if (mSel) mSel.value = parts[0];
-                                            if (ySel) ySel.value = parts[1];
+                                            if (mSel) mSel.value = match[1];
+                                            if (bSel) bSel.value = match[3];
+                                            if (ySel) ySel.value = match[2];
                                             updateLoadButton();
+                                        } else {
+                                            var parts = selectPeriod.split(' ');
+                                            if (parts.length >= 2) {
+                                                var mSel = document.getElementById('period-month-select');
+                                                var ySel = document.getElementById('period-year-select');
+                                                if (mSel) mSel.value = parts[0];
+                                                if (ySel) ySel.value = parts[1];
+                                                updateLoadButton();
+                                            }
                                         }
                                     }
                                     loadDataForPeriod(selectPeriod);

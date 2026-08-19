@@ -84,9 +84,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 $month = trim((string) ($data['month'] ?? ''));
                 $year = trim((string) ($data['year'] ?? ''));
+                $batch = trim((string) ($data['batch'] ?? '1'));
                 $periodeGroup = !empty($data['periode_group']) ? trim((string) $data['periode_group']) : null;
                 if (!$periodeGroup && !empty($month) && !empty($year)) {
-                    $periodeGroup = $month . ' ' . $year;
+                    $periodeGroup = $month . ' ' . $year . '-Batch' . intval($batch);
                 }
 
                 if (!empty($data['clear_all'])) {

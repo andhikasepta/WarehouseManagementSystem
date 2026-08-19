@@ -313,6 +313,98 @@ $(document).ready(function() {
         updateModalFilters(statusName);
         updateModalTable(statusName);
     });
+
+    var ALL_MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+    function updateLoadButton() {
+        var m = document.getElementById('period-month-select');
+        var b = document.getElementById('period-batch-select');
+        var y = document.getElementById('period-year-select');
+        var btn = document.getElementById('btn-load-period');
+        if (btn) {
+            btn.disabled = !(m && m.value && b && b.value && y && y.value);
+        }
+    }
+
+    var monthSel = document.getElementById('period-month-select');
+    var batchSel = document.getElementById('period-batch-select');
+    var yearSel = document.getElementById('period-year-select');
+    if (monthSel) monthSel.addEventListener('change', updateLoadButton);
+    if (batchSel) batchSel.addEventListener('change', updateLoadButton);
+    if (yearSel) yearSel.addEventListener('change', updateLoadButton);
+
+    function populateSelect(selectId, items, placeholder) {
+        var sel = document.getElementById(selectId);
+        if (!sel) return;
+        sel.replaceChildren();
+        var defOpt = document.createElement('option');
+        defOpt.value = '';
+        defOpt.textContent = placeholder;
+        sel.appendChild(defOpt);
+        items.forEach(function (item) {
+            var opt = document.createElement('option');
+            opt.value = item;
+            opt.textContent = item.toUpperCase();
+            sel.appendChild(opt);
+        });
+    }
+
+    function loadPeriods() {
+        fetch('api/get_periods.php')
+            .then(function (r) { return r.json(); })
+            .then(function (result) {
+                var yearsSet = {};
+                if (result.status === 'success' && result.data) {
+                    result.data.forEach(function (pg) {
+                        if (!pg || pg === 'Unknown Period') return;
+                        var match = pg.match(/^(\w+)\s+(\d{4})(?:-Batch(\d+))?$/);
+                        if (match) {
+                            yearsSet[match[2]] = true;
+                        }
+                    });
+                }
+                var availableYears = (result.years && result.years.length > 0) ? result.years : Object.keys(yearsSet).sort();
+                populateSelect('period-month-select', ALL_MONTHS, '-- Pilih Bulan --');
+                populateSelect('period-year-select', availableYears, '-- Pilih Tahun --');
+
+                var pText = document.getElementById('selected-period-text');
+                if (pText) pText.textContent = "PILIH PERIODE DATA";
+            })
+            .catch(function (err) {
+                console.error('Error fetching periods:', err);
+            });
+    }
+
+    var btnLoad = document.getElementById('btn-load-period');
+    if (btnLoad) {
+        btnLoad.addEventListener('click', function () {
+            var m = document.getElementById('period-month-select');
+            var b = document.getElementById('period-batch-select');
+            var y = document.getElementById('period-year-select');
+            if (m && m.value && b && b.value && y && y.value) {
+                var period = m.value + ' ' + y.value + '-Batch' + b.value;
+                var pText = document.getElementById('selected-period-text');
+                if (pText) pText.textContent = period.toUpperCase();
+                if (window.jQuery) {
+                    $('#periodDropdown').dropdown('toggle');
+                }
+            }
+        });
+    }
+
+    var btnReset = document.getElementById('btn-reset-period');
+    if (btnReset) {
+        btnReset.addEventListener('click', function () {
+            if (monthSel) monthSel.value = '';
+            if (batchSel) batchSel.value = '';
+            if (yearSel) yearSel.value = '';
+            updateLoadButton();
+            var pText = document.getElementById('selected-period-text');
+            if (pText) pText.textContent = "PILIH PERIODE DATA";
+        });
+    }
+
+    loadPeriods();
 });
 </script>
 

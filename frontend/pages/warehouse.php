@@ -289,7 +289,7 @@ include FRONTEND_PATH . 'components/header.php';
                                         }
 
                                         // Build sorted year list ascending
-                                        var availableYears = Object.keys(yearsSet).sort();
+                                        var availableYears = (result.years && result.years.length > 0) ? result.years : Object.keys(yearsSet).sort();
 
                                         // Populate navbar Month select (always all 12 months)
                                         populateSelect('period-month-select', ALL_MONTHS, '-- Pilih Bulan --');
@@ -333,29 +333,43 @@ include FRONTEND_PATH . 'components/header.php';
                             }
 
                             function preselectPeriod(period) {
-                                var parts = period.split(' ');
-                                if (parts.length >= 2) {
+                                // Parse "Month Year-BatchN" format
+                                var match = period.match(/^(\w+)\s+(\d{4})-Batch(\d+)$/i);
+                                if (match) {
                                     var mSel = document.getElementById('period-month-select');
+                                    var bSel = document.getElementById('period-batch-select');
                                     var ySel = document.getElementById('period-year-select');
-                                    if (mSel) mSel.value = parts[0];
-                                    if (ySel) ySel.value = parts[1];
+                                    if (mSel) mSel.value = match[1];
+                                    if (bSel) bSel.value = match[3];
+                                    if (ySel) ySel.value = match[2];
                                     updateLoadButton();
+                                } else {
+                                    var parts = period.split(' ');
+                                    if (parts.length >= 2) {
+                                        var mSel = document.getElementById('period-month-select');
+                                        var ySel = document.getElementById('period-year-select');
+                                        if (mSel) mSel.value = parts[0];
+                                        if (ySel) ySel.value = parts[1];
+                                        updateLoadButton();
+                                    }
                                 }
                             }
 
-                            // ── Enable / disable the "Tampilkan Data" button ──
                             function updateLoadButton() {
                                 var m = document.getElementById('period-month-select');
+                                var b = document.getElementById('period-batch-select');
                                 var y = document.getElementById('period-year-select');
                                 var btn = document.getElementById('btn-load-period');
                                 if (btn) {
-                                    btn.disabled = !(m && m.value && y && y.value);
+                                    btn.disabled = !(m && m.value && b && b.value && y && y.value);
                                 }
                             }
 
                             var monthSel = document.getElementById('period-month-select');
+                            var batchSel = document.getElementById('period-batch-select');
                             var yearSel = document.getElementById('period-year-select');
                             if (monthSel) monthSel.addEventListener('change', updateLoadButton);
+                            if (batchSel) batchSel.addEventListener('change', updateLoadButton);
                             if (yearSel) yearSel.addEventListener('change', updateLoadButton);
 
                             // ── Load button click ──
@@ -363,12 +377,35 @@ include FRONTEND_PATH . 'components/header.php';
                             if (btnLoad) {
                                 btnLoad.addEventListener('click', function () {
                                     var m = document.getElementById('period-month-select');
+                                    var b = document.getElementById('period-batch-select');
                                     var y = document.getElementById('period-year-select');
-                                    if (m && m.value && y && y.value) {
-                                        var period = m.value + ' ' + y.value;
+                                    if (m && m.value && b && b.value && y && y.value) {
+                                        var period = m.value + ' ' + y.value + '-Batch' + b.value;
                                         loadDataForPeriod(period);
-                                        // Close the dropdown after selecting
                                         $(periodMenu).closest('.dropdown').find('.dropdown-toggle').dropdown('toggle');
+                                    }
+                                });
+                            }
+
+                            // ── Reset button click ──
+                            var btnReset = document.getElementById('btn-reset-period');
+                            if (btnReset) {
+                                btnReset.addEventListener('click', function () {
+                                    if (monthSel) monthSel.value = '';
+                                    if (batchSel) batchSel.value = '';
+                                    if (yearSel) yearSel.value = '';
+                                    updateLoadButton();
+                                    document.getElementById('selected-period-text').textContent = "PILIH PERIODE DATA";
+                                    if (window.FormulaController) {
+                                        window.FormulaController.updateDashboardCards([], []);
+                                    }
+                                    if (window.perangkatInChart && window.perangkatInChart.data) {
+                                        window.perangkatInChart.data.datasets[0].data = [];
+                                        window.perangkatInChart.update(0);
+                                    }
+                                    if (window.perangkatOutChart && window.perangkatOutChart.data) {
+                                        window.perangkatOutChart.data.datasets[0].data = [];
+                                        window.perangkatOutChart.update(0);
                                     }
                                 });
                             }
@@ -388,8 +425,8 @@ include FRONTEND_PATH . 'components/header.php';
                                     });
                                 }
 
-                                var parts = period.split(' ');
-                                var yr = parts.length > 1 ? parts[parts.length - 1] : '';
+                                var match = period.match(/^(\w+)\s+(\d{4})(?:-Batch(\d+))?$/);
+                                var yr = match ? match[2] : '';
 
                                 var fetchDashboard = fetch('api/get_data.php?periode=' + encodeURIComponent(period))
                                     .then(function (response) { return response.json(); });

@@ -10,11 +10,24 @@ if (!isLoggedIn()) {
 }
 validateCsrf();
 
-function formatPeriode($rawDate) {
+/**
+ * Build periode_group string from month, year, and batch.
+ * Format: "Month Year-BatchN" (e.g. "January 2026-Batch1")
+ */
+function buildPeriodeGroup($month, $year, $batch) {
+    if (empty($month) || empty($year) || empty($batch)) return 'Unknown Period';
+    return trim($month) . ' ' . trim($year) . '-Batch' . intval($batch);
+}
+
+/**
+ * Legacy formatPeriode for backward compatibility.
+ * Tries to parse month abbreviation from raw date string.
+ */
+function formatPeriode($rawDate, $year = null, $batch = '1') {
     if (!$rawDate) return 'Unknown Period';
     
     $str = strtoupper(trim((string)$rawDate));
-    $currentYear = date('Y');
+    $currentYear = $year ?: date('Y');
     
     $months = [
         'JAN' => 'January',
@@ -33,7 +46,7 @@ function formatPeriode($rawDate) {
     
     foreach ($months as $abbr => $full) {
         if (strpos($str, $abbr) !== false) {
-            return $full . ' ' . $currentYear;
+            return $full . ' ' . $currentYear . '-Batch' . intval($batch);
         }
     }
     
@@ -60,7 +73,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($action) {
                 // Batch Upload Protocol
                 if ($action === 'init') {
+                    // Accept either explicit periods array or build from month/year/batch
                     $periods = isset($data['periods']) ? $data['periods'] : [];
+                    if (empty($periods) && !empty($data['month']) && !empty($data['year']) && !empty($data['batch'])) {
+                        $periods = [buildPeriodeGroup($data['month'], $data['year'], $data['batch'])];
+                    }
                     if (!is_array($periods)) {
                         echo json_encode(['status' => 'error', 'message' => 'Invalid periods parameter']);
                         exit;
@@ -85,9 +102,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             (spec_code, spec_name, reg_no, asset_planner_organization, nbv, so_result, so_location, `range`, sub_location, category, periode, periode_group, raw_data) 
                             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
                         
+                        // Get batch period info from the request
+                        $batchMonth = isset($data['month']) ? trim((string) $data['month']) : '';
+                        $batchYear = isset($data['year']) ? trim((string) $data['year']) : '';
+                        $batchNum = isset($data['batch']) ? trim((string) $data['batch']) : '1';
+
                         foreach ($rows as $row) {
                             $periodeRaw = getValCI($row, 'periode');
-                            $periodeGroup = formatPeriode($periodeRaw);
+                            // Use explicit month/year/batch if provided, else fallback to legacy parsing
+                            if (!empty($batchMonth) && !empty($batchYear) && !empty($batchNum)) {
+                                $periodeGroup = buildPeriodeGroup($batchMonth, $batchYear, $batchNum);
+                            } else {
+                                $periodeGroup = formatPeriode($periodeRaw);
+                            }
                             $rawData = json_encode($row);
 
                             $nbv = getValCI($row, 'nbv');
@@ -131,7 +158,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
                 // First pass: identify unique periods in the uploaded data
                 $uploadedPeriods = [];
+                // Check if month/year/batch was provided at the top level
+                $legacyMonth = isset($data['month']) ? trim((string) $data['month']) : '';
+                $legacyYear = isset($data['year']) ? trim((string) $data['year']) : '';
+                $legacyBatch = isset($data['batch']) ? trim((string) $data['batch']) : '1';
+
                 foreach ($data as $row) {
+                    if (!is_array($row)) continue;
                     $periodeRaw = null;
                     foreach ($row as $k => $v) {
                         if (strcasecmp($k, 'periode') === 0) {
@@ -140,7 +173,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         }
                     }
                     
-                    $periodeGroup = formatPeriode($periodeRaw);
+                    if (!empty($legacyMonth) && !empty($legacyYear)) {
+                        $periodeGroup = buildPeriodeGroup($legacyMonth, $legacyYear, $legacyBatch);
+                    } else {
+                        $periodeGroup = formatPeriode($periodeRaw);
+                    }
                     $uploadedPeriods[$periodeGroup] = true;
                 }
                 
@@ -156,8 +193,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
                 
                 foreach ($data as $row) {
+                    if (!is_array($row)) continue;
                     $periodeRaw = getValCI($row, 'periode');
-                    $periodeGroup = formatPeriode($periodeRaw);
+                    if (!empty($legacyMonth) && !empty($legacyYear)) {
+                        $periodeGroup = buildPeriodeGroup($legacyMonth, $legacyYear, $legacyBatch);
+                    } else {
+                        $periodeGroup = formatPeriode($periodeRaw);
+                    }
                     $rawData = json_encode($row);
 
                     $nbv = getValCI($row, 'nbv');

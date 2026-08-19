@@ -33,10 +33,10 @@ elseif ($user['role'] === 'repository_admin')
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta name="description" content="Asset & Warehouse Management Repository - PT. Aplikanusa Lintasarta">
+    <meta name="description" content="Documents Repository - PT. Aplikanusa Lintasarta">
     <meta name="author" content="PT. Aplikanusa Lintasarta">
 
-    <title>Repository — PT. Aplikanusa Lintasarta</title>
+    <title>Documents Repository — PT. Aplikanusa Lintasarta</title>
 
     <link rel="icon"
         href="frontend/img/LogoLintas.png?v=<?= file_exists(__DIR__ . '/../img/LogoLintas.png') ? filemtime(__DIR__ . '/../img/LogoLintas.png') : time() ?>">
@@ -115,6 +115,18 @@ elseif ($user['role'] === 'repository_admin')
             color: #ffffff !important;
             flex-shrink: 1;
             min-width: 0;
+            cursor: pointer !important;
+            position: relative;
+            z-index: 1051;
+            transition: opacity 0.2s ease;
+        }
+
+        .repo-nav__brand:hover {
+            opacity: 0.9;
+        }
+
+        .repo-nav__brand:hover .repo-nav__subtitle {
+            color: #bfdbfe;
         }
 
         .repo-nav__logo-img {
@@ -124,6 +136,7 @@ elseif ($user['role'] === 'repository_admin')
             filter: brightness(0) invert(1);
             transition: transform 0.2s ease;
             flex-shrink: 0;
+            pointer-events: none;
         }
 
         .repo-nav__logo-img:hover {
@@ -135,6 +148,7 @@ elseif ($user['role'] === 'repository_admin')
             height: 32px;
             background: rgba(255, 255, 255, 0.35);
             flex-shrink: 0;
+            pointer-events: none;
         }
 
         .repo-nav__subtitle {
@@ -145,6 +159,8 @@ elseif ($user['role'] === 'repository_admin')
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            pointer-events: none;
+            transition: color 0.2s ease;
         }
 
         .repo-nav__actions {
@@ -408,6 +424,23 @@ elseif ($user['role'] === 'repository_admin')
             text-overflow: ellipsis;
         }
 
+        /* ── Right Side Container (Badges on top of Preview & Download) ── */
+        .privy-doc-item__right {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+
+        .privy-doc-item__badges {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+
         /* ── Actions on Right (Preview & Download) ── */
         .privy-doc-item__actions {
             display: flex;
@@ -628,11 +661,10 @@ elseif ($user['role'] === 'repository_admin')
     <!-- ── Top Header Navigation ── -->
     <nav class="repo-nav">
         <div class="repo-nav__inner">
-            <a href="index.php" class="repo-nav__brand">
+            <a href="index.php" class="repo-nav__brand" title="Landing Page Portal">
                 <img src="frontend/img/Lintasarta.png" alt="Lintasarta" class="repo-nav__logo-img">
                 <span class="repo-nav__separator"></span>
-                <span class="repo-nav__subtitle"><span class="d-none d-md-inline">Asset &amp; Warehouse Documents
-                    </span>Repository</span>
+                <span class="repo-nav__subtitle">Documents Repository</span>
             </a>
             <div class="repo-nav__actions">
                 <!-- User Dropdown Menu for Logout & Portal -->
@@ -674,17 +706,61 @@ elseif ($user['role'] === 'repository_admin')
             Sentralisasi Dokumen
         </h1>
         <p class="repo-hero__description">
-            Repository Dokumen AWM &amp; Work Instruction (WI).
+            Repository Dokumen &amp; Work Instruction (WI)
         </p>
     </header>
 
     <!-- ── Main Content Area ── -->
     <main class="repo-main">
-        <!-- Search Bar Toolbar -->
-        <div class="repo-search-toolbar">
-            <div class="repo-search-box">
+        <!-- Search & Filter Toolbar -->
+        <div class="repo-search-toolbar mb-4">
+            <div class="repo-search-box mb-3">
                 <i class="fas fa-search"></i>
-                <input type="text" id="searchDocInput" placeholder="Cari dokumen...">
+                <input type="text" id="searchDocInput" placeholder="Search...">
+            </div>
+
+            <!-- Filter Controls Bar (Divisi, Bagian, Sub Bagian) -->
+            <div class="repo-filter-card p-3 rounded bg-white border shadow-sm" style="border-radius: 12px !important;">
+                <div class="form-row align-items-end">
+                    <!-- Divisi Filter -->
+                    <div class="col-md-4 col-sm-12 mb-2 mb-md-0">
+                        <label for="filterRepoDivision" class="small font-weight-bold text-gray-700 mb-1">Divisi</label>
+                        <select class="form-control form-control-sm custom-select custom-select-sm"
+                            id="filterRepoDivision">
+                            <option value="">Semua Divisi</option>
+                            <option value="Supply Chain Management">Supply Chain Management</option>
+                        </select>
+                    </div>
+
+                    <!-- Bagian Filter -->
+                    <div class="col-md-4 col-sm-12 mb-2 mb-md-0">
+                        <label for="filterRepoBagian" class="small font-weight-bold text-gray-700 mb-1">Bagian</label>
+                        <select class="form-control form-control-sm custom-select custom-select-sm"
+                            id="filterRepoBagian">
+                            <option value="">Semua Bagian</option>
+                            <option value="Asset And Warehouse Management">Asset And Warehouse Management</option>
+                            <option value="Facility Management">Facility Management</option>
+                            <option value="Procurement Center Of Excellence">Procurement Center Of Excellence</option>
+                            <option value="Procurement Operation">Procurement Operation</option>
+                            <option value="Regional Procurement">Regional Procurement</option>
+                        </select>
+                    </div>
+
+                    <!-- Sub Bagian Filter -->
+                    <div class="col-md-4 col-sm-12 mb-2 mb-md-0">
+                        <label for="filterRepoSubBagian" class="small font-weight-bold text-gray-700 mb-1">Sub Bagian</label>
+                        <select class="form-control form-control-sm custom-select custom-select-sm"
+                            id="filterRepoSubBagian">
+                            <option value="">Semua Sub Bagian</option>
+                            <option value="ASP and System Governance">ASP and System Governance</option>
+                            <option value="Asset Management">Asset Management</option>
+                            <option value="Warehouse Management">Warehouse Management</option>
+                            <option value="Partner Care">Partner Care</option>
+                            <option value="Partner Sourcing">Partner Sourcing</option>
+                            <option value="Strategic Sourcing">Strategic Sourcing</option>
+                        </select>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -770,9 +846,6 @@ elseif ($user['role'] === 'repository_admin')
                 <i class="fas fa-file-pdf fa-3x text-muted opacity-50"></i>
             </div>
             <h6 class="font-weight-bold text-gray-700 mb-1">Tidak Ada File PDF</h6>
-            <p class="text-muted small mx-auto mb-3" style="max-width: 400px;">
-                Tidak ada dokumen PDF yang sesuai dengan kata kunci pencarian Anda.
-            </p>
         </div>
     </main>
 
@@ -795,6 +868,9 @@ elseif ($user['role'] === 'repository_admin')
         (function () {
             let repoDocuments = [];
             let currentSearch = '';
+            let currentDivision = '';
+            let currentBagian = '';
+            let currentSubBagian = '';
 
             // Fetch Documents from API
             function loadDocuments() {
@@ -805,6 +881,15 @@ elseif ($user['role'] === 'repository_admin')
                 let url = 'api/manage_repository.php?action=list';
                 if (currentSearch.trim() !== '') {
                     url += '&search=' + encodeURIComponent(currentSearch.trim());
+                }
+                if (currentDivision.trim() !== '') {
+                    url += '&division=' + encodeURIComponent(currentDivision.trim());
+                }
+                if (currentBagian.trim() !== '') {
+                    url += '&bagian=' + encodeURIComponent(currentBagian.trim());
+                }
+                if (currentSubBagian.trim() !== '') {
+                    url += '&sub_bagian=' + encodeURIComponent(currentSubBagian.trim());
                 }
 
                 $.ajax({
@@ -837,7 +922,7 @@ elseif ($user['role'] === 'repository_admin')
 
             // Render 3 Segments
             function renderSegmentedDocuments(docs) {
-                const isSearching = currentSearch.trim() !== '';
+                const isFiltered = currentSearch.trim() !== '' || currentDivision !== '' || currentBagian !== '' || currentSubBagian !== '';
 
                 if (!docs || docs.length === 0) {
                     $('#repoSegmentsContainer').hide();
@@ -865,22 +950,22 @@ elseif ($user['role'] === 'repository_admin')
                 });
 
                 // Render Segment 1: Policy
-                renderSegmentList($('#list-policy'), $('#count-policy'), $('#empty-policy'), $('#section-policy'), policyDocs, isSearching);
+                renderSegmentList($('#list-policy'), $('#count-policy'), $('#empty-policy'), $('#section-policy'), policyDocs, isFiltered);
 
                 // Render Segment 2: Procedure
-                renderSegmentList($('#list-procedure'), $('#count-procedure'), $('#empty-procedure'), $('#section-procedure'), procedureDocs, isSearching);
+                renderSegmentList($('#list-procedure'), $('#count-procedure'), $('#empty-procedure'), $('#section-procedure'), procedureDocs, isFiltered);
 
                 // Render Segment 3: Working Instruction (WI)
-                renderSegmentList($('#list-wi'), $('#count-wi'), $('#empty-wi'), $('#section-wi'), wiDocs, isSearching);
+                renderSegmentList($('#list-wi'), $('#count-wi'), $('#empty-wi'), $('#section-wi'), wiDocs, isFiltered);
             }
 
             // Helper to render individual segment list
-            function renderSegmentList(containerEl, countBadgeEl, emptyNoticeEl, sectionEl, items, isSearching) {
+            function renderSegmentList(containerEl, countBadgeEl, emptyNoticeEl, sectionEl, items, isFiltered) {
                 containerEl.empty();
                 countBadgeEl.text(items.length + ' Documents');
 
                 if (items.length === 0) {
-                    if (isSearching) {
+                    if (isFiltered) {
                         sectionEl.hide();
                     } else {
                         sectionEl.show();
@@ -894,6 +979,10 @@ elseif ($user['role'] === 'repository_admin')
 
                 items.forEach(function (doc) {
                     let displayName = doc.title || doc.original_name || 'Dokumen.pdf';
+                    let bagianBadge = doc.bagian ? `<span class="badge badge-light border text-primary" style="font-size: 0.72rem; font-weight: 600;">${escapeHtml(doc.bagian)}</span>` : '';
+                    let subBagianBadge = doc.sub_bagian ? `<span class="badge badge-light border text-info" style="font-size: 0.72rem; font-weight: 600;">${escapeHtml(doc.sub_bagian)}</span>` : '';
+                    let metaText = (doc.formatted_size ? doc.formatted_size : '') + (doc.formatted_date ? ' &bull; ' + doc.formatted_date : '');
+                    let hasBadges = Boolean(bagianBadge || subBagianBadge);
 
                     let itemHtml = `
                     <div class="privy-doc-item">
@@ -903,6 +992,12 @@ elseif ($user['role'] === 'repository_admin')
                             </div>
                             <div class="privy-doc-item__info">
                                 <h6 class="privy-doc-item__name" title="${escapeHtml(displayName)}">${escapeHtml(displayName)}</h6>
+                                ${metaText ? `<div class="text-muted small mt-0.5">${metaText}</div>` : ''}
+                                ${hasBadges ? `
+                                <div class="d-flex flex-wrap align-items-center mt-1" style="gap: 5px;">
+                                    ${bagianBadge}
+                                    ${subBagianBadge}
+                                </div>` : ''}
                             </div>
                         </div>
                         <div class="privy-doc-item__actions">
@@ -943,6 +1038,34 @@ elseif ($user['role'] === 'repository_admin')
                 searchTimeout = setTimeout(function () {
                     loadDocuments();
                 }, 300);
+            });
+
+            // Filter Change Handlers
+            $('#filterRepoDivision').on('change', function () {
+                currentDivision = $(this).val();
+                loadDocuments();
+            });
+
+            $('#filterRepoBagian').on('change', function () {
+                currentBagian = $(this).val();
+                loadDocuments();
+            });
+
+            $('#filterRepoSubBagian').on('change', function () {
+                currentSubBagian = $(this).val();
+                loadDocuments();
+            });
+
+            $('#btnResetRepoFilter').on('click', function () {
+                $('#searchDocInput').val('');
+                $('#filterRepoDivision').val('');
+                $('#filterRepoBagian').val('');
+                $('#filterRepoSubBagian').val('');
+                currentSearch = '';
+                currentDivision = '';
+                currentBagian = '';
+                currentSubBagian = '';
+                loadDocuments();
             });
 
             // Initial Load

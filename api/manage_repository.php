@@ -118,15 +118,49 @@ if ($action === 'download') {
 // All remaining actions return JSON
 header('Content-Type: application/json');
 
+// Ensure division, bagian, and sub_bagian columns exist
+function ensureRepositoryColumnsExist($pdo) {
+    static $checked = false;
+    if ($checked) return;
+    $driver = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+    $columnExists = function ($table, $column) use ($pdo, $driver) {
+        if ($driver === 'pgsql') {
+            $stmt = $pdo->prepare("SELECT COUNT(*) FROM information_schema.columns WHERE table_name = ? AND column_name = ?");
+            $stmt->execute([$table, $column]);
+            return (int) $stmt->fetchColumn() > 0;
+        } else {
+            $stmt = $pdo->prepare("SELECT COUNT(*) FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = ? AND column_name = ?");
+            $stmt->execute([$table, $column]);
+            return (int) $stmt->fetchColumn() > 0;
+        }
+    };
+    try {
+        if (!$columnExists('repository_documents', 'division')) {
+            $pdo->exec("ALTER TABLE repository_documents ADD COLUMN division VARCHAR(150) NULL DEFAULT 'Supply Chain Management'");
+        }
+        if (!$columnExists('repository_documents', 'bagian')) {
+            $pdo->exec("ALTER TABLE repository_documents ADD COLUMN bagian VARCHAR(150) NULL");
+        }
+        if (!$columnExists('repository_documents', 'sub_bagian')) {
+            $pdo->exec("ALTER TABLE repository_documents ADD COLUMN sub_bagian VARCHAR(150) NULL");
+        }
+    } catch (Exception $e) {}
+    $checked = true;
+}
+
 // ----------------------------------------------------
 // 3. ACTION: LIST
 // ----------------------------------------------------
 if ($action === 'list') {
     try {
+        ensureRepositoryColumnsExist($pdo);
         $category = trim($_GET['category'] ?? '');
+        $division = trim($_GET['division'] ?? '');
+        $bagian = trim($_GET['bagian'] ?? '');
+        $subBagian = trim($_GET['sub_bagian'] ?? '');
         $search = trim($_GET['search'] ?? '');
 
-        $sql = "SELECT id, title, document_code, category, description, file_name, original_name, file_size, uploaded_by, created_at, updated_at FROM repository_documents WHERE 1=1";
+        $sql = "SELECT id, title, document_code, category, division, bagian, sub_bagian, description, file_name, original_name, file_size, uploaded_by, created_at, updated_at FROM repository_documents WHERE 1=1";
         $params = [];
 
         if (!empty($category) && $category !== 'all') {
@@ -134,9 +168,26 @@ if ($action === 'list') {
             $params[] = $category;
         }
 
+        if (!empty($division) && $division !== 'all') {
+            $sql .= " AND division = ?";
+            $params[] = $division;
+        }
+
+        if (!empty($bagian) && $bagian !== 'all') {
+            $sql .= " AND bagian = ?";
+            $params[] = $bagian;
+        }
+
+        if (!empty($subBagian) && $subBagian !== 'all') {
+            $sql .= " AND sub_bagian = ?";
+            $params[] = $subBagian;
+        }
+
         if (!empty($search)) {
-            $sql .= " AND (title LIKE ? OR document_code LIKE ? OR description LIKE ?)";
+            $sql .= " AND (title LIKE ? OR document_code LIKE ? OR description LIKE ? OR bagian LIKE ? OR sub_bagian LIKE ?)";
             $searchTerm = '%' . $search . '%';
+            $params[] = $searchTerm;
+            $params[] = $searchTerm;
             $params[] = $searchTerm;
             $params[] = $searchTerm;
             $params[] = $searchTerm;
@@ -204,16 +255,20 @@ if ($action === 'upload' || $action === 'update') {
 }
 
 // ----------------------------------------------------
-// 4. ACTION: UPLOAD (Super Admin Only)
+// 4. ACTION: UPLOAD
 // ----------------------------------------------------
 if ($action === 'upload') {
     try {
+        ensureRepositoryColumnsExist($pdo);
         $title = trim($_POST['title'] ?? '');
         $allowedSegments = ['Policy Document', 'Procedure Document', 'Working Instruction (WI) Document'];
         $category = trim($_POST['category'] ?? 'Working Instruction (WI) Document');
         if (!in_array($category, $allowedSegments)) {
             $category = 'Working Instruction (WI) Document';
         }
+        $division = trim($_POST['division'] ?? 'Supply Chain Management');
+        $bagian = trim($_POST['bagian'] ?? '');
+        $subBagian = trim($_POST['sub_bagian'] ?? '');
         $docCode = trim($_POST['document_code'] ?? '');
         $description = trim($_POST['description'] ?? '');
 
@@ -275,11 +330,14 @@ if ($action === 'upload') {
         $filePath = 'uploads/repository/' . $uniqueFilename;
 
         // 6. Insert into database
-        $stmt = $pdo->prepare("INSERT INTO repository_documents (title, document_code, category, description, file_path, file_name, original_name, file_size, uploaded_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt = $pdo->prepare("INSERT INTO repository_documents (title, document_code, category, division, bagian, sub_bagian, description, file_path, file_name, original_name, file_size, uploaded_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
         $stmt->execute([
             $title,
             $docCode,
             $category,
+            $division,
+            $bagian,
+            $subBagian,
             $description,
             $filePath,
             $uniqueFilename,
@@ -300,10 +358,11 @@ if ($action === 'upload') {
 }
 
 // ----------------------------------------------------
-// 5. ACTION: UPDATE (Super Admin Only)
+// 5. ACTION: UPDATE
 // ----------------------------------------------------
 if ($action === 'update') {
     try {
+        ensureRepositoryColumnsExist($pdo);
         $id = intval($_POST['id'] ?? 0);
         if ($id <= 0) {
             echo json_encode(['success' => false, 'message' => 'ID dokumen tidak valid.']);
@@ -324,6 +383,9 @@ if ($action === 'update') {
         if (!in_array($category, $allowedSegments)) {
             $category = 'Working Instruction (WI) Document';
         }
+        $division = trim($_POST['division'] ?? ($existing['division'] ?? 'Supply Chain Management'));
+        $bagian = trim($_POST['bagian'] ?? ($existing['bagian'] ?? ''));
+        $subBagian = trim($_POST['sub_bagian'] ?? ($existing['sub_bagian'] ?? ''));
         $docCode = trim($_POST['document_code'] ?? ($existing['document_code'] ?? ''));
         $description = trim($_POST['description'] ?? ($existing['description'] ?? ''));
 
@@ -380,12 +442,12 @@ if ($action === 'update') {
             $fileSize = filesize($destination);
             $filePath = 'uploads/repository/' . $uniqueFilename;
 
-            $updateStmt = $pdo->prepare("UPDATE repository_documents SET title = ?, document_code = ?, category = ?, description = ?, file_path = ?, file_name = ?, original_name = ?, file_size = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?");
-            $updateStmt->execute([$title, $docCode, $category, $description, $filePath, $uniqueFilename, $origName, $fileSize, $id]);
+            $updateStmt = $pdo->prepare("UPDATE repository_documents SET title = ?, document_code = ?, category = ?, division = ?, bagian = ?, sub_bagian = ?, description = ?, file_path = ?, file_name = ?, original_name = ?, file_size = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?");
+            $updateStmt->execute([$title, $docCode, $category, $division, $bagian, $subBagian, $description, $filePath, $uniqueFilename, $origName, $fileSize, $id]);
         } else {
             // Update metadata only
-            $updateStmt = $pdo->prepare("UPDATE repository_documents SET title = ?, document_code = ?, category = ?, description = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?");
-            $updateStmt->execute([$title, $docCode, $category, $description, $id]);
+            $updateStmt = $pdo->prepare("UPDATE repository_documents SET title = ?, document_code = ?, category = ?, division = ?, bagian = ?, sub_bagian = ?, description = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?");
+            $updateStmt->execute([$title, $docCode, $category, $division, $bagian, $subBagian, $description, $id]);
         }
 
         echo json_encode(['success' => true, 'message' => 'Dokumen berhasil diperbarui!']);

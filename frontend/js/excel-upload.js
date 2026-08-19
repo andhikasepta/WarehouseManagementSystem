@@ -167,11 +167,12 @@
         return null;
     }
 
-    function formatPeriode(rawDate) {
+    function formatPeriode(rawDate, year, batch) {
         if (!rawDate) return 'Unknown Period';
 
         var str = String(rawDate).toUpperCase();
-        var currentYear = new Date().getFullYear();
+        var currentYear = year || new Date().getFullYear();
+        var batchNum = batch || '1';
 
         var months = {
             'JAN': 'January',
@@ -190,7 +191,7 @@
 
         for (var key in months) {
             if (str.indexOf(key) !== -1) {
-                return months[key] + ' ' + currentYear;
+                return months[key] + ' ' + currentYear + '-Batch' + batchNum;
             }
         }
 
@@ -637,14 +638,31 @@
         var BATCH_SIZE = 5000;
 
         var initPayload = { action: 'init' };
+
+        // Read period selectors from the upload form
+        var uploadBulan = document.getElementById('upload-bulan-select');
+        var uploadBatch = document.getElementById('upload-batch-select');
+        var uploadTahun = document.getElementById('upload-tahun-select');
+        var periodMonth = uploadBulan ? uploadBulan.value : '';
+        var periodBatch = uploadBatch ? uploadBatch.value : '1';
+        var periodYear = uploadTahun ? uploadTahun.value : new Date().getFullYear().toString();
+
         if (dataType === 'asset') {
-            var activeSheetName = sheetSelect ? sheetSelect.value : '';
-            var pGroup = formatPeriode(activeSheetName);
+            var pGroup;
+            if (periodMonth && periodYear && periodBatch) {
+                pGroup = periodMonth + ' ' + periodYear + '-Batch' + periodBatch;
+            } else {
+                var activeSheetName = sheetSelect ? sheetSelect.value : '';
+                pGroup = formatPeriode(activeSheetName, periodYear, periodBatch);
+            }
             initPayload.periods = [pGroup];
+            initPayload.month = periodMonth;
+            initPayload.year = periodYear;
+            initPayload.batch = periodBatch;
 
             // Add the sheetName to each row so the backend knows what to use for periode
             for (var idx = 0; idx < totalRows; idx++) {
-                localSheetData[idx]['periode'] = activeSheetName;
+                localSheetData[idx]['periode'] = sheetSelect ? sheetSelect.value : '';
             }
         }
 
@@ -677,7 +695,10 @@
 
             var appendPayload = {
                 action: 'append',
-                data: batchRows
+                data: batchRows,
+                month: periodMonth,
+                year: periodYear,
+                batch: periodBatch
             };
 
             fetch(apiEndpoint, {

@@ -743,14 +743,14 @@
         
         var pinTitle = document.getElementById('perangkat-in-title-period');
         if (pinTitle) {
-            var parts = periodText.split(' ');
-            var yr = parts.length > 1 ? parts[parts.length - 1] : periodText;
+            var match = periodText.match(/^(\w+)\s+(\d{4})(?:-Batch(\d+))?$/);
+            var yr = match ? match[2] : periodText;
             pinTitle.textContent = "Tahun " + yr;
         }
         var poutTitle = document.getElementById('perangkat-out-title-period');
         if (poutTitle) {
-            var parts = periodText.split(' ');
-            var yr = parts.length > 1 ? parts[parts.length - 1] : periodText;
+            var match = periodText.match(/^(\w+)\s+(\d{4})(?:-Batch(\d+))?$/);
+            var yr = match ? match[2] : periodText;
             poutTitle.textContent = "Tahun " + yr;
         }
 

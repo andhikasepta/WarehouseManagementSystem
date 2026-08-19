@@ -63,15 +63,25 @@ try {
 
     $months = ['JAN'=>1, 'FEB'=>2, 'MAR'=>3, 'APR'=>4, 'MAY'=>5, 'MEI'=>5, 'JUN'=>6, 'JUL'=>7, 'AUG'=>8, 'AGU'=>8, 'SEP'=>9, 'OCT'=>10, 'OKT'=>10, 'NOV'=>11, 'DEC'=>12, 'DES'=>12];
     usort($allPeriods, function($a, $b) use ($months) {
-        $da = strtotime("01 " . $a);
-        $db = strtotime("01 " . $b);
-        if ($da && $db) return $da - $db;
-        $ma = 0; $mb = 0;
+        // Parse "Month Year-BatchN" format
+        $pa = preg_match('/^(\w+)\s+(\d{4})(?:-Batch(\d+))?$/i', $a, $ma);
+        $pb = preg_match('/^(\w+)\s+(\d{4})(?:-Batch(\d+))?$/i', $b, $mb);
+        if (!$pa && !$pb) return 0;
+        if (!$pa) return 1;
+        if (!$pb) return -1;
+        $da = strtotime("01 " . $ma[1] . " " . $ma[2]);
+        $db = strtotime("01 " . $mb[1] . " " . $mb[2]);
+        if ($da !== false && $db !== false && $da !== $db) return $da - $db;
+        // Fallback month compare
+        $monthA = 0; $monthB = 0;
         foreach (['JAN','FEB','MAR','APR','MAY','MEI','JUN','JUL','AUG','AGU','SEP','OCT','OKT','NOV','DEC','DES'] as $m) {
-            if (stripos($a, $m) !== false) $ma = $months[$m] ?? 0;
-            if (stripos($b, $m) !== false) $mb = $months[$m] ?? 0;
+            if (stripos($ma[1], $m) !== false) $monthA = $months[$m] ?? 0;
+            if (stripos($mb[1], $m) !== false) $monthB = $months[$m] ?? 0;
         }
-        return $ma - $mb;
+        if ($monthA !== $monthB) return $monthA - $monthB;
+        $ba = isset($ma[3]) ? intval($ma[3]) : 1;
+        $bb = isset($mb[3]) ? intval($mb[3]) : 1;
+        return $ba - $bb;
     });
 
     if (empty($allPeriods)) {

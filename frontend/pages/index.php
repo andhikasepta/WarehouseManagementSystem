@@ -274,8 +274,8 @@ if (!function_exists('assetUrl')) {
                         class="portal-card-img">
                     <div class="portal-card-body flex-grow-1 d-flex flex-column justify-content-between">
                         <div>
-                            <div class="portal-card-title">Sentralisasi Dokumen AWM</div>
-                            <p class="portal-card-desc">Repository dokumen AWM, panduan, &amp; work instruction (WI) .
+                            <div class="portal-card-title">Sentralisasi Dokumen</div>
+                            <p class="portal-card-desc">Repository dokumen, panduan, &amp; work instruction (WI).
                             </p>
                         </div>
                     </div>
