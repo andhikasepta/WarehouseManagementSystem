@@ -281,7 +281,8 @@ include FRONTEND_PATH . 'components/header.php';
                                                     style="max-height: 145px; overflow-y: auto;">
                                                     <div class="mb-1 d-flex align-items-center text-nowrap filter-legend-item outbound-summary-clickable"
                                                         id="inbound-flow-legend-0" onclick="openInboundSummaryModal(0)"
-                                                        style="cursor: pointer;" title="Klik untuk detail Total PO Inbound">
+                                                        style="cursor: pointer;"
+                                                        title="Klik untuk detail Total PO Inbound">
                                                         <i class="fas fa-circle mr-2.5"
                                                             style="font-size: 0.42rem; color: #4e73df;"></i>
                                                         <span class="text-gray-800 font-weight-bold text-nowrap"
@@ -685,11 +686,11 @@ include FRONTEND_PATH . 'components/header.php';
                                                     <div class="col-4 pr-1 pl-2">
                                                         <div class="py-1 rounded border bg-white outbound-summary-clickable"
                                                             onclick="openOutboundSummaryModal('fulfill')"
-                                                            style="cursor: pointer;" title="Klik untuk detail Fulfill">
+                                                            style="cursor: pointer;" title="Klik untuk detail Fulfilled">
                                                             <i class="fas fa-box-open text-primary"
                                                                 style="font-size: 0.72rem;"></i>
                                                             <div class="font-weight-bold text-muted text-uppercase text-nowrap"
-                                                                style="font-size: 0.58rem;">Fulfill</div>
+                                                                style="font-size: 0.58rem;">Fulfilled</div>
                                                             <div class="font-weight-bold text-primary"
                                                                 style="font-size: 0.78rem;" id="sub-fulfill-count">0
                                                             </div>
@@ -702,7 +703,7 @@ include FRONTEND_PATH . 'components/header.php';
                                                             <i class="fas fa-dolly text-warning"
                                                                 style="font-size: 0.72rem;"></i>
                                                             <div class="font-weight-bold text-muted text-uppercase text-nowrap"
-                                                                style="font-size: 0.58rem;">Packing</div>
+                                                                style="font-size: 0.58rem;">Packed</div>
                                                             <div class="font-weight-bold text-warning"
                                                                 style="font-size: 0.78rem;" id="sub-packing-count">0
                                                             </div>
@@ -907,7 +908,8 @@ include FRONTEND_PATH . 'components/header.php';
                                     class="modal-footer bg-light py-2 px-3.5 justify-content-between align-items-center">
                                     <span class="small text-muted">Total Data: <strong id="summaryModalRecordCount"
                                             class="text-gray-800">0</strong></span>
-                                    <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Tutup</button>
+                                    <button type="button" class="btn btn-secondary btn-sm"
+                                        data-dismiss="modal">Tutup</button>
                                 </div>
                             </div>
                         </div>
@@ -921,12 +923,15 @@ include FRONTEND_PATH . 'components/header.php';
                                 <div class="modal-header border-bottom py-2.5 px-3.5 align-items-center"
                                     style="background-color: #f8f9fc;">
                                     <div>
-                                        <h6 class="modal-title font-weight-bold text-primary my-0" style="font-size: 0.95rem;">
+                                        <h6 class="modal-title font-weight-bold text-primary my-0"
+                                            style="font-size: 0.95rem;">
                                             <i class="fas fa-boxes mr-1.5"></i> UTILISASI AREA / RACK
                                             <span class="badge badge-primary px-2 py-0.5 font-weight-bold ml-2"
-                                                id="storageUtilModalBadge" style="font-size: 0.72rem;">Total Capacity</span>
+                                                id="storageUtilModalBadge" style="font-size: 0.72rem;">Total
+                                                Capacity</span>
                                         </h6>
-                                        <small class="text-muted font-weight-normal">Kapasitas Rack &amp; Area Storage</small>
+                                        <small class="text-muted font-weight-normal">Kapasitas Rack &amp; Area
+                                            Storage</small>
                                     </div>
                                     <button type="button" class="close text-gray-600 my-auto" data-dismiss="modal"
                                         aria-label="Close" style="padding: 0.25rem 0.5rem; margin: 0;">
@@ -935,24 +940,26 @@ include FRONTEND_PATH . 'components/header.php';
                                 </div>
                                 <div class="modal-body p-3.5 bg-white">
                                     <!-- Status Dots Summary (Green <= 50%, Yellow 51-75%, Red > 75%) -->
-                                    <div class="d-flex flex-wrap align-items-center justify-content-between mb-2.5 pb-2 border-bottom">
-                                        <div id="modal-rack-status-dots" class="d-flex align-items-center" style="gap: 6px;"></div>
-                                        <div class="d-flex align-items-center" style="gap: 8px;">
-                                            <div class="btn-group btn-group-sm" role="group" aria-label="Filter Type">
-                                                <button type="button" class="btn btn-outline-primary btn-sm active font-weight-bold py-0.5 px-2" id="btn-modal-filter-all" onclick="filterModalUtilisasiData('all')" style="font-size: 0.75rem;">Semua</button>
-                                                <button type="button" class="btn btn-outline-warning btn-sm font-weight-bold py-0.5 px-2" id="btn-modal-filter-used" onclick="filterModalUtilisasiData('used')" style="font-size: 0.75rem;">Terisi</button>
-                                                <button type="button" class="btn btn-outline-success btn-sm font-weight-bold py-0.5 px-2" id="btn-modal-filter-available" onclick="filterModalUtilisasiData('available')" style="font-size: 0.75rem;">Tersedia</button>
-                                            </div>
-                                            <div class="input-group input-group-sm" style="max-width: 200px;">
-                                                <input type="text" class="form-control form-control-sm" id="searchModalUtilisasiInput" placeholder="Cari Rack/Area..." style="font-size: 0.75rem;">
+                                    <div
+                                        class="d-flex flex-wrap align-items-center justify-content-between mb-2.5 pb-2 border-bottom">
+                                        <div id="modal-rack-status-dots" class="d-flex align-items-center"
+                                            style="gap: 6px;"></div>
+                                        <div class="d-flex align-items-center">
+                                            <div class="input-group input-group-sm" style="max-width: 220px;">
+                                                <input type="text" class="form-control form-control-sm"
+                                                    id="searchModalUtilisasiInput" placeholder="Cari Rack/Area..."
+                                                    style="font-size: 0.75rem;">
                                             </div>
                                         </div>
                                     </div>
 
                                     <!-- Utilisasi Area / Rack Table (Identical format to warehouse.php) -->
-                                    <div class="table-responsive border rounded" style="max-height: 360px; overflow-y: auto;">
-                                        <table class="table table-hover mb-0 w-100" id="tableStorageUtilisasiDetail" style="font-size: 0.82rem;">
-                                            <thead class="bg-light font-weight-bold text-gray-800" style="position: sticky; top: 0; z-index: 2; background-color: #f8f9fc; border-bottom: 2px solid #e3e6f0;">
+                                    <div class="table-responsive border rounded"
+                                        style="max-height: 360px; overflow-y: auto;">
+                                        <table class="table table-hover mb-0 w-100" id="tableStorageUtilisasiDetail"
+                                            style="font-size: 0.82rem;">
+                                            <thead class="bg-light font-weight-bold text-gray-800"
+                                                style="position: sticky; top: 0; z-index: 2; background-color: #f8f9fc; border-bottom: 2px solid #e3e6f0;">
                                                 <tr>
                                                     <th class="py-2 px-3 text-left">RACK / AREA</th>
                                                     <th class="py-2 px-3 text-center" style="width: 55%;">CAPACITY</th>
@@ -960,7 +967,8 @@ include FRONTEND_PATH . 'components/header.php';
                                             </thead>
                                             <tbody id="tableStorageUtilisasiBody">
                                                 <tr>
-                                                    <td colspan="2" class="py-4 text-center text-muted bg-white font-italic">
+                                                    <td colspan="2"
+                                                        class="py-4 text-center text-muted bg-white font-italic">
                                                         <i class="fas fa-inbox fa-2x mb-2 d-block text-gray-300"></i>
                                                         Pilih periode data untuk menampilkan utilisasi area / rack
                                                     </td>
@@ -969,22 +977,9 @@ include FRONTEND_PATH . 'components/header.php';
                                         </table>
                                     </div>
                                 </div>
-                                <div class="modal-footer bg-light py-2 px-3.5 justify-content-between align-items-center">
-                                    <span class="small text-muted">Total: <strong id="modal-util-rendered-count" class="text-gray-800">0</strong> Rack/Area</span>
-                                    <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Tutup</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                                                    </td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                                <div class="modal-footer bg-light py-2 px-3.5 justify-content-between align-items-center">
-                                    <span class="small text-muted">Menampilkan: <strong id="modal-util-rendered-count" class="text-gray-800">0</strong> lokasi</span>
-                                    <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Tutup</button>
+                                <div class="modal-footer bg-light py-2 px-3.5 justify-content-end align-items-center">
+                                    <button type="button" class="btn btn-secondary btn-sm"
+                                        data-dismiss="modal">Tutup</button>
                                 </div>
                             </div>
                         </div>
@@ -1305,18 +1300,18 @@ include FRONTEND_PATH . 'components/header.php';
                                 qtyVal = terkirimEl ? terkirimEl.textContent.trim() + ' Closed' : '0 Closed';
                                 pctVal = progressPct + ' Selesai (Closed)';
                             } else if (metricKey === 'fulfill') {
-                                title = 'Detail Pemenuhan (Fulfill)';
-                                metricLabel = 'FULFILL (PEMENUHAN)';
+                                title = 'Detail Fulfilled';
+                                metricLabel = 'FULFILLED';
                                 qtyVal = fulfillEl ? fulfillEl.textContent.trim() + ' Unit' : '0 Unit';
                                 showPct = false;
                             } else if (metricKey === 'packing') {
-                                title = 'Detail Pengemasan (Packing)';
-                                metricLabel = 'PACKING (PENGEMASAN)';
+                                title = 'Detail Packed';
+                                metricLabel = 'PACKED';
                                 qtyVal = packingEl ? packingEl.textContent.trim() + ' Unit' : '0 Unit';
                                 showPct = false;
                             } else if (metricKey === 'shipped') {
-                                title = 'Detail Pengiriman (Shipped)';
-                                metricLabel = 'SHIPPED (PENGIRIMAN)';
+                                title = 'Detail Shipped';
+                                metricLabel = 'SHIPPED';
                                 qtyVal = shippedEl ? shippedEl.textContent.trim() + ' Unit' : '0 Unit';
                                 showPct = false;
                             }
@@ -1595,10 +1590,10 @@ include FRONTEND_PATH . 'components/header.php';
                             $('#btn-modal-filter-all, #btn-modal-filter-used, #btn-modal-filter-available').removeClass('active');
                             if (filterType === 'used') {
                                 $('#btn-modal-filter-used').addClass('active');
-                                $('#storageUtilModalBadge').text('Terisi (Used)').removeClass().addClass('badge badge-warning px-2 py-0.5 font-weight-bold ml-2');
+                                $('#storageUtilModalBadge').text('Used').removeClass().addClass('badge badge-warning px-2 py-0.5 font-weight-bold ml-2');
                             } else if (filterType === 'available') {
                                 $('#btn-modal-filter-available').addClass('active');
-                                $('#storageUtilModalBadge').text('Tersedia (Available)').removeClass().addClass('badge badge-success px-2 py-0.5 font-weight-bold ml-2');
+                                $('#storageUtilModalBadge').text('Available').removeClass().addClass('badge badge-success px-2 py-0.5 font-weight-bold ml-2');
                             } else {
                                 $('#btn-modal-filter-all').addClass('active');
                                 $('#storageUtilModalBadge').text('Total Capacity').removeClass().addClass('badge badge-primary px-2 py-0.5 font-weight-bold ml-2');
@@ -1744,17 +1739,17 @@ include FRONTEND_PATH . 'components/header.php';
                             renderedItems.forEach(function (item) {
                                 html += '<tr>' +
                                     '<td class="text-left font-weight-bold text-gray-800 py-2.5 px-3" style="font-size: 0.85rem; white-space: nowrap;">' +
-                                        item.name +
+                                    item.name +
                                     '</td>' +
                                     '<td class="py-2.5 px-3">' +
-                                        '<div class="d-flex align-items-center">' +
-                                            '<span class="mr-2 font-weight-bold text-gray-800 text-right" style="min-width: 38px; font-size: 0.8rem;">' + item.avgCap + '%</span>' +
-                                            '<div class="progress progress-sm flex-grow-1" style="height: 10px; border-radius: 5px; background-color: #eaecf4;">' +
-                                                '<div class="progress-bar ' + item.barColorClass + '" role="progressbar" style="width: ' + item.avgCap + '%; border-radius: 5px; transition: width 0.6s ease;" aria-valuenow="' + item.avgCap + '" aria-valuemin="0" aria-valuemax="100"></div>' +
-                                            '</div>' +
-                                        '</div>' +
+                                    '<div class="d-flex align-items-center">' +
+                                    '<span class="mr-2 font-weight-bold text-gray-800 text-right" style="min-width: 38px; font-size: 0.8rem;">' + item.avgCap + '%</span>' +
+                                    '<div class="progress progress-sm flex-grow-1" style="height: 10px; border-radius: 5px; background-color: #eaecf4;">' +
+                                    '<div class="progress-bar ' + item.barColorClass + '" role="progressbar" style="width: ' + item.avgCap + '%; border-radius: 5px; transition: width 0.6s ease;" aria-valuenow="' + item.avgCap + '" aria-valuemin="0" aria-valuemax="100"></div>' +
+                                    '</div>' +
+                                    '</div>' +
                                     '</td>' +
-                                '</tr>';
+                                    '</tr>';
                             });
 
                             tbody.html(html);

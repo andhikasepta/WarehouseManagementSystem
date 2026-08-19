@@ -129,16 +129,36 @@ function initOutboundTable() {
                 next: "Selanjutnya",
                 previous: "Sebelumnya"
             }
+        },
+        initComplete: function () {
+            var api = this.api();
+            var $input = $('#dataTableOutbound_filter input');
+            if ($input.length) {
+                $input.attr('placeholder', 'Cari lalu tekan Enter...');
+                $input.unbind();
+                $input.on('keydown', function (e) {
+                    if (e.key === 'Enter' || e.keyCode === 13) {
+                        e.preventDefault();
+                        api.search(this.value).draw();
+                    }
+                });
+            }
         }
     });
 
-    // Reactive dropdown and search filters
+    // Reactive dropdown filters
     $('#filter-tujuan-site-outbound, #filter-mr-status-outbound, #filter-dn-status-outbound').on('change', function () {
         outboundTable.ajax.reload();
     });
 
-    $('#filter-outbound-mr').on('keyup input change', function () {
-        outboundTable.ajax.reload();
+    // Outbound MR / Document Search on Enter key press
+    $('#filter-outbound-mr').off('keyup input change keydown').on('keydown', function (e) {
+        if (e.key === 'Enter' || e.keyCode === 13) {
+            e.preventDefault();
+            if (outboundTable) {
+                outboundTable.ajax.reload();
+            }
+        }
     });
 
     $('#btn-reset-filter-outbound').on('click', function () {
@@ -307,7 +327,20 @@ function initInboundTable() {
         ],
         order: [[0, 'desc']],
         pageLength: 25,
-        searchDelay: 500  // Debounce global search to avoid excessive server requests
+        initComplete: function () {
+            var api = this.api();
+            var $input = $('#dataTableInbound_filter input');
+            if ($input.length) {
+                $input.attr('placeholder', 'Cari lalu tekan Enter...');
+                $input.unbind();
+                $input.on('keydown', function (e) {
+                    if (e.key === 'Enter' || e.keyCode === 13) {
+                        e.preventDefault();
+                        api.search(this.value).draw();
+                    }
+                });
+            }
+        }
     });
 
     // Populate Year dropdowns for Inbound Upload & Delete Modals
@@ -348,16 +381,15 @@ function initInboundTable() {
         inboundTable.column(3).search(val ? '^' + val + '$' : '', true, false).draw();
     });
 
-    // PR/PO search — now handled server-side via DataTables global search
-    var poSearchTimer = null;
-    $('#filter-inbound-po').off('keyup.inbound change.inbound input.inbound').on('keyup.inbound input.inbound', function () {
-        var val = $(this).val();
-        clearTimeout(poSearchTimer);
-        poSearchTimer = setTimeout(function () {
+    // PR/PO search on Enter key press only
+    $('#filter-inbound-po').off('keyup input change keydown').on('keydown', function (e) {
+        if (e.key === 'Enter' || e.keyCode === 13) {
+            e.preventDefault();
+            var val = $(this).val();
             if (inboundTable) {
                 inboundTable.search(val).draw();
             }
-        }, 400); // debounce 400ms
+        }
     });
 
     $('#btn-reset-filter-inbound').off('click.inbound').on('click.inbound', function () {
@@ -437,13 +469,21 @@ function initAssetTable() {
         ],
         order: [[0, 'asc']],
         pageLength: 25,
-        searchDelay: 500,
         initComplete: function () {
+            var api = this.api();
             var $searchBar = $('#dataTableAsset_filter');
             $searchBar.detach().appendTo('#assetSearchContainer');
             $searchBar.css({ 'text-align': 'right', 'width': '100%' });
             $searchBar.find('label').css({ 'margin-bottom': '0', 'display': 'inline-flex', 'align-items': 'center' });
-            $searchBar.find('input').css('margin-left', '0.5em');
+            var $input = $searchBar.find('input');
+            $input.css('margin-left', '0.5em').attr('placeholder', 'Cari lalu tekan Enter...');
+            $input.unbind();
+            $input.on('keydown', function (e) {
+                if (e.key === 'Enter' || e.keyCode === 13) {
+                    e.preventDefault();
+                    api.search(this.value).draw();
+                }
+            });
         }
     });
 
@@ -492,7 +532,15 @@ function initRackTable() {
             $searchBar.detach().appendTo('#rackSearchContainer');
             $searchBar.css({ 'text-align': 'right', 'width': '100%' });
             $searchBar.find('label').css({ 'margin-bottom': '0', 'display': 'inline-flex', 'align-items': 'center' });
-            $searchBar.find('input').css('margin-left', '0.5em');
+            var $input = $searchBar.find('input');
+            $input.css('margin-left', '0.5em').attr('placeholder', 'Cari lalu tekan Enter...');
+            $input.unbind();
+            $input.on('keydown', function (e) {
+                if (e.key === 'Enter' || e.keyCode === 13) {
+                    e.preventDefault();
+                    api.search(this.value).draw();
+                }
+            });
         }
     });
 

@@ -287,7 +287,7 @@ include FRONTEND_PATH . 'components/header.php';
                                                             class="small font-weight-bold text-gray-700 mb-1">No. PR /
                                                             PO</label>
                                                         <input type="text" class="form-control form-control-sm"
-                                                            id="filter-inbound-po" placeholder="Cari No. PR / PO...">
+                                                            id="filter-inbound-po" placeholder="Cari No. PR / PO (Tekan Enter)...">
                                                     </div>
 
                                                     <!-- Reset Filter Button -->
@@ -680,7 +680,7 @@ include FRONTEND_PATH . 'components/header.php';
                                                             Dokumen</label>
                                                         <input type="text" class="form-control form-control-sm"
                                                             id="filter-outbound-mr"
-                                                            placeholder="Cari MR / PCK / DN / PO...">
+                                                            placeholder="Cari MR / PCK / DN / PO (Tekan Enter)...">
                                                     </div>
 
                                                     <!-- Reset Filter Button -->

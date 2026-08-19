@@ -60,31 +60,55 @@ try {
 
     if ($action === 'counts') {
         // Return summary metrics for top cards
-        $totalMr = (int) $pdo->query("SELECT COUNT(*) FROM outbound_master")->fetchColumn();
-        $totalPacked = (int) $pdo->query("SELECT COUNT(*) FROM outbound_master WHERE (pck_no IS NOT NULL AND TRIM(pck_no) != '') OR (pck_status IS NOT NULL AND TRIM(pck_status) != '')")->fetchColumn();
+        // Total MR: count of No MR field (if duplicate count as 1)
+        $totalMr = (int) $pdo->query("SELECT COUNT(DISTINCT mr_no) FROM outbound_master WHERE mr_no IS NOT NULL AND TRIM(mr_no) != ''")->fetchColumn();
         
-        $totalShipped = (int) $pdo->query("SELECT COUNT(*) FROM outbound_master WHERE 
-            LOWER(dn_status) LIKE '%ship%' OR LOWER(mr_status) LIKE '%ship%' 
-            OR (pickup_type IS NOT NULL AND TRIM(pickup_type) != '') 
-            OR (via IS NOT NULL AND TRIM(via) != '')")->fetchColumn();
-
-        $dalamPerjalanan = (int) $pdo->query("SELECT COUNT(*) FROM outbound_master WHERE 
+        // Total Packed: count of NO PCK (if duplicate count as 1)
+        $totalPacked = (int) $pdo->query("SELECT COUNT(DISTINCT pck_no) FROM outbound_master WHERE pck_no IS NOT NULL AND TRIM(pck_no) != ''")->fetchColumn();
+        
+        // Dalam perjalanan: count of NO DN (if duplicate count as 1)
+        $dalamPerjalanan = (int) $pdo->query("SELECT COUNT(DISTINCT dn_no) FROM outbound_master WHERE (dn_no IS NOT NULL AND TRIM(dn_no) != '') AND (
             LOWER(dn_status) LIKE '%jalan%' OR LOWER(mr_status) LIKE '%jalan%' 
             OR LOWER(dn_status) LIKE '%perjalanan%' OR LOWER(mr_status) LIKE '%perjalanan%'
             OR LOWER(dn_status) LIKE '%transit%' OR LOWER(mr_status) LIKE '%transit%'
-            OR LOWER(dn_status) LIKE '%on delivery%' OR LOWER(mr_status) LIKE '%on delivery%'")->fetchColumn();
+            OR LOWER(dn_status) LIKE '%on delivery%' OR LOWER(mr_status) LIKE '%on delivery%'
+        )")->fetchColumn();
 
-        $tibaLokasi = (int) $pdo->query("SELECT COUNT(*) FROM outbound_master WHERE 
+        // Tiba Di Lokasi: count of NO DN (if duplicate count as 1)
+        $tibaLokasi = (int) $pdo->query("SELECT COUNT(DISTINCT dn_no) FROM outbound_master WHERE (dn_no IS NOT NULL AND TRIM(dn_no) != '') AND (
             LOWER(dn_status) LIKE '%tiba%' OR LOWER(mr_status) LIKE '%tiba%' 
             OR LOWER(dn_status) LIKE '%delivered%' OR LOWER(mr_status) LIKE '%delivered%'
             OR LOWER(dn_status) LIKE '%close%' OR LOWER(mr_status) LIKE '%close%'
-            OR LOWER(dn_status) LIKE '%selesai%' OR LOWER(mr_status) LIKE '%selesai%'")->fetchColumn();
+            OR LOWER(dn_status) LIKE '%selesai%' OR LOWER(mr_status) LIKE '%selesai%'
+        )")->fetchColumn();
 
-        // Shipped segments (Internal vs External)
-        $deliveryCount = (int) $pdo->query("SELECT COUNT(*) FROM outbound_master WHERE LOWER(pickup_type) LIKE '%delivery%' OR LOWER(via) LIKE '%delivery%'")->fetchColumn();
-        $pickupCount = (int) $pdo->query("SELECT COUNT(*) FROM outbound_master WHERE LOWER(pickup_type) LIKE '%pickup%' OR LOWER(via) LIKE '%pickup%'")->fetchColumn();
-        $handcarryCount = (int) $pdo->query("SELECT COUNT(*) FROM outbound_master WHERE LOWER(pickup_type) LIKE '%handcarry%' OR LOWER(via) LIKE '%handcarry%'")->fetchColumn();
-        $moverCount = (int) $pdo->query("SELECT COUNT(*) FROM outbound_master WHERE LOWER(pickup_type) LIKE '%mover%' OR LOWER(via) LIKE '%mover%' OR LOWER(pickup_type) LIKE '%forwarder%' OR LOWER(via) LIKE '%forwarder%'")->fetchColumn();
+        // Shipped segments lookup strictly on pickup_type (Internal vs External)
+        $allPickupTypes = $pdo->query("SELECT pickup_type, COUNT(*) as cnt FROM outbound_master WHERE pickup_type IS NOT NULL AND TRIM(pickup_type) != '' GROUP BY pickup_type")->fetchAll(PDO::FETCH_ASSOC);
+
+        $deliveryCount = 0;
+        $pickupCount = 0;
+        $handcarryCount = 0;
+        $moverCount = 0;
+
+        foreach ($allPickupTypes as $pt) {
+            $name = trim($pt['pickup_type']);
+            $norm = strtolower(str_replace([' ', '-', '_'], '', $name));
+            $cnt = (int)$pt['cnt'];
+
+            if (strpos($norm, 'delivery') !== false) {
+                $deliveryCount += $cnt;
+            } elseif (strpos($norm, 'pickup') !== false) {
+                $pickupCount += $cnt;
+            } elseif (strpos($norm, 'handcarry') !== false) {
+                $handcarryCount += $cnt;
+            } elseif (strpos($norm, 'mover') !== false || strpos($norm, 'forwarder') !== false || strpos($norm, 'ekspedisi') !== false || strpos($norm, 'external') !== false) {
+                $moverCount += $cnt;
+            } else {
+                $deliveryCount += $cnt;
+            }
+        }
+
+        $totalShipped = $deliveryCount + $pickupCount + $handcarryCount + $moverCount;
 
         echo json_encode([
             'status' => 'success',
@@ -112,7 +136,7 @@ try {
     if ($status === 'TOTAL PACKED') {
         $where .= " AND ((pck_no IS NOT NULL AND TRIM(pck_no) != '') OR (pck_status IS NOT NULL AND TRIM(pck_status) != ''))";
     } elseif ($status === 'TOTAL SHIPPED') {
-        $where .= " AND (LOWER(dn_status) LIKE '%ship%' OR LOWER(mr_status) LIKE '%ship%' OR (pickup_type IS NOT NULL AND TRIM(pickup_type) != '') OR (via IS NOT NULL AND TRIM(via) != ''))";
+        $where .= " AND (pickup_type IS NOT NULL AND TRIM(pickup_type) != '')";
     } elseif ($status === 'DALAM PERJALANAN') {
         $where .= " AND (LOWER(dn_status) LIKE '%jalan%' OR LOWER(mr_status) LIKE '%jalan%' OR LOWER(dn_status) LIKE '%perjalanan%' OR LOWER(mr_status) LIKE '%perjalanan%' OR LOWER(dn_status) LIKE '%transit%' OR LOWER(mr_status) LIKE '%transit%' OR LOWER(dn_status) LIKE '%on delivery%' OR LOWER(mr_status) LIKE '%on delivery%')";
     } elseif ($status === 'TIBA DI LOKASI') {

@@ -612,10 +612,10 @@ include FRONTEND_PATH . 'components/header.php';
                         <div class="modal-body p-4 bg-white" style="max-height: 75vh; overflow-y: auto;">
 
                             <!-- Shipped Segments Slider Breakdown (Internal & External) -->
-                            <div id="shipped-segment-container" class="mb-4 d-none">
+                            <div id="shipped-segment-container" class="mb-3 d-none">
 
                                 <!-- Slider Navigation Tabs / Toggle -->
-                                <div class="d-flex justify-content-center mb-3">
+                                <div class="d-flex justify-content-center mb-2">
                                     <div class="btn-group p-1 bg-light border rounded-pill shadow-sm" role="group"
                                         aria-label="Shipped Segments Toggle">
                                         <button type="button"
@@ -634,16 +634,15 @@ include FRONTEND_PATH . 'components/header.php';
                                 <!-- Bootstrap Carousel Slider -->
                                 <div id="shippedSegmentCarousel" class="carousel slide" data-ride="carousel"
                                     data-interval="false">
-                                    <div class="carousel-inner shadow-sm rounded border bg-light"
-                                        style="min-height: 175px;">
+                                    <div class="carousel-inner shadow-sm rounded border bg-light">
 
                                         <!-- Slide 1: Internal (Delivery, Pickup, Handcarry) -->
                                         <div class="carousel-item active p-3">
                                             <div
-                                                class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                                                class="d-flex justify-content-between align-items-center mb-2.5 pb-2 border-bottom">
                                                 <div>
                                                     <span class="font-weight-bold text-gray-800"
-                                                        style="font-size: 0.9rem;">Internal</span>
+                                                        style="font-size: 0.92rem;">Internal</span>
                                                 </div>
                                                 <span class="badge badge-info px-2.5 py-1.5 font-weight-bold"
                                                     style="font-size: 0.82rem; border-radius: 6px;">
@@ -694,10 +693,10 @@ include FRONTEND_PATH . 'components/header.php';
                                         <!-- Slide 2: External (Mover) -->
                                         <div class="carousel-item p-3">
                                             <div
-                                                class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                                                class="d-flex justify-content-between align-items-center mb-2.5 pb-2 border-bottom">
                                                 <div>
                                                     <span class="font-weight-bold text-gray-800"
-                                                        style="font-size: 0.9rem;">External</span>
+                                                        style="font-size: 0.92rem;">External</span>
                                                 </div>
                                                 <span
                                                     class="badge badge-warning text-white px-2.5 py-1.5 font-weight-bold"
@@ -706,9 +705,9 @@ include FRONTEND_PATH . 'components/header.php';
                                                 </span>
                                             </div>
 
-                                            <div class="row align-items-center">
+                                            <div class="row justify-content-center">
                                                 <!-- Mover -->
-                                                <div class="col-md-12 mb-2 mb-md-0">
+                                                <div class="col-md-4 mb-0">
                                                     <div class="bg-white p-3 rounded border shadow-xs text-center">
                                                         <div
                                                             class="text-xs font-weight-bold text-uppercase text-muted mb-1">
@@ -725,16 +724,25 @@ include FRONTEND_PATH . 'components/header.php';
                                 </div>
                             </div>
 
-                            <div class="table-responsive border rounded" style="border-color: #eaecf4 !important; max-height: 500px; overflow-y: auto;">
-                                <table class="table table-hover table-striped text-center mb-0" id="tableMrStatusDetail"
+                            <!-- Filter Controls Container (Clean & Neat Filter Bar) -->
+                            <div class="card mb-3 border shadow-sm" style="border-radius: 10px; background-color: #f8f9fc; border-color: #e3e6f0 !important;">
+                                <div class="card-body py-2 px-3">
+                                    <div class="d-flex flex-wrap align-items-center w-100" id="modalDynamicFilterRow" style="gap: 8px;">
+                                        <!-- Dynamic Dropdowns, Search Input, and Reset Button injected dynamically via JS -->
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="table-responsive border rounded shadow-sm" style="border-color: #eaecf4 !important; background: #ffffff; max-height: 500px; overflow-y: auto;">
+                                <table class="table table-hover table-striped text-left mb-0 text-nowrap" id="tableMrStatusDetail"
                                     style="font-size: 0.85rem; width: 100%;">
-                                    <thead class="bg-light text-gray-700 font-weight-bold" id="tableMrStatusDetailHead"
-                                        style="border-bottom: 2px solid #eaecf4; position: sticky; top: 0; z-index: 1; background-color: #f8f9fc;">
+                                    <thead class="thead-light text-gray-800 font-weight-bold" id="tableMrStatusDetailHead"
+                                        style="border-bottom: 2px solid #e3e6f0; position: sticky; top: 0; z-index: 1; background-color: #f8f9fc;">
                                         <!-- Rendered dynamically by JS -->
                                     </thead>
                                     <tbody id="tableMrStatusDetailBody">
                                         <tr>
-                                            <td colspan="6" class="py-5 text-muted bg-white">
+                                            <td colspan="6" class="py-5 text-muted bg-white text-center">
                                                 <i class="fas fa-folder-open fa-2x mb-2 d-block text-gray-300"></i>
                                                 Belum ada data tersedia untuk status ini.
                                             </td>
@@ -779,23 +787,248 @@ include FRONTEND_PATH . 'components/header.php';
                         }
                     };
 
-                    // Function to load and render table rows inside the modal
-                    function loadModalStatusTable(statusName) {
-                        var cfg = statusColumnConfig[statusName] || statusColumnConfig['TOTAL MR'];
-                        var thead = $('#tableMrStatusDetailHead');
-                        var tbody = $('#tableMrStatusDetailBody');
+                    // Neat categorical filter definitions for each status (clean & targeted)
+                    var statusFilterMap = {
+                        'TOTAL MR': [
+                            { key: 'user', label: 'User' },
+                            { key: 'tujuan', label: 'Tujuan' },
+                            { key: 'pickup_by', label: 'Pickup By' }
+                        ],
+                        'TOTAL PACKED': [
+                            { key: 'user', label: 'User' },
+                            { key: 'tujuan', label: 'Tujuan' },
+                            { key: 'pck_detail', label: 'PCK Detail' }
+                        ],
+                        'TOTAL SHIPPED': [
+                            { key: 'user', label: 'User' },
+                            { key: 'tujuan', label: 'Tujuan' },
+                            { key: 'pickup_type', label: 'Pickup Type' },
+                            { key: 'via', label: 'Via' }
+                        ],
+                        'DALAM PERJALANAN': [
+                            { key: 'user', label: 'User' },
+                            { key: 'tujuan', label: 'Tujuan' },
+                            { key: 'status_mr', label: 'Status MR' },
+                            { key: 'status_dn', label: 'Status DN' }
+                        ],
+                        'TIBA DI LOKASI': [
+                            { key: 'user', label: 'User' },
+                            { key: 'tujuan', label: 'Tujuan' },
+                            { key: 'status_mr', label: 'Status MR' },
+                            { key: 'status_dn', label: 'Status DN' }
+                        ]
+                    };
 
-                        // Build table headers
+                    var currentModalRows = [];
+                    var currentConfig = null;
+                    var currentStatusName = '';
+                    var currentSort = { key: null, dir: 'asc' };
+
+                    // Render table headers with interactive Asc/Desc sort icons
+                    function renderTableHeader() {
+                        if (!currentConfig) return;
+                        var thead = $('#tableMrStatusDetailHead');
                         var headHtml = '<tr>';
-                        cfg.headers.forEach(function (h) {
-                            headHtml += '<th class="py-2.5 px-3 border-top-0 whitespace-nowrap">' + h + '</th>';
+                        currentConfig.headers.forEach(function (h, idx) {
+                            var k = currentConfig.keys[idx];
+                            var iconHtml = '<i class="fas fa-sort text-muted ml-1.5" style="font-size: 0.72rem; opacity: 0.4;"></i>';
+                            if (currentSort.key === k) {
+                                iconHtml = currentSort.dir === 'asc' 
+                                    ? '<i class="fas fa-sort-up text-primary ml-1.5" style="font-size: 0.82rem;"></i>' 
+                                    : '<i class="fas fa-sort-down text-primary ml-1.5" style="font-size: 0.82rem;"></i>';
+                            }
+                            headHtml += '<th class="py-2.5 px-3 border-top-0 text-left text-nowrap sortable-modal-header" data-key="' + k + '" style="cursor: pointer; user-select: none;" title="Klik untuk mengurutkan (Asc/Desc)">';
+                            headHtml += '<div class="d-inline-flex align-items-center justify-content-between w-100">' +
+                                        '<span>' + h + '</span>' +
+                                        '<span class="sort-icon-box">' + iconHtml + '</span>' +
+                                        '</div>';
+                            headHtml += '</th>';
                         });
                         headHtml += '</tr>';
                         thead.html(headHtml);
+                    }
 
-                        // Show Loading Spinner
+                    // Render rows in table and update count badge
+                    function renderModalRows(dataList) {
+                        var tbody = $('#tableMrStatusDetailBody');
+                        var colCount = currentConfig ? currentConfig.headers.length : 6;
+                        var countEl = $('#outbound-modal-count-display');
+
+                        if (!dataList || dataList.length === 0) {
+                            tbody.html('<tr><td colspan="' + colCount + '" class="py-5 text-center text-muted bg-white"><i class="fas fa-folder-open fa-2x mb-2 d-block text-gray-300"></i>Tidak ada data yang sesuai filter.</td></tr>');
+                            if (countEl.length) countEl.text('0 Data');
+                            return;
+                        }
+
+                        var rowsHtml = '';
+                        dataList.forEach(function (row) {
+                            rowsHtml += '<tr>';
+                            currentConfig.keys.forEach(function (k) {
+                                var val = row[k] !== undefined && row[k] !== null && row[k] !== '' ? row[k] : '-';
+                                rowsHtml += '<td class="py-2 px-3 align-middle text-gray-800 text-left text-nowrap">' + val + '</td>';
+                            });
+                            rowsHtml += '</tr>';
+                        });
+                        tbody.html(rowsHtml);
+
+                        if (countEl.length) {
+                            if (currentModalRows.length > dataList.length) {
+                                countEl.text(dataList.length.toLocaleString('id-ID') + ' dari ' + currentModalRows.length.toLocaleString('id-ID') + ' Data');
+                            } else {
+                                countEl.text(dataList.length.toLocaleString('id-ID') + ' Data');
+                            }
+                        }
+                    }
+
+                    // Filter & Sort live data
+                    function applyModalFilters() {
+                        if (!currentModalRows || !currentConfig) return;
+
+                        var searchTerm = ($('#filter-modal-search').val() || '').trim().toLowerCase();
+                        var filterValues = {};
+
+                        $('.outbound-modal-col-filter').each(function () {
+                            var key = $(this).attr('data-key');
+                            var val = $(this).val();
+                            if (val) {
+                                filterValues[key] = val.trim().toLowerCase();
+                            }
+                        });
+
+                        var filtered = currentModalRows.filter(function (row) {
+                            // Match dropdown filters
+                            for (var k in filterValues) {
+                                var cellVal = (row[k] || '').toString().trim().toLowerCase();
+                                if (cellVal !== filterValues[k]) {
+                                    return false;
+                                }
+                            }
+
+                            // Match search input
+                            if (searchTerm) {
+                                var matchSearch = currentConfig.keys.some(function (k) {
+                                    var cellVal = (row[k] || '').toString().toLowerCase();
+                                    return cellVal.indexOf(searchTerm) !== -1;
+                                });
+                                if (!matchSearch) return false;
+                            }
+
+                            return true;
+                        });
+
+                        // Apply Ascending / Descending Sort if a column is selected
+                        if (currentSort.key) {
+                            filtered.sort(function (a, b) {
+                                var valA = (a[currentSort.key] || '').toString().trim();
+                                var valB = (b[currentSort.key] || '').toString().trim();
+
+                                // Numeric comparison if purely numbers
+                                var numA = Number(valA.replace(/[^0-9.-]/g, ''));
+                                var numB = Number(valB.replace(/[^0-9.-]/g, ''));
+                                if (!isNaN(numA) && !isNaN(numB) && valA !== '-' && valB !== '-' && valA.match(/^[0-9.,-]+$/) && valB.match(/^[0-9.,-]+$/)) {
+                                    return currentSort.dir === 'asc' ? numA - numB : numB - numA;
+                                }
+
+                                return currentSort.dir === 'asc' 
+                                    ? valA.localeCompare(valB, undefined, { numeric: true, sensitivity: 'base' })
+                                    : valB.localeCompare(valA, undefined, { numeric: true, sensitivity: 'base' });
+                            });
+                        }
+
+                        renderModalRows(filtered);
+                    }
+
+                    // Dynamically build neat filter dropdowns, search input, and reset button
+                    function updateModalFilters(statusName, rawData) {
+                        var filterRow = $('#modalDynamicFilterRow');
+                        var filterDefs = statusFilterMap[statusName] || [
+                            { key: 'user', label: 'User' },
+                            { key: 'tujuan', label: 'Tujuan' }
+                        ];
+                        var html = '';
+
+                        // Create clean dropdown filters
+                        filterDefs.forEach(function (f) {
+                            var key = f.key;
+                            var label = f.label;
+                            
+                            // Extract unique values
+                            var uniqueVals = [];
+                            (rawData || []).forEach(function (r) {
+                                var v = (r[key] || '').toString().trim();
+                                if (v && v !== '-' && uniqueVals.indexOf(v) === -1) {
+                                    uniqueVals.push(v);
+                                }
+                            });
+                            uniqueVals.sort();
+
+                            html += '<div style="flex: 1 1 140px; max-width: 200px; min-width: 120px;">';
+                            html += '<select class="form-control form-control-sm custom-select custom-select-sm outbound-modal-col-filter" data-key="' + key + '" style="font-size: 0.78rem; border-radius: 6px;">';
+                            html += '<option value="">Semua ' + label + '</option>';
+                            uniqueVals.forEach(function (uv) {
+                                html += '<option value="' + $('<div>').text(uv).html() + '">' + $('<div>').text(uv).html() + '</option>';
+                            });
+                            html += '</select>';
+                            html += '</div>';
+                        });
+
+                        // Clean Search Input with Icon
+                        html += '<div style="flex: 1 1 170px; max-width: 230px; min-width: 140px;">';
+                        html += '<div class="input-group input-group-sm">';
+                        html += '<div class="input-group-prepend"><span class="input-group-text bg-white border-right-0 text-muted" style="border-radius: 6px 0 0 6px;"><i class="fas fa-search" style="font-size: 0.72rem;"></i></span></div>';
+                        html += '<input type="text" class="form-control form-control-sm border-left-0" id="filter-modal-search" placeholder="Cari dokumen..." style="font-size: 0.78rem; border-radius: 0 6px 6px 0;">';
+                        html += '</div>';
+                        html += '</div>';
+
+                        // Reset Filter Button
+                        html += '<div>';
+                        html += '<button type="button" class="btn btn-outline-secondary btn-sm font-weight-bold" id="btn-reset-modal-filter" title="Reset Filter" style="border-radius: 6px; font-size: 0.75rem; padding: 0.25rem 0.65rem;">';
+                        html += '<i class="fas fa-undo mr-1"></i> Reset';
+                        html += '</button>';
+                        html += '</div>';
+
+                        filterRow.html(html);
+
+                        // Event listeners
+                        $('.outbound-modal-col-filter').off('change').on('change', applyModalFilters);
+                        $('#filter-modal-search').off('keyup input change').on('keyup input change', applyModalFilters);
+                        $('#btn-reset-modal-filter').off('click').on('click', function () {
+                            $('.outbound-modal-col-filter').val('');
+                            $('#filter-modal-search').val('');
+                            currentSort = { key: null, dir: 'asc' };
+                            renderTableHeader();
+                            applyModalFilters();
+                        });
+                    }
+
+                    // Table header click event to toggle Ascending / Descending sorting
+                    $('#tableMrStatusDetailHead').off('click', '.sortable-modal-header').on('click', '.sortable-modal-header', function () {
+                        var key = $(this).attr('data-key');
+                        if (currentSort.key === key) {
+                            currentSort.dir = (currentSort.dir === 'asc') ? 'desc' : 'asc';
+                        } else {
+                            currentSort.key = key;
+                            currentSort.dir = 'asc';
+                        }
+                        renderTableHeader();
+                        applyModalFilters();
+                    });
+
+                    // Function to load and render table rows inside the modal
+                    function loadModalStatusTable(statusName) {
+                        var cfg = statusColumnConfig[statusName] || statusColumnConfig['TOTAL MR'];
+                        currentConfig = cfg;
+                        currentStatusName = statusName;
+                        currentSort = { key: null, dir: 'asc' };
+                        currentModalRows = [];
+
+                        renderTableHeader();
+
+                        var tbody = $('#tableMrStatusDetailBody');
                         var colCount = cfg.headers.length;
                         tbody.html('<tr><td colspan="' + colCount + '" class="py-5 text-center text-muted bg-white"><i class="fas fa-spinner fa-spin fa-2x text-primary mb-2 d-block"></i>Memuat data detail status...</td></tr>');
+                        $('#modalDynamicFilterRow').empty();
+                        $('#outbound-modal-count-display').text('Memuat...');
 
                         // Fetch live rows from API
                         $.ajax({
@@ -805,22 +1038,16 @@ include FRONTEND_PATH . 'components/header.php';
                             dataType: 'json',
                             success: function (res) {
                                 if (res.status === 'success' && res.data && res.data.length > 0) {
-                                    var rowsHtml = '';
-                                    res.data.forEach(function (row) {
-                                        rowsHtml += '<tr>';
-                                        cfg.keys.forEach(function (k) {
-                                            var val = row[k] !== undefined && row[k] !== null && row[k] !== '' ? row[k] : '-';
-                                            rowsHtml += '<td class="py-2 px-3 align-middle text-gray-800">' + val + '</td>';
-                                        });
-                                        rowsHtml += '</tr>';
-                                    });
-                                    tbody.html(rowsHtml);
+                                    currentModalRows = res.data;
+                                    updateModalFilters(statusName, res.data);
+                                    renderModalRows(res.data);
                                 } else {
-                                    tbody.html('<tr><td colspan="' + colCount + '" class="py-5 text-muted bg-white"><i class="fas fa-folder-open fa-2x mb-2 d-block text-gray-300"></i>Belum ada data tersedia untuk status ini.</td></tr>');
+                                    updateModalFilters(statusName, []);
+                                    tbody.html('<tr><td colspan="' + colCount + '" class="py-5 text-center text-muted bg-white"><i class="fas fa-folder-open fa-2x mb-2 d-block text-gray-300"></i>Belum ada data tersedia untuk status ini.</td></tr>');
                                 }
                             },
                             error: function () {
-                                tbody.html('<tr><td colspan="' + colCount + '" class="py-4 text-danger bg-white"><i class="fas fa-exclamation-circle fa-2x mb-2 d-block"></i>Gagal memuat data dari server.</td></tr>');
+                                tbody.html('<tr><td colspan="' + colCount + '" class="py-4 text-center text-danger bg-white"><i class="fas fa-exclamation-circle fa-2x mb-2 d-block"></i>Gagal memuat data dari server.</td></tr>');
                             }
                         });
                     }
