@@ -439,6 +439,20 @@
             var dotContainer = document.getElementById('rack-status-dots');
             if (dotContainer) dotContainer.replaceChildren();
 
+            // Clear Inbound Summary
+            if (window.updateInboundFlowPieChart) {
+                window.updateInboundFlowPieChart([0, 0, 0]);
+            }
+            var flowTotalGr = document.getElementById('flow-total-gr');
+            if (flowTotalGr) flowTotalGr.textContent = '0 GR';
+            var flowDoneCount = document.getElementById('flow-done-count');
+            if (flowDoneCount) flowDoneCount.textContent = '0 Unit';
+
+            // Clear Storage Summary
+            if (window.updateInventorySummaryPieChart) {
+                window.updateInventorySummaryPieChart([0, 0, 0, 0]);
+            }
+
             return;
         }
 
@@ -461,6 +475,9 @@
         // Update Dashboard Overview Storage Summary elements if present
         var invTotalEl = document.getElementById('inv-total-perangkat');
         if (invTotalEl) invTotalEl.textContent = formatNumber(totalAsset) + ' Unit';
+
+        var invNbvEl = document.getElementById('inv-total-nbv');
+        if (invNbvEl) invNbvEl.textContent = formatCurrency(totalNbv);
 
         var rangeColDash = FormulaController.findBestColumn(headers, ['range', 'RANGE', 'aging_range', 'AGING_RANGE'], ['range', 'aging', 'usia', 'umur']);
         var catColDash = FormulaController.findBestColumn(headers, ['category', 'CATEGORY', 'kategori', 'KATEGORI'], ['category', 'kategori', 'status']);
@@ -506,7 +523,7 @@
         if (elReUse) elReUse.textContent = formatNumber(cReUse) + ' Unit';
 
         if (window.updateInventorySummaryPieChart) {
-            window.updateInventorySummaryPieChart([cLess3m, c3to12m, cMore12m, cReUse]);
+            window.updateInventorySummaryPieChart(totalAsset, totalNbv);
         }
 
         // 3 & 4. UTILISASI SPACE & FREE SPACE
@@ -1014,6 +1031,31 @@
                         cardFreeBar.setAttribute('aria-valuenow', freePercent);
                         cardFreeBar.className = 'progress-bar ' + getFreeSpaceClass(freePercent);
                     }
+
+                    // Update Dashboard Storage Utilization elements if present
+                    var storageUtilRate = document.getElementById('storage-util-rate');
+                    if (storageUtilRate) storageUtilRate.textContent = utilPercent + '%';
+
+                    var storageUtilBar = document.getElementById('storage-util-bar');
+                    if (storageUtilBar) {
+                        storageUtilBar.style.width = utilPercent + '%';
+                        if (utilPercent < 50) {
+                            storageUtilBar.style.background = 'linear-gradient(90deg, #e74a3b 0%, #be2617 100%)';
+                        } else if (utilPercent < 75) {
+                            storageUtilBar.style.background = 'linear-gradient(90deg, #f6c23e 0%, #dfa827 100%)';
+                        } else {
+                            storageUtilBar.style.background = 'linear-gradient(90deg, #4e73df 0%, #224abe 100%)';
+                        }
+                    }
+
+                    var storageTotalCap = document.getElementById('storage-total-capacity');
+                    if (storageTotalCap) storageTotalCap.textContent = '100%';
+
+                    var storageUsed = document.getElementById('storage-used');
+                    if (storageUsed) storageUsed.textContent = utilPercent + '%';
+
+                    var storageAvailable = document.getElementById('storage-available');
+                    if (storageAvailable) storageAvailable.textContent = freePercent + '%';
                 })
                 .catch(function(err) { console.error('Error fetching utilisasi data:', err); });
         }

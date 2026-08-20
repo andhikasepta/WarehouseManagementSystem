@@ -107,245 +107,232 @@ include FRONTEND_PATH . 'components/header.php';
                         </div>
                     </div> -->
 
-                    <!-- Row 2: Inbound Summary (Full Width Card with Steps & Bar Chart) -->
+                    <!-- Row 2: Inbound Summary Group Card -->
                     <div class="row" style="margin-left: -4px; margin-right: -4px;">
-                        <!-- Card 1: Inbound Summary -->
                         <div class="col-12 mb-4" style="padding-left: 4px; padding-right: 4px;">
-                            <div class="card shadow border-0 h-100">
-                                <div class="card-body py-3 px-3 d-flex flex-column justify-content-center">
+                            <div class="card shadow border-0">
+                                <div class="card-body py-3 px-3">
+                                    <!-- Group Card Header -->
                                     <div class="d-flex align-items-center justify-content-between mb-3 text-nowrap">
                                         <span class="font-weight-bold text-primary text-nowrap"
-                                            style="font-size: 0.85rem;"><i class="fas fa-stream mr-2"></i>Inbound
+                                            style="font-size: 0.85rem;"><i class="fas fa-file-alt mr-2"></i>Inbound
                                             Summary</span>
                                         <span class="badge badge-primary font-weight-normal text-nowrap px-2.5 py-1"
                                             style="font-size: 0.65rem;">Inbound Management</span>
                                     </div>
 
-                                    <!-- Top Section: 7 Horizontal Steps Pipeline (Full Width, non-wrapping) -->
-                                    <div class="mt-3 pt-1 pb-2 mb-3">
-                                        <div class="d-flex align-items-center justify-content-between text-center flex-nowrap w-100"
-                                            id="inbound-steps-container">
-                                            <!-- Step 1: Total PO Inbound -->
-                                            <div class="flow-step text-center flex-fill px-1 py-1 outbound-summary-clickable"
-                                                onclick="openInboundSummaryModal(0)" style="cursor: pointer;"
-                                                title="Klik untuk detail Total PO Inbound">
-                                                <div class="rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center shadow-sm"
-                                                    style="width: 36px; height: 36px; background-color: #eef2ff;">
-                                                    <i class="fas fa-file-invoice text-primary"
-                                                        style="font-size: 0.95rem;"></i>
+                                    <!-- Group Card Body: 2 Inner Cards (Inbound Flow & Inbound Chart) -->
+                                    <div class="row" style="margin-left: -4px; margin-right: -4px;">
+                                        <!-- Inner Card 1: Inbound Flow -->
+                                        <div class="col-xl-8 col-lg-7 col-md-12 mb-3 mb-lg-0"
+                                            style="padding-left: 4px; padding-right: 4px;">
+                                            <div class="card border bg-white h-100 shadow-none">
+                                                <div
+                                                    class="card-body py-3 px-3 d-flex flex-column justify-content-center">
+                                                    <div class="w-100 my-auto">
+                                                        <div class="d-flex align-items-center justify-content-between text-center flex-nowrap w-100"
+                                                            id="inbound-steps-container">
+                                                            <!-- Step 1: Total PO Inbound -->
+                                                            <div class="flow-step text-center flex-fill px-1 py-1 outbound-summary-clickable"
+                                                                onclick="openInboundSummaryModal(0)"
+                                                                style="cursor: pointer;"
+                                                                title="Klik untuk detail Total PO Inbound">
+                                                                <div class="rounded-circle mx-auto mb-1.5 d-flex align-items-center justify-content-center shadow-sm"
+                                                                    style="width: 36px; height: 36px; background-color: #eef2ff;">
+                                                                    <i class="fas fa-file-invoice text-primary"
+                                                                        style="font-size: 0.95rem;"></i>
+                                                                </div>
+                                                                <div class="font-weight-bold text-gray-700 text-nowrap mt-2 mb-1"
+                                                                    style="font-size: 0.62rem;">Total PO Inbound</div>
+                                                                <div class="font-weight-bold text-primary"
+                                                                    style="font-size: 0.82rem;" id="flow-po-count">0 PO
+                                                                </div>
+                                                            </div>
+
+                                                            <!-- Arrow 1 -->
+                                                            <div class="text-gray-300 align-self-center mx-1"
+                                                                style="font-size: 0.7rem;"><i
+                                                                    class="fas fa-chevron-right"></i></div>
+
+                                                            <!-- Step 2: Total PO Ontime -->
+                                                            <div class="flow-step text-center flex-fill px-1 py-1 outbound-summary-clickable"
+                                                                onclick="openInboundSummaryModal(1)"
+                                                                style="cursor: pointer;"
+                                                                title="Klik untuk detail Total PO Ontime">
+                                                                <div class="rounded-circle mx-auto mb-1.5 d-flex align-items-center justify-content-center shadow-sm"
+                                                                    style="width: 36px; height: 36px; background-color: #ecfdf5;">
+                                                                    <i class="fas fa-check-circle text-success"
+                                                                        style="font-size: 0.95rem;"></i>
+                                                                </div>
+                                                                <div class="font-weight-bold text-gray-700 text-nowrap mt-2 mb-1"
+                                                                    style="font-size: 0.62rem;">Total PO Ontime</div>
+                                                                <div class="font-weight-bold text-success"
+                                                                    style="font-size: 0.82rem;"
+                                                                    id="flow-po-proses-delivery">0 PO</div>
+                                                            </div>
+
+                                                            <!-- Arrow 2 -->
+                                                            <div class="text-gray-300 align-self-center mx-1"
+                                                                style="font-size: 0.7rem;"><i
+                                                                    class="fas fa-chevron-right"></i></div>
+
+                                                            <!-- Step 3: Total PO Terlambat -->
+                                                            <div class="flow-step text-center flex-fill px-1 py-1 outbound-summary-clickable"
+                                                                onclick="openInboundSummaryModal(2)"
+                                                                style="cursor: pointer;"
+                                                                title="Klik untuk detail Total PO Terlambat">
+                                                                <div class="rounded-circle mx-auto mb-1.5 d-flex align-items-center justify-content-center shadow-sm"
+                                                                    style="width: 36px; height: 36px; background-color: #fee2e2;">
+                                                                    <i class="fas fa-exclamation-triangle text-danger"
+                                                                        style="font-size: 0.95rem;"></i>
+                                                                </div>
+                                                                <div class="font-weight-bold text-gray-700 text-nowrap mt-2 mb-1"
+                                                                    style="font-size: 0.62rem;">Total PO Terlambat</div>
+                                                                <div class="font-weight-bold text-danger"
+                                                                    style="font-size: 0.82rem;"
+                                                                    id="flow-po-terlambat-delivery">0 PO</div>
+                                                            </div>
+
+                                                            <!-- Vertical Divider -->
+                                                            <div class="border-left align-self-stretch mx-2 my-1"
+                                                                style="height: auto; min-height: 60px;">
+                                                            </div>
+
+                                                            <!-- Step 4: Total Penerimaan (GR) -->
+                                                            <div class="flow-step text-center flex-fill px-1 py-1 outbound-summary-clickable"
+                                                                onclick="openInboundSummaryModal(3)"
+                                                                style="cursor: pointer;"
+                                                                title="Klik untuk detail Total Penerimaan (GR)">
+                                                                <div class="rounded-circle mx-auto mb-1.5 d-flex align-items-center justify-content-center shadow-sm"
+                                                                    style="width: 36px; height: 36px; background-color: #fef3c7;">
+                                                                    <i class="fas fa-dolly-flatbed text-warning"
+                                                                        style="font-size: 0.95rem;"></i>
+                                                                </div>
+                                                                <div class="font-weight-bold text-gray-700 text-nowrap mt-2 mb-1"
+                                                                    style="font-size: 0.62rem;">Total Penerimaan (GR)
+                                                                </div>
+                                                                <div class="font-weight-bold text-warning"
+                                                                    style="font-size: 0.82rem;" id="flow-total-gr">0 GR
+                                                                </div>
+                                                            </div>
+
+                                                            <!-- Arrow 4 -->
+                                                            <div class="text-gray-300 align-self-center mx-1"
+                                                                style="font-size: 0.7rem;"><i
+                                                                    class="fas fa-chevron-right"></i></div>
+
+                                                            <!-- Step 5: Total Registrasi -->
+                                                            <div class="flow-step text-center flex-fill px-1 py-1 outbound-summary-clickable"
+                                                                onclick="openInboundSummaryModal(4)"
+                                                                style="cursor: pointer;"
+                                                                title="Klik untuk detail Total Registrasi">
+                                                                <div class="rounded-circle mx-auto mb-1.5 d-flex align-items-center justify-content-center shadow-sm"
+                                                                    style="width: 36px; height: 36px; background-color: #f1f5f9;">
+                                                                    <i class="fas fa-check-circle text-dark"
+                                                                        style="font-size: 0.95rem;"></i>
+                                                                </div>
+                                                                <div class="font-weight-bold text-gray-700 text-nowrap mt-2 mb-1"
+                                                                    style="font-size: 0.62rem;">Total Registrasi</div>
+                                                                <div class="font-weight-bold text-dark"
+                                                                    style="font-size: 0.82rem;" id="flow-done-count">0
+                                                                    Unit</div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                                <div class="font-weight-bold text-gray-700 text-nowrap mt-3 mb-1"
-                                                    style="font-size: 0.62rem;">Total PO Inbound</div>
-                                                <div class="font-weight-bold text-primary" style="font-size: 0.82rem;"
-                                                    id="flow-po-count">0 PO</div>
-                                            </div>
-
-                                            <!-- Arrow 1 -->
-                                            <div class="text-gray-300 align-self-center mx-1"
-                                                style="font-size: 0.7rem;"><i class="fas fa-chevron-right"></i></div>
-
-                                            <!-- Step 2: PO Ontime Delivery -->
-                                            <div class="flow-step text-center flex-fill px-1 py-1 outbound-summary-clickable"
-                                                onclick="openInboundSummaryModal(1)" style="cursor: pointer;"
-                                                title="Klik untuk detail PO Ontime Delivery">
-                                                <div class="rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center shadow-sm"
-                                                    style="width: 36px; height: 36px; background-color: #e0f2fe;">
-                                                    <i class="fas fa-file-alt text-info"
-                                                        style="font-size: 0.95rem;"></i>
-                                                </div>
-                                                <div class="font-weight-bold text-gray-700 text-nowrap mt-3 mb-1"
-                                                    style="font-size: 0.62rem;">PO Ontime Delivery</div>
-                                                <div class="font-weight-bold text-info" style="font-size: 0.82rem;"
-                                                    id="flow-po-proses-delivery">0 PO</div>
-                                            </div>
-
-                                            <!-- Arrow 2 -->
-                                            <div class="text-gray-300 align-self-center mx-1"
-                                                style="font-size: 0.7rem;"><i class="fas fa-chevron-right"></i></div>
-
-                                            <!-- Step 3: PO Terlambat Delivery -->
-                                            <div class="flow-step text-center flex-fill px-1 py-1 outbound-summary-clickable"
-                                                onclick="openInboundSummaryModal(2)" style="cursor: pointer;"
-                                                title="Klik untuk detail PO Terlambat Delivery">
-                                                <div class="rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center shadow-sm"
-                                                    style="width: 36px; height: 36px; background-color: #fee2e2;">
-                                                    <i class="fas fa-exclamation-triangle text-danger"
-                                                        style="font-size: 0.95rem;"></i>
-                                                </div>
-                                                <div class="font-weight-bold text-gray-700 text-nowrap mt-3 mb-1"
-                                                    style="font-size: 0.62rem;">PO Terlambat Delivery</div>
-                                                <div class="font-weight-bold text-danger" style="font-size: 0.82rem;"
-                                                    id="flow-po-terlambat-delivery">0 PO</div>
-                                            </div>
-
-                                            <!-- Arrow 3 -->
-                                            <div class="text-gray-300 align-self-center mx-1"
-                                                style="font-size: 0.7rem;"><i class="fas fa-chevron-right"></i></div>
-
-                                            <!-- Step 4: PO Sudah GR -->
-                                            <div class="flow-step text-center flex-fill px-1 py-1 outbound-summary-clickable"
-                                                onclick="openInboundSummaryModal(3)" style="cursor: pointer;"
-                                                title="Klik untuk detail PO Sudah GR">
-                                                <div class="rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center shadow-sm"
-                                                    style="width: 36px; height: 36px; background-color: #ecfdf5;">
-                                                    <i class="fas fa-boxes text-success"
-                                                        style="font-size: 0.95rem;"></i>
-                                                </div>
-                                                <div class="font-weight-bold text-gray-700 text-nowrap mt-3 mb-1"
-                                                    style="font-size: 0.62rem;">PO Sudah GR</div>
-                                                <div class="font-weight-bold text-success" style="font-size: 0.82rem;"
-                                                    id="flow-gr-count">0 PO</div>
-                                            </div>
-
-                                            <!-- Arrow 4 -->
-                                            <div class="text-gray-300 align-self-center mx-1"
-                                                style="font-size: 0.7rem;"><i class="fas fa-chevron-right"></i></div>
-
-                                            <!-- Step 5: PO sudah Registrasi -->
-                                            <div class="flow-step text-center flex-fill px-1 py-1 outbound-summary-clickable"
-                                                onclick="openInboundSummaryModal(4)" style="cursor: pointer;"
-                                                title="Klik untuk detail PO Sudah Registrasi">
-                                                <div class="rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center shadow-sm"
-                                                    style="width: 36px; height: 36px; background-color: #e0e7ff;">
-                                                    <i class="fas fa-barcode text-primary"
-                                                        style="font-size: 0.95rem;"></i>
-                                                </div>
-                                                <div class="font-weight-bold text-gray-700 text-nowrap mt-3 mb-1"
-                                                    style="font-size: 0.62rem;">PO Sudah Registrasi</div>
-                                                <div class="font-weight-bold text-primary" style="font-size: 0.82rem;"
-                                                    id="flow-reg-count">0 PO</div>
-                                            </div>
-
-                                            <!-- Vertical Divider: Separator for Total GR > Total Registrasi -->
-                                            <div class="border-left align-self-stretch mx-2.5 my-1"
-                                                style="height: auto; min-height: 75px;">
-                                            </div>
-
-                                            <!-- Step 6: Total GR -->
-                                            <div class="flow-step text-center flex-fill px-1 py-1 outbound-summary-clickable"
-                                                onclick="openInboundSummaryModal(5)" style="cursor: pointer;"
-                                                title="Klik untuk detail Total GR">
-                                                <div class="rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center shadow-sm"
-                                                    style="width: 36px; height: 36px; background-color: #fef3c7;">
-                                                    <i class="fas fa-dolly-flatbed text-warning"
-                                                        style="font-size: 0.95rem;"></i>
-                                                </div>
-                                                <div class="font-weight-bold text-gray-700 text-nowrap mt-3 mb-1"
-                                                    style="font-size: 0.62rem;">Total GR</div>
-                                                <div class="font-weight-bold text-warning" style="font-size: 0.82rem;"
-                                                    id="flow-total-gr">0 GR</div>
-                                            </div>
-
-                                            <!-- Arrow 6 -->
-                                            <div class="text-gray-300 align-self-center mx-1"
-                                                style="font-size: 0.7rem;"><i class="fas fa-chevron-right"></i></div>
-
-                                            <!-- Step 7: Total Registrasi -->
-                                            <div class="flow-step text-center flex-fill px-1 py-1 outbound-summary-clickable"
-                                                onclick="openInboundSummaryModal(6)" style="cursor: pointer;"
-                                                title="Klik untuk detail Total Registrasi">
-                                                <div class="rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center shadow-sm"
-                                                    style="width: 36px; height: 36px; background-color: #f1f5f9;">
-                                                    <i class="fas fa-check-circle text-dark"
-                                                        style="font-size: 0.95rem;"></i>
-                                                </div>
-                                                <div class="font-weight-bold text-gray-700 text-nowrap mt-3 mb-1"
-                                                    style="font-size: 0.62rem;">Total Registrasi</div>
-                                                <div class="font-weight-bold text-dark" style="font-size: 0.82rem;"
-                                                    id="flow-done-count">0 Unit</div>
                                             </div>
                                         </div>
-                                    </div>
 
-                                    <!-- Bottom Section: Pie Chart & Right Side Clickable Filter Labels -->
-                                    <div class="pt-3 mt-1 border-top">
-                                        <div class="row align-items-center">
-                                            <!-- Pie Chart Column (Left Side) -->
-                                            <div class="col-xl-8 col-lg-8 col-md-12 mb-3 mb-lg-0 pr-xl-3">
-                                                <div style="position: relative; height: 145px; width: 100%;">
-                                                    <canvas id="dashInboundFlowPieChart"></canvas>
-                                                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; pointer-events: none;"
-                                                        id="inbound-pie-center-text">
-                                                        <div class="text-uppercase text-muted font-weight-bold"
-                                                            style="font-size: 0.55rem; line-height: 1;">TOTAL</div>
-                                                        <div class="font-weight-bold text-gray-800"
-                                                            style="font-size: 0.95rem; line-height: 1.1;"
-                                                            id="inbound-pie-total-val">0</div>
-                                                    </div>
-                                                </div>
-                                            </div>
+                                        <!-- Inner Card 2: Inbound Chart & Breakdown -->
+                                        <div class="col-xl-4 col-lg-5 col-md-12"
+                                            style="padding-left: 4px; padding-right: 4px;">
+                                            <div class="card border bg-white h-100 shadow-none">
+                                                <div
+                                                    class="card-body py-3 px-3 d-flex flex-column justify-content-center">
+                                                    <div class="w-100 my-auto">
+                                                        <!-- Centered Doughnut Chart -->
+                                                        <div style="position: relative; height: 110px; width: 100%;"
+                                                            class="mb-2">
+                                                            <canvas id="dashInboundFlowPieChart"></canvas>
+                                                            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; pointer-events: none;"
+                                                                id="inbound-pie-center-text">
+                                                                <div class="text-uppercase text-muted font-weight-bold"
+                                                                    style="font-size: 0.48rem; line-height: 1;">TOTAL PO
+                                                                </div>
+                                                                <div class="font-weight-bold text-gray-800"
+                                                                    style="font-size: 0.85rem; line-height: 1.1;"
+                                                                    id="inbound-pie-total-val">0 PO</div>
+                                                                <div class="text-xs text-primary font-weight-bold"
+                                                                    id="inbound-pie-pct-val"
+                                                                    style="font-size: 0.55rem; line-height: 1;">100%
+                                                                </div>
+                                                            </div>
+                                                        </div>
 
-                                            <!-- Clickable Filter Labels Column (Right Side) -->
-                                            <div class="col-xl-4 col-lg-4 col-md-12 border-left pl-xl-3 my-auto">
-                                                <div class="pl-2 text-left"
-                                                    style="max-height: 145px; overflow-y: auto;">
-                                                    <div class="mb-1 d-flex align-items-center text-nowrap filter-legend-item outbound-summary-clickable"
-                                                        id="inbound-flow-legend-0" onclick="openInboundSummaryModal(0)"
-                                                        style="cursor: pointer;"
-                                                        title="Klik untuk detail Total PO Inbound">
-                                                        <i class="fas fa-circle mr-2.5"
-                                                            style="font-size: 0.42rem; color: #4e73df;"></i>
-                                                        <span class="text-gray-800 font-weight-bold text-nowrap"
-                                                            style="font-size: 0.58rem;">Total PO Inbound</span>
+                                                        <!-- Labels Below the Chart (Horizontal Grid) -->
+                                                        <div
+                                                            class="d-flex align-items-center justify-content-between text-center mb-2 px-0.5">
+                                                            <!-- Total PO -->
+                                                            <div class="filter-legend-item outbound-summary-clickable px-1 flex-fill"
+                                                                id="inbound-flow-legend-0"
+                                                                onclick="openInboundSummaryModal(0)"
+                                                                style="cursor: pointer;"
+                                                                title="Klik untuk detail Total PO Inbound">
+                                                                <div
+                                                                    class="d-flex align-items-center justify-content-center mb-0.5">
+                                                                    <i class="fas fa-circle mr-1"
+                                                                        style="font-size: 0.38rem; color: #4e73df;"></i>
+                                                                    <span
+                                                                        class="text-gray-800 font-weight-bold text-nowrap"
+                                                                        style="font-size: 0.58rem;">Total PO</span>
+                                                                </div>
+                                                                <span
+                                                                    class="badge badge-light border text-primary px-1 py-0.2 font-weight-bold"
+                                                                    id="legend-po-total-badge"
+                                                                    style="font-size: 0.58rem;">0 (100%)</span>
+                                                            </div>
+
+                                                            <!-- Ontime -->
+                                                            <div class="filter-legend-item outbound-summary-clickable px-1 flex-fill"
+                                                                id="inbound-flow-legend-1"
+                                                                onclick="openInboundSummaryModal(1)"
+                                                                style="cursor: pointer;"
+                                                                title="Klik untuk detail Total PO Ontime">
+                                                                <div
+                                                                    class="d-flex align-items-center justify-content-center mb-0.5">
+                                                                    <i class="fas fa-circle mr-1"
+                                                                        style="font-size: 0.38rem; color: #1cc88a;"></i>
+                                                                    <span
+                                                                        class="text-gray-800 font-weight-bold text-nowrap"
+                                                                        style="font-size: 0.58rem;">Ontime</span>
+                                                                </div>
+                                                                <span
+                                                                    class="badge badge-light border text-success px-1 py-0.2 font-weight-bold"
+                                                                    id="legend-po-ontime-badge"
+                                                                    style="font-size: 0.58rem;">0 (0%)</span>
+                                                            </div>
+
+                                                            <!-- Terlambat -->
+                                                            <div class="filter-legend-item outbound-summary-clickable px-1 flex-fill"
+                                                                id="inbound-flow-legend-2"
+                                                                onclick="openInboundSummaryModal(2)"
+                                                                style="cursor: pointer;"
+                                                                title="Klik untuk detail Total PO Terlambat">
+                                                                <div
+                                                                    class="d-flex align-items-center justify-content-center mb-0.5">
+                                                                    <i class="fas fa-circle mr-1"
+                                                                        style="font-size: 0.38rem; color: #e74a3b;"></i>
+                                                                    <span
+                                                                        class="text-gray-800 font-weight-bold text-nowrap"
+                                                                        style="font-size: 0.58rem;">Terlambat</span>
+                                                                </div>
+                                                                <span
+                                                                    class="badge badge-light border text-danger px-1 py-0.2 font-weight-bold"
+                                                                    id="legend-po-terlambat-badge"
+                                                                    style="font-size: 0.58rem;">0 (0%)</span>
+                                                            </div>
+                                                        </div>
                                                     </div>
-                                                    <div class="mb-1 d-flex align-items-center text-nowrap filter-legend-item outbound-summary-clickable"
-                                                        id="inbound-flow-legend-1" onclick="openInboundSummaryModal(1)"
-                                                        style="cursor: pointer;"
-                                                        title="Klik untuk detail PO Ontime Delivery">
-                                                        <i class="fas fa-circle mr-2.5"
-                                                            style="font-size: 0.42rem; color: #36b9cc;"></i>
-                                                        <span class="text-gray-800 font-weight-bold text-nowrap"
-                                                            style="font-size: 0.58rem;">PO Ontime Delivery</span>
-                                                    </div>
-                                                    <div class="mb-1 d-flex align-items-center text-nowrap filter-legend-item outbound-summary-clickable"
-                                                        id="inbound-flow-legend-2" onclick="openInboundSummaryModal(2)"
-                                                        style="cursor: pointer;"
-                                                        title="Klik untuk detail PO Terlambat Delivery">
-                                                        <i class="fas fa-circle mr-2.5"
-                                                            style="font-size: 0.42rem; color: #e74a3b;"></i>
-                                                        <span class="text-gray-800 font-weight-bold text-nowrap"
-                                                            style="font-size: 0.58rem;">PO Terlambat Delivery</span>
-                                                    </div>
-                                                    <div class="mb-1 d-flex align-items-center text-nowrap filter-legend-item outbound-summary-clickable"
-                                                        id="inbound-flow-legend-3" onclick="openInboundSummaryModal(3)"
-                                                        style="cursor: pointer;" title="Klik untuk detail PO Sudah GR">
-                                                        <i class="fas fa-circle mr-2.5"
-                                                            style="font-size: 0.42rem; color: #1cc88a;"></i>
-                                                        <span class="text-gray-800 font-weight-bold text-nowrap"
-                                                            style="font-size: 0.58rem;">PO Sudah GR</span>
-                                                    </div>
-                                                    <div class="mb-1 d-flex align-items-center text-nowrap filter-legend-item outbound-summary-clickable"
-                                                        id="inbound-flow-legend-4" onclick="openInboundSummaryModal(4)"
-                                                        style="cursor: pointer;"
-                                                        title="Klik untuk detail PO Sudah Registrasi">
-                                                        <i class="fas fa-circle mr-2.5"
-                                                            style="font-size: 0.42rem; color: #6f42c1;"></i>
-                                                        <span class="text-gray-800 font-weight-bold text-nowrap"
-                                                            style="font-size: 0.58rem;">PO Sudah Registrasi</span>
-                                                    </div>
-                                                    <div class="mb-1 d-flex align-items-center text-nowrap filter-legend-item outbound-summary-clickable"
-                                                        id="inbound-flow-legend-5" onclick="openInboundSummaryModal(5)"
-                                                        style="cursor: pointer;" title="Klik untuk detail Total GR">
-                                                        <i class="fas fa-circle mr-2.5"
-                                                            style="font-size: 0.42rem; color: #f6c23e;"></i>
-                                                        <span class="text-gray-800 font-weight-bold text-nowrap"
-                                                            style="font-size: 0.58rem;">Total GR</span>
-                                                    </div>
-                                                    <div class="d-flex align-items-center text-nowrap filter-legend-item outbound-summary-clickable"
-                                                        id="inbound-flow-legend-6" onclick="openInboundSummaryModal(6)"
-                                                        style="cursor: pointer;"
-                                                        title="Klik untuk detail Total Registrasi">
-                                                        <i class="fas fa-circle mr-2.5"
-                                                            style="font-size: 0.42rem; color: #5a5c69;"></i>
-                                                        <span class="text-gray-800 font-weight-bold text-nowrap"
-                                                            style="font-size: 0.58rem;">Total Registrasi</span>
-                                                    </div>
-                                                </div>
-                                                <div class="mt-2">
-                                                    <a href="inbound.php"
-                                                        class="btn btn-sm btn-block font-weight-bold py-1 btn-detail-dark shadow-sm">Lihat
-                                                        Detail <i class="fas fa-arrow-right ml-1"
-                                                            style="font-size: 0.6rem;"></i></a>
                                                 </div>
                                             </div>
                                         </div>
@@ -355,12 +342,12 @@ include FRONTEND_PATH . 'components/header.php';
                         </div>
                     </div>
 
-                    <!-- Row 3: Inventory Summary (Full Width Card with 5 Steps & Pie Chart on Right) -->
+                    <!-- Row 3: Storage Summary Group Card -->
                     <div class="row" style="margin-left: -4px; margin-right: -4px;">
-                        <!-- Card 2: Inventory Summary -->
                         <div class="col-12 mb-4" style="padding-left: 4px; padding-right: 4px;">
-                            <div class="card shadow border-0 h-100">
-                                <div class="card-body py-3 px-3 d-flex flex-column justify-content-center">
+                            <div class="card shadow border-0">
+                                <div class="card-body py-3 px-3">
+                                    <!-- Group Card Header -->
                                     <div class="d-flex align-items-center justify-content-between mb-3 text-nowrap">
                                         <span class="font-weight-bold text-primary text-nowrap"
                                             style="font-size: 0.85rem;"><i class="fas fa-boxes mr-2"></i>Storage
@@ -369,173 +356,117 @@ include FRONTEND_PATH . 'components/header.php';
                                             style="font-size: 0.65rem;">Storage Management</span>
                                     </div>
 
-                                    <div class="my-auto py-1">
-                                        <div class="row align-items-center">
-                                            <!-- Flow Steps Column (5 Steps: Total Perangkat > Aging <3m > Aging 3-12m > Aging >12m > Non Moving) -->
-                                            <div class="col-xl-9 col-lg-8 col-md-12 mb-3 mb-lg-0 pr-xl-3">
-                                                <div class="d-flex align-items-center justify-content-between text-center flex-nowrap w-100"
-                                                    id="storage-steps-container">
-                                                    <!-- Step 1: Total Perangkat -->
-                                                    <div class="flow-step text-center flex-fill px-1 py-1"
-                                                        onclick="openStorageSummaryModal(0)" style="cursor: pointer;"
-                                                        title="Total Perangkat">
-                                                        <div class="rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center shadow-sm"
-                                                            style="width: 36px; height: 36px; background-color: #eef2ff;">
-                                                            <i class="fas fa-cubes text-primary"
-                                                                style="font-size: 0.95rem;"></i>
-                                                        </div>
-                                                        <div class="font-weight-bold text-gray-700 text-nowrap mt-3 mb-1"
-                                                            style="font-size: 0.62rem;">Total Perangkat</div>
-                                                        <div class="font-weight-bold text-primary"
-                                                            style="font-size: 0.82rem;" id="inv-total-perangkat">0 Unit
-                                                        </div>
-                                                    </div>
+                                    <!-- Group Card Body: 2 Inner Cards (Storage Flow & Storage Chart) -->
+                                    <div class="row" style="margin-left: -4px; margin-right: -4px;">
+                                        <!-- Inner Card 1: Storage Flow -->
+                                        <div class="col-xl-8 col-lg-7 col-md-12 mb-3 mb-lg-0"
+                                            style="padding-left: 4px; padding-right: 4px;">
+                                            <div class="card border bg-white h-100 shadow-none">
+                                                <div
+                                                    class="card-body py-3 px-3 d-flex flex-column justify-content-center">
+                                                    <div class="w-100 my-auto">
+                                                        <div class="d-flex align-items-center justify-content-around text-center flex-nowrap w-100"
+                                                            id="storage-steps-container">
+                                                            <!-- Step 1: Total Perangkat (qty) -->
+                                                            <div class="flow-step text-center px-3 py-1 outbound-summary-clickable flex-fill"
+                                                                onclick="openStorageSummaryModal(0)"
+                                                                style="cursor: pointer;" title="Klik untuk detail Total Perangkat (qty)">
+                                                                <div class="rounded-circle mx-auto mb-1.5 d-flex align-items-center justify-content-center shadow-sm"
+                                                                    style="width: 36px; height: 36px; background-color: #eef2ff;">
+                                                                    <i class="fas fa-cubes text-primary"
+                                                                        style="font-size: 0.95rem;"></i>
+                                                                </div>
+                                                                <div class="font-weight-bold text-gray-700 text-nowrap mt-2 mb-1"
+                                                                    style="font-size: 0.62rem;">Total Perangkat (qty)</div>
+                                                                <div class="font-weight-bold text-primary"
+                                                                    style="font-size: 0.82rem;"
+                                                                    id="inv-total-perangkat">0 Unit
+                                                                </div>
+                                                            </div>
 
-                                                    <!-- Arrow 1 -->
-                                                    <div class="text-gray-300 align-self-center mx-1"
-                                                        style="font-size: 0.7rem;"><i class="fas fa-chevron-right"></i>
-                                                    </div>
+                                                            <!-- Arrow 1 -->
+                                                            <div class="text-gray-300 align-self-center mx-3"
+                                                                style="font-size: 0.8rem;"><i
+                                                                    class="fas fa-chevron-right"></i>
+                                                            </div>
 
-                                                    <!-- Step 2: < 1 Tahun -->
-                                                    <div class="flow-step text-center flex-fill px-1 py-1"
-                                                        onclick="openStorageSummaryModal(1)" style="cursor: pointer;"
-                                                        title="< 1 Tahun">
-                                                        <div class="rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center shadow-sm"
-                                                            style="width: 36px; height: 36px; background-color: #ecfdf5;">
-                                                            <i class="fas fa-history text-success"
-                                                                style="font-size: 0.95rem;"></i>
+                                                            <!-- Step 2: Total NBV (Rp) -->
+                                                            <div class="flow-step text-center px-3 py-1 outbound-summary-clickable flex-fill"
+                                                                onclick="openStorageSummaryModal(1)"
+                                                                style="cursor: pointer;" title="Klik untuk detail Total NBV (Rp)">
+                                                                <div class="rounded-circle mx-auto mb-1.5 d-flex align-items-center justify-content-center shadow-sm"
+                                                                    style="width: 36px; height: 36px; background-color: #ecfdf5;">
+                                                                    <i class="fas fa-file-invoice-dollar text-success"
+                                                                        style="font-size: 0.95rem;"></i>
+                                                                </div>
+                                                                <div class="font-weight-bold text-gray-700 text-nowrap mt-2 mb-1"
+                                                                    style="font-size: 0.62rem;">Total NBV (Rp)</div>
+                                                                <div class="font-weight-bold text-success"
+                                                                    style="font-size: 0.82rem;"
+                                                                    id="inv-total-nbv">Rp 0
+                                                                </div>
+                                                            </div>
                                                         </div>
-                                                        <div class="font-weight-bold text-gray-700 text-nowrap mt-3 mb-1"
-                                                            style="font-size: 0.62rem;">&lt; 1 Tahun</div>
-                                                        <div class="font-weight-bold text-success"
-                                                            style="font-size: 0.82rem;" id="inv-aging-less-3m">0 Unit
-                                                        </div>
-                                                    </div>
-
-                                                    <!-- Arrow 2 -->
-                                                    <div class="text-gray-300 align-self-center mx-1"
-                                                        style="font-size: 0.7rem;"><i class="fas fa-chevron-right"></i>
-                                                    </div>
-
-                                                    <!-- Step 3: > 1 Tahun -->
-                                                    <div class="flow-step text-center flex-fill px-1 py-1"
-                                                        onclick="openStorageSummaryModal(2)" style="cursor: pointer;"
-                                                        title="> 1 Tahun">
-                                                        <div class="rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center shadow-sm"
-                                                            style="width: 36px; height: 36px; background-color: #e0f2fe;">
-                                                            <i class="fas fa-hourglass-half text-info"
-                                                                style="font-size: 0.95rem;"></i>
-                                                        </div>
-                                                        <div class="font-weight-bold text-gray-700 text-nowrap mt-3 mb-1"
-                                                            style="font-size: 0.62rem;">&gt; 1 Tahun</div>
-                                                        <div class="font-weight-bold text-info"
-                                                            style="font-size: 0.82rem;" id="inv-aging-3-12m">0 Unit
-                                                        </div>
-                                                    </div>
-
-                                                    <!-- Arrow 3 -->
-                                                    <div class="text-gray-300 align-self-center mx-1"
-                                                        style="font-size: 0.7rem;"><i class="fas fa-chevron-right"></i>
-                                                    </div>
-
-                                                    <!-- Step 4: > 2 Tahun -->
-                                                    <div class="flow-step text-center flex-fill px-1 py-1"
-                                                        onclick="openStorageSummaryModal(3)" style="cursor: pointer;"
-                                                        title="> 2 Tahun">
-                                                        <div class="rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center shadow-sm"
-                                                            style="width: 36px; height: 36px; background-color: #fef3c7;">
-                                                            <i class="fas fa-calendar-alt text-warning"
-                                                                style="font-size: 0.95rem;"></i>
-                                                        </div>
-                                                        <div class="font-weight-bold text-gray-700 text-nowrap mt-3 mb-1"
-                                                            style="font-size: 0.62rem;">&gt; 2 Tahun</div>
-                                                        <div class="font-weight-bold text-warning"
-                                                            style="font-size: 0.82rem;" id="inv-aging-more-12m">0 Unit
-                                                        </div>
-                                                    </div>
-
-                                                    <!-- Arrow 4 -->
-                                                    <div class="text-gray-300 align-self-center mx-1"
-                                                        style="font-size: 0.7rem;"><i class="fas fa-chevron-right"></i>
-                                                    </div>
-
-                                                    <!-- Step 5: RE-Use -->
-                                                    <div class="flow-step text-center flex-fill px-1 py-1"
-                                                        onclick="openStorageSummaryModal(4)" style="cursor: pointer;"
-                                                        title="RE-Use">
-                                                        <div class="rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center shadow-sm"
-                                                            style="width: 36px; height: 36px; background-color: #fee2e2;">
-                                                            <i class="fas fa-pause-circle text-danger"
-                                                                style="font-size: 0.95rem;"></i>
-                                                        </div>
-                                                        <div class="font-weight-bold text-gray-700 text-nowrap mt-3 mb-1"
-                                                            style="font-size: 0.62rem;">RE-Use</div>
-                                                        <div class="font-weight-bold text-danger"
-                                                            style="font-size: 0.82rem;" id="inv-re-useg">0 Unit</div>
                                                     </div>
                                                 </div>
                                             </div>
+                                        </div>
 
-                                            <!-- Pie Chart Column (Right Side) -->
-                                            <div class="col-xl-3 col-lg-4 col-md-12 border-left pl-xl-3 my-auto">
-                                                <div class="d-flex align-items-center justify-content-center">
-                                                    <div style="width: 48%; position: relative; height: 110px;">
-                                                        <canvas id="dashInventorySummaryPieChart"></canvas>
-                                                        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; pointer-events: none;"
-                                                            id="inventory-pie-center-text">
-                                                            <div class="text-uppercase text-muted font-weight-bold"
-                                                                style="font-size: 0.50rem; line-height: 1;">TOTAL</div>
-                                                            <div class="font-weight-bold text-gray-800"
-                                                                style="font-size: 0.85rem; line-height: 1.1;"
-                                                                id="inventory-pie-total-val">0</div>
+                                        <!-- Inner Card 2: Storage Chart & Breakdown -->
+                                        <div class="col-xl-4 col-lg-5 col-md-12"
+                                            style="padding-left: 4px; padding-right: 4px;">
+                                            <div class="card border bg-white h-100 shadow-none">
+                                                <div
+                                                    class="card-body py-3 px-3 d-flex flex-column justify-content-center">
+                                                    <div class="w-100 my-auto">
+                                                        <!-- Centered Doughnut Chart -->
+                                                        <div style="position: relative; height: 110px; width: 100%;"
+                                                            class="mb-2">
+                                                            <canvas id="dashInventorySummaryPieChart"></canvas>
+                                                        </div>
+
+                                                        <!-- Labels Below the Chart (Horizontal Grid of 2 Items) -->
+                                                        <div class="d-flex align-items-center justify-content-between text-center mb-2 px-0.5"
+                                                            id="dash-inv-pie-legend">
+                                                            <!-- Item 1: Total Perangkat -->
+                                                            <div class="filter-legend-item outbound-summary-clickable px-1 flex-fill"
+                                                                id="storage-legend-item-1"
+                                                                onclick="openStorageSummaryModal(0)"
+                                                                style="cursor: pointer;" title="Klik untuk detail Total Perangkat (qty)">
+                                                                <div
+                                                                    class="d-flex align-items-center justify-content-center mb-0.5">
+                                                                    <i class="fas fa-circle mr-1"
+                                                                        style="font-size: 0.38rem; color: #4e73df;"></i>
+                                                                    <span
+                                                                        class="text-gray-800 font-weight-bold text-nowrap"
+                                                                        style="font-size: 0.58rem;"
+                                                                        id="inv-legend-name-1">Total Perangkat</span>
+                                                                </div>
+                                                                <span
+                                                                    class="badge badge-light border text-primary px-1 py-0.2 font-weight-bold"
+                                                                    id="inv-legend-1" style="font-size: 0.58rem;">0 Unit</span>
+                                                            </div>
+
+                                                            <!-- Item 2: Total NBV -->
+                                                            <div class="filter-legend-item outbound-summary-clickable px-1 flex-fill"
+                                                                id="storage-legend-item-2"
+                                                                onclick="openStorageSummaryModal(1)"
+                                                                style="cursor: pointer;" title="Klik untuk detail Total NBV (Rp)">
+                                                                <div
+                                                                    class="d-flex align-items-center justify-content-center mb-0.5">
+                                                                    <i class="fas fa-circle mr-1"
+                                                                        style="font-size: 0.38rem; color: #1cc88a;"></i>
+                                                                    <span
+                                                                        class="text-gray-800 font-weight-bold text-nowrap"
+                                                                        style="font-size: 0.58rem;"
+                                                                        id="inv-legend-name-2">Total NBV</span>
+                                                                </div>
+                                                                <span
+                                                                    class="badge badge-light border text-success px-1 py-0.2 font-weight-bold"
+                                                                    id="inv-legend-2" style="font-size: 0.58rem;">Rp 0</span>
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                    <div class="pl-2 text-left"
-                                                        style="width: 52%; max-height: 110px; overflow-y: auto;"
-                                                        id="dash-inv-pie-legend">
-                                                        <div class="mb-1 d-flex align-items-center text-nowrap">
-                                                            <i class="fas fa-circle text-success mr-2.5"
-                                                                style="font-size: 0.42rem;"></i>
-                                                            <span class="text-gray-800 font-weight-bold text-nowrap"
-                                                                style="font-size: 0.58rem;" id="inv-legend-name-1">&lt;
-                                                                1 Tahun</span>
-                                                            <span class="text-muted font-weight-bold ml-auto pl-1"
-                                                                style="font-size: 0.58rem;" id="inv-legend-1">0%</span>
-                                                        </div>
-                                                        <div class="mb-1 d-flex align-items-center text-nowrap">
-                                                            <i class="fas fa-circle text-info mr-2.5"
-                                                                style="font-size: 0.42rem;"></i>
-                                                            <span class="text-gray-800 font-weight-bold text-nowrap"
-                                                                style="font-size: 0.58rem;" id="inv-legend-name-2">&gt;
-                                                                1 Tahun</span>
-                                                            <span class="text-muted font-weight-bold ml-auto pl-1"
-                                                                style="font-size: 0.58rem;" id="inv-legend-2">0%</span>
-                                                        </div>
-                                                        <div class="mb-1 d-flex align-items-center text-nowrap">
-                                                            <i class="fas fa-circle text-warning mr-2.5"
-                                                                style="font-size: 0.42rem;"></i>
-                                                            <span class="text-gray-800 font-weight-bold text-nowrap"
-                                                                style="font-size: 0.58rem;" id="inv-legend-name-3">&gt;
-                                                                2 Tahun</span>
-                                                            <span class="text-muted font-weight-bold ml-auto pl-1"
-                                                                style="font-size: 0.58rem;" id="inv-legend-3">0%</span>
-                                                        </div>
-                                                        <div class="d-flex align-items-center text-nowrap">
-                                                            <i class="fas fa-circle text-danger mr-2.5"
-                                                                style="font-size: 0.42rem;"></i>
-                                                            <span class="text-gray-800 font-weight-bold text-nowrap"
-                                                                style="font-size: 0.58rem;"
-                                                                id="inv-legend-name-4">RE-Use</span>
-                                                            <span class="text-muted font-weight-bold ml-auto pl-1"
-                                                                style="font-size: 0.58rem;" id="inv-legend-4">0%</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="mt-2">
-                                                    <a href="warehouse.php"
-                                                        class="btn btn-sm btn-block font-weight-bold py-1 btn-detail-dark shadow-sm">Lihat
-                                                        Detail <i class="fas fa-arrow-right ml-1"
-                                                            style="font-size: 0.6rem;"></i></a>
                                                 </div>
                                             </div>
                                         </div>
@@ -545,208 +476,16 @@ include FRONTEND_PATH . 'components/header.php';
                         </div>
                     </div>
 
-                    <!-- Row 4: Outbound Summary (Full Width Card with Steps & KPI Cards on Right) -->
+                    <!-- Row 4: Storage Utilization & Receiving Trend -->
                     <div class="row" style="margin-left: -4px; margin-right: -4px;">
-                        <!-- Card 3: Outbound Summary -->
-                        <div class="col-12 mb-4" style="padding-left: 4px; padding-right: 4px;">
-                            <div class="card shadow border-0 h-100">
-                                <div class="card-body py-3 px-3 d-flex flex-column justify-content-center">
-                                    <div class="d-flex align-items-center justify-content-between mb-3 text-nowrap">
-                                        <span class="font-weight-bold text-primary text-nowrap"
-                                            style="font-size: 0.85rem;"><i
-                                                class="fas fa-shipping-fast mr-2"></i>Outbound Summary</span>
-                                        <span class="badge badge-success font-weight-normal text-nowrap px-2.5 py-1"
-                                            style="font-size: 0.65rem;">Outbound Management</span>
-                                    </div>
-
-                                    <div class="my-auto py-1">
-                                        <div class="row align-items-center">
-                                            <!-- Flow Steps Column (4 Steps: MR Pending > Total PR/PO Mover > Nilai PO Mover > Saving) -->
-                                            <div class="col-xl-7 col-lg-7 col-md-12 mb-3 mb-lg-0 pr-xl-3">
-                                                <div class="d-flex align-items-center justify-content-between text-center flex-nowrap w-100"
-                                                    id="outbound-steps-container">
-                                                    <!-- Step 1: Total MR -->
-                                                    <div class="flow-step text-center flex-fill px-1 py-1 outbound-summary-clickable"
-                                                        onclick="openOutboundSummaryModal('total_mr')"
-                                                        style="cursor: pointer;" title="Klik untuk detail Total MR">
-                                                        <div class="rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center shadow-sm"
-                                                            style="width: 36px; height: 36px; background-color: #eef2ff;">
-                                                            <i class="fas fa-file-alt text-primary"
-                                                                style="font-size: 0.95rem;"></i>
-                                                        </div>
-                                                        <div class="font-weight-bold text-gray-700 text-nowrap mt-3 mb-1"
-                                                            style="font-size: 0.62rem;">Total MR</div>
-                                                        <div class="font-weight-bold text-primary"
-                                                            style="font-size: 0.82rem;" id="outbound-total-mr">0 MR
-                                                        </div>
-                                                    </div>
-
-                                                    <!-- Arrow 1 -->
-                                                    <div class="text-gray-300 align-self-center mx-1"
-                                                        style="font-size: 0.7rem;"><i class="fas fa-chevron-right"></i>
-                                                    </div>
-
-                                                    <!-- Step 2: Total PR/PO Mover -->
-                                                    <div class="flow-step text-center flex-fill px-1 py-1 outbound-summary-clickable"
-                                                        onclick="openOutboundSummaryModal('pr_po_mover')"
-                                                        style="cursor: pointer;"
-                                                        title="Klik untuk detail Total PR/PO Mover">
-                                                        <div class="rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center shadow-sm"
-                                                            style="width: 36px; height: 36px; background-color: #e0f2fe;">
-                                                            <i class="fas fa-exchange-alt text-info"
-                                                                style="font-size: 0.95rem;"></i>
-                                                        </div>
-                                                        <div class="font-weight-bold text-gray-700 text-nowrap mt-3 mb-1"
-                                                            style="font-size: 0.62rem;">Total PR/PO Mover</div>
-                                                        <div class="font-weight-bold text-info"
-                                                            style="font-size: 0.82rem;" id="outbound-total-mover">0 PO
-                                                        </div>
-                                                    </div>
-
-                                                    <!-- Arrow 2 -->
-                                                    <div class="text-gray-300 align-self-center mx-1"
-                                                        style="font-size: 0.7rem;"><i class="fas fa-chevron-right"></i>
-                                                    </div>
-
-                                                    <!-- Step 3: Nilai PO Mover -->
-                                                    <div class="flow-step text-center flex-fill px-1 py-1 outbound-summary-clickable"
-                                                        onclick="openOutboundSummaryModal('nilai_po_mover')"
-                                                        style="cursor: pointer;"
-                                                        title="Klik untuk detail Nilai PO Mover">
-                                                        <div class="rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center shadow-sm"
-                                                            style="width: 36px; height: 36px; background-color: #ecfdf5;">
-                                                            <i class="fas fa-file-invoice-dollar text-success"
-                                                                style="font-size: 0.95rem;"></i>
-                                                        </div>
-                                                        <div class="font-weight-bold text-gray-700 text-nowrap mt-3 mb-1"
-                                                            style="font-size: 0.62rem;">Nilai PO Mover</div>
-                                                        <div class="font-weight-bold text-success"
-                                                            style="font-size: 0.82rem;" id="outbound-nilai-mover">Rp 0
-                                                        </div>
-                                                    </div>
-
-                                                    <!-- Arrow 3 -->
-                                                    <div class="text-gray-300 align-self-center mx-1"
-                                                        style="font-size: 0.7rem;"><i class="fas fa-chevron-right"></i>
-                                                    </div>
-
-                                                    <!-- Step 4: Saving -->
-                                                    <div class="flow-step text-center flex-fill px-1 py-1 outbound-summary-clickable"
-                                                        onclick="openOutboundSummaryModal('saving')"
-                                                        style="cursor: pointer;" title="Klik untuk detail Saving">
-                                                        <div class="rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center shadow-sm"
-                                                            style="width: 36px; height: 36px; background-color: #fef3c7;">
-                                                            <i class="fas fa-dollar-sign text-warning"
-                                                                style="font-size: 0.95rem;"></i>
-                                                        </div>
-                                                        <div class="font-weight-bold text-gray-700 text-nowrap mt-3 mb-1"
-                                                            style="font-size: 0.62rem;">Saving</div>
-                                                        <div class="font-weight-bold text-warning"
-                                                            style="font-size: 0.82rem;" id="outbound-saving">Rp 0</div>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <!-- KPI Cards Column (Right Side: MR CLOSED, Fulfill, Packing, Shipped) -->
-                                            <div class="col-xl-5 col-lg-5 col-md-12 border-left pl-xl-3 my-auto">
-                                                <div class="bg-light rounded p-2 mb-2 border">
-                                                    <div class="row align-items-center text-center">
-                                                        <div class="col-12 outbound-summary-clickable"
-                                                            onclick="openOutboundSummaryModal('mr_closed')"
-                                                            style="cursor: pointer;"
-                                                            title="Klik untuk detail MR Closed">
-                                                            <div class="text-uppercase text-success font-weight-bold text-nowrap"
-                                                                style="font-size: 0.65rem;">MR CLOSED</div>
-                                                            <div class="font-weight-bold text-success"
-                                                                style="font-size: 1.25rem;" id="outbound-terkirim">0
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="mt-1 outbound-summary-clickable"
-                                                        onclick="openOutboundSummaryModal('mr_closed')"
-                                                        style="cursor: pointer;"
-                                                        title="Klik untuk detail Progress MR Closed">
-                                                        <div
-                                                            class="d-flex justify-content-between align-items-center mb-1 text-nowrap">
-                                                            <span class="font-weight-bold text-muted text-nowrap"
-                                                                style="font-size: 0.62rem;">Progress MR Closed</span>
-                                                            <span
-                                                                class="font-weight-bold text-success text-nowrap ml-auto pl-1"
-                                                                style="font-size: 0.62rem;"
-                                                                id="outbound-progress-percent">0%</span>
-                                                        </div>
-                                                        <div class="progress rounded-pill" style="height: 4px;">
-                                                            <div class="progress-bar bg-success" role="progressbar"
-                                                                id="outbound-progress-bar" style="width: 0%"></div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                <div class="row text-center">
-                                                    <div class="col-4 pr-1 pl-2">
-                                                        <div class="py-1 rounded border bg-white outbound-summary-clickable"
-                                                            onclick="openOutboundSummaryModal('fulfill')"
-                                                            style="cursor: pointer;" title="Klik untuk detail Fulfilled">
-                                                            <i class="fas fa-box-open text-primary"
-                                                                style="font-size: 0.72rem;"></i>
-                                                            <div class="font-weight-bold text-muted text-uppercase text-nowrap"
-                                                                style="font-size: 0.58rem;">Fulfilled</div>
-                                                            <div class="font-weight-bold text-primary"
-                                                                style="font-size: 0.78rem;" id="sub-fulfill-count">0
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-4 px-1">
-                                                        <div class="py-1 rounded border bg-white outbound-summary-clickable"
-                                                            onclick="openOutboundSummaryModal('packing')"
-                                                            style="cursor: pointer;" title="Klik untuk detail Packing">
-                                                            <i class="fas fa-dolly text-warning"
-                                                                style="font-size: 0.72rem;"></i>
-                                                            <div class="font-weight-bold text-muted text-uppercase text-nowrap"
-                                                                style="font-size: 0.58rem;">Packed</div>
-                                                            <div class="font-weight-bold text-warning"
-                                                                style="font-size: 0.78rem;" id="sub-packing-count">0
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-4 pl-1 pr-2">
-                                                        <div class="py-1 rounded border bg-white outbound-summary-clickable"
-                                                            onclick="openOutboundSummaryModal('shipped')"
-                                                            style="cursor: pointer;" title="Klik untuk detail Shipped">
-                                                            <i class="fas fa-truck text-success"
-                                                                style="font-size: 0.72rem;"></i>
-                                                            <div class="font-weight-bold text-muted text-uppercase text-nowrap"
-                                                                style="font-size: 0.58rem;">Shipped</div>
-                                                            <div class="font-weight-bold text-success"
-                                                                style="font-size: 0.78rem;" id="sub-shipped-count">0
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="mt-2">
-                                                    <a href="outbound.php"
-                                                        class="btn btn-sm btn-block font-weight-bold py-1 btn-detail-dark shadow-sm">Lihat
-                                                        Detail <i class="fas fa-arrow-right ml-1"
-                                                            style="font-size: 0.6rem;"></i></a>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Row 5: Storage Utilization & Receiving Trend -->
-                    <div class="row mt-2" style="margin-left: -4px; margin-right: -4px;">
 
                         <!-- Card 1: Storage Utilization -->
-                        <div class="col-xl-6 col-lg-6 col-md-12 mb-4" style="padding-left: 4px; padding-right: 4px;">
+                        <div class="col-xl-5 col-lg-5 col-md-12 mb-4" style="padding-left: 4px; padding-right: 4px;">
                             <div class="card shadow border-0 h-100">
                                 <div class="card-body py-3 px-3 d-flex flex-column">
-                                    <div class="d-flex align-items-center justify-content-between mb-2 text-nowrap">
+                                    <div class="d-flex align-items-center justify-content-between mb-3 text-nowrap">
                                         <span class="font-weight-bold text-primary text-nowrap"
-                                            style="font-size: 0.82rem;"><i class="fas fa-warehouse mr-2"></i>Storage
+                                            style="font-size: 0.85rem;"><i class="fas fa-warehouse mr-2"></i>Storage
                                             Utilization</span>
                                     </div>
                                     <div class="my-auto">
@@ -776,78 +515,261 @@ include FRONTEND_PATH . 'components/header.php';
                                                     <div class="font-weight-bold text-muted text-uppercase text-nowrap mt-1"
                                                         style="font-size: 0.55rem;">Total Capacity</div>
                                                     <div class="font-weight-bold text-gray-800"
-                                                        style="font-size: 0.78rem;" id="storage-total-capacity">0 <span
-                                                            class="text-muted font-weight-normal"
-                                                            style="font-size: 0.55rem;">Location</span></div>
+                                                        style="font-size: 0.78rem;" id="storage-total-capacity">100%</div>
                                                 </div>
                                             </div>
                                             <div class="col-4 px-1">
                                                 <div class="py-1.5 rounded border bg-light status-card-clickable"
                                                     onclick="openStorageUtilizationModal('used')"
                                                     style="cursor: pointer; transition: all 0.2s ease;"
-                                                    title="Klik untuk melihat detail Used Capacity">
+                                                    title="Klik untuk melihat detail Total Penggunaan">
                                                     <i class="fas fa-boxes text-warning"
                                                         style="font-size: 0.72rem;"></i>
                                                     <div class="font-weight-bold text-muted text-uppercase text-nowrap mt-1"
-                                                        style="font-size: 0.55rem;">Used</div>
+                                                        style="font-size: 0.55rem;">Total Penggunaan</div>
                                                     <div class="font-weight-bold text-warning"
-                                                        style="font-size: 0.78rem;" id="storage-used">0 <span
-                                                            class="text-muted font-weight-normal"
-                                                            style="font-size: 0.55rem;">Location</span></div>
+                                                        style="font-size: 0.78rem;" id="storage-used">0%</div>
                                                 </div>
                                             </div>
                                             <div class="col-4 pl-1">
                                                 <div class="py-1.5 rounded border bg-light status-card-clickable"
                                                     onclick="openStorageUtilizationModal('available')"
                                                     style="cursor: pointer; transition: all 0.2s ease;"
-                                                    title="Klik untuk melihat detail Available Capacity">
+                                                    title="Klik untuk melihat detail Total Tersedia">
                                                     <i class="fas fa-cube text-success" style="font-size: 0.72rem;"></i>
                                                     <div class="font-weight-bold text-muted text-uppercase text-nowrap mt-1"
-                                                        style="font-size: 0.55rem;">Available</div>
+                                                        style="font-size: 0.55rem;">Total Tersedia</div>
                                                     <div class="font-weight-bold text-success"
-                                                        style="font-size: 0.78rem;" id="storage-available">0 <span
-                                                            class="text-muted font-weight-normal"
-                                                            style="font-size: 0.55rem;">Location</span></div>
+                                                        style="font-size: 0.78rem;" id="storage-available">0%</div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="mt-auto pt-2">
-                                        <a href="warehouse.php"
-                                            class="btn btn-sm btn-block font-weight-bold py-1 btn-detail-dark shadow-sm">Lihat
-                                            Detail <i class="fas fa-arrow-right ml-1"
-                                                style="font-size: 0.6rem;"></i></a>
-                                    </div>
+
                                 </div>
                             </div>
                         </div>
 
                         <!-- Card 2: Trends (Perangkat IN & Perangkat OUT from Storage Tekno) -->
-                        <div class="col-xl-6 col-lg-6 col-md-12 mb-4" style="padding-left: 4px; padding-right: 4px;">
+                        <div class="col-xl-7 col-lg-7 col-md-12 mb-4" style="padding-left: 4px; padding-right: 4px;">
                             <div class="card shadow border-0 h-100">
                                 <div class="card-body py-3 px-3 d-flex flex-column">
-                                    <div class="d-flex align-items-center justify-content-between mb-2 text-nowrap">
+                                    <div class="d-flex align-items-center justify-content-between mb-3 text-nowrap">
                                         <span class="font-weight-bold text-primary text-nowrap"
-                                            style="font-size: 0.82rem;"><i class="fas fa-chart-line mr-2"></i>Trends
+                                            style="font-size: 0.85rem;"><i class="fas fa-chart-line mr-2"></i>Trends
                                             Perangkat (IN & OUT)</span>
-                                        <span class="badge badge-info font-weight-normal text-nowrap px-2.5 py-1"
-                                            style="font-size: 0.65rem;" id="trends-title-period">Storage Tekno</span>
                                     </div>
                                     <div class="my-auto" style="position: relative; height: 145px;">
                                         <canvas id="dashReceivingTrendLineChart"></canvas>
                                     </div>
-                                    <div class="mt-auto pt-2">
-                                        <a href="warehouse.php"
-                                            class="btn btn-sm btn-block font-weight-bold py-1 btn-detail-dark shadow-sm">Lihat
-                                            Detail <i class="fas fa-arrow-right ml-1"
-                                                style="font-size: 0.6rem;"></i></a>
-                                    </div>
+
                                 </div>
                             </div>
                         </div>
 
                     </div>
 
+                    <!-- Row 5: Outbound Summary Group Card -->
+                    <div class="row" style="margin-left: -4px; margin-right: -4px;">
+                        <div class="col-12 mb-4" style="padding-left: 4px; padding-right: 4px;">
+                            <div class="card shadow border-0">
+                                <div class="card-body py-3 px-3">
+                                    <!-- Group Card Header -->
+                                    <div class="d-flex align-items-center justify-content-between mb-3 text-nowrap">
+                                        <span class="font-weight-bold text-primary text-nowrap"
+                                            style="font-size: 0.85rem;"><i
+                                                class="fas fa-shipping-fast mr-2"></i>Outbound Summary</span>
+                                        <span class="badge badge-success font-weight-normal text-nowrap px-2.5 py-1"
+                                            style="font-size: 0.65rem;">Outbound Management</span>
+                                    </div>
+
+                                    <!-- Group Card Body: 2 Inner Segment Cards (Outbound Flow & Outbound Status Breakdown) -->
+                                    <div class="row" style="margin-left: -4px; margin-right: -4px;">
+                                        <!-- Inner Card 1: Outbound Flow -->
+                                        <div class="col-xl-7 col-lg-7 col-md-12 mb-3 mb-lg-0"
+                                            style="padding-left: 4px; padding-right: 4px;">
+                                            <div class="card border bg-white h-100 shadow-none">
+                                                <div
+                                                    class="card-body py-3 px-3 d-flex flex-column justify-content-center">
+                                                    <div class="w-100 my-auto">
+                                                        <div class="d-flex align-items-center justify-content-between text-center flex-nowrap w-100"
+                                                            id="outbound-steps-container">
+                                                            <!-- Step 1: Total Material Request (MR) -->
+                                                            <div class="flow-step text-center flex-fill px-1 py-1 outbound-summary-clickable"
+                                                                onclick="openOutboundSummaryModal('total_mr')"
+                                                                style="cursor: pointer;" title="Klik untuk detail Total Material Request (MR)">
+                                                                <div class="rounded-circle mx-auto mb-1.5 d-flex align-items-center justify-content-center shadow-sm"
+                                                                    style="width: 36px; height: 36px; background-color: #eef2ff;">
+                                                                    <i class="fas fa-file-alt text-primary"
+                                                                        style="font-size: 0.95rem;"></i>
+                                                                </div>
+                                                                <div class="font-weight-bold text-gray-700 text-nowrap mt-2 mb-1"
+                                                                    style="font-size: 0.62rem;">Total Material Request (MR)</div>
+                                                                <div class="font-weight-bold text-primary"
+                                                                    style="font-size: 0.82rem;" id="outbound-total-mr">0 MR
+                                                                </div>
+                                                            </div>
+
+                                                            <!-- Arrow 1 -->
+                                                            <div class="text-gray-300 align-self-center mx-1"
+                                                                style="font-size: 0.7rem;"><i class="fas fa-chevron-right"></i>
+                                                            </div>
+
+                                                            <!-- Step 2: Total PO Mover (qty) -->
+                                                            <div class="flow-step text-center flex-fill px-1 py-1 outbound-summary-clickable"
+                                                                onclick="openOutboundSummaryModal('pr_po_mover')"
+                                                                style="cursor: pointer;"
+                                                                title="Klik untuk detail Total PO Mover (qty)">
+                                                                <div class="rounded-circle mx-auto mb-1.5 d-flex align-items-center justify-content-center shadow-sm"
+                                                                    style="width: 36px; height: 36px; background-color: #e0f2fe;">
+                                                                    <i class="fas fa-exchange-alt text-info"
+                                                                        style="font-size: 0.95rem;"></i>
+                                                                </div>
+                                                                <div class="font-weight-bold text-gray-700 text-nowrap mt-2 mb-1"
+                                                                    style="font-size: 0.62rem;">Total PO Mover (qty)</div>
+                                                                <div class="font-weight-bold text-info"
+                                                                    style="font-size: 0.82rem;" id="outbound-total-mover">0 PO
+                                                                </div>
+                                                            </div>
+
+                                                            <!-- Arrow 2 -->
+                                                            <div class="text-gray-300 align-self-center mx-1"
+                                                                style="font-size: 0.7rem;"><i class="fas fa-chevron-right"></i>
+                                                            </div>
+
+                                                            <!-- Step 3: Total Value PO Mover -->
+                                                            <div class="flow-step text-center flex-fill px-1 py-1 outbound-summary-clickable"
+                                                                onclick="openOutboundSummaryModal('nilai_po_mover')"
+                                                                style="cursor: pointer;"
+                                                                title="Klik untuk detail Total Value PO Mover">
+                                                                <div class="rounded-circle mx-auto mb-1.5 d-flex align-items-center justify-content-center shadow-sm"
+                                                                    style="width: 36px; height: 36px; background-color: #ecfdf5;">
+                                                                    <i class="fas fa-file-invoice-dollar text-success"
+                                                                        style="font-size: 0.95rem;"></i>
+                                                                </div>
+                                                                <div class="font-weight-bold text-gray-700 text-nowrap mt-2 mb-1"
+                                                                    style="font-size: 0.62rem;">Total Value PO Mover</div>
+                                                                <div class="font-weight-bold text-success"
+                                                                    style="font-size: 0.82rem;" id="outbound-nilai-mover">Rp 0
+                                                                </div>
+                                                            </div>
+
+                                                            <!-- Arrow 3 -->
+                                                            <div class="text-gray-300 align-self-center mx-1"
+                                                                style="font-size: 0.7rem;"><i class="fas fa-chevron-right"></i>
+                                                            </div>
+
+                                                            <!-- Step 4: Efisiensi -->
+                                                            <div class="flow-step text-center flex-fill px-1 py-1 outbound-summary-clickable"
+                                                                onclick="openOutboundSummaryModal('saving')"
+                                                                style="cursor: pointer;" title="Klik untuk detail Efisiensi">
+                                                                <div class="rounded-circle mx-auto mb-1.5 d-flex align-items-center justify-content-center shadow-sm"
+                                                                    style="width: 36px; height: 36px; background-color: #fef3c7;">
+                                                                    <i class="fas fa-dollar-sign text-warning"
+                                                                        style="font-size: 0.95rem;"></i>
+                                                                </div>
+                                                                <div class="font-weight-bold text-gray-700 text-nowrap mt-2 mb-1"
+                                                                    style="font-size: 0.62rem;">Efisiensi</div>
+                                                                <div class="font-weight-bold text-warning"
+                                                                    style="font-size: 0.82rem;" id="outbound-saving">Rp 0</div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Inner Card 2: Outbound Status Breakdown -->
+                                        <div class="col-xl-5 col-lg-5 col-md-12"
+                                            style="padding-left: 4px; padding-right: 4px;">
+                                            <div class="card border bg-white h-100 shadow-none">
+                                                <div
+                                                    class="card-body py-3 px-3 d-flex flex-column justify-content-center">
+                                                    <div class="w-100 my-auto">
+                                                        <div class="bg-light rounded p-2 mb-2 border">
+                                                            <div class="row align-items-center text-center">
+                                                                <div class="col-12 outbound-summary-clickable"
+                                                                    onclick="openOutboundSummaryModal('mr_closed')"
+                                                                    style="cursor: pointer;"
+                                                                    title="Klik untuk detail MR Closed">
+                                                                    <div class="text-uppercase text-success font-weight-bold text-nowrap"
+                                                                        style="font-size: 0.65rem;">MR CLOSED</div>
+                                                                    <div class="font-weight-bold text-success"
+                                                                        style="font-size: 1.25rem;" id="outbound-terkirim">0
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="mt-1 outbound-summary-clickable"
+                                                                onclick="openOutboundSummaryModal('mr_closed')"
+                                                                style="cursor: pointer;"
+                                                                title="Klik untuk detail Progress MR Closed">
+                                                                <div
+                                                                    class="d-flex justify-content-between align-items-center mb-1 text-nowrap">
+                                                                    <span class="font-weight-bold text-muted text-nowrap"
+                                                                        style="font-size: 0.62rem;">Progress MR Closed</span>
+                                                                    <span
+                                                                        class="font-weight-bold text-success text-nowrap ml-auto pl-1"
+                                                                        style="font-size: 0.62rem;"
+                                                                        id="outbound-progress-percent">0%</span>
+                                                                </div>
+                                                                <div class="progress rounded-pill" style="height: 4px;">
+                                                                    <div class="progress-bar bg-success" role="progressbar"
+                                                                        id="outbound-progress-bar" style="width: 0%"></div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="row text-center">
+                                                            <div class="col-4 pr-1">
+                                                                <div class="py-1 rounded border bg-light outbound-summary-clickable"
+                                                                    onclick="openOutboundSummaryModal('fulfill')"
+                                                                    style="cursor: pointer;"
+                                                                    title="Klik untuk detail Fulfilled">
+                                                                    <i class="fas fa-box-open text-primary"
+                                                                        style="font-size: 0.72rem;"></i>
+                                                                    <div class="font-weight-bold text-muted text-uppercase text-nowrap"
+                                                                        style="font-size: 0.58rem;">Fulfilled</div>
+                                                                    <div class="font-weight-bold text-primary"
+                                                                        style="font-size: 0.78rem;" id="sub-fulfill-count">0
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-4 px-1">
+                                                                <div class="py-1 rounded border bg-light outbound-summary-clickable"
+                                                                    onclick="openOutboundSummaryModal('packing')"
+                                                                    style="cursor: pointer;" title="Klik untuk detail Packing">
+                                                                    <i class="fas fa-dolly text-warning"
+                                                                        style="font-size: 0.72rem;"></i>
+                                                                    <div class="font-weight-bold text-muted text-uppercase text-nowrap"
+                                                                        style="font-size: 0.58rem;">Packed</div>
+                                                                    <div class="font-weight-bold text-warning"
+                                                                        style="font-size: 0.78rem;" id="sub-packing-count">0
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-4 pl-1">
+                                                                <div class="py-1 rounded border bg-light outbound-summary-clickable"
+                                                                    onclick="openOutboundSummaryModal('shipped')"
+                                                                    style="cursor: pointer;" title="Klik untuk detail Shipped">
+                                                                    <i class="fas fa-truck text-success"
+                                                                        style="font-size: 0.72rem;"></i>
+                                                                    <div class="font-weight-bold text-muted text-uppercase text-nowrap"
+                                                                        style="font-size: 0.58rem;">Shipped</div>
+                                                                    <div class="font-weight-bold text-success"
+                                                                        style="font-size: 0.78rem;" id="sub-shipped-count">0
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
                     <!-- Dashboard Summary Detail Modal (Empty Content Table / Detail for Inbound & Outbound) -->
                     <div class="modal fade" id="dashboardSummaryDetailModal" tabindex="-1" role="dialog"
@@ -1194,28 +1116,22 @@ include FRONTEND_PATH . 'components/header.php';
                         window.openInboundSummaryModal = function (stepIndex) {
                             var titles = [
                                 'Detail Total PO Inbound',
-                                'Detail PO Ontime Delivery',
-                                'Detail PO Terlambat Delivery',
-                                'Detail PO Sudah GR',
-                                'Detail PO Sudah Registrasi',
-                                'Detail Total GR',
+                                'Detail Total PO Ontime',
+                                'Detail Total PO Terlambat',
+                                'Detail Total Penerimaan (GR)',
                                 'Detail Total Registrasi'
                             ];
                             var labels = [
                                 'TOTAL PO INBOUND',
-                                'PO ONTIME DELIVERY',
-                                'PO TERLAMBAT DELIVERY',
-                                'PO SUDAH GR',
-                                'PO SUDAH REGISTRASI',
-                                'TOTAL GR',
+                                'TOTAL PO ONTIME',
+                                'TOTAL PO TERLAMBAT',
+                                'TOTAL PENERIMAAN (GR)',
                                 'TOTAL REGISTRASI'
                             ];
                             var ids = [
                                 'flow-po-count',
                                 'flow-po-proses-delivery',
                                 'flow-po-terlambat-delivery',
-                                'flow-gr-count',
-                                'flow-reg-count',
                                 'flow-total-gr',
                                 'flow-done-count'
                             ];
@@ -1231,7 +1147,7 @@ include FRONTEND_PATH . 'components/header.php';
                             var showPct = true;
                             if (stepIndex === 0) {
                                 pctVal = '100% (Baseline Total PO Inbound)';
-                            } else if (stepIndex >= 1 && stepIndex <= 4) {
+                            } else if (stepIndex === 1 || stepIndex === 2) {
                                 var pct = totalPoNum > 0 ? Math.round((qtyNum / totalPoNum) * 100) : 0;
                                 pctVal = pct + '% dari Total PO Inbound';
                             } else {
@@ -1273,25 +1189,25 @@ include FRONTEND_PATH . 'components/header.php';
                             var progressPct = progressPctEl ? progressPctEl.textContent.trim() : '0%';
 
                             if (metricKey === 'total_mr' || metricKey === 'mr_pending') {
-                                title = 'Detail Total MR';
-                                metricLabel = 'TOTAL MR';
+                                title = 'Detail Total Material Request (MR)';
+                                metricLabel = 'TOTAL MATERIAL REQUEST (MR)';
                                 qtyVal = totalMrEl ? totalMrEl.textContent.trim() : '0 MR';
                                 pctVal = 'Total Permintaan Material (MR)';
                                 showPct = false;
                             } else if (metricKey === 'pr_po_mover') {
-                                title = 'Detail Total PR/PO Mover';
-                                metricLabel = 'TOTAL PR/PO MOVER';
+                                title = 'Detail Total PO Mover (qty)';
+                                metricLabel = 'TOTAL PO MOVER (QTY)';
                                 qtyVal = totalMoverEl ? totalMoverEl.textContent.trim() : '0 PO';
                                 pctVal = 'Total Pemenuhan via Mover';
                                 showPct = false;
                             } else if (metricKey === 'nilai_po_mover') {
-                                title = 'Detail Nilai PO Mover';
-                                metricLabel = 'NILAI PO MOVER';
+                                title = 'Detail Total Value PO Mover';
+                                metricLabel = 'TOTAL VALUE PO MOVER';
                                 qtyVal = nilaiMoverEl ? nilaiMoverEl.textContent.trim() : 'Rp 0';
                                 pctVal = 'Total Valuasi PO Mover';
                             } else if (metricKey === 'saving') {
-                                title = 'Detail Saving';
-                                metricLabel = 'SAVING';
+                                title = 'Detail Efisiensi';
+                                metricLabel = 'EFISIENSI';
                                 qtyVal = savingEl ? savingEl.textContent.trim() : 'Rp 0';
                                 pctVal = 'Efisiensi Biaya (Cost Saving)';
                             } else if (metricKey === 'mr_closed' || metricKey === 'progress_closed') {
@@ -1337,38 +1253,55 @@ include FRONTEND_PATH . 'components/header.php';
 
                         // Click handler for Storage Summary flow steps on dashboard overview
                         window.openStorageSummaryModal = function (stepIndex) {
-                            var titles = [
-                                'Detail Total Perangkat',
-                                'Detail < 1 Tahun',
-                                'Detail > 1 Tahun',
-                                'Detail > 2 Tahun',
-                                'Detail RE-Use'
-                            ];
-                            var labels = [
-                                'TOTAL PERANGKAT',
-                                '< 1 TAHUN',
-                                '> 1 TAHUN',
-                                '> 2 TAHUN',
-                                'RE-USE'
-                            ];
-                            var ids = [
-                                'inv-total-perangkat',
-                                'inv-aging-less-3m',
-                                'inv-aging-3-12m',
-                                'inv-aging-more-12m',
-                                'inv-re-useg'
-                            ];
-
-                            var qtyEl = document.getElementById(ids[stepIndex]);
-                            var qtyVal = qtyEl ? qtyEl.textContent.trim() : '0 Unit';
-
-                            openGenericSummaryModal({
-                                moduleType: 'storage',
-                                title: titles[stepIndex] || 'Detail Storage',
-                                metricLabel: labels[stepIndex] || 'STORAGE METRIC',
-                                qtyVal: qtyVal,
-                                docColTitle: 'NO REGISTRASI'
-                            });
+                            if (stepIndex === 0) {
+                                var qtyEl = document.getElementById('inv-total-perangkat');
+                                var qtyVal = qtyEl ? qtyEl.textContent.trim() : '0 Unit';
+                                openGenericSummaryModal({
+                                    moduleType: 'storage',
+                                    title: 'Detail Total Perangkat (qty)',
+                                    metricLabel: 'TOTAL PERANGKAT',
+                                    qtyVal: qtyVal,
+                                    docColTitle: 'NO REGISTRASI'
+                                });
+                            } else if (stepIndex === 1) {
+                                var nbvEl = document.getElementById('inv-total-nbv');
+                                var nbvVal = nbvEl ? nbvEl.textContent.trim() : 'Rp 0';
+                                openGenericSummaryModal({
+                                    moduleType: 'storage',
+                                    title: 'Detail Total NBV (Rp)',
+                                    metricLabel: 'TOTAL NBV',
+                                    qtyVal: nbvVal,
+                                    docColTitle: 'NO REGISTRASI'
+                                });
+                            } else {
+                                var agingTitles = {
+                                    2: 'Detail < 1 Tahun',
+                                    3: 'Detail > 1 Tahun',
+                                    4: 'Detail > 2 Tahun',
+                                    5: 'Detail RE-Use'
+                                };
+                                var agingLabels = {
+                                    2: '< 1 TAHUN',
+                                    3: '> 1 TAHUN',
+                                    4: '> 2 TAHUN',
+                                    5: 'RE-USE'
+                                };
+                                var agingIds = {
+                                    2: 'inv-aging-less-3m',
+                                    3: 'inv-aging-3-12m',
+                                    4: 'inv-aging-more-12m',
+                                    5: 'inv-re-useg'
+                                };
+                                var el = document.getElementById(agingIds[stepIndex]);
+                                var val = el ? el.textContent.trim() : '0 Unit';
+                                openGenericSummaryModal({
+                                    moduleType: 'storage',
+                                    title: agingTitles[stepIndex] || 'Detail Storage',
+                                    metricLabel: agingLabels[stepIndex] || 'STORAGE AGING',
+                                    qtyVal: val,
+                                    docColTitle: 'NO REGISTRASI'
+                                });
+                            }
                         };
 
                         function populateSelect(selectId, items, placeholder) {
@@ -1598,10 +1531,10 @@ include FRONTEND_PATH . 'components/header.php';
                             $('#btn-modal-filter-all, #btn-modal-filter-used, #btn-modal-filter-available').removeClass('active');
                             if (filterType === 'used') {
                                 $('#btn-modal-filter-used').addClass('active');
-                                $('#storageUtilModalBadge').text('Used').removeClass().addClass('badge badge-warning px-2 py-0.5 font-weight-bold ml-2');
+                                $('#storageUtilModalBadge').text('Total Penggunaan').removeClass().addClass('badge badge-warning px-2 py-0.5 font-weight-bold ml-2');
                             } else if (filterType === 'available') {
                                 $('#btn-modal-filter-available').addClass('active');
-                                $('#storageUtilModalBadge').text('Available').removeClass().addClass('badge badge-success px-2 py-0.5 font-weight-bold ml-2');
+                                $('#storageUtilModalBadge').text('Total Tersedia').removeClass().addClass('badge badge-success px-2 py-0.5 font-weight-bold ml-2');
                             } else {
                                 $('#btn-modal-filter-all').addClass('active');
                                 $('#storageUtilModalBadge').text('Total Capacity').removeClass().addClass('badge badge-primary px-2 py-0.5 font-weight-bold ml-2');

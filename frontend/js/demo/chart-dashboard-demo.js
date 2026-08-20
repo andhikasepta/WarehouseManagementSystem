@@ -44,51 +44,81 @@ document.addEventListener("DOMContentLoaded", function () {
     window.dashInventorySummaryPieChart = new Chart(ctxInvPie, {
       type: 'doughnut',
       data: {
-        labels: getStorageDynamicStepNames(),
+        labels: ['Total Perangkat', 'Total NBV'],
         datasets: [{
-          data: [1, 1, 1, 1],
-          backgroundColor: ['#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b'],
-          hoverBackgroundColor: ['#17a673', '#2c9faf', '#dfa827', '#be2617'],
-          hoverBorderColor: "rgba(234, 236, 244, 1)",
+          data: [1, 1],
+          backgroundColor: ['#4e73df', '#1cc88a'],
+          hoverBackgroundColor: ['#2e59d9', '#17a673'],
+          hoverBorderColor: "#ffffff",
+          hoverBorderWidth: 3,
           borderWidth: 2
         }]
       },
       options: {
         maintainAspectRatio: false,
         cutoutPercentage: 65,
+        layout: {
+          padding: {
+            top: 6,
+            bottom: 6,
+            left: 6,
+            right: 6
+          }
+        },
         legend: {
           display: false
         },
         tooltips: {
-          backgroundColor: "rgba(255,255,255,0.95)",
-          bodyFontColor: "#4a5568",
+          position: 'outsideArc',
+          backgroundColor: "rgba(15, 23, 42, 0.94)",
+          bodyFontColor: "#ffffff",
           bodyFontSize: 9,
           titleFontSize: 9,
-          borderColor: '#e2e8f0',
+          borderColor: '#334155',
           borderWidth: 1,
-          xPadding: 6,
-          yPadding: 4,
+          xPadding: 7,
+          yPadding: 5,
           displayColors: true,
-          boxWidth: 6,
-          boxHeight: 6,
-          caretPadding: 4,
-          caretSize: 4,
-          cornerRadius: 4,
+          boxWidth: 7,
+          boxHeight: 7,
+          caretPadding: 6,
+          caretSize: 5,
+          cornerRadius: 6,
           callbacks: {
             label: function (tooltipItem, data) {
-              var realValues = window.inventorySummaryRealValues || [0, 0, 0, 0];
-              var realVal = realValues[tooltipItem.index] !== undefined ? realValues[tooltipItem.index] : 0;
-              var sum = realValues.reduce(function (a, b) { return a + b; }, 0);
-              var pct = sum > 0 ? Math.round((realVal / sum) * 100) : 0;
-              var stepName = data.labels[tooltipItem.index] || 'Category';
-              return stepName + ': ' + realVal + ' (' + pct + '%)';
+              var totalQty = window.inventoryTotalAssetVal || 0;
+              var totalNbv = window.inventoryTotalNbvVal || 0;
+              if (tooltipItem.index === 0) {
+                return 'Total Perangkat: ' + totalQty.toLocaleString('id-ID') + ' Unit';
+              } else {
+                return 'Total NBV: Rp ' + totalNbv.toLocaleString('id-ID');
+              }
             }
           }
         }
       }
     });
 
-    syncStorageFlowLabels();
+    // Link hover on outside legend items to chart slices
+    [1, 2].forEach(function (idx) {
+      var legendItem = document.getElementById('storage-legend-item-' + idx);
+      if (legendItem) {
+        legendItem.addEventListener('mouseenter', function () {
+          if (window.dashInventorySummaryPieChart && window.dashInventorySummaryPieChart.getDatasetMeta(0).data[idx - 1]) {
+            window.dashInventorySummaryPieChart.tooltip._active = [window.dashInventorySummaryPieChart.getDatasetMeta(0).data[idx - 1]];
+            window.dashInventorySummaryPieChart.tooltip.update(true);
+            window.dashInventorySummaryPieChart.draw();
+          }
+        });
+        legendItem.addEventListener('mouseleave', function () {
+          if (window.dashInventorySummaryPieChart) {
+            window.dashInventorySummaryPieChart.tooltip._active = [];
+            window.dashInventorySummaryPieChart.tooltip.update(true);
+            window.dashInventorySummaryPieChart.draw();
+          }
+        });
+      }
+    });
   }
 
   // 1b. Initialize Storage HUB & Outlet Warehouse Pie/Doughnut Chart
@@ -187,36 +217,34 @@ document.addEventListener("DOMContentLoaded", function () {
     });
     if (names.length === 7) return names;
     return [
-      'Total PO Inbound',
-      'PO Ontime Delivery',
-      'PO Terlambat Delivery',
-      'PO Sudah GR',
-      'PO sudah Registrasi',
-      'Total GR',
-      'Total Registrasi'
+      'Total PO Ontime',
+      'Total PO Terlambat'
     ];
   }
 
-  window.inboundFlowRealValues = [0, 0, 0, 0, 0, 0, 0];
+  window.inboundFlowRealValues = [0, 0];
 
   function syncInboundFlowLabels() {
-    var stepNames = getDynamicStepNames();
-    
     // 1. Sync Chart.js labels
     if (window.dashInboundFlowPieChart && window.dashInboundFlowPieChart.data) {
-      window.dashInboundFlowPieChart.data.labels = stepNames;
+      window.dashInboundFlowPieChart.data.labels = ['Total PO Ontime', 'Total PO Terlambat'];
     }
+  }
 
-    // 2. Sync Right Side DOM Filter Legend Item labels
-    stepNames.forEach(function (name, idx) {
-      var legendItem = document.getElementById('inbound-flow-legend-' + idx);
-      if (legendItem) {
-        var spanEl = legendItem.querySelector('span');
-        if (spanEl) {
-          spanEl.textContent = name;
-        }
-      }
-    });
+  // Custom Tooltip Positioner: places tooltip outside the doughnut ring so center text is never blocked
+  if (Chart.Tooltip && Chart.Tooltip.positioners && !Chart.Tooltip.positioners.outsideArc) {
+    Chart.Tooltip.positioners.outsideArc = function (elements, eventPosition) {
+      if (!elements.length) return false;
+      var el = elements[0];
+      var vm = el._view;
+      if (!vm) return eventPosition;
+      var angle = (vm.startAngle + vm.endAngle) / 2;
+      var radius = (vm.outerRadius || 50) + 12;
+      return {
+        x: vm.x + Math.cos(angle) * radius,
+        y: vm.y + Math.sin(angle) * radius
+      };
+    };
   }
 
   // 1b. Initialize Inbound Flow Pie/Doughnut Chart (Placed under steps)
@@ -225,45 +253,56 @@ document.addEventListener("DOMContentLoaded", function () {
     window.dashInboundFlowPieChart = new Chart(ctxInboundFlowPie, {
       type: 'doughnut',
       data: {
-        labels: getDynamicStepNames(),
+        labels: ['Total PO Ontime', 'Total PO Terlambat'],
         datasets: [{
-          // Render equal dummy slices so all 7 colored segments show even when values are 0
-          data: [1, 1, 1, 1, 1, 1, 1],
-          backgroundColor: ['#4e73df', '#36b9cc', '#e74a3b', '#1cc88a', '#6f42c1', '#f6c23e', '#5a5c69'],
-          hoverBackgroundColor: ['#2e59d9', '#2c9faf', '#be2617', '#17a673', '#5a32a3', '#dfa827', '#3a3b45'],
-          hoverBorderColor: "rgba(234, 236, 244, 1)",
+          // Render equal dummy slices so 2 colored segments show even when values are 0
+          data: [1, 1],
+          backgroundColor: ['#1cc88a', '#e74a3b'],
+          hoverBackgroundColor: ['#17a673', '#be2617'],
+          hoverBorderColor: "#ffffff",
+          hoverBorderWidth: 3,
           borderWidth: 2
         }]
       },
       options: {
         maintainAspectRatio: false,
-        cutoutPercentage: 65,
+        cutoutPercentage: 68,
+        layout: {
+          padding: {
+            top: 6,
+            bottom: 6,
+            left: 6,
+            right: 6
+          }
+        },
         legend: {
           display: false
         },
         tooltips: {
-          backgroundColor: "rgba(255,255,255,0.95)",
-          bodyFontColor: "#4a5568",
-          bodyFontSize: 9,
-          titleFontSize: 9,
-          borderColor: '#e2e8f0',
+          position: 'outsideArc',
+          backgroundColor: "rgba(15, 23, 42, 0.94)",
+          bodyFontColor: "#ffffff",
+          bodyFontSize: 10,
+          titleFontSize: 10,
+          borderColor: '#334155',
           borderWidth: 1,
-          xPadding: 6,
-          yPadding: 4,
+          xPadding: 8,
+          yPadding: 6,
           displayColors: true,
-          boxWidth: 6,
-          boxHeight: 6,
-          caretPadding: 4,
-          caretSize: 4,
-          cornerRadius: 4,
+          boxWidth: 8,
+          boxHeight: 8,
+          caretPadding: 6,
+          caretSize: 5,
+          cornerRadius: 6,
           callbacks: {
             label: function (tooltipItem, data) {
-              var realValues = window.inboundFlowRealValues || [0, 0, 0, 0, 0, 0, 0];
-              var realVal = realValues[tooltipItem.index] !== undefined ? realValues[tooltipItem.index] : 0;
-              var sum = realValues.reduce(function (a, b) { return a + b; }, 0);
-              var pct = sum > 0 ? Math.round((realVal / sum) * 100) : 0;
-              var labelName = (data.labels && data.labels[tooltipItem.index]) ? data.labels[tooltipItem.index] : 'Step';
-              return labelName + ': ' + realVal + ' (' + pct + '%)';
+              var ontimeVal = window.inboundOntimeVal || 0;
+              var terlambatVal = window.inboundTerlambatVal || 0;
+              var totalPo = (window.inboundTotalPoVal !== undefined && window.inboundTotalPoVal > 0) ? window.inboundTotalPoVal : (ontimeVal + terlambatVal);
+              var val = tooltipItem.index === 0 ? ontimeVal : terlambatVal;
+              var pct = totalPo > 0 ? Math.round((val / totalPo) * 100) : 0;
+              var labelName = (data.labels && data.labels[tooltipItem.index]) ? data.labels[tooltipItem.index] : 'Status';
+              return labelName + ': ' + val + ' PO (' + pct + '%)';
             }
           }
         }
@@ -271,22 +310,68 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     syncInboundFlowLabels();
+
+    // Link hover on outside legend items to chart slices
+    var legendOntime = document.getElementById('inbound-flow-legend-1');
+    if (legendOntime) {
+      legendOntime.addEventListener('mouseenter', function () {
+        if (window.dashInboundFlowPieChart && window.dashInboundFlowPieChart.getDatasetMeta(0).data[0]) {
+          window.dashInboundFlowPieChart.tooltip._active = [window.dashInboundFlowPieChart.getDatasetMeta(0).data[0]];
+          window.dashInboundFlowPieChart.tooltip.update(true);
+          window.dashInboundFlowPieChart.draw();
+        }
+      });
+      legendOntime.addEventListener('mouseleave', function () {
+        if (window.dashInboundFlowPieChart) {
+          window.dashInboundFlowPieChart.tooltip._active = [];
+          window.dashInboundFlowPieChart.tooltip.update(true);
+          window.dashInboundFlowPieChart.draw();
+        }
+      });
+    }
+
+    var legendTerlambat = document.getElementById('inbound-flow-legend-2');
+    if (legendTerlambat) {
+      legendTerlambat.addEventListener('mouseenter', function () {
+        if (window.dashInboundFlowPieChart && window.dashInboundFlowPieChart.getDatasetMeta(0).data[1]) {
+          window.dashInboundFlowPieChart.tooltip._active = [window.dashInboundFlowPieChart.getDatasetMeta(0).data[1]];
+          window.dashInboundFlowPieChart.tooltip.update(true);
+          window.dashInboundFlowPieChart.draw();
+        }
+      });
+      legendTerlambat.addEventListener('mouseleave', function () {
+        if (window.dashInboundFlowPieChart) {
+          window.dashInboundFlowPieChart.tooltip._active = [];
+          window.dashInboundFlowPieChart.tooltip.update(true);
+          window.dashInboundFlowPieChart.draw();
+        }
+      });
+    }
   }
 
   // Helper function to update Inventory Summary Pie Chart values (Storage Tekno)
-  window.updateInventorySummaryPieChart = function (newValues) {
-    if (!newValues || !Array.isArray(newValues)) return;
-    window.inventorySummaryRealValues = newValues;
-    var sum = newValues.reduce(function (a, b) { return a + b; }, 0);
+  window.updateInventorySummaryPieChart = function (totalQty, totalNbv) {
+    if (Array.isArray(totalQty)) {
+      totalQty = totalQty.reduce(function (a, b) { return a + b; }, 0);
+    }
+    if (typeof totalQty === 'number') window.inventoryTotalAssetVal = totalQty;
+    if (typeof totalNbv === 'number') window.inventoryTotalNbvVal = totalNbv;
+
+    var qtyVal = (window.inventoryTotalAssetVal || 0);
+    var nbvVal = (window.inventoryTotalNbvVal || 0);
+
     var totalEl = document.getElementById('inventory-pie-total-val');
-    if (totalEl) totalEl.textContent = sum;
+    if (totalEl) totalEl.textContent = qtyVal.toLocaleString('id-ID') + ' Unit';
+
+    var leg1 = document.getElementById('inv-legend-1');
+    if (leg1) leg1.textContent = qtyVal.toLocaleString('id-ID') + ' Unit';
+
+    var leg2 = document.getElementById('inv-legend-2');
+    if (leg2) leg2.textContent = 'Rp ' + nbvVal.toLocaleString('id-ID');
+
     if (window.dashInventorySummaryPieChart && window.dashInventorySummaryPieChart.data) {
-      syncStorageFlowLabels();
-      if (sum === 0) {
-        window.dashInventorySummaryPieChart.data.datasets[0].data = [1, 1, 1, 1];
-      } else {
-        window.dashInventorySummaryPieChart.data.datasets[0].data = newValues;
-      }
+      window.dashInventorySummaryPieChart.data.labels = ['Total Perangkat', 'Total NBV'];
+      window.dashInventorySummaryPieChart.data.datasets[0].data = [1, 1];
       window.dashInventorySummaryPieChart.update();
     }
   };
@@ -311,17 +396,63 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Helper function to update Inbound Flow Pie Chart values
   window.updateInboundFlowPieChart = function (newValues) {
-    if (!newValues || !Array.isArray(newValues)) return;
-    window.inboundFlowRealValues = newValues;
-    var sum = newValues.reduce(function (a, b) { return a + b; }, 0);
+    var ontime = 0;
+    var terlambat = 0;
+    var totalPo = 0;
+
+    if (Array.isArray(newValues)) {
+      if (newValues.length === 2) {
+        ontime = parseInt(newValues[0]) || 0;
+        terlambat = parseInt(newValues[1]) || 0;
+        totalPo = ontime + terlambat;
+      } else if (newValues.length >= 3) {
+        totalPo = parseInt(newValues[0]) || 0;
+        ontime = parseInt(newValues[1]) || 0;
+        terlambat = parseInt(newValues[2]) || 0;
+        if (totalPo === 0 && (ontime > 0 || terlambat > 0)) {
+          totalPo = ontime + terlambat;
+        }
+      }
+    }
+
+    window.inboundOntimeVal = ontime;
+    window.inboundTerlambatVal = terlambat;
+    window.inboundTotalPoVal = totalPo;
+    window.inboundFlowRealValues = [ontime, terlambat];
+
+    var ontimePct = totalPo > 0 ? Math.round((ontime / totalPo) * 100) : 0;
+    var terlambatPct = totalPo > 0 ? Math.round((terlambat / totalPo) * 100) : 0;
+
+    // Update center elements
     var totalEl = document.getElementById('inbound-pie-total-val');
-    if (totalEl) totalEl.textContent = sum;
+    if (totalEl) totalEl.textContent = totalPo + ' PO';
+
+    var pctEl = document.getElementById('inbound-pie-pct-val');
+    if (pctEl) pctEl.textContent = '100%';
+
+    // Update top flow steps if elements exist
+    var flowPoEl = document.getElementById('flow-po-count');
+    if (flowPoEl && newValues && newValues.length > 0) flowPoEl.textContent = totalPo + ' PO';
+    var flowOntimeEl = document.getElementById('flow-po-proses-delivery');
+    if (flowOntimeEl && newValues && newValues.length > 1) flowOntimeEl.textContent = ontime + ' PO';
+    var flowTerlambatEl = document.getElementById('flow-po-terlambat-delivery');
+    if (flowTerlambatEl && newValues && newValues.length > 2) flowTerlambatEl.textContent = terlambat + ' PO';
+
+    // Update legend badges
+    var totalBadge = document.getElementById('legend-po-total-badge');
+    if (totalBadge) totalBadge.textContent = totalPo + ' (100%)';
+
+    var ontimeBadge = document.getElementById('legend-po-ontime-badge');
+    if (ontimeBadge) ontimeBadge.textContent = ontime + ' (' + ontimePct + '%)';
+
+    var terlambatBadge = document.getElementById('legend-po-terlambat-badge');
+    if (terlambatBadge) terlambatBadge.textContent = terlambat + ' (' + terlambatPct + '%)';
+
     if (window.dashInboundFlowPieChart && window.dashInboundFlowPieChart.data) {
-      syncInboundFlowLabels();
-      if (sum === 0) {
-        window.dashInboundFlowPieChart.data.datasets[0].data = [1, 1, 1, 1, 1, 1, 1];
+      if (ontime === 0 && terlambat === 0) {
+        window.dashInboundFlowPieChart.data.datasets[0].data = [1, 1];
       } else {
-        window.dashInboundFlowPieChart.data.datasets[0].data = newValues;
+        window.dashInboundFlowPieChart.data.datasets[0].data = [ontime, terlambat];
       }
       window.dashInboundFlowPieChart.update();
     }
@@ -337,7 +468,7 @@ document.addEventListener("DOMContentLoaded", function () {
       if (meta && meta.data && meta.data[index]) {
         meta.data[index].hidden = !meta.data[index].hidden;
         window.dashInboundFlowPieChart.update();
-        var legendItem = document.getElementById('inbound-flow-legend-' + index);
+        var legendItem = document.getElementById('inbound-flow-legend-' + (index + 1));
         if (legendItem) {
           if (meta.data[index].hidden) {
             legendItem.style.opacity = '0.35';
