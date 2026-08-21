@@ -6,36 +6,22 @@ document.addEventListener("DOMContentLoaded", function () {
   window.inventorySummaryRealValues = [0, 0, 0, 0];
 
   function getStorageDynamicStepNames() {
-    var storageContainer = document.getElementById('storage-steps-container');
-    var flowSteps = storageContainer ? storageContainer.querySelectorAll('.flow-step') : [];
-    var names = [];
-    flowSteps.forEach(function (stepEl, idx) {
-      if (idx > 0) { // Skip Step 1 (Total Perangkat) as pie chart represents the 4 categories
-        var titleEl = stepEl.querySelector('.text-gray-700');
-        if (titleEl && titleEl.textContent.trim()) {
-          names.push(titleEl.textContent.trim());
-        }
-      }
-    });
-    if (names.length === 4) return names;
-    return ['< 1 Tahun', '1 - 2 Tahun', '> 2 Tahun', 'RE-Use'];
+    return ['Total Perangkat', 'Total NBV'];
   }
 
   function syncStorageFlowLabels() {
-    var stepNames = getStorageDynamicStepNames();
+    var stepNames = ['Total Perangkat', 'Total NBV'];
 
     // 1. Sync Chart.js doughnut chart labels
     if (window.dashInventorySummaryPieChart && window.dashInventorySummaryPieChart.data) {
       window.dashInventorySummaryPieChart.data.labels = stepNames;
     }
 
-    // 2. Sync Right-side Legend item names (#inv-legend-name-1 .. #inv-legend-name-4)
-    stepNames.forEach(function (name, idx) {
-      var legendNameEl = document.getElementById('inv-legend-name-' + (idx + 1));
-      if (legendNameEl) {
-        legendNameEl.textContent = name;
-      }
-    });
+    // 2. Sync Legend item names (#inv-legend-name-1 and #inv-legend-name-2)
+    var legend1 = document.getElementById('inv-legend-name-1');
+    if (legend1) legend1.textContent = 'Total Perangkat';
+    var legend2 = document.getElementById('inv-legend-name-2');
+    if (legend2) legend2.textContent = 'Total NBV';
   }
 
   // 1. Initialize Inventory Summary Pie/Doughnut Chart (Storage Tekno)
@@ -205,21 +191,8 @@ document.addEventListener("DOMContentLoaded", function () {
     syncStorageHubFlowLabels();
   }
 
-  function getDynamicStepNames() {
-    var inboundContainer = document.getElementById('inbound-steps-container');
-    var flowSteps = inboundContainer ? inboundContainer.querySelectorAll('.flow-step') : [];
-    var names = [];
-    flowSteps.forEach(function (stepEl) {
-      var titleEl = stepEl.querySelector('.text-gray-700');
-      if (titleEl && titleEl.textContent.trim()) {
-        names.push(titleEl.textContent.trim());
-      }
-    });
-    if (names.length === 7) return names;
-    return [
-      'Total PO Ontime',
-      'Total PO Terlambat'
-    ];
+  function getInboundDynamicStepNames() {
+    return ['Ontime', 'Terlambat'];
   }
 
   window.inboundFlowRealValues = [0, 0];
@@ -227,7 +200,7 @@ document.addEventListener("DOMContentLoaded", function () {
   function syncInboundFlowLabels() {
     // 1. Sync Chart.js labels
     if (window.dashInboundFlowPieChart && window.dashInboundFlowPieChart.data) {
-      window.dashInboundFlowPieChart.data.labels = ['Total PO Ontime', 'Total PO Terlambat'];
+      window.dashInboundFlowPieChart.data.labels = ['Ontime', 'Terlambat'];
     }
   }
 
@@ -253,7 +226,7 @@ document.addEventListener("DOMContentLoaded", function () {
     window.dashInboundFlowPieChart = new Chart(ctxInboundFlowPie, {
       type: 'doughnut',
       data: {
-        labels: ['Total PO Ontime', 'Total PO Terlambat'],
+        labels: ['Ontime', 'Terlambat'],
         datasets: [{
           // Render equal dummy slices so 2 colored segments show even when values are 0
           data: [1, 1],

@@ -62,7 +62,7 @@ function getCurrentUser($forceRefresh = false) {
             require_once __DIR__ . '/config/database.php';
         }
         try {
-            $stmt = $pdo->prepare("SELECT id, username, name, role, allowed_modules, permissions FROM users WHERE id = ?");
+            $stmt = $pdo->prepare("SELECT id, username, name, role, employment_type, job_title, allowed_modules, permissions FROM users WHERE id = ?");
             $stmt->execute([$userId]);
             $dbUser = $stmt->fetch(PDO::FETCH_ASSOC);
             if ($dbUser) {
@@ -71,6 +71,8 @@ function getCurrentUser($forceRefresh = false) {
 
                 $_SESSION['role'] = $dbUser['role'];
                 $_SESSION['name'] = $dbUser['name'];
+                $_SESSION['employment_type'] = $dbUser['employment_type'] ?? 'Karyawan Tetap';
+                $_SESSION['job_title'] = $dbUser['job_title'] ?? '';
                 $_SESSION['allowed_modules'] = is_array($decodedModules) ? $decodedModules : [];
                 $_SESSION['permissions'] = is_array($decodedPermissions) ? $decodedPermissions : [];
 
@@ -79,6 +81,8 @@ function getCurrentUser($forceRefresh = false) {
                     'username' => $dbUser['username'],
                     'name' => $dbUser['name'],
                     'role' => $dbUser['role'],
+                    'employment_type' => $_SESSION['employment_type'],
+                    'job_title' => $_SESSION['job_title'],
                     'allowed_modules' => $_SESSION['allowed_modules'],
                     'permissions' => $_SESSION['permissions']
                 ];
@@ -94,6 +98,8 @@ function getCurrentUser($forceRefresh = false) {
         'username' => $_SESSION['username'] ?? '',
         'name' => $_SESSION['name'] ?? '',
         'role' => $_SESSION['role'] ?? 'admin',
+        'employment_type' => $_SESSION['employment_type'] ?? 'Karyawan Tetap',
+        'job_title' => $_SESSION['job_title'] ?? '',
         'allowed_modules' => $_SESSION['allowed_modules'] ?? [],
         'permissions' => $_SESSION['permissions'] ?? []
     ];
@@ -375,7 +381,7 @@ function renderAccessDeniedPage($requiredModule = '', $user = null, $customMessa
                                              <?php else: 
                                                  $role = $user['role'] ?? '';
                                                  $modules = is_array($user['allowed_modules'] ?? null) ? $user['allowed_modules'] : [];
-                                                 $targetUrl = 'wms_select.php';
+                                                 $targetUrl = 'dashboard.php';
 
                                                  if ($role === 'inbound_admin') {
                                                      $targetUrl = 'inbound.php';
@@ -384,9 +390,11 @@ function renderAccessDeniedPage($requiredModule = '', $user = null, $customMessa
                                                  } elseif ($role === 'outbound_admin') {
                                                      $targetUrl = 'outbound.php';
                                                  } elseif ($role === 'outsourcing') {
-                                                     $targetUrl = 'wms_select.php';
+                                                     $targetUrl = 'dashboard.php';
                                                  } elseif (!empty($modules)) {
-                                                     if (in_array('warehouse', $modules)) {
+                                                     if (in_array('dashboard', $modules)) {
+                                                         $targetUrl = 'dashboard.php';
+                                                     } elseif (in_array('warehouse', $modules)) {
                                                          $targetUrl = 'warehouse.php';
                                                      } else {
                                                          $targetUrl = $modules[0] . '.php';

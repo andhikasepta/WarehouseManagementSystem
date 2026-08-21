@@ -366,44 +366,45 @@ include FRONTEND_PATH . 'components/header.php';
                                                     class="card-body py-3 px-3 d-flex flex-column justify-content-center">
                                                     <div class="w-100 my-auto">
                                                         <div class="d-flex align-items-center justify-content-around text-center flex-nowrap w-100"
-                                                            id="storage-steps-container">
-                                                            <!-- Step 1: Total Perangkat (qty) -->
-                                                            <div class="flow-step text-center px-3 py-1 outbound-summary-clickable flex-fill"
+                                                            id="storage-steps-container" style="gap: 16px;">
+                                                            <!-- Step 1: Total Perangkat (qty) Box -->
+                                                            <div class="flow-step text-center flex-fill py-3 px-3 rounded border bg-white shadow-sm outbound-summary-clickable"
                                                                 onclick="openStorageSummaryModal(0)"
-                                                                style="cursor: pointer;" title="Klik untuk detail Total Perangkat (qty)">
-                                                                <div class="rounded-circle mx-auto mb-1.5 d-flex align-items-center justify-content-center shadow-sm"
-                                                                    style="width: 36px; height: 36px; background-color: #eef2ff;">
+                                                                style="cursor: pointer; transition: all 0.2s ease-in-out;"
+                                                                title="Klik untuk detail Total Perangkat (qty)">
+                                                                <div class="rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center shadow-sm"
+                                                                    style="width: 42px; height: 42px; background-color: #eef2ff;">
                                                                     <i class="fas fa-cubes text-primary"
-                                                                        style="font-size: 0.95rem;"></i>
+                                                                        style="font-size: 1.1rem;"></i>
                                                                 </div>
                                                                 <div class="font-weight-bold text-gray-700 text-nowrap mt-2 mb-1"
-                                                                    style="font-size: 0.62rem;">Total Perangkat (qty)</div>
+                                                                    style="font-size: 0.70rem;">Total Perangkat</div>
                                                                 <div class="font-weight-bold text-primary"
-                                                                    style="font-size: 0.82rem;"
+                                                                    style="font-size: 1.05rem;"
                                                                     id="inv-total-perangkat">0 Unit
                                                                 </div>
                                                             </div>
 
                                                             <!-- Arrow 1 -->
-                                                            <div class="text-gray-300 align-self-center mx-3"
-                                                                style="font-size: 0.8rem;"><i
+                                                            <div class="text-gray-400 align-self-center px-1"
+                                                                style="font-size: 1.1rem;"><i
                                                                     class="fas fa-chevron-right"></i>
                                                             </div>
 
-                                                            <!-- Step 2: Total NBV (Rp) -->
-                                                            <div class="flow-step text-center px-3 py-1 outbound-summary-clickable flex-fill"
+                                                            <!-- Step 2: Total NBV (Rp) Box -->
+                                                            <div class="flow-step text-center flex-fill py-3 px-3 rounded border bg-white shadow-sm outbound-summary-clickable"
                                                                 onclick="openStorageSummaryModal(1)"
-                                                                style="cursor: pointer;" title="Klik untuk detail Total NBV (Rp)">
-                                                                <div class="rounded-circle mx-auto mb-1.5 d-flex align-items-center justify-content-center shadow-sm"
-                                                                    style="width: 36px; height: 36px; background-color: #ecfdf5;">
+                                                                style="cursor: pointer; transition: all 0.2s ease-in-out;"
+                                                                title="Klik untuk detail Total NBV (Rp)">
+                                                                <div class="rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center shadow-sm"
+                                                                    style="width: 42px; height: 42px; background-color: #ecfdf5;">
                                                                     <i class="fas fa-file-invoice-dollar text-success"
-                                                                        style="font-size: 0.95rem;"></i>
+                                                                        style="font-size: 1.1rem;"></i>
                                                                 </div>
                                                                 <div class="font-weight-bold text-gray-700 text-nowrap mt-2 mb-1"
-                                                                    style="font-size: 0.62rem;">Total NBV (Rp)</div>
+                                                                    style="font-size: 0.70rem;">Total NBV</div>
                                                                 <div class="font-weight-bold text-success"
-                                                                    style="font-size: 0.82rem;"
-                                                                    id="inv-total-nbv">Rp 0
+                                                                    style="font-size: 1.05rem;" id="inv-total-nbv">Rp 0
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -432,7 +433,8 @@ include FRONTEND_PATH . 'components/header.php';
                                                             <div class="filter-legend-item outbound-summary-clickable px-1 flex-fill"
                                                                 id="storage-legend-item-1"
                                                                 onclick="openStorageSummaryModal(0)"
-                                                                style="cursor: pointer;" title="Klik untuk detail Total Perangkat (qty)">
+                                                                style="cursor: pointer;"
+                                                                title="Klik untuk detail Total Perangkat (qty)">
                                                                 <div
                                                                     class="d-flex align-items-center justify-content-center mb-0.5">
                                                                     <i class="fas fa-circle mr-1"
@@ -444,14 +446,16 @@ include FRONTEND_PATH . 'components/header.php';
                                                                 </div>
                                                                 <span
                                                                     class="badge badge-light border text-primary px-1 py-0.2 font-weight-bold"
-                                                                    id="inv-legend-1" style="font-size: 0.58rem;">0 Unit</span>
+                                                                    id="inv-legend-1" style="font-size: 0.58rem;">0
+                                                                    Unit</span>
                                                             </div>
 
                                                             <!-- Item 2: Total NBV -->
                                                             <div class="filter-legend-item outbound-summary-clickable px-1 flex-fill"
                                                                 id="storage-legend-item-2"
                                                                 onclick="openStorageSummaryModal(1)"
-                                                                style="cursor: pointer;" title="Klik untuk detail Total NBV (Rp)">
+                                                                style="cursor: pointer;"
+                                                                title="Klik untuk detail Total NBV (Rp)">
                                                                 <div
                                                                     class="d-flex align-items-center justify-content-center mb-0.5">
                                                                     <i class="fas fa-circle mr-1"
@@ -463,7 +467,8 @@ include FRONTEND_PATH . 'components/header.php';
                                                                 </div>
                                                                 <span
                                                                     class="badge badge-light border text-success px-1 py-0.2 font-weight-bold"
-                                                                    id="inv-legend-2" style="font-size: 0.58rem;">Rp 0</span>
+                                                                    id="inv-legend-2" style="font-size: 0.58rem;">Rp
+                                                                    0</span>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -515,7 +520,8 @@ include FRONTEND_PATH . 'components/header.php';
                                                     <div class="font-weight-bold text-muted text-uppercase text-nowrap mt-1"
                                                         style="font-size: 0.55rem;">Total Capacity</div>
                                                     <div class="font-weight-bold text-gray-800"
-                                                        style="font-size: 0.78rem;" id="storage-total-capacity">100%</div>
+                                                        style="font-size: 0.78rem;" id="storage-total-capacity">100%
+                                                    </div>
                                                 </div>
                                             </div>
                                             <div class="col-4 px-1">
@@ -570,7 +576,7 @@ include FRONTEND_PATH . 'components/header.php';
                     </div>
 
                     <!-- Row 5: Outbound Summary Group Card -->
-                    <div class="row" style="margin-left: -4px; margin-right: -4px;">
+                    <div class="row mt-2" style="margin-left: -4px; margin-right: -4px;">
                         <div class="col-12 mb-4" style="padding-left: 4px; padding-right: 4px;">
                             <div class="card shadow border-0">
                                 <div class="card-body py-3 px-3">
@@ -590,88 +596,100 @@ include FRONTEND_PATH . 'components/header.php';
                                             style="padding-left: 4px; padding-right: 4px;">
                                             <div class="card border bg-white h-100 shadow-none">
                                                 <div
-                                                    class="card-body py-3 px-3 d-flex flex-column justify-content-center">
+                                                    class="card-body pt-4 pb-3 px-3 d-flex flex-column justify-content-center">
                                                     <div class="w-100 my-auto">
                                                         <div class="d-flex align-items-center justify-content-between text-center flex-nowrap w-100"
                                                             id="outbound-steps-container">
                                                             <!-- Step 1: Total Material Request (MR) -->
-                                                            <div class="flow-step text-center flex-fill px-1 py-1 outbound-summary-clickable"
+                                                            <div class="flow-step text-center flex-fill px-1 py-2 outbound-summary-clickable"
                                                                 onclick="openOutboundSummaryModal('total_mr')"
-                                                                style="cursor: pointer;" title="Klik untuk detail Total Material Request (MR)">
-                                                                <div class="rounded-circle mx-auto mb-1.5 d-flex align-items-center justify-content-center shadow-sm"
-                                                                    style="width: 36px; height: 36px; background-color: #eef2ff;">
+                                                                style="cursor: pointer;"
+                                                                title="Klik untuk detail Total Material Request (MR)">
+                                                                <div class="rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center shadow-sm"
+                                                                    style="width: 38px; height: 38px; background-color: #eef2ff;">
                                                                     <i class="fas fa-file-alt text-primary"
                                                                         style="font-size: 0.95rem;"></i>
                                                                 </div>
                                                                 <div class="font-weight-bold text-gray-700 text-nowrap mt-2 mb-1"
-                                                                    style="font-size: 0.62rem;">Total Material Request (MR)</div>
+                                                                    style="font-size: 0.62rem;">Total Material Request
+                                                                    (MR)</div>
                                                                 <div class="font-weight-bold text-primary"
-                                                                    style="font-size: 0.82rem;" id="outbound-total-mr">0 MR
+                                                                    style="font-size: 0.82rem;" id="outbound-total-mr">0
+                                                                    MR
                                                                 </div>
                                                             </div>
 
                                                             <!-- Arrow 1 -->
                                                             <div class="text-gray-300 align-self-center mx-1"
-                                                                style="font-size: 0.7rem;"><i class="fas fa-chevron-right"></i>
+                                                                style="font-size: 0.7rem;"><i
+                                                                    class="fas fa-chevron-right"></i>
                                                             </div>
 
                                                             <!-- Step 2: Total PO Mover (qty) -->
-                                                            <div class="flow-step text-center flex-fill px-1 py-1 outbound-summary-clickable"
+                                                            <div class="flow-step text-center flex-fill px-1 py-2 outbound-summary-clickable"
                                                                 onclick="openOutboundSummaryModal('pr_po_mover')"
                                                                 style="cursor: pointer;"
                                                                 title="Klik untuk detail Total PO Mover (qty)">
-                                                                <div class="rounded-circle mx-auto mb-1.5 d-flex align-items-center justify-content-center shadow-sm"
-                                                                    style="width: 36px; height: 36px; background-color: #e0f2fe;">
+                                                                <div class="rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center shadow-sm"
+                                                                    style="width: 38px; height: 38px; background-color: #e0f2fe;">
                                                                     <i class="fas fa-exchange-alt text-info"
                                                                         style="font-size: 0.95rem;"></i>
                                                                 </div>
                                                                 <div class="font-weight-bold text-gray-700 text-nowrap mt-2 mb-1"
-                                                                    style="font-size: 0.62rem;">Total PO Mover (qty)</div>
+                                                                    style="font-size: 0.62rem;">Total PO Mover (qty)
+                                                                </div>
                                                                 <div class="font-weight-bold text-info"
-                                                                    style="font-size: 0.82rem;" id="outbound-total-mover">0 PO
+                                                                    style="font-size: 0.82rem;"
+                                                                    id="outbound-total-mover">0 PO
                                                                 </div>
                                                             </div>
 
                                                             <!-- Arrow 2 -->
                                                             <div class="text-gray-300 align-self-center mx-1"
-                                                                style="font-size: 0.7rem;"><i class="fas fa-chevron-right"></i>
+                                                                style="font-size: 0.7rem;"><i
+                                                                    class="fas fa-chevron-right"></i>
                                                             </div>
 
                                                             <!-- Step 3: Total Value PO Mover -->
-                                                            <div class="flow-step text-center flex-fill px-1 py-1 outbound-summary-clickable"
+                                                            <div class="flow-step text-center flex-fill px-1 py-2 outbound-summary-clickable"
                                                                 onclick="openOutboundSummaryModal('nilai_po_mover')"
                                                                 style="cursor: pointer;"
                                                                 title="Klik untuk detail Total Value PO Mover">
-                                                                <div class="rounded-circle mx-auto mb-1.5 d-flex align-items-center justify-content-center shadow-sm"
-                                                                    style="width: 36px; height: 36px; background-color: #ecfdf5;">
+                                                                <div class="rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center shadow-sm"
+                                                                    style="width: 38px; height: 38px; background-color: #ecfdf5;">
                                                                     <i class="fas fa-file-invoice-dollar text-success"
                                                                         style="font-size: 0.95rem;"></i>
                                                                 </div>
                                                                 <div class="font-weight-bold text-gray-700 text-nowrap mt-2 mb-1"
-                                                                    style="font-size: 0.62rem;">Total Value PO Mover</div>
+                                                                    style="font-size: 0.62rem;">Total Value PO Mover
+                                                                </div>
                                                                 <div class="font-weight-bold text-success"
-                                                                    style="font-size: 0.82rem;" id="outbound-nilai-mover">Rp 0
+                                                                    style="font-size: 0.82rem;"
+                                                                    id="outbound-nilai-mover">Rp 0
                                                                 </div>
                                                             </div>
 
                                                             <!-- Arrow 3 -->
                                                             <div class="text-gray-300 align-self-center mx-1"
-                                                                style="font-size: 0.7rem;"><i class="fas fa-chevron-right"></i>
+                                                                style="font-size: 0.7rem;"><i
+                                                                    class="fas fa-chevron-right"></i>
                                                             </div>
 
                                                             <!-- Step 4: Efisiensi -->
-                                                            <div class="flow-step text-center flex-fill px-1 py-1 outbound-summary-clickable"
+                                                            <div class="flow-step text-center flex-fill px-1 py-2 outbound-summary-clickable"
                                                                 onclick="openOutboundSummaryModal('saving')"
-                                                                style="cursor: pointer;" title="Klik untuk detail Efisiensi">
-                                                                <div class="rounded-circle mx-auto mb-1.5 d-flex align-items-center justify-content-center shadow-sm"
-                                                                    style="width: 36px; height: 36px; background-color: #fef3c7;">
+                                                                style="cursor: pointer;"
+                                                                title="Klik untuk detail Efisiensi">
+                                                                <div class="rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center shadow-sm"
+                                                                    style="width: 38px; height: 38px; background-color: #fef3c7;">
                                                                     <i class="fas fa-dollar-sign text-warning"
                                                                         style="font-size: 0.95rem;"></i>
                                                                 </div>
                                                                 <div class="font-weight-bold text-gray-700 text-nowrap mt-2 mb-1"
                                                                     style="font-size: 0.62rem;">Efisiensi</div>
                                                                 <div class="font-weight-bold text-warning"
-                                                                    style="font-size: 0.82rem;" id="outbound-saving">Rp 0</div>
+                                                                    style="font-size: 0.82rem;" id="outbound-saving">Rp
+                                                                    0</div>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -684,7 +702,7 @@ include FRONTEND_PATH . 'components/header.php';
                                             style="padding-left: 4px; padding-right: 4px;">
                                             <div class="card border bg-white h-100 shadow-none">
                                                 <div
-                                                    class="card-body py-3 px-3 d-flex flex-column justify-content-center">
+                                                    class="card-body pt-4 pb-3 px-3 d-flex flex-column justify-content-center">
                                                     <div class="w-100 my-auto">
                                                         <div class="bg-light rounded p-2 mb-2 border">
                                                             <div class="row align-items-center text-center">
@@ -695,7 +713,8 @@ include FRONTEND_PATH . 'components/header.php';
                                                                     <div class="text-uppercase text-success font-weight-bold text-nowrap"
                                                                         style="font-size: 0.65rem;">MR CLOSED</div>
                                                                     <div class="font-weight-bold text-success"
-                                                                        style="font-size: 1.25rem;" id="outbound-terkirim">0
+                                                                        style="font-size: 1.25rem;"
+                                                                        id="outbound-terkirim">0
                                                                     </div>
                                                                 </div>
                                                             </div>
@@ -705,16 +724,19 @@ include FRONTEND_PATH . 'components/header.php';
                                                                 title="Klik untuk detail Progress MR Closed">
                                                                 <div
                                                                     class="d-flex justify-content-between align-items-center mb-1 text-nowrap">
-                                                                    <span class="font-weight-bold text-muted text-nowrap"
-                                                                        style="font-size: 0.62rem;">Progress MR Closed</span>
+                                                                    <span
+                                                                        class="font-weight-bold text-muted text-nowrap"
+                                                                        style="font-size: 0.62rem;">Progress MR
+                                                                        Closed</span>
                                                                     <span
                                                                         class="font-weight-bold text-success text-nowrap ml-auto pl-1"
                                                                         style="font-size: 0.62rem;"
                                                                         id="outbound-progress-percent">0%</span>
                                                                 </div>
                                                                 <div class="progress rounded-pill" style="height: 4px;">
-                                                                    <div class="progress-bar bg-success" role="progressbar"
-                                                                        id="outbound-progress-bar" style="width: 0%"></div>
+                                                                    <div class="progress-bar bg-success"
+                                                                        role="progressbar" id="outbound-progress-bar"
+                                                                        style="width: 0%"></div>
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -730,33 +752,38 @@ include FRONTEND_PATH . 'components/header.php';
                                                                     <div class="font-weight-bold text-muted text-uppercase text-nowrap"
                                                                         style="font-size: 0.58rem;">Fulfilled</div>
                                                                     <div class="font-weight-bold text-primary"
-                                                                        style="font-size: 0.78rem;" id="sub-fulfill-count">0
+                                                                        style="font-size: 0.78rem;"
+                                                                        id="sub-fulfill-count">0
                                                                     </div>
                                                                 </div>
                                                             </div>
                                                             <div class="col-4 px-1">
                                                                 <div class="py-1 rounded border bg-light outbound-summary-clickable"
                                                                     onclick="openOutboundSummaryModal('packing')"
-                                                                    style="cursor: pointer;" title="Klik untuk detail Packing">
+                                                                    style="cursor: pointer;"
+                                                                    title="Klik untuk detail Packing">
                                                                     <i class="fas fa-dolly text-warning"
                                                                         style="font-size: 0.72rem;"></i>
                                                                     <div class="font-weight-bold text-muted text-uppercase text-nowrap"
                                                                         style="font-size: 0.58rem;">Packed</div>
                                                                     <div class="font-weight-bold text-warning"
-                                                                        style="font-size: 0.78rem;" id="sub-packing-count">0
+                                                                        style="font-size: 0.78rem;"
+                                                                        id="sub-packing-count">0
                                                                     </div>
                                                                 </div>
                                                             </div>
                                                             <div class="col-4 pl-1">
                                                                 <div class="py-1 rounded border bg-light outbound-summary-clickable"
                                                                     onclick="openOutboundSummaryModal('shipped')"
-                                                                    style="cursor: pointer;" title="Klik untuk detail Shipped">
+                                                                    style="cursor: pointer;"
+                                                                    title="Klik untuk detail Shipped">
                                                                     <i class="fas fa-truck text-success"
                                                                         style="font-size: 0.72rem;"></i>
                                                                     <div class="font-weight-bold text-muted text-uppercase text-nowrap"
                                                                         style="font-size: 0.58rem;">Shipped</div>
                                                                     <div class="font-weight-bold text-success"
-                                                                        style="font-size: 0.78rem;" id="sub-shipped-count">0
+                                                                        style="font-size: 0.78rem;"
+                                                                        id="sub-shipped-count">0
                                                                     </div>
                                                                 </div>
                                                             </div>
@@ -771,67 +798,202 @@ include FRONTEND_PATH . 'components/header.php';
                         </div>
                     </div>
 
-                    <!-- Dashboard Summary Detail Modal (Empty Content Table / Detail for Inbound & Outbound) -->
-                    <div class="modal fade" id="dashboardSummaryDetailModal" tabindex="-1" role="dialog"
-                        aria-labelledby="summaryModalTitle" aria-hidden="true">
-                        <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
-                            <div class="modal-content border-0 shadow" style="border-radius: 12px; overflow: hidden;">
-                                <div class="modal-header border-bottom py-2.5 px-3.5 align-items-center"
-                                    style="background-color: #f8f9fc;">
-                                    <h5 class="modal-title font-weight-bold text-gray-800 my-auto"
-                                        style="font-size: 1rem;">
-                                        <i id="summaryModalIcon" class="fas fa-stream text-primary mr-2"></i><span
-                                            id="summaryModalTitle">Detail Summary</span>
+                    <!-- Inbound Status Detail Modal (Matching Inbound Management) -->
+                    <div class="modal fade" id="poStatusDetailModal" tabindex="-1" role="dialog"
+                        aria-labelledby="poStatusDetailModalLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+                            <div class="modal-content border-0 shadow"
+                                style="border-radius: 10px; background-color: #ffffff; overflow: hidden;">
+                                <div class="modal-header border-bottom py-3 px-4 align-items-center"
+                                    style="background-color: #f8f9fc; border-bottom: 1px solid #e3e6f0;">
+                                    <h5 class="modal-title font-weight-bold text-gray-800 my-auto d-flex align-items-center flex-wrap"
+                                        id="poStatusDetailModalLabel" style="line-height: 1.5; margin-top: 2px;">
+                                        <span>Detail Status PO:</span>
+                                        <span id="modalInboundStatusTitleText"
+                                            class="font-weight-bold text-primary ml-1"></span>
+                                        <span class="badge badge-primary px-2.5 py-1 font-weight-bold ml-2"
+                                            id="inbound-modal-total-badge"
+                                            style="font-size: 0.8rem; border-radius: 6px;">
+                                            <i class="fas fa-file-invoice mr-1"></i> Total: <span
+                                                id="inbound-modal-count-display">0</span> Data
+                                        </span>
                                     </h5>
                                     <button type="button" class="close text-gray-600 my-auto" data-dismiss="modal"
-                                        aria-label="Close" style="padding: 0.25rem 0.5rem; margin: 0;">
+                                        aria-label="Close" style="padding: 0.5rem; margin: 0;">
                                         <span aria-hidden="true">&times;</span>
                                     </button>
                                 </div>
-                                <div class="modal-body p-3.5 bg-white">
-                                    <!-- Metric Value Summary Header -->
-                                    <div class="p-3 mb-3 rounded-lg border bg-light shadow-sm text-center">
-                                        <div class="text-xs font-weight-bold text-uppercase text-muted mb-1"
-                                            id="summaryModalMetricLabel">METRIC NAME</div>
-                                        <div class="h2 font-weight-bold text-primary mb-0" id="summaryModalQtyVal">0
+                                <div class="modal-body p-4 bg-white" style="max-height: 75vh; overflow-y: auto;">
+                                    <div class="card mb-3 border bg-light shadow-sm"
+                                        style="border-radius: 8px; border-color: #eaecf4 !important;">
+                                        <div class="card-body py-2 px-3">
+                                            <div class="d-flex flex-wrap align-items-center w-100"
+                                                id="modalInboundDynamicFilterRow" style="gap: 8px;">
+                                            </div>
                                         </div>
                                     </div>
-
-                                    <!-- Empty Content Table -->
-                                    <div class="table-responsive border rounded p-1 mb-0"
-                                        style="border-color: #eaecf4 !important; max-height: 250px; overflow-y: auto;">
+                                    <div class="table-responsive border rounded shadow-sm"
+                                        style="border-color: #eaecf4 !important; background: #ffffff;">
                                         <table class="table table-hover table-striped text-center mb-0 w-100"
-                                            style="font-size: 0.82rem;">
-                                            <thead class="bg-light text-gray-700 font-weight-bold"
-                                                style="font-size: 0.8rem;">
+                                            id="tableInboundPoStatusDetail" style="font-size: 0.84rem;">
+                                            <thead class="thead-light text-gray-800 font-weight-bold"
+                                                id="tableInboundPoStatusDetailHead"
+                                                style="border-bottom: 2px solid #e3e6f0;">
                                                 <tr>
-                                                    <th class="py-2 border-top-0" style="width: 45px;">NO</th>
-                                                    <th class="py-2 border-top-0 text-left" id="summaryModalColDoc">NO
-                                                        DOKUMEN</th>
-                                                    <th class="py-2 border-top-0 text-center" id="summaryModalColQty">
-                                                        QTY</th>
-                                                    <th class="py-2 border-top-0 text-center"
-                                                        id="summaryModalColStatus">STATUS</th>
+                                                    <th class="py-2 border-top-0">No. PO</th>
+                                                    <th class="py-2 border-top-0">Deskripsi PO</th>
+                                                    <th class="py-2 border-top-0">PIC Asset Planner</th>
+                                                    <th class="py-2 border-top-0">Department</th>
                                                 </tr>
                                             </thead>
-                                            <tbody id="summaryModalTableBody">
+                                            <tbody id="tableInboundPoStatusDetailBody">
                                                 <tr>
-                                                    <td colspan="4" class="text-center text-muted py-4 font-italic"
-                                                        style="font-size: 0.82rem;">
-                                                        <i class="fas fa-inbox fa-2x mb-2 d-block text-gray-300"></i>
-                                                        Belum ada data detail untuk ditampilkan
+                                                    <td colspan="4" class="py-5 text-muted bg-white">
+                                                        <i
+                                                            class="fas fa-folder-open fa-2x mb-2 d-block text-gray-300"></i>
+                                                        Belum ada data tersedia untuk status ini.
                                                     </td>
                                                 </tr>
                                             </tbody>
                                         </table>
                                     </div>
                                 </div>
-                                <div
-                                    class="modal-footer bg-light py-2 px-3.5 justify-content-between align-items-center">
-                                    <span class="small text-muted">Total Data: <strong id="summaryModalRecordCount"
-                                            class="text-gray-800">0</strong></span>
-                                    <button type="button" class="btn btn-secondary btn-sm"
-                                        data-dismiss="modal">Tutup</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Outbound MR Status Detail Modal (Matching Outbound Management) -->
+                    <div class="modal fade" id="mrStatusDetailModal" tabindex="-1" role="dialog"
+                        aria-labelledby="mrStatusDetailModalLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+                            <div class="modal-content border-0 shadow"
+                                style="border-radius: 10px; background-color: #ffffff; overflow: hidden;">
+                                <div class="modal-header border-bottom py-3 px-4 align-items-center"
+                                    style="background-color: #f8f9fc; border-bottom: 1px solid #e3e6f0;">
+                                    <h5 class="modal-title font-weight-bold text-gray-800 my-auto d-flex align-items-center flex-wrap"
+                                        id="mrStatusDetailModalLabel" style="line-height: 1.5; margin-top: 2px;">
+                                        <span>Detail Status MR:</span>
+                                        <span id="modalOutboundStatusTitleText"
+                                            class="font-weight-bold text-primary ml-1"></span>
+                                        <span class="badge badge-danger px-2.5 py-1 font-weight-bold ml-2 d-none"
+                                            id="shipped-modal-total-badge"
+                                            style="font-size: 0.8rem; border-radius: 6px;">
+                                            <i class="fas fa-boxes mr-1"></i> Total: <span
+                                                id="shipped-total-qty">0</span> QTY
+                                        </span>
+                                        <span class="badge badge-primary px-2.5 py-1 font-weight-bold ml-2"
+                                            id="outbound-modal-total-badge"
+                                            style="font-size: 0.8rem; border-radius: 6px;">
+                                            <i class="fas fa-shipping-fast mr-1"></i> Total: <span
+                                                id="outbound-modal-count-display">0</span> Data
+                                        </span>
+                                    </h5>
+                                    <button type="button" class="close text-gray-600 my-auto" data-dismiss="modal"
+                                        aria-label="Close" style="padding: 0.5rem; margin: 0;">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body p-4 bg-white" style="max-height: 75vh; overflow-y: auto;">
+                                    <div class="card mb-3 border bg-light shadow-sm"
+                                        style="border-radius: 8px; border-color: #eaecf4 !important;">
+                                        <div class="card-body py-2 px-3">
+                                            <div class="d-flex flex-wrap align-items-center w-100"
+                                                id="modalOutboundDynamicFilterRow" style="gap: 8px;">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="table-responsive border rounded shadow-sm"
+                                        style="border-color: #eaecf4 !important; background: #ffffff;">
+                                        <table class="table table-hover table-striped text-center mb-0 w-100"
+                                            id="tableOutboundMrStatusDetail" style="font-size: 0.84rem;">
+                                            <thead class="thead-light text-gray-800 font-weight-bold"
+                                                id="tableOutboundMrStatusDetailHead"
+                                                style="border-bottom: 2px solid #e3e6f0;">
+                                                <tr>
+                                                    <th class="py-2 border-top-0">No. MR</th>
+                                                    <th class="py-2 border-top-0">User</th>
+                                                    <th class="py-2 border-top-0">Tujuan</th>
+                                                    <th class="py-2 border-top-0">Pickup By</th>
+                                                    <th class="py-2 border-top-0">Keterangan</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="tableOutboundMrStatusDetailBody">
+                                                <tr>
+                                                    <td colspan="5" class="py-5 text-muted bg-white">
+                                                        <i
+                                                            class="fas fa-folder-open fa-2x mb-2 d-block text-gray-300"></i>
+                                                        Belum ada data tersedia untuk status ini.
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Storage Asset Summary Detail Modal (Matching Storage Management) -->
+                    <div class="modal fade" id="storageAssetDetailModal" tabindex="-1" role="dialog"
+                        aria-labelledby="storageAssetDetailModalLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+                            <div class="modal-content border-0 shadow"
+                                style="border-radius: 10px; background-color: #ffffff; overflow: hidden;">
+                                <div class="modal-header border-bottom py-3 px-4 align-items-center"
+                                    style="background-color: #f8f9fc; border-bottom: 1px solid #e3e6f0;">
+                                    <h5 class="modal-title font-weight-bold text-gray-800 my-auto d-flex align-items-center flex-wrap"
+                                        id="storageAssetDetailModalLabel" style="line-height: 1.5; margin-top: 2px;">
+                                        <span>Detail Storage:</span>
+                                        <span id="modalStorageStatusTitleText"
+                                            class="font-weight-bold text-primary ml-1"></span>
+                                        <span class="badge badge-primary px-2.5 py-1 font-weight-bold ml-2"
+                                            id="storage-modal-total-badge"
+                                            style="font-size: 0.8rem; border-radius: 6px;">
+                                            <i class="fas fa-cubes mr-1"></i> Total: <span
+                                                id="storage-modal-count-display">0</span> Data
+                                        </span>
+                                    </h5>
+                                    <button type="button" class="close text-gray-600 my-auto" data-dismiss="modal"
+                                        aria-label="Close" style="padding: 0.5rem; margin: 0;">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body p-4 bg-white" style="max-height: 75vh; overflow-y: auto;">
+                                    <div class="card mb-3 border bg-light shadow-sm"
+                                        style="border-radius: 8px; border-color: #eaecf4 !important;">
+                                        <div class="card-body py-2 px-3">
+                                            <div class="d-flex flex-wrap align-items-center w-100"
+                                                id="modalStorageDynamicFilterRow" style="gap: 8px;">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="table-responsive border rounded shadow-sm"
+                                        style="border-color: #eaecf4 !important; background: #ffffff;">
+                                        <table class="table table-hover table-striped text-center mb-0 w-100"
+                                            id="tableStorageAssetDetail" style="font-size: 0.84rem;">
+                                            <thead class="thead-light text-gray-800 font-weight-bold"
+                                                id="tableStorageAssetDetailHead"
+                                                style="border-bottom: 2px solid #e3e6f0;">
+                                                <tr>
+                                                    <th class="py-2 border-top-0">Serial Number</th>
+                                                    <th class="py-2 border-top-0">Deskripsi Item</th>
+                                                    <th class="py-2 border-top-0">Kategori</th>
+                                                    <th class="py-2 border-top-0">Site / Lokasi</th>
+                                                    <th class="py-2 border-top-0">Aging</th>
+                                                    <th class="py-2 border-top-0">Nilai Buku (NBV)</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="tableStorageAssetDetailBody">
+                                                <tr>
+                                                    <td colspan="6" class="py-5 text-muted bg-white">
+                                                        <i
+                                                            class="fas fa-folder-open fa-2x mb-2 d-block text-gray-300"></i>
+                                                        Belum ada data tersedia untuk status ini.
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -1076,171 +1238,816 @@ include FRONTEND_PATH . 'components/header.php';
                             $('#kpiMonthDetailModal').modal('show');
                         };
 
-                        // Generic Summary Detail Modal Handler (Empty Content Modal)
-                        window.openGenericSummaryModal = function (cfg) {
-                            var titleEl = document.getElementById('summaryModalTitle');
-                            if (titleEl) titleEl.textContent = cfg.title || 'Detail Summary';
+                        // Current active period on dashboard
+                        var currentSelectedPeriod = '';
 
-                            var iconEl = document.getElementById('summaryModalIcon');
-                            if (iconEl) {
-                                if (cfg.moduleType === 'inbound') {
-                                    iconEl.className = 'fas fa-stream text-primary mr-2';
-                                } else if (cfg.moduleType === 'outbound') {
-                                    iconEl.className = 'fas fa-shipping-fast text-primary mr-2';
-                                } else {
-                                    iconEl.className = 'fas fa-cubes text-primary mr-2';
-                                }
+                        // ─── 1. Inbound Summary Modal System (Matching Inbound Module) ───
+                        var inboundStatusColumnConfig = {
+                            'TOTAL PO INBOUND': {
+                                headers: ['No. PO', 'Deskripsi PO', 'PIC Asset Planner', 'Department', 'Vendor', 'Qty', 'Tgl Generate', 'Target Delivery'],
+                                keys: ['no_po', 'deskripsi_po', 'pic_asset_planner', 'department', 'vendor', 'qty', 'tgl_generate', 'target_delivery']
+                            },
+                            'PO ONTIME DELIVERY': {
+                                headers: ['No. PO', 'Deskripsi PO', 'PIC Asset Planner', 'Department', 'Vendor', 'Qty', 'Target Delivery'],
+                                keys: ['no_po', 'deskripsi_po', 'pic_asset_planner', 'department', 'vendor', 'qty', 'target_delivery']
+                            },
+                            'PO TERLAMBAT DELIVERY': {
+                                headers: ['No. PO', 'Deskripsi PO', 'PIC Asset Planner', 'Department', 'Vendor', 'Qty', 'Target Delivery'],
+                                keys: ['no_po', 'deskripsi_po', 'pic_asset_planner', 'department', 'vendor', 'qty', 'target_delivery']
+                            },
+                            'PO SUDAH GR': {
+                                headers: ['No. PO', 'Deskripsi PO', 'PIC Asset Planner', 'Department', 'Vendor / PIC GR', 'Qty', 'Target Delivery'],
+                                keys: ['no_po', 'deskripsi_po', 'pic_asset_planner', 'department', 'pic_gr', 'qty', 'target_delivery']
+                            },
+                            'PO SUDAH REGISTRASI': {
+                                headers: ['No. PO', 'Deskripsi PO', 'PIC Asset Planner', 'Department', 'PIC Registrasi', 'Qty', 'Target Delivery'],
+                                keys: ['no_po', 'deskripsi_po', 'pic_asset_planner', 'department', 'pic_registrasi', 'qty', 'target_delivery']
                             }
-
-                            var metricEl = document.getElementById('summaryModalMetricLabel');
-                            if (metricEl) metricEl.textContent = cfg.metricLabel || '';
-
-                            var qtyEl = document.getElementById('summaryModalQtyVal');
-                            if (qtyEl) qtyEl.textContent = cfg.qtyVal || '0';
-
-                            var colDoc = document.getElementById('summaryModalColDoc');
-                            if (colDoc) colDoc.textContent = cfg.docColTitle || 'NO DOKUMEN';
-
-                            var tbody = document.getElementById('summaryModalTableBody');
-                            if (tbody) {
-                                tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted py-4 font-italic" style="font-size: 0.82rem;"><i class="fas fa-inbox fa-2x mb-2 d-block text-gray-300"></i>Belum ada data detail untuk ditampilkan</td></tr>';
-                            }
-
-                            var recCount = document.getElementById('summaryModalRecordCount');
-                            if (recCount) recCount.textContent = '0';
-
-                            $('#dashboardSummaryDetailModal').modal('show');
                         };
+
+                        var inboundStatusFilterMap = {
+                            'TOTAL PO INBOUND': [
+                                { key: 'department', label: 'Department' },
+                                { key: 'pic_asset_planner', label: 'PIC Asset Planner' },
+                                { key: 'vendor', label: 'Vendor' }
+                            ],
+                            'PO ONTIME DELIVERY': [
+                                { key: 'department', label: 'Department' },
+                                { key: 'pic_asset_planner', label: 'PIC Asset Planner' },
+                                { key: 'vendor', label: 'Vendor' }
+                            ],
+                            'PO TERLAMBAT DELIVERY': [
+                                { key: 'department', label: 'Department' },
+                                { key: 'pic_asset_planner', label: 'PIC Asset Planner' },
+                                { key: 'vendor', label: 'Vendor' }
+                            ],
+                            'PO SUDAH GR': [
+                                { key: 'department', label: 'Department' },
+                                { key: 'pic_asset_planner', label: 'PIC Asset Planner' },
+                                { key: 'pic_gr', label: 'PIC GR' }
+                            ],
+                            'PO SUDAH REGISTRASI': [
+                                { key: 'department', label: 'Department' },
+                                { key: 'pic_asset_planner', label: 'PIC Asset Planner' }
+                            ]
+                        };
+
+                        var currentInboundModalRows = [];
+                        var currentInboundConfig = inboundStatusColumnConfig['TOTAL PO INBOUND'];
+                        var currentInboundSort = { key: null, dir: 'asc' };
+
+                        function renderInboundTableHeader() {
+                            var thead = $('#tableInboundPoStatusDetailHead');
+                            var tr = $('<tr></tr>');
+                            currentInboundConfig.headers.forEach(function (h, idx) {
+                                var key = currentInboundConfig.keys[idx];
+                                var sortIcon = '<i class="fas fa-sort text-gray-400 ml-1" style="font-size: 0.72rem;"></i>';
+                                if (currentInboundSort.key === key) {
+                                    sortIcon = currentInboundSort.dir === 'asc'
+                                        ? '<i class="fas fa-sort-up text-primary ml-1" style="font-size: 0.78rem;"></i>'
+                                        : '<i class="fas fa-sort-down text-primary ml-1" style="font-size: 0.78rem;"></i>';
+                                }
+                                var th = $('<th class="py-2 border-top-0 sortable-inbound-header user-select-none" style="cursor: pointer;" data-key="' + key + '">' + h + ' ' + sortIcon + '</th>');
+                                tr.append(th);
+                            });
+                            thead.html(tr);
+                        }
+
+                        function renderInboundModalRows(rows) {
+                            var tbody = $('#tableInboundPoStatusDetailBody');
+                            var colCount = currentInboundConfig.headers.length;
+                            if (!rows || rows.length === 0) {
+                                tbody.html('<tr><td colspan="' + colCount + '" class="py-5 text-center text-muted bg-white"><i class="fas fa-folder-open fa-2x mb-2 d-block text-gray-300"></i>Belum ada data tersedia untuk filter ini.</td></tr>');
+                                $('#inbound-modal-count-display').text('0');
+                                return;
+                            }
+
+                            $('#inbound-modal-count-display').text(rows.length);
+                            var html = '';
+                            rows.forEach(function (r) {
+                                html += '<tr>';
+                                currentInboundConfig.keys.forEach(function (k) {
+                                    var val = r[k] !== undefined && r[k] !== null && r[k] !== '' ? r[k] : '-';
+                                    var alignClass = (k === 'no_po' || k === 'deskripsi_po') ? 'text-left' : 'text-center';
+                                    html += '<td class="py-2 px-2 align-middle ' + alignClass + '" style="font-size: 0.82rem;">' + $('<div>').text(val).html() + '</td>';
+                                });
+                                html += '</tr>';
+                            });
+                            tbody.html(html);
+                        }
+
+                        function applyInboundModalFilters() {
+                            var filterValues = {};
+                            $('.dash-inbound-modal-filter').each(function () {
+                                var key = $(this).attr('data-key');
+                                var val = $(this).val();
+                                if (val) {
+                                    filterValues[key] = val.toString().trim().toLowerCase();
+                                }
+                            });
+
+                            var searchTerm = ($('#filter-inbound-modal-search').val() || '').trim().toLowerCase();
+
+                            var filtered = currentInboundModalRows.filter(function (row) {
+                                for (var k in filterValues) {
+                                    var cellVal = (row[k] || '').toString().trim().toLowerCase();
+                                    if (cellVal !== filterValues[k]) {
+                                        return false;
+                                    }
+                                }
+
+                                if (searchTerm) {
+                                    var matchSearch = currentInboundConfig.keys.some(function (k) {
+                                        var cellVal = (row[k] || '').toString().toLowerCase();
+                                        return cellVal.indexOf(searchTerm) !== -1;
+                                    });
+                                    if (!matchSearch) return false;
+                                }
+
+                                return true;
+                            });
+
+                            if (currentInboundSort.key) {
+                                filtered.sort(function (a, b) {
+                                    var valA = (a[currentInboundSort.key] || '').toString().trim();
+                                    var valB = (b[currentInboundSort.key] || '').toString().trim();
+                                    return currentInboundSort.dir === 'asc'
+                                        ? valA.localeCompare(valB, undefined, { numeric: true, sensitivity: 'base' })
+                                        : valB.localeCompare(valA, undefined, { numeric: true, sensitivity: 'base' });
+                                });
+                            }
+
+                            renderInboundModalRows(filtered);
+                        }
+
+                        function updateInboundModalFilters(statusName, rawData) {
+                            var filterRow = $('#modalInboundDynamicFilterRow');
+                            var filterDefs = inboundStatusFilterMap[statusName] || [
+                                { key: 'department', label: 'Department' },
+                                { key: 'pic_asset_planner', label: 'PIC Asset Planner' }
+                            ];
+                            var html = '';
+
+                            filterDefs.forEach(function (f) {
+                                var key = f.key;
+                                var label = f.label;
+                                var uniqueVals = [];
+                                (rawData || []).forEach(function (r) {
+                                    var v = (r[key] || '').toString().trim();
+                                    if (v && v !== '-' && uniqueVals.indexOf(v) === -1) {
+                                        uniqueVals.push(v);
+                                    }
+                                });
+                                uniqueVals.sort();
+
+                                html += '<div style="flex: 1 1 140px; max-width: 200px; min-width: 120px;">';
+                                html += '<select class="form-control form-control-sm custom-select custom-select-sm dash-inbound-modal-filter" data-key="' + key + '" style="font-size: 0.78rem; border-radius: 6px;">';
+                                html += '<option value="">Semua ' + label + '</option>';
+                                uniqueVals.forEach(function (uv) {
+                                    html += '<option value="' + $('<div>').text(uv).html() + '">' + $('<div>').text(uv).html() + '</option>';
+                                });
+                                html += '</select>';
+                                html += '</div>';
+                            });
+
+                            html += '<div style="flex: 1 1 170px; max-width: 230px; min-width: 140px;">';
+                            html += '<div class="input-group input-group-sm">';
+                            html += '<div class="input-group-prepend"><span class="input-group-text bg-white border-right-0 text-muted" style="border-radius: 6px 0 0 6px;"><i class="fas fa-search" style="font-size: 0.72rem;"></i></span></div>';
+                            html += '<input type="text" class="form-control form-control-sm border-left-0" id="filter-inbound-modal-search" placeholder="Search..." style="font-size: 0.78rem; border-radius: 0 6px 6px 0;">';
+                            html += '</div>';
+                            html += '</div>';
+
+                            html += '<div>';
+                            html += '<button type="button" class="btn btn-outline-secondary btn-sm font-weight-bold" id="btn-reset-inbound-modal-filter" title="Reset Filter" style="border-radius: 6px; font-size: 0.75rem; padding: 0.25rem 0.65rem;">';
+                            html += '<i class="fas fa-undo mr-1"></i> Reset';
+                            html += '</button>';
+                            html += '</div>';
+
+                            filterRow.html(html);
+
+                            $('.dash-inbound-modal-filter').off('change').on('change', applyInboundModalFilters);
+                            $('#filter-inbound-modal-search').off('keyup input change').on('keyup input change', applyInboundModalFilters);
+                            $('#btn-reset-inbound-modal-filter').off('click').on('click', function () {
+                                $('.dash-inbound-modal-filter').val('');
+                                $('#filter-inbound-modal-search').val('');
+                                currentInboundSort = { key: null, dir: 'asc' };
+                                renderInboundTableHeader();
+                                applyInboundModalFilters();
+                            });
+                        }
+
+                        $('#tableInboundPoStatusDetailHead').off('click', '.sortable-inbound-header').on('click', '.sortable-inbound-header', function () {
+                            var key = $(this).attr('data-key');
+                            if (currentInboundSort.key === key) {
+                                currentInboundSort.dir = (currentInboundSort.dir === 'asc') ? 'desc' : 'asc';
+                            } else {
+                                currentInboundSort.key = key;
+                                currentInboundSort.dir = 'asc';
+                            }
+                            renderInboundTableHeader();
+                            applyInboundModalFilters();
+                        });
 
                         // Inbound Summary interactive modal handler
                         window.openInboundSummaryModal = function (stepIndex) {
-                            var titles = [
-                                'Detail Total PO Inbound',
-                                'Detail Total PO Ontime',
-                                'Detail Total PO Terlambat',
-                                'Detail Total Penerimaan (GR)',
-                                'Detail Total Registrasi'
-                            ];
-                            var labels = [
+                            var statusKeys = [
                                 'TOTAL PO INBOUND',
-                                'TOTAL PO ONTIME',
-                                'TOTAL PO TERLAMBAT',
-                                'TOTAL PENERIMAAN (GR)',
-                                'TOTAL REGISTRASI'
+                                'PO ONTIME DELIVERY',
+                                'PO TERLAMBAT DELIVERY',
+                                'PO SUDAH GR',
+                                'PO SUDAH REGISTRASI'
                             ];
-                            var ids = [
-                                'flow-po-count',
-                                'flow-po-proses-delivery',
-                                'flow-po-terlambat-delivery',
-                                'flow-total-gr',
-                                'flow-done-count'
-                            ];
+                            var statusName = statusKeys[stepIndex] || 'TOTAL PO INBOUND';
+                            var cfg = inboundStatusColumnConfig[statusName] || inboundStatusColumnConfig['TOTAL PO INBOUND'];
 
-                            var totalPoEl = document.getElementById('flow-po-count');
-                            var totalPoNum = totalPoEl ? (parseInt(totalPoEl.textContent) || 0) : 0;
+                            currentInboundConfig = cfg;
+                            currentInboundSort = { key: null, dir: 'asc' };
+                            currentInboundModalRows = [];
 
-                            var qtyEl = document.getElementById(ids[stepIndex]);
-                            var qtyVal = qtyEl ? qtyEl.textContent.trim() : '0';
-                            var qtyNum = parseInt(qtyVal) || 0;
+                            $('#modalInboundStatusTitleText').text(statusName);
+                            renderInboundTableHeader();
 
-                            var pctVal = '';
-                            var showPct = true;
-                            if (stepIndex === 0) {
-                                pctVal = '100% (Baseline Total PO Inbound)';
-                            } else if (stepIndex === 1 || stepIndex === 2) {
-                                var pct = totalPoNum > 0 ? Math.round((qtyNum / totalPoNum) * 100) : 0;
-                                pctVal = pct + '% dari Total PO Inbound';
-                            } else {
-                                var pctOther = totalPoNum > 0 ? Math.round((qtyNum / totalPoNum) * 100) : 0;
-                                pctVal = pctOther + '% rasio pemenuhan';
+                            var tbody = $('#tableInboundPoStatusDetailBody');
+                            var colCount = cfg.headers.length;
+
+                            var pText = document.getElementById('selected-period-text');
+                            var periodVal = pText ? pText.textContent.trim() : '';
+                            if (periodVal === 'PILIH PERIODE DATA' || periodVal === '-') periodVal = '';
+
+                            if (!periodVal) {
+                                updateInboundModalFilters(statusName, []);
+                                tbody.html('<tr><td colspan="' + colCount + '" class="py-5 text-center text-muted bg-white"><i class="fas fa-folder-open fa-2x mb-2 d-block text-gray-300"></i>Belum ada data tersedia untuk status ini.</td></tr>');
+                                $('#inbound-modal-count-display').text('0');
+                                $('#poStatusDetailModal').modal('show');
+                                return;
                             }
 
-                            openGenericSummaryModal({
-                                moduleType: 'inbound',
-                                title: titles[stepIndex] || 'Detail Inbound',
-                                metricLabel: labels[stepIndex] || 'INBOUND METRIC',
-                                qtyVal: qtyVal,
-                                pctVal: pctVal,
-                                showPct: showPct,
-                                docColTitle: 'NO PO'
+                            tbody.html('<tr><td colspan="' + colCount + '" class="py-5 text-center text-muted bg-white"><i class="fas fa-spinner fa-spin fa-2x text-primary mb-2 d-block"></i>Memuat data detail PO inbound...</td></tr>');
+                            $('#modalInboundDynamicFilterRow').empty();
+                            $('#inbound-modal-count-display').text('Memuat...');
+
+                            $.ajax({
+                                url: 'api/get_inbound_status_detail.php',
+                                type: 'GET',
+                                data: { status: statusName, periode: periodVal },
+                                dataType: 'json',
+                                success: function (res) {
+                                    if (res.status === 'success' && res.data && res.data.length > 0) {
+                                        currentInboundModalRows = res.data;
+                                        updateInboundModalFilters(statusName, res.data);
+                                        renderInboundModalRows(res.data);
+                                    } else {
+                                        updateInboundModalFilters(statusName, []);
+                                        tbody.html('<tr><td colspan="' + colCount + '" class="py-5 text-center text-muted bg-white"><i class="fas fa-folder-open fa-2x mb-2 d-block text-gray-300"></i>Belum ada data tersedia untuk status ini.</td></tr>');
+                                        $('#inbound-modal-count-display').text('0');
+                                    }
+                                },
+                                error: function () {
+                                    tbody.html('<tr><td colspan="' + colCount + '" class="py-4 text-center text-danger bg-white"><i class="fas fa-exclamation-circle fa-2x mb-2 d-block"></i>Gagal memuat data dari server.</td></tr>');
+                                    $('#inbound-modal-count-display').text('0');
+                                }
                             });
+
+                            $('#poStatusDetailModal').modal('show');
                         };
+
+                        // ─── 2. Outbound Summary Modal System (Matching Outbound Module) ───
+                        var outboundStatusColumnConfig = {
+                            'TOTAL MR': {
+                                headers: ['No. MR', 'User', 'Tujuan', 'Pickup By', 'Keterangan'],
+                                keys: ['no_mr', 'user', 'tujuan', 'pickup_by', 'ket']
+                            },
+                            'TOTAL PACKED': {
+                                headers: ['No. PCK', 'PCK Detail', 'User', 'Tujuan', 'No. MR', 'No. DN'],
+                                keys: ['no_pck', 'pck_detail', 'user', 'tujuan', 'no_mr', 'no_dn']
+                            },
+                            'TOTAL SHIPPED': {
+                                headers: ['No. MR', 'No. DN', 'User', 'Tujuan', 'Pickup Type', 'Via', 'LT', 'Target Delivery', 'Last Log'],
+                                keys: ['no_mr', 'no_dn', 'user', 'tujuan', 'pickup_type', 'via', 'lt', 'delivery_target', 'last_log']
+                            },
+                            'DALAM PERJALANAN': {
+                                headers: ['No. MR', 'No. DN', 'User', 'Tujuan', 'Status MR', 'LT', 'Status DN', 'Target Delivery', 'Last Log'],
+                                keys: ['no_mr', 'no_dn', 'user', 'tujuan', 'status_mr', 'lt', 'status_dn', 'delivery_target', 'last_log']
+                            },
+                            'TIBA DI LOKASI': {
+                                headers: ['No. MR', 'No. DN', 'User', 'Tujuan', 'Status MR', 'LT', 'Status DN', 'Target Delivery', 'Last Log'],
+                                keys: ['no_mr', 'no_dn', 'user', 'tujuan', 'status_mr', 'lt', 'status_dn', 'delivery_target', 'last_log']
+                            }
+                        };
+
+                        var outboundStatusFilterMap = {
+                            'TOTAL MR': [
+                                { key: 'user', label: 'User' },
+                                { key: 'tujuan', label: 'Tujuan' },
+                                { key: 'pickup_by', label: 'Pickup By' }
+                            ],
+                            'TOTAL PACKED': [
+                                { key: 'user', label: 'User' },
+                                { key: 'tujuan', label: 'Tujuan' },
+                                { key: 'pck_detail', label: 'PCK Detail' }
+                            ],
+                            'TOTAL SHIPPED': [
+                                { key: 'user', label: 'User' },
+                                { key: 'tujuan', label: 'Tujuan' },
+                                { key: 'pickup_type', label: 'Pickup Type' },
+                                { key: 'via', label: 'Via' }
+                            ],
+                            'DALAM PERJALANAN': [
+                                { key: 'user', label: 'User' },
+                                { key: 'tujuan', label: 'Tujuan' },
+                                { key: 'status_mr', label: 'Status MR' }
+                            ],
+                            'TIBA DI LOKASI': [
+                                { key: 'user', label: 'User' },
+                                { key: 'tujuan', label: 'Tujuan' },
+                                { key: 'status_mr', label: 'Status MR' }
+                            ]
+                        };
+
+                        var currentOutboundModalRows = [];
+                        var currentOutboundConfig = outboundStatusColumnConfig['TOTAL MR'];
+                        var currentOutboundSort = { key: null, dir: 'asc' };
+
+                        function renderOutboundTableHeader() {
+                            var thead = $('#tableOutboundMrStatusDetailHead');
+                            var tr = $('<tr></tr>');
+                            currentOutboundConfig.headers.forEach(function (h, idx) {
+                                var key = currentOutboundConfig.keys[idx];
+                                var sortIcon = '<i class="fas fa-sort text-gray-400 ml-1" style="font-size: 0.72rem;"></i>';
+                                if (currentOutboundSort.key === key) {
+                                    sortIcon = currentOutboundSort.dir === 'asc'
+                                        ? '<i class="fas fa-sort-up text-primary ml-1" style="font-size: 0.78rem;"></i>'
+                                        : '<i class="fas fa-sort-down text-primary ml-1" style="font-size: 0.78rem;"></i>';
+                                }
+                                var th = $('<th class="py-2.5 px-3 border-top-0 text-left sortable-outbound-header user-select-none" style="cursor: pointer;" data-key="' + key + '">' + h + ' ' + sortIcon + '</th>');
+                                tr.append(th);
+                            });
+                            thead.html(tr);
+                        }
+
+                        function renderOutboundModalRows(rows) {
+                            var tbody = $('#tableOutboundMrStatusDetailBody');
+                            var colCount = currentOutboundConfig.headers.length;
+                            if (!rows || rows.length === 0) {
+                                tbody.html('<tr><td colspan="' + colCount + '" class="py-5 text-center text-muted bg-white"><i class="fas fa-folder-open fa-2x mb-2 d-block text-gray-300"></i>Tidak ada data yang sesuai filter.</td></tr>');
+                                $('#outbound-modal-count-display').text('0');
+                                return;
+                            }
+
+                            $('#outbound-modal-count-display').text(rows.length);
+                            var html = '';
+                            rows.forEach(function (r) {
+                                html += '<tr>';
+                                currentOutboundConfig.keys.forEach(function (k) {
+                                    var val = r[k] !== undefined && r[k] !== null && r[k] !== '' ? r[k] : '-';
+                                    html += '<td class="py-2 px-3 align-middle text-left text-nowrap" style="font-size: 0.82rem;">' + $('<div>').text(val).html() + '</td>';
+                                });
+                                html += '</tr>';
+                            });
+                            tbody.html(html);
+                        }
+
+                        function applyOutboundModalFilters() {
+                            var filterValues = {};
+                            $('.dash-outbound-modal-filter').each(function () {
+                                var key = $(this).attr('data-key');
+                                var val = $(this).val();
+                                if (val) {
+                                    filterValues[key] = val.toString().trim().toLowerCase();
+                                }
+                            });
+
+                            var searchTerm = ($('#filter-outbound-modal-search').val() || '').trim().toLowerCase();
+
+                            var filtered = currentOutboundModalRows.filter(function (row) {
+                                for (var k in filterValues) {
+                                    var cellVal = (row[k] || '').toString().trim().toLowerCase();
+                                    if (cellVal !== filterValues[k]) {
+                                        return false;
+                                    }
+                                }
+
+                                if (searchTerm) {
+                                    var matchSearch = currentOutboundConfig.keys.some(function (k) {
+                                        var cellVal = (row[k] || '').toString().toLowerCase();
+                                        return cellVal.indexOf(searchTerm) !== -1;
+                                    });
+                                    if (!matchSearch) return false;
+                                }
+
+                                return true;
+                            });
+
+                            if (currentOutboundSort.key) {
+                                filtered.sort(function (a, b) {
+                                    var valA = (a[currentOutboundSort.key] || '').toString().trim();
+                                    var valB = (b[currentOutboundSort.key] || '').toString().trim();
+                                    return currentOutboundSort.dir === 'asc'
+                                        ? valA.localeCompare(valB, undefined, { numeric: true, sensitivity: 'base' })
+                                        : valB.localeCompare(valA, undefined, { numeric: true, sensitivity: 'base' });
+                                });
+                            }
+
+                            renderOutboundModalRows(filtered);
+                        }
+
+                        function updateOutboundModalFilters(statusName, rawData) {
+                            var filterRow = $('#modalOutboundDynamicFilterRow');
+                            var filterDefs = outboundStatusFilterMap[statusName] || [
+                                { key: 'user', label: 'User' },
+                                { key: 'tujuan', label: 'Tujuan' }
+                            ];
+                            var html = '';
+
+                            filterDefs.forEach(function (f) {
+                                var key = f.key;
+                                var label = f.label;
+                                var uniqueVals = [];
+                                (rawData || []).forEach(function (r) {
+                                    var v = (r[key] || '').toString().trim();
+                                    if (v && v !== '-' && uniqueVals.indexOf(v) === -1) {
+                                        uniqueVals.push(v);
+                                    }
+                                });
+                                uniqueVals.sort();
+
+                                html += '<div style="flex: 1 1 140px; max-width: 200px; min-width: 120px;">';
+                                html += '<select class="form-control form-control-sm custom-select custom-select-sm dash-outbound-modal-filter" data-key="' + key + '" style="font-size: 0.78rem; border-radius: 6px;">';
+                                html += '<option value="">Semua ' + label + '</option>';
+                                uniqueVals.forEach(function (uv) {
+                                    html += '<option value="' + $('<div>').text(uv).html() + '">' + $('<div>').text(uv).html() + '</option>';
+                                });
+                                html += '</select>';
+                                html += '</div>';
+                            });
+
+                            html += '<div style="flex: 1 1 170px; max-width: 230px; min-width: 140px;">';
+                            html += '<div class="input-group input-group-sm">';
+                            html += '<div class="input-group-prepend"><span class="input-group-text bg-white border-right-0 text-muted" style="border-radius: 6px 0 0 6px;"><i class="fas fa-search" style="font-size: 0.72rem;"></i></span></div>';
+                            html += '<input type="text" class="form-control form-control-sm border-left-0" id="filter-outbound-modal-search" placeholder="Search..." style="font-size: 0.78rem; border-radius: 0 6px 6px 0;">';
+                            html += '</div>';
+                            html += '</div>';
+
+                            html += '<div>';
+                            html += '<button type="button" class="btn btn-outline-secondary btn-sm font-weight-bold" id="btn-reset-outbound-modal-filter" title="Reset Filter" style="border-radius: 6px; font-size: 0.75rem; padding: 0.25rem 0.65rem;">';
+                            html += '<i class="fas fa-undo mr-1"></i> Reset';
+                            html += '</button>';
+                            html += '</div>';
+
+                            filterRow.html(html);
+
+                            $('.dash-outbound-modal-filter').off('change').on('change', applyOutboundModalFilters);
+                            $('#filter-outbound-modal-search').off('keyup input change').on('keyup input change', applyOutboundModalFilters);
+                            $('#btn-reset-outbound-modal-filter').off('click').on('click', function () {
+                                $('.dash-outbound-modal-filter').val('');
+                                $('#filter-outbound-modal-search').val('');
+                                currentOutboundSort = { key: null, dir: 'asc' };
+                                renderOutboundTableHeader();
+                                applyOutboundModalFilters();
+                            });
+                        }
+
+                        $('#tableOutboundMrStatusDetailHead').off('click', '.sortable-outbound-header').on('click', '.sortable-outbound-header', function () {
+                            var key = $(this).attr('data-key');
+                            if (currentOutboundSort.key === key) {
+                                currentOutboundSort.dir = (currentOutboundSort.dir === 'asc') ? 'desc' : 'asc';
+                            } else {
+                                currentOutboundSort.key = key;
+                                currentOutboundSort.dir = 'asc';
+                            }
+                            renderOutboundTableHeader();
+                            applyOutboundModalFilters();
+                        });
 
                         // Outbound Summary interactive modal handler
                         window.openOutboundSummaryModal = function (metricKey) {
-                            var title = 'Detail Outbound';
-                            var metricLabel = '';
-                            var qtyVal = '0';
-                            var pctVal = '';
-                            var showPct = true;
-
-                            var totalMrEl = document.getElementById('outbound-total-mr');
-                            var totalMoverEl = document.getElementById('outbound-total-mover');
-                            var nilaiMoverEl = document.getElementById('outbound-nilai-mover');
-                            var savingEl = document.getElementById('outbound-saving');
-                            var totalOrderEl = document.getElementById('outbound-total-order');
-                            var terkirimEl = document.getElementById('outbound-terkirim');
-                            var progressPctEl = document.getElementById('outbound-progress-percent');
-                            var fulfillEl = document.getElementById('sub-fulfill-count');
-                            var packingEl = document.getElementById('sub-packing-count');
-                            var shippedEl = document.getElementById('sub-shipped-count');
-
-                            var totalOrderNum = totalOrderEl ? (parseInt(totalOrderEl.textContent) || 0) : 0;
-                            var progressPct = progressPctEl ? progressPctEl.textContent.trim() : '0%';
-
-                            if (metricKey === 'total_mr' || metricKey === 'mr_pending') {
-                                title = 'Detail Total Material Request (MR)';
-                                metricLabel = 'TOTAL MATERIAL REQUEST (MR)';
-                                qtyVal = totalMrEl ? totalMrEl.textContent.trim() : '0 MR';
-                                pctVal = 'Total Permintaan Material (MR)';
-                                showPct = false;
-                            } else if (metricKey === 'pr_po_mover') {
-                                title = 'Detail Total PO Mover (qty)';
-                                metricLabel = 'TOTAL PO MOVER (QTY)';
-                                qtyVal = totalMoverEl ? totalMoverEl.textContent.trim() : '0 PO';
-                                pctVal = 'Total Pemenuhan via Mover';
-                                showPct = false;
-                            } else if (metricKey === 'nilai_po_mover') {
-                                title = 'Detail Total Value PO Mover';
-                                metricLabel = 'TOTAL VALUE PO MOVER';
-                                qtyVal = nilaiMoverEl ? nilaiMoverEl.textContent.trim() : 'Rp 0';
-                                pctVal = 'Total Valuasi PO Mover';
-                            } else if (metricKey === 'saving') {
-                                title = 'Detail Efisiensi';
-                                metricLabel = 'EFISIENSI';
-                                qtyVal = savingEl ? savingEl.textContent.trim() : 'Rp 0';
-                                pctVal = 'Efisiensi Biaya (Cost Saving)';
+                            var statusName = 'TOTAL MR';
+                            if (metricKey === 'packing') {
+                                statusName = 'TOTAL PACKED';
+                            } else if (metricKey === 'shipped' || metricKey === 'fulfill') {
+                                statusName = 'TOTAL SHIPPED';
                             } else if (metricKey === 'mr_closed' || metricKey === 'progress_closed') {
-                                title = 'Detail MR Closed';
-                                metricLabel = 'MR CLOSED';
-                                qtyVal = terkirimEl ? terkirimEl.textContent.trim() + ' Closed' : '0 Closed';
-                                pctVal = progressPct + ' Selesai (Closed)';
-                            } else if (metricKey === 'fulfill') {
-                                title = 'Detail Fulfilled';
-                                metricLabel = 'FULFILLED';
-                                qtyVal = fulfillEl ? fulfillEl.textContent.trim() + ' Unit' : '0 Unit';
-                                showPct = false;
-                            } else if (metricKey === 'packing') {
-                                title = 'Detail Packed';
-                                metricLabel = 'PACKED';
-                                qtyVal = packingEl ? packingEl.textContent.trim() + ' Unit' : '0 Unit';
-                                showPct = false;
-                            } else if (metricKey === 'shipped') {
-                                title = 'Detail Shipped';
-                                metricLabel = 'SHIPPED';
-                                qtyVal = shippedEl ? shippedEl.textContent.trim() + ' Unit' : '0 Unit';
-                                showPct = false;
+                                statusName = 'TIBA DI LOKASI';
+                            } else {
+                                statusName = 'TOTAL MR';
                             }
 
-                            openGenericSummaryModal({
-                                moduleType: 'outbound',
-                                title: title,
-                                metricLabel: metricLabel,
-                                qtyVal: qtyVal,
-                                pctVal: pctVal,
-                                showPct: showPct,
-                                docColTitle: 'NO MR / PO'
+                            var cfg = outboundStatusColumnConfig[statusName] || outboundStatusColumnConfig['TOTAL MR'];
+                            currentOutboundConfig = cfg;
+                            currentOutboundSort = { key: null, dir: 'asc' };
+                            currentOutboundModalRows = [];
+
+                            $('#modalOutboundStatusTitleText').text(statusName);
+                            renderOutboundTableHeader();
+
+                            var tbody = $('#tableOutboundMrStatusDetailBody');
+                            var colCount = cfg.headers.length;
+
+                            var pText = document.getElementById('selected-period-text');
+                            var periodVal = pText ? pText.textContent.trim() : '';
+                            if (periodVal === 'PILIH PERIODE DATA' || periodVal === '-') periodVal = '';
+
+                            if (!periodVal) {
+                                updateOutboundModalFilters(statusName, []);
+                                tbody.html('<tr><td colspan="' + colCount + '" class="py-5 text-center text-muted bg-white"><i class="fas fa-folder-open fa-2x mb-2 d-block text-gray-300"></i>Belum ada data tersedia untuk status ini.</td></tr>');
+                                $('#outbound-modal-count-display').text('0');
+                                $('#mrStatusDetailModal').modal('show');
+                                return;
+                            }
+
+                            tbody.html('<tr><td colspan="' + colCount + '" class="py-5 text-center text-muted bg-white"><i class="fas fa-spinner fa-spin fa-2x text-primary mb-2 d-block"></i>Memuat data detail outbound...</td></tr>');
+                            $('#modalOutboundDynamicFilterRow').empty();
+                            $('#outbound-modal-count-display').text('Memuat...');
+
+                            $.ajax({
+                                url: 'api/get_outbound_status_detail.php',
+                                type: 'GET',
+                                data: { status: statusName, periode: periodVal },
+                                dataType: 'json',
+                                success: function (res) {
+                                    if (res.status === 'success' && res.data && res.data.length > 0) {
+                                        currentOutboundModalRows = res.data;
+                                        updateOutboundModalFilters(statusName, res.data);
+                                        renderOutboundModalRows(res.data);
+                                    } else {
+                                        updateOutboundModalFilters(statusName, []);
+                                        tbody.html('<tr><td colspan="' + colCount + '" class="py-5 text-center text-muted bg-white"><i class="fas fa-folder-open fa-2x mb-2 d-block text-gray-300"></i>Belum ada data tersedia untuk status ini.</td></tr>');
+                                        $('#outbound-modal-count-display').text('0');
+                                    }
+                                },
+                                error: function () {
+                                    tbody.html('<tr><td colspan="' + colCount + '" class="py-4 text-center text-danger bg-white"><i class="fas fa-exclamation-circle fa-2x mb-2 d-block"></i>Gagal memuat data dari server.</td></tr>');
+                                    $('#outbound-modal-count-display').text('0');
+                                }
                             });
+
+                            $('#mrStatusDetailModal').modal('show');
+                        };
+
+                        // ─── 3. Storage Asset Summary Modal System (Matching Storage Management) ───
+                        var currentStorageModalRows = [];
+                        var currentStorageSort = { key: null, dir: 'asc' };
+                        var storageHeaders = ['Serial Number', 'Deskripsi Item', 'Kategori', 'Site / Lokasi', 'Aging', 'Nilai Buku (NBV)'];
+                        var storageKeys = ['serial_number', 'item_description', 'category', 'site_name', 'aging', 'nbv'];
+
+                        function renderStorageTableHeader() {
+                            var thead = $('#tableStorageAssetDetailHead');
+                            var tr = $('<tr></tr>');
+                            storageHeaders.forEach(function (h, idx) {
+                                var key = storageKeys[idx];
+                                var sortIcon = '<i class="fas fa-sort text-gray-400 ml-1" style="font-size: 0.72rem;"></i>';
+                                if (currentStorageSort.key === key) {
+                                    sortIcon = currentStorageSort.dir === 'asc'
+                                        ? '<i class="fas fa-sort-up text-primary ml-1" style="font-size: 0.78rem;"></i>'
+                                        : '<i class="fas fa-sort-down text-primary ml-1" style="font-size: 0.78rem;"></i>';
+                                }
+                                var th = $('<th class="py-2.5 px-3 border-top-0 text-left sortable-storage-header user-select-none" style="cursor: pointer;" data-key="' + key + '">' + h + ' ' + sortIcon + '</th>');
+                                tr.append(th);
+                            });
+                            thead.html(tr);
+                        }
+
+                        function renderStorageModalRows(rows) {
+                            var tbody = $('#tableStorageAssetDetailBody');
+                            if (!rows || rows.length === 0) {
+                                tbody.html('<tr><td colspan="6" class="py-5 text-center text-muted bg-white"><i class="fas fa-folder-open fa-2x mb-2 d-block text-gray-300"></i>Tidak ada data asset storage yang sesuai filter.</td></tr>');
+                                $('#storage-modal-count-display').text('0');
+                                return;
+                            }
+
+                            $('#storage-modal-count-display').text(rows.length);
+                            var html = '';
+                            rows.forEach(function (r) {
+                                html += '<tr>';
+                                storageKeys.forEach(function (k) {
+                                    var val = r[k] !== undefined && r[k] !== null && r[k] !== '' ? r[k] : '-';
+                                    html += '<td class="py-2 px-3 align-middle text-left text-nowrap" style="font-size: 0.82rem;">' + $('<div>').text(val).html() + '</td>';
+                                });
+                                html += '</tr>';
+                            });
+                            tbody.html(html);
+                        }
+
+                        function applyStorageModalFilters() {
+                            var filterValues = {};
+                            $('.dash-storage-modal-filter').each(function () {
+                                var key = $(this).attr('data-key');
+                                var val = $(this).val();
+                                if (val) {
+                                    filterValues[key] = val.toString().trim().toLowerCase();
+                                }
+                            });
+
+                            var searchTerm = ($('#filter-storage-modal-search').val() || '').trim().toLowerCase();
+
+                            var filtered = currentStorageModalRows.filter(function (row) {
+                                for (var k in filterValues) {
+                                    var cellVal = (row[k] || '').toString().trim().toLowerCase();
+                                    if (cellVal !== filterValues[k]) {
+                                        return false;
+                                    }
+                                }
+
+                                if (searchTerm) {
+                                    var matchSearch = storageKeys.some(function (k) {
+                                        var cellVal = (row[k] || '').toString().toLowerCase();
+                                        return cellVal.indexOf(searchTerm) !== -1;
+                                    });
+                                    if (!matchSearch) return false;
+                                }
+
+                                return true;
+                            });
+
+                            if (currentStorageSort.key) {
+                                filtered.sort(function (a, b) {
+                                    var valA = (a[currentStorageSort.key] || '').toString().trim();
+                                    var valB = (b[currentStorageSort.key] || '').toString().trim();
+                                    return currentStorageSort.dir === 'asc'
+                                        ? valA.localeCompare(valB, undefined, { numeric: true, sensitivity: 'base' })
+                                        : valB.localeCompare(valA, undefined, { numeric: true, sensitivity: 'base' });
+                                });
+                            }
+
+                            renderStorageModalRows(filtered);
+                        }
+
+                        function updateStorageModalFilters(rawData) {
+                            var filterRow = $('#modalStorageDynamicFilterRow');
+                            var filterDefs = [
+                                { key: 'category', label: 'Kategori' },
+                                { key: 'site_name', label: 'Site / Lokasi' }
+                            ];
+                            var html = '';
+
+                            filterDefs.forEach(function (f) {
+                                var key = f.key;
+                                var label = f.label;
+                                var uniqueVals = [];
+                                (rawData || []).forEach(function (r) {
+                                    var v = (r[key] || '').toString().trim();
+                                    if (v && v !== '-' && uniqueVals.indexOf(v) === -1) {
+                                        uniqueVals.push(v);
+                                    }
+                                });
+                                uniqueVals.sort();
+
+                                html += '<div style="flex: 1 1 140px; max-width: 200px; min-width: 120px;">';
+                                html += '<select class="form-control form-control-sm custom-select custom-select-sm dash-storage-modal-filter" data-key="' + key + '" style="font-size: 0.78rem; border-radius: 6px;">';
+                                html += '<option value="">Semua ' + label + '</option>';
+                                uniqueVals.forEach(function (uv) {
+                                    html += '<option value="' + $('<div>').text(uv).html() + '">' + $('<div>').text(uv).html() + '</option>';
+                                });
+                                html += '</select>';
+                                html += '</div>';
+                            });
+
+                            html += '<div style="flex: 1 1 170px; max-width: 230px; min-width: 140px;">';
+                            html += '<div class="input-group input-group-sm">';
+                            html += '<div class="input-group-prepend"><span class="input-group-text bg-white border-right-0 text-muted" style="border-radius: 6px 0 0 6px;"><i class="fas fa-search" style="font-size: 0.72rem;"></i></span></div>';
+                            html += '<input type="text" class="form-control form-control-sm border-left-0" id="filter-storage-modal-search" placeholder="Search..." style="font-size: 0.78rem; border-radius: 0 6px 6px 0;">';
+                            html += '</div>';
+                            html += '</div>';
+
+                            html += '<div>';
+                            html += '<button type="button" class="btn btn-outline-secondary btn-sm font-weight-bold" id="btn-reset-storage-modal-filter" title="Reset Filter" style="border-radius: 6px; font-size: 0.75rem; padding: 0.25rem 0.65rem;">';
+                            html += '<i class="fas fa-undo mr-1"></i> Reset';
+                            html += '</button>';
+                            html += '</div>';
+
+                            filterRow.html(html);
+
+                            $('.dash-storage-modal-filter').off('change').on('change', applyStorageModalFilters);
+                            $('#filter-storage-modal-search').off('keyup input change').on('keyup input change', applyStorageModalFilters);
+                            $('#btn-reset-storage-modal-filter').off('click').on('click', function () {
+                                $('.dash-storage-modal-filter').val('');
+                                $('#filter-storage-modal-search').val('');
+                                currentStorageSort = { key: null, dir: 'asc' };
+                                renderStorageTableHeader();
+                                applyStorageModalFilters();
+                            });
+                        }
+
+                        $('#tableStorageAssetDetailHead').off('click', '.sortable-storage-header').on('click', '.sortable-storage-header', function () {
+                            var key = $(this).attr('data-key');
+                            if (currentStorageSort.key === key) {
+                                currentStorageSort.dir = (currentStorageSort.dir === 'asc') ? 'desc' : 'asc';
+                            } else {
+                                currentStorageSort.key = key;
+                                currentStorageSort.dir = 'asc';
+                            }
+                            renderStorageTableHeader();
+                            applyStorageModalFilters();
+                        });
+
+                        // Click handler for Storage Summary flow steps on dashboard overview
+                        window.openStorageSummaryModal = function (stepIndex) {
+                            var titles = [
+                                'Total Perangkat',
+                                'Total NBV (Nilai Buku)',
+                                'Aging < 1 Tahun',
+                                'Aging > 1 Tahun',
+                                'Aging > 2 Tahun',
+                                'RE-Use'
+                            ];
+                            var title = titles[stepIndex] || 'Detail Storage';
+                            $('#modalStorageStatusTitleText').text(title);
+                            renderStorageTableHeader();
+
+                            var tbody = $('#tableStorageAssetDetailBody');
+
+                            var pText = document.getElementById('selected-period-text');
+                            var periodVal = pText ? pText.textContent.trim() : '';
+                            if (periodVal === 'PILIH PERIODE DATA' || periodVal === '-') periodVal = '';
+
+                            if (!periodVal) {
+                                updateStorageModalFilters([]);
+                                tbody.html('<tr><td colspan="6" class="py-5 text-center text-muted bg-white"><i class="fas fa-folder-open fa-2x mb-2 d-block text-gray-300"></i>Belum ada data tersedia untuk status ini.</td></tr>');
+                                $('#storage-modal-count-display').text('0');
+                                $('#storageAssetDetailModal').modal('show');
+                                return;
+                            }
+
+                            tbody.html('<tr><td colspan="6" class="py-5 text-center text-muted bg-white"><i class="fas fa-spinner fa-spin fa-2x text-primary mb-2 d-block"></i>Memuat data asset storage...</td></tr>');
+                            $('#modalStorageDynamicFilterRow').empty();
+                            $('#storage-modal-count-display').text('Memuat...');
+
+                            var dataUrl = 'api/get_data.php?periode=' + encodeURIComponent(periodVal);
+
+                            fetch(dataUrl)
+                                .then(function (res) { return res.json(); })
+                                .then(function (res) {
+                                    if (res && res.status === 'success' && Array.isArray(res.data) && res.data.length > 0) {
+                                        var mapped = res.data.map(function (row) {
+                                            var getFld = function (keys) {
+                                                for (var idx = 0; idx < keys.length; idx++) {
+                                                    var k = keys[idx];
+                                                    for (var rk in row) {
+                                                        if (rk.toLowerCase().replace(/[^a-z0-9]/g, '') === k.toLowerCase().replace(/[^a-z0-9]/g, '')) {
+                                                            return row[rk];
+                                                        }
+                                                    }
+                                                }
+                                                return '-';
+                                            };
+
+                                            var sn = getFld(['serialnumber', 'sn', 'serial_number', 'no_seri']);
+                                            var desc = getFld(['itemdescription', 'deskripsi_item', 'nama_barang', 'item_name']);
+                                            var cat = getFld(['itemcategory', 'kategori', 'category']);
+                                            var site = getFld(['sitename', 'site_name', 'lokasi', 'location']);
+                                            var aging = getFld(['aging', 'umur_barang', 'aging_bucket', 'age']);
+                                            var nbv = getFld(['nbv', 'nilaibuku', 'nilai_buku', 'book_value']);
+
+                                            return {
+                                                serial_number: sn,
+                                                item_description: desc,
+                                                category: cat,
+                                                site_name: site,
+                                                aging: aging,
+                                                nbv: (nbv !== '-' && !isNaN(nbv)) ? 'Rp ' + Number(nbv).toLocaleString('id-ID') : nbv
+                                            };
+                                        });
+
+                                        // Apply step-specific slice / filter
+                                        var filteredRows = mapped;
+                                        if (stepIndex === 2) {
+                                            filteredRows = mapped.filter(function (r) {
+                                                var ag = (r.aging || '').toLowerCase();
+                                                return ag.includes('< 1') || ag.includes('<1') || ag.includes('less') || ag.includes('0-1');
+                                            });
+                                        } else if (stepIndex === 3) {
+                                            filteredRows = mapped.filter(function (r) {
+                                                var ag = (r.aging || '').toLowerCase();
+                                                return ag.includes('1-2') || ag.includes('1 - 2') || ag.includes('> 1') || ag.includes('>1');
+                                            });
+                                        } else if (stepIndex === 4) {
+                                            filteredRows = mapped.filter(function (r) {
+                                                var ag = (r.aging || '').toLowerCase();
+                                                return ag.includes('> 2') || ag.includes('>2') || ag.includes('more than 2');
+                                            });
+                                        } else if (stepIndex === 5) {
+                                            filteredRows = mapped.filter(function (r) {
+                                                var cat = (r.category || '').toLowerCase();
+                                                var desc = (r.item_description || '').toLowerCase();
+                                                return cat.includes('re-use') || cat.includes('reuse') || desc.includes('re-use') || desc.includes('reuse');
+                                            });
+                                        }
+
+                                        currentStorageModalRows = (filteredRows.length > 0) ? filteredRows : mapped.slice(0, 100);
+                                        updateStorageModalFilters(currentStorageModalRows);
+                                        renderStorageModalRows(currentStorageModalRows);
+                                    } else {
+                                        updateStorageModalFilters([]);
+                                        tbody.html('<tr><td colspan="6" class="py-5 text-center text-muted bg-white"><i class="fas fa-folder-open fa-2x mb-2 d-block text-gray-300"></i>Belum ada data tersedia untuk status ini.</td></tr>');
+                                        $('#storage-modal-count-display').text('0');
+                                    }
+                                })
+                                .catch(function () {
+                                    tbody.html('<tr><td colspan="6" class="py-4 text-center text-danger bg-white"><i class="fas fa-exclamation-circle fa-2x mb-2 d-block"></i>Gagal memuat data dari server.</td></tr>');
+                                    $('#storage-modal-count-display').text('0');
+                                });
+
+                            $('#storageAssetDetailModal').modal('show');
                         };
 
                         // Keep the dropdown open when clicking inside the selects/options
@@ -1250,59 +2057,6 @@ include FRONTEND_PATH . 'components/header.php';
                                 e.stopPropagation();
                             });
                         }
-
-                        // Click handler for Storage Summary flow steps on dashboard overview
-                        window.openStorageSummaryModal = function (stepIndex) {
-                            if (stepIndex === 0) {
-                                var qtyEl = document.getElementById('inv-total-perangkat');
-                                var qtyVal = qtyEl ? qtyEl.textContent.trim() : '0 Unit';
-                                openGenericSummaryModal({
-                                    moduleType: 'storage',
-                                    title: 'Detail Total Perangkat (qty)',
-                                    metricLabel: 'TOTAL PERANGKAT',
-                                    qtyVal: qtyVal,
-                                    docColTitle: 'NO REGISTRASI'
-                                });
-                            } else if (stepIndex === 1) {
-                                var nbvEl = document.getElementById('inv-total-nbv');
-                                var nbvVal = nbvEl ? nbvEl.textContent.trim() : 'Rp 0';
-                                openGenericSummaryModal({
-                                    moduleType: 'storage',
-                                    title: 'Detail Total NBV (Rp)',
-                                    metricLabel: 'TOTAL NBV',
-                                    qtyVal: nbvVal,
-                                    docColTitle: 'NO REGISTRASI'
-                                });
-                            } else {
-                                var agingTitles = {
-                                    2: 'Detail < 1 Tahun',
-                                    3: 'Detail > 1 Tahun',
-                                    4: 'Detail > 2 Tahun',
-                                    5: 'Detail RE-Use'
-                                };
-                                var agingLabels = {
-                                    2: '< 1 TAHUN',
-                                    3: '> 1 TAHUN',
-                                    4: '> 2 TAHUN',
-                                    5: 'RE-USE'
-                                };
-                                var agingIds = {
-                                    2: 'inv-aging-less-3m',
-                                    3: 'inv-aging-3-12m',
-                                    4: 'inv-aging-more-12m',
-                                    5: 'inv-re-useg'
-                                };
-                                var el = document.getElementById(agingIds[stepIndex]);
-                                var val = el ? el.textContent.trim() : '0 Unit';
-                                openGenericSummaryModal({
-                                    moduleType: 'storage',
-                                    title: agingTitles[stepIndex] || 'Detail Storage',
-                                    metricLabel: agingLabels[stepIndex] || 'STORAGE AGING',
-                                    qtyVal: val,
-                                    docColTitle: 'NO REGISTRASI'
-                                });
-                            }
-                        };
 
                         function populateSelect(selectId, items, placeholder) {
                             var sel = document.getElementById(selectId);
@@ -1437,6 +2191,29 @@ include FRONTEND_PATH . 'components/header.php';
                                 if (window.updateDashReceivingTrendChart) {
                                     window.updateDashReceivingTrendChart([], [], [], [], '');
                                 }
+
+                                if (window.updateInboundFlowPieChart) {
+                                    window.updateInboundFlowPieChart([0, 0, 0]);
+                                }
+                                var elPo = document.getElementById('flow-po-count');
+                                if (elPo) elPo.textContent = '0 PO';
+                                var elOntime = document.getElementById('flow-po-proses-delivery');
+                                if (elOntime) elOntime.textContent = '0 PO';
+                                var elTerlambat = document.getElementById('flow-po-terlambat-delivery');
+                                if (elTerlambat) elTerlambat.textContent = '0 PO';
+                                var elGr = document.getElementById('flow-total-gr');
+                                if (elGr) elGr.textContent = '0 GR';
+                                var elReg = document.getElementById('flow-done-count');
+                                if (elReg) elReg.textContent = '0 Registrasi';
+
+                                var elMr = document.getElementById('outbound-total-mr');
+                                if (elMr) elMr.textContent = '0 MR';
+                                var elPck = document.getElementById('sub-packing-count');
+                                if (elPck) elPck.textContent = '0 Unit';
+                                var elShp = document.getElementById('sub-shipped-count');
+                                if (elShp) elShp.textContent = '0 Unit';
+                                var elTiba = document.getElementById('outbound-terkirim');
+                                if (elTiba) elTiba.textContent = '0 Selesai';
                             });
                         }
 
@@ -1462,10 +2239,20 @@ include FRONTEND_PATH . 'components/header.php';
                             var fetchYearly = fetch('api/get_yearly_in_out.php?year=' + encodeURIComponent(yr))
                                 .then(function (response) { return response.json(); });
 
-                            Promise.all([fetchDashboard, fetchYearly])
+                            var fetchInbound = fetch('api/get_inbound_status_detail.php?action=counts&periode=' + encodeURIComponent(period))
+                                .then(function (response) { return response.json(); })
+                                .catch(function () { return null; });
+
+                            var fetchOutbound = fetch('api/get_outbound_status_detail.php?action=counts&periode=' + encodeURIComponent(period))
+                                .then(function (response) { return response.json(); })
+                                .catch(function () { return null; });
+
+                            Promise.all([fetchDashboard, fetchYearly, fetchInbound, fetchOutbound])
                                 .then(function (results) {
                                     var result = results[0];
                                     var resData = results[1];
+                                    var inboundRes = results[2];
+                                    var outboundRes = results[3];
 
                                     if (result && result.status === 'success' && result.data && result.data.length > 0) {
                                         var headers = Object.keys(result.data[0]);
@@ -1480,6 +2267,35 @@ include FRONTEND_PATH . 'components/header.php';
                                         if (window.FormulaController) {
                                             window.FormulaController.updateDashboardCards([], []);
                                         }
+                                    }
+
+                                    if (inboundRes && inboundRes.status === 'success' && inboundRes.counts) {
+                                        var c = inboundRes.counts;
+                                        if (window.updateInboundFlowPieChart) {
+                                            window.updateInboundFlowPieChart([c.total_po_inbound, c.po_ontime_delivery, c.po_terlambat_delivery]);
+                                        }
+                                        var elPo = document.getElementById('flow-po-count');
+                                        if (elPo) elPo.textContent = c.total_po_inbound + ' PO';
+                                        var elOntime = document.getElementById('flow-po-proses-delivery');
+                                        if (elOntime) elOntime.textContent = c.po_ontime_delivery + ' PO';
+                                        var elTerlambat = document.getElementById('flow-po-terlambat-delivery');
+                                        if (elTerlambat) elTerlambat.textContent = c.po_terlambat_delivery + ' PO';
+                                        var elGr = document.getElementById('flow-total-gr');
+                                        if (elGr) elGr.textContent = c.total_gr + ' GR';
+                                        var elReg = document.getElementById('flow-done-count');
+                                        if (elReg) elReg.textContent = c.total_registrasi + ' Registrasi';
+                                    }
+
+                                    if (outboundRes && outboundRes.status === 'success' && outboundRes.counts) {
+                                        var oc = outboundRes.counts;
+                                        var elMr = document.getElementById('outbound-total-mr');
+                                        if (elMr) elMr.textContent = oc.total_mr + ' MR';
+                                        var elPck = document.getElementById('sub-packing-count');
+                                        if (elPck) elPck.textContent = oc.total_packed + ' Unit';
+                                        var elShp = document.getElementById('sub-shipped-count');
+                                        if (elShp) elShp.textContent = oc.total_shipped + ' Unit';
+                                        var elTiba = document.getElementById('outbound-terkirim');
+                                        if (elTiba) elTiba.textContent = oc.tiba_di_lokasi + ' Selesai';
                                     }
 
                                     if (resData && resData.status === 'success' && resData.data) {
@@ -1543,7 +2359,6 @@ include FRONTEND_PATH . 'components/header.php';
 
                         function fetchAndRenderUtilisasiModal(filterType) {
                             var tbody = $('#tableStorageUtilisasiBody');
-                            tbody.html('<tr><td colspan="2" class="py-4 text-center text-muted bg-white"><i class="fas fa-spinner fa-spin fa-2x text-primary mb-2 d-block"></i>Memuat data Utilisasi Area / Rack...</td></tr>');
 
                             var currentPeriodEl = document.getElementById('selected-period-text');
                             var currentPeriodStr = currentPeriodEl ? currentPeriodEl.textContent.trim() : '';
@@ -1558,21 +2373,27 @@ include FRONTEND_PATH . 'components/header.php';
                                 }
                             }
 
-                            var utilisasiUrl = 'api/get_rack_utilisasi.php';
-                            if (periodMonth && periodYear) {
-                                utilisasiUrl += '?month=' + encodeURIComponent(periodMonth) + '&year=' + encodeURIComponent(periodYear);
+                            if (!periodMonth || !periodYear) {
+                                rawUtilisasiRows = [];
+                                tbody.html('<tr><td colspan="2" class="py-5 text-center text-muted bg-white"><i class="fas fa-folder-open fa-2x mb-2 d-block text-gray-300"></i>Belum ada data tersedia untuk status ini.</td></tr>');
+                                renderEmptyDots();
+                                return;
                             }
+
+                            tbody.html('<tr><td colspan="2" class="py-4 text-center text-muted bg-white"><i class="fas fa-spinner fa-spin fa-2x text-primary mb-2 d-block"></i>Memuat data Utilisasi Area / Rack...</td></tr>');
+
+                            var utilisasiUrl = 'api/get_rack_utilisasi.php?month=' + encodeURIComponent(periodMonth) + '&year=' + encodeURIComponent(periodYear);
 
                             $.ajax({
                                 url: utilisasiUrl,
                                 type: 'GET',
                                 dataType: 'json',
                                 success: function (res) {
-                                    if (res.status === 'success' && res.data) {
+                                    if (res.status === 'success' && res.data && res.data.length > 0) {
                                         rawUtilisasiRows = res.data;
                                         renderUtilisasiModalTable();
                                     } else {
-                                        tbody.html('<tr><td colspan="2" class="py-4 text-center text-muted bg-white font-italic"><i class="fas fa-inbox fa-2x mb-2 d-block text-gray-300"></i>Belum ada data utilisasi area/rack tersimpan untuk periode ini.</td></tr>');
+                                        tbody.html('<tr><td colspan="2" class="py-5 text-center text-muted bg-white"><i class="fas fa-folder-open fa-2x mb-2 d-block text-gray-300"></i>Belum ada data tersedia untuk status ini.</td></tr>');
                                         renderEmptyDots();
                                     }
                                 },

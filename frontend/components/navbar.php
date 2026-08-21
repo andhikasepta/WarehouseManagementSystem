@@ -18,6 +18,8 @@ $navUser = [
     'id' => $_SESSION['user_id'] ?? '',
     'name' => $_SESSION['name'] ?? 'Guest User',
     'role' => $_SESSION['role'] ?? 'guest',
+    'employment_type' => $_SESSION['employment_type'] ?? 'Karyawan Tetap',
+    'job_title' => $_SESSION['job_title'] ?? '',
     'is_logged_in' => isset($_SESSION['user_id']) && !empty($_SESSION['user_id'])
 ];
 
@@ -33,9 +35,9 @@ $navRoleTitle = 'Admin Warehouse';
 if ($navUser['role'] === 'superadmin')
     $navRoleTitle = 'Super Admin';
 elseif ($navUser['role'] === 'head_asset_warehouse_admin')
-    $navRoleTitle = 'Head-Asset And Warehouse Management';
+    $navRoleTitle = 'Head-Department';
 elseif ($navUser['role'] === 'head_warehouse_admin')
-    $navRoleTitle = 'Head-Warehouse Management';
+    $navRoleTitle = 'Head-Subdept';
 elseif ($navUser['role'] === 'inbound_admin')
     $navRoleTitle = 'Inbound Administrator';
 elseif ($navUser['role'] === 'outbound_admin')
@@ -43,7 +45,7 @@ elseif ($navUser['role'] === 'outbound_admin')
 elseif ($navUser['role'] === 'warehouse_admin')
     $navRoleTitle = 'Storage Administrator';
 elseif ($navUser['role'] === 'outsourcing')
-    $navRoleTitle = 'Outsourcing';
+    $navRoleTitle = 'User';
 elseif ($navUser['role'] === 'repository_admin')
     $navRoleTitle = 'Repository Administrator';
 
@@ -1700,13 +1702,16 @@ if (isset($pdo)) {
                             </span>
                             <span class="text-muted text-nowrap user-role-text"
                                 style="font-size: 0.68rem; line-height: 1.1; margin-top: 1px;">
-                                <?php echo htmlspecialchars($navRoleTitle); ?>
+                                <?php echo htmlspecialchars(!empty($navUser['job_title']) ? $navUser['job_title'] : $navRoleTitle); ?>
                             </span>
                         </div>
                         <i class="fas fa-chevron-down fa-sm fa-fw text-gray-400 ml-1"></i>
                     </a>
                     <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in p-1 text-nowrap"
-                        aria-labelledby="userDropdown" style="min-width: 100%; width: max-content;">
+                        aria-labelledby="userDropdown" style="min-width: 190px; width: max-content;">
+                        <div class="dropdown-header text-muted font-weight-bold py-2 px-3 border-bottom mb-1" style="font-size: 0.72rem; letter-spacing: 0.5px;">
+                            Role: <span class="text-dark font-weight-bold"><?php echo htmlspecialchars($navRoleTitle); ?></span>
+                        </div>
                         <a class="dropdown-item text-gray-700 font-weight-bold text-nowrap py-2" href="#" data-toggle="modal"
                             data-target="#changePasswordModal">
                             <i class="fas fa-key fa-sm fa-fw mr-2 text-gray-500"></i> Ganti Password

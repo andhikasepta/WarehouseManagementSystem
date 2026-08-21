@@ -1,0 +1,49 @@
+# =====================================================================
+# Docker Ignore - Exclude from build context
+# =====================================================================
+
+# Version control
+.git
+.gitignore
+
+# IDE / Editor
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# Docker files (don't include themselves)
+docker-compose.yml
+docker-compose.*.yml
+Dockerfile
+.dockerignore
+
+# Environment files (injected at runtime via env vars)
+.env
+.env.*
+!.env.example
+
+# Node.js (dev dependencies — vendor assets are pre-built)
+node_modules
+package-lock.json
+gulpfile.js
+
+# SCSS source (CSS is pre-compiled)
+frontend/scss
+
+# Documentation
+README.md
+LICENSE
+*.md
+
+# Temp & debug files
+output.txt
+temp.json
+temp_rack.json
+test_output.json
+api/test_output.json
+
+# OS files
+Thumbs.db
+.DS_Store

@@ -255,7 +255,7 @@ if (!function_exists('assetUrl')) {
 
             <!-- Card 2: WMS System -->
             <div class="col-md-4 col-lg-4 mb-3 mb-md-0 text-center px-md-2 px-lg-2">
-                <a href="wms_select.php" class="portal-card-link h-100 d-flex flex-column">
+                <a href="login.php" class="portal-card-link h-100 d-flex flex-column">
                     <img src="<?php echo assetUrl('frontend/img/WMS.png'); ?>" alt="Warehouse Management System"
                         class="portal-card-img">
                     <div class="portal-card-body flex-grow-1 d-flex flex-column justify-content-between">

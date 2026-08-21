@@ -15,15 +15,14 @@ document.addEventListener('DOMContentLoaded', function () {
             type: 'doughnut',
             data: {
                 labels: [
-                    "Total PO Inbound", 
+                    "Total PO Ontime", 
                     "Total PO Terlambat", 
-                    "Total PO Terlambat Delivery", 
                     "PO Sudah GR"
                 ],
                 datasets: [{
-                    data: [0, 0, 0, 0],
-                    backgroundColor: ['#4e73df', '#f6c23e', '#e74a3b', '#1cc88a'],
-                    hoverBackgroundColor: ['#2e59d9', '#dfa827', '#be2617', '#17a673'],
+                    data: [0, 0, 0],
+                    backgroundColor: ['#1cc88a', '#e74a3b', '#36b9cc'],
+                    hoverBackgroundColor: ['#17a673', '#be2617', '#2c9faf'],
                     hoverBorderColor: "rgba(234, 236, 244, 1)",
                 }],
             },
@@ -262,4 +261,32 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     }
+
+    window.updateInboundCharts = function(counts) {
+        if (!counts) return;
+
+        // Update Doughnut Chart
+        if (window.distribusiStatusPoChart) {
+            var ontime = counts.po_ontime_delivery || 0;
+            var late = counts.po_terlambat_delivery || 0;
+            var gr = counts.po_sudah_gr || 0;
+            window.distribusiStatusPoChart.data.datasets[0].data = [ontime, late, gr];
+            window.distribusiStatusPoChart.update();
+        }
+
+        // Update Department Bar Chart
+        if (window.nilaiPoBagianChart && counts.dept_chart) {
+            window.nilaiPoBagianChart.data.labels = counts.dept_chart.labels || [];
+            window.nilaiPoBagianChart.data.datasets[0].data = counts.dept_chart.sudah_gr || [];
+            window.nilaiPoBagianChart.data.datasets[1].data = counts.dept_chart.belum_gr || [];
+            window.nilaiPoBagianChart.update();
+        }
+
+        // Update Monthly Trend Chart
+        if (window.trenGrBulananChart && counts.trend_chart) {
+            window.trenGrBulananChart.data.datasets[0].data = counts.trend_chart.ontime || array_fill(0, 12, 0);
+            window.trenGrBulananChart.data.datasets[1].data = counts.trend_chart.terlambat || array_fill(0, 12, 0);
+            window.trenGrBulananChart.update();
+        }
+    };
 });

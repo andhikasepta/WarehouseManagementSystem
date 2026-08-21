@@ -4,7 +4,7 @@ require_once __DIR__ . '/../../backend/config/database.php';
 require_once __DIR__ . '/../../backend/auth.php';
 
 $error = '';
-$redirect = $_GET['redirect'] ?? $_POST['redirect'] ?? 'wms_select.php';
+$redirect = $_GET['redirect'] ?? $_POST['redirect'] ?? 'dashboard.php';
 
 // ── Open Redirect Protection ──────────────────────────────────────
 // Only allow redirects to known internal pages (no external URLs, no path traversal)
@@ -16,7 +16,7 @@ $allowedRedirectPages = [
 ];
 $redirectBase = basename(parse_url($redirect, PHP_URL_PATH) ?: '');
 if (!in_array($redirectBase, $allowedRedirectPages, true)) {
-    $redirect = 'wms_select.php';
+    $redirect = 'dashboard.php';
 }
 
 // Show access denied notification if redirected back
@@ -55,7 +55,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'logout') {
         );
     }
     session_destroy();
-    header("Location: wms_select.php");
+    header("Location: login.php");
     exit;
 }
 
@@ -134,6 +134,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['username'] = $user['username'];
                 $_SESSION['name'] = $user['name'];
                 $_SESSION['role'] = $user['role'];
+                $_SESSION['employment_type'] = $user['employment_type'] ?? 'Karyawan Tetap';
+                $_SESSION['job_title'] = $user['job_title'] ?? '';
                 $_SESSION['last_activity'] = time();
 
                 $decodedModules = json_decode($user['allowed_modules'], true);
@@ -192,7 +194,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     } else {
                         header("Location: repository_management.php");
                     }
-                } elseif ($redirect === 'wms_select.php' || empty($redirect)) {
+                } elseif ($redirect === 'wms_select.php' || $redirect === 'dashboard.php' || empty($redirect)) {
                     $allowed = is_array($decodedModules) ? $decodedModules : [];
                     if (in_array('dashboard', $allowed)) {
                         header("Location: dashboard.php");
@@ -207,7 +209,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     } elseif (!empty($allowed)) {
                         header("Location: " . $allowed[0] . ".php");
                     } else {
-                        header("Location: wms_select.php");
+                        header("Location: dashboard.php");
                     }
                 } else {
                     header("Location: " . $redirect);
@@ -368,15 +370,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </form>
 
         <div class="mt-3">
-            <?php if (strpos($redirect, 'repository') !== false): ?>
-                <a href="index.php" class="text-muted small">
-                    <i class="fas fa-chevron-left mr-1"></i> Kembali ke Landing Page Portal
-                </a>
-            <?php else: ?>
-                <a href="wms_select.php" class="text-muted small">
-                    <i class="fas fa-chevron-left mr-1"></i> Kembali ke Modul WMS
-                </a>
-            <?php endif; ?>
+            <a href="index.php" class="text-muted small">
+                <i class="fas fa-chevron-left mr-1"></i> Kembali ke Portal Utama
+            </a>
         </div>
 
         <div class="footer-text">

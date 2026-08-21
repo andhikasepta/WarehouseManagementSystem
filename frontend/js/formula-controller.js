@@ -450,7 +450,7 @@
 
             // Clear Storage Summary
             if (window.updateInventorySummaryPieChart) {
-                window.updateInventorySummaryPieChart([0, 0, 0, 0]);
+                window.updateInventorySummaryPieChart(0, 0);
             }
 
             return;

@@ -19,10 +19,12 @@ $method = $_SERVER['REQUEST_METHOD'];
 
 if ($method === 'GET') {
     try {
-        $stmt = $pdo->query("SELECT id, username, name, role, allowed_modules, permissions, created_at FROM users ORDER BY id ASC");
+        $stmt = $pdo->query("SELECT id, username, name, role, employment_type, job_title, allowed_modules, permissions, created_at FROM users ORDER BY id ASC");
         $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         foreach ($users as &$user) {
+            $user['employment_type'] = $user['employment_type'] ?? 'Karyawan Tetap';
+            $user['job_title'] = $user['job_title'] ?? '';
             $user['allowed_modules'] = json_decode($user['allowed_modules'], true) ?? [];
             $user['permissions'] = json_decode($user['permissions'] ?? '{}', true) ?? [];
         }
@@ -96,13 +98,18 @@ if ($method === 'POST') {
     $name = trim($data['name'] ?? '');
     $password = trim($data['password'] ?? '');
     $role = trim($data['role'] ?? 'admin');
+    $employmentType = trim($data['employment_type'] ?? 'Karyawan Tetap');
+    if ($employmentType !== 'Outsourcing' && $employmentType !== 'Karyawan Tetap') {
+        $employmentType = 'Karyawan Tetap';
+    }
+    $jobTitle = trim($data['job_title'] ?? '');
     $modules = is_array($data['allowed_modules'] ?? null) ? $data['allowed_modules'] : [];
     $permissions = is_array($data['permissions'] ?? null) ? $data['permissions'] : [];
 
     // Validate role is an allowed value
-    $validRoles = ['superadmin', 'head_asset_warehouse_admin', 'head_warehouse_admin', 'inbound_admin', 'outbound_admin', 'warehouse_admin', 'outsourcing', 'repository_admin'];
+    $validRoles = ['superadmin', 'head_asset_warehouse_admin', 'head_warehouse_admin', 'inbound_admin', 'outbound_admin', 'warehouse_admin', 'repository_admin', 'outsourcing'];
     if (!in_array($role, $validRoles)) {
-        $role = 'outsourcing'; // Default to outsourcing for unknown roles
+        $role = 'warehouse_admin';
     }
 
     // No forced modules - superadmin decides all access via RBAC checkboxes
@@ -158,11 +165,11 @@ if ($method === 'POST') {
         try {
             if (!empty($password)) {
                 $hash = password_hash($password, PASSWORD_DEFAULT);
-                $stmt = $pdo->prepare("UPDATE users SET username = ?, name = ?, password = ?, role = ?, allowed_modules = ?, permissions = ? WHERE id = ?");
-                $stmt->execute([$username, $name, $hash, $role, $modulesJson, $permissionsJson, $userId]);
+                $stmt = $pdo->prepare("UPDATE users SET username = ?, name = ?, password = ?, role = ?, employment_type = ?, job_title = ?, allowed_modules = ?, permissions = ? WHERE id = ?");
+                $stmt->execute([$username, $name, $hash, $role, $employmentType, $jobTitle, $modulesJson, $permissionsJson, $userId]);
             } else {
-                $stmt = $pdo->prepare("UPDATE users SET username = ?, name = ?, role = ?, allowed_modules = ?, permissions = ? WHERE id = ?");
-                $stmt->execute([$username, $name, $role, $modulesJson, $permissionsJson, $userId]);
+                $stmt = $pdo->prepare("UPDATE users SET username = ?, name = ?, role = ?, employment_type = ?, job_title = ?, allowed_modules = ?, permissions = ? WHERE id = ?");
+                $stmt->execute([$username, $name, $role, $employmentType, $jobTitle, $modulesJson, $permissionsJson, $userId]);
             }
             echo json_encode(['status' => 'success', 'message' => 'User berhasil diperbarui.']);
         } catch (PDOException $e) {
@@ -178,8 +185,8 @@ if ($method === 'POST') {
 
         try {
             $hash = password_hash($password, PASSWORD_DEFAULT);
-            $stmt = $pdo->prepare("INSERT INTO users (username, password, name, role, allowed_modules, permissions) VALUES (?, ?, ?, ?, ?, ?)");
-            $stmt->execute([$username, $hash, $name, $role, $modulesJson, $permissionsJson]);
+            $stmt = $pdo->prepare("INSERT INTO users (username, password, name, role, employment_type, job_title, allowed_modules, permissions) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt->execute([$username, $hash, $name, $role, $employmentType, $jobTitle, $modulesJson, $permissionsJson]);
             echo json_encode(['status' => 'success', 'message' => 'User admin baru berhasil didaftarkan.']);
         } catch (PDOException $e) {
             if (strpos($e->getMessage(), 'Duplicate entry') !== false) {

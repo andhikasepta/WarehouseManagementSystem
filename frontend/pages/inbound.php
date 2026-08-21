@@ -195,33 +195,48 @@ include FRONTEND_PATH . 'components/header.php';
             </div>
 
             <!-- PO Status Detail Modal -->
-            <div class="modal fade" id="poStatusDetailModal" tabindex="-1" role="dialog" aria-labelledby="poStatusDetailModalLabel" aria-hidden="true">
+            <div class="modal fade" id="poStatusDetailModal" tabindex="-1" role="dialog"
+                aria-labelledby="poStatusDetailModalLabel" aria-hidden="true">
                 <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
-                    <div class="modal-content border-0 shadow" style="border-radius: 10px; background-color: #ffffff; overflow: hidden;">
+                    <div class="modal-content border-0 shadow"
+                        style="border-radius: 10px; background-color: #ffffff; overflow: hidden;">
                         <!-- Header with distinct light background -->
-                        <div class="modal-header border-bottom py-3 px-4 align-items-center" style="background-color: #f8f9fc; border-bottom: 1px solid #e3e6f0;">
-                            <h5 class="modal-title font-weight-bold text-gray-800 my-auto" id="poStatusDetailModalLabel" style="line-height: 1.5; margin-top: 2px;">
-                                <i class="fas fa-stream text-primary mr-2"></i>Detail <span id="modalStatusTitleText" class="font-weight-bold text-primary"></span>
+                        <div class="modal-header border-bottom py-3 px-4 align-items-center"
+                            style="background-color: #f8f9fc; border-bottom: 1px solid #e3e6f0;">
+                            <h5 class="modal-title font-weight-bold text-gray-800 my-auto d-flex align-items-center flex-wrap"
+                                id="poStatusDetailModalLabel" style="line-height: 1.5; margin-top: 2px;">
+                                <span>Detail Status PO:</span>
+                                <span id="modalStatusTitleText" class="font-weight-bold text-primary ml-1"></span>
+                                <span class="badge badge-primary px-2.5 py-1 font-weight-bold ml-2"
+                                    id="inbound-modal-total-badge" style="font-size: 0.8rem; border-radius: 6px;">
+                                    <i class="fas fa-file-invoice mr-1"></i> Total: <span id="inbound-modal-count-display">0</span> Data
+                                </span>
                             </h5>
-                            <button type="button" class="close text-gray-600 my-auto" data-dismiss="modal" aria-label="Close" style="padding: 0.5rem; margin: 0;">
+                            <button type="button" class="close text-gray-600 my-auto" data-dismiss="modal"
+                                aria-label="Close" style="padding: 0.5rem; margin: 0;">
                                 <span aria-hidden="true">&times;</span>
                             </button>
                         </div>
                         <!-- Clean White Body -->
                         <div class="modal-body p-4 bg-white" style="max-height: 75vh; overflow-y: auto;">
                             <!-- Filter Controls Container -->
-                            <div class="card mb-3 border bg-light shadow-sm" style="border-radius: 8px; border-color: #eaecf4 !important;">
+                            <div class="card mb-3 border bg-light shadow-sm"
+                                style="border-radius: 8px; border-color: #eaecf4 !important;">
                                 <div class="card-body py-2 px-3">
-                                    <div class="d-flex flex-wrap align-items-center w-100" id="modalDynamicFilterRow" style="gap: 8px;">
+                                    <div class="d-flex flex-wrap align-items-center w-100" id="modalDynamicFilterRow"
+                                        style="gap: 8px;">
                                         <!-- Dynamic dropdown filters & search bar will be injected here -->
                                     </div>
                                 </div>
                             </div>
 
                             <!-- Table Container (Clean Minimalist White) -->
-                            <div class="table-responsive border rounded shadow-sm" style="border-color: #eaecf4 !important; background: #ffffff;">
-                                <table class="table table-hover table-striped text-center mb-0" id="tablePoStatusDetail" style="font-size: 0.84rem;">
-                                    <thead class="thead-light text-gray-800 font-weight-bold" style="border-bottom: 2px solid #e3e6f0;">
+                            <div class="table-responsive border rounded shadow-sm"
+                                style="border-color: #eaecf4 !important; background: #ffffff;">
+                                <table class="table table-hover table-striped text-center mb-0 w-100"
+                                    id="tablePoStatusDetail" style="font-size: 0.84rem;">
+                                    <thead class="thead-light text-gray-800 font-weight-bold"
+                                        id="tablePoStatusDetailHead" style="border-bottom: 2px solid #e3e6f0;">
                                         <tr>
                                             <th class="py-2 border-top-0">No. PO</th>
                                             <th class="py-2 border-top-0">Deskripsi PO</th>
@@ -229,7 +244,7 @@ include FRONTEND_PATH . 'components/header.php';
                                             <th class="py-2 border-top-0">Department</th>
                                         </tr>
                                     </thead>
-                                    <tbody>
+                                    <tbody id="tablePoStatusDetailBody">
                                         <tr>
                                             <td colspan="4" class="py-5 text-muted bg-white">
                                                 <i class="fas fa-folder-open fa-2x mb-2 d-block text-gray-300"></i>
@@ -253,65 +268,286 @@ include FRONTEND_PATH . 'components/header.php';
 <script>
 $(document).ready(function() {
     // Dynamic column configuration per status
-    var statusColumnMap = {
-        'TOTAL PO INBOUND': ['No. PO', 'Deskripsi PO', 'PIC Asset Planner', 'Department'],
-        'TOTAL INBOUND': ['No. PO', 'Deskripsi PO', 'PIC Asset Planner', 'Department'],
-        'PO ONTIME DELIVERY': ['No. PO', 'Deskripsi PO', 'PIC Asset Planner', 'Department'],
-        'PO TERLAMBAT DELIVERY': ['No. PO', 'Deskripsi PO', 'PIC Asset Planner', 'Department'],
-        'PO SUDAH GR': ['No. PO', 'Deskripsi PO', 'PIC Asset Planner', 'Department', 'PIC GR'],
-        'GR NON PO': ['Deskripsi Perangkat', 'PIC Asset Planner', 'Department'],
-        'PO SUDAH REGISTRASI': ['No. PO', 'Deskripsi PO', 'PIC Asset Planner', 'Department', 'PIC Registrasi'],
-        'TOTAL GR': ['No. PO', 'Deskripsi PO', 'PIC Asset Planner', 'Department', 'PIC GR'],
-        'TOTAL REGISTRASI': ['No. PO', 'Deskripsi PO', 'PIC Asset Planner', 'Department', 'PIC Registrasi']
+    var statusColumnConfig = {
+        'TOTAL PO INBOUND': {
+            headers: ['No. PO', 'Deskripsi PO', 'PIC Asset Planner', 'Department', 'Vendor', 'Qty', 'Tgl Generate', 'Target Delivery'],
+            keys: ['no_po', 'deskripsi_po', 'pic_asset_planner', 'department', 'vendor', 'qty', 'tgl_generate', 'target_delivery']
+        },
+        'TOTAL INBOUND': {
+            headers: ['No. PO', 'Deskripsi PO', 'PIC Asset Planner', 'Department', 'Vendor', 'Qty', 'Tgl Generate', 'Target Delivery'],
+            keys: ['no_po', 'deskripsi_po', 'pic_asset_planner', 'department', 'vendor', 'qty', 'tgl_generate', 'target_delivery']
+        },
+        'PO ONTIME DELIVERY': {
+            headers: ['No. PO', 'Deskripsi PO', 'PIC Asset Planner', 'Department', 'Vendor', 'Qty', 'Target Delivery'],
+            keys: ['no_po', 'deskripsi_po', 'pic_asset_planner', 'department', 'vendor', 'qty', 'target_delivery']
+        },
+        'PO TERLAMBAT DELIVERY': {
+            headers: ['No. PO', 'Deskripsi PO', 'PIC Asset Planner', 'Department', 'Vendor', 'Qty', 'Target Delivery'],
+            keys: ['no_po', 'deskripsi_po', 'pic_asset_planner', 'department', 'vendor', 'qty', 'target_delivery']
+        },
+        'PO SUDAH GR': {
+            headers: ['No. PO', 'Deskripsi PO', 'PIC Asset Planner', 'Department', 'Vendor / PIC GR', 'Qty', 'Target Delivery'],
+            keys: ['no_po', 'deskripsi_po', 'pic_asset_planner', 'department', 'pic_gr', 'qty', 'target_delivery']
+        },
+        'TOTAL GR': {
+            headers: ['No. PO', 'Deskripsi PO', 'PIC Asset Planner', 'Department', 'Vendor / PIC GR', 'Qty', 'Target Delivery'],
+            keys: ['no_po', 'deskripsi_po', 'pic_asset_planner', 'department', 'pic_gr', 'qty', 'target_delivery']
+        },
+        'PO SUDAH REGISTRASI': {
+            headers: ['No. PO', 'Deskripsi PO', 'PIC Asset Planner', 'Department', 'PIC Registrasi', 'Qty', 'Target Delivery'],
+            keys: ['no_po', 'deskripsi_po', 'pic_asset_planner', 'department', 'pic_registrasi', 'qty', 'target_delivery']
+        },
+        'TOTAL REGISTRASI': {
+            headers: ['No. PO', 'Deskripsi PO', 'PIC Asset Planner', 'Department', 'PIC Registrasi', 'Qty', 'Target Delivery'],
+            keys: ['no_po', 'deskripsi_po', 'pic_asset_planner', 'department', 'pic_registrasi', 'qty', 'target_delivery']
+        },
+        'GR NON PO': {
+            headers: ['Deskripsi Perangkat', 'PIC Asset Planner', 'Department', 'Vendor', 'Qty'],
+            keys: ['deskripsi_perangkat', 'pic_asset_planner', 'department', 'vendor', 'qty']
+        }
     };
 
-    function updateModalFilters(statusName) {
-        var statusKey = (statusName || '').trim().toUpperCase();
-        var cols = statusColumnMap[statusKey] || ['No. PO', 'Deskripsi PO', 'PIC Asset Planner', 'Department'];
+    var statusFilterMap = {
+        'TOTAL PO INBOUND': [
+            { key: 'department', label: 'Department' },
+            { key: 'pic_asset_planner', label: 'PIC Asset Planner' },
+            { key: 'vendor', label: 'Vendor' }
+        ],
+        'PO ONTIME DELIVERY': [
+            { key: 'department', label: 'Department' },
+            { key: 'pic_asset_planner', label: 'PIC Asset Planner' },
+            { key: 'vendor', label: 'Vendor' }
+        ],
+        'PO TERLAMBAT DELIVERY': [
+            { key: 'department', label: 'Department' },
+            { key: 'pic_asset_planner', label: 'PIC Asset Planner' },
+            { key: 'vendor', label: 'Vendor' }
+        ],
+        'PO SUDAH GR': [
+            { key: 'department', label: 'Department' },
+            { key: 'pic_asset_planner', label: 'PIC Asset Planner' },
+            { key: 'pic_gr', label: 'PIC GR' }
+        ],
+        'TOTAL GR': [
+            { key: 'department', label: 'Department' },
+            { key: 'pic_asset_planner', label: 'PIC Asset Planner' },
+            { key: 'pic_gr', label: 'PIC GR' }
+        ],
+        'PO SUDAH REGISTRASI': [
+            { key: 'department', label: 'Department' },
+            { key: 'pic_asset_planner', label: 'PIC Asset Planner' }
+        ],
+        'TOTAL REGISTRASI': [
+            { key: 'department', label: 'Department' },
+            { key: 'pic_asset_planner', label: 'PIC Asset Planner' }
+        ],
+        'GR NON PO': [
+            { key: 'department', label: 'Department' },
+            { key: 'pic_asset_planner', label: 'PIC Asset Planner' }
+        ]
+    };
 
+    var currentModalRows = [];
+    var currentConfig = statusColumnConfig['TOTAL PO INBOUND'];
+    var currentStatusName = 'TOTAL PO INBOUND';
+    var currentSort = { key: null, dir: 'asc' };
+    var currentPeriod = '';
+
+    function renderTableHeader() {
+        var thead = $('#tablePoStatusDetailHead');
+        var tr = $('<tr></tr>');
+        currentConfig.headers.forEach(function (h, idx) {
+            var key = currentConfig.keys[idx];
+            var sortIcon = '<i class="fas fa-sort text-gray-400 ml-1" style="font-size: 0.72rem;"></i>';
+            if (currentSort.key === key) {
+                sortIcon = currentSort.dir === 'asc'
+                    ? '<i class="fas fa-sort-up text-primary ml-1" style="font-size: 0.78rem;"></i>'
+                    : '<i class="fas fa-sort-down text-primary ml-1" style="font-size: 0.78rem;"></i>';
+            }
+            var th = $('<th class="py-2 border-top-0 sortable-modal-header user-select-none" style="cursor: pointer;" data-key="' + key + '">' + h + ' ' + sortIcon + '</th>');
+            tr.append(th);
+        });
+        thead.html(tr);
+    }
+
+    function renderModalRows(rows) {
+        var tbody = $('#tablePoStatusDetailBody');
+        var colCount = currentConfig.headers.length;
+        if (!rows || rows.length === 0) {
+            tbody.html('<tr><td colspan="' + colCount + '" class="py-5 text-center text-muted bg-white"><i class="fas fa-folder-open fa-2x mb-2 d-block text-gray-300"></i>Belum ada data tersedia untuk filter ini.</td></tr>');
+            $('#inbound-modal-count-display').text('0');
+            return;
+        }
+
+        $('#inbound-modal-count-display').text(rows.length);
         var html = '';
-        cols.forEach(function(col) {
-            var filterId = 'filter-modal-' + col.toLowerCase().replace(/[^a-z0-9]/g, '-');
-            html += '<div class="flex-grow-1" style="min-width: 140px;">';
-            html += '<select class="form-control form-control-sm custom-select custom-select-sm" id="' + filterId + '">';
-            html += '<option value="">Semua ' + col + '</option>';
+        rows.forEach(function (r) {
+            html += '<tr>';
+            currentConfig.keys.forEach(function (k) {
+                var val = r[k] !== undefined && r[k] !== null && r[k] !== '' ? r[k] : '-';
+                var alignClass = (k === 'no_po' || k === 'deskripsi_po' || k === 'deskripsi_perangkat') ? 'text-left' : 'text-center';
+                html += '<td class="py-2 px-2 align-middle ' + alignClass + '" style="font-size: 0.82rem;">' + $('<div>').text(val).html() + '</td>';
+            });
+            html += '</tr>';
+        });
+        tbody.html(html);
+    }
+
+    function applyModalFilters() {
+        var filterValues = {};
+        $('.inbound-modal-col-filter').each(function () {
+            var key = $(this).attr('data-key');
+            var val = $(this).val();
+            if (val) {
+                filterValues[key] = val.toString().trim().toLowerCase();
+            }
+        });
+
+        var searchTerm = ($('#filter-modal-search').val() || '').trim().toLowerCase();
+
+        var filtered = currentModalRows.filter(function (row) {
+            for (var k in filterValues) {
+                var cellVal = (row[k] || '').toString().trim().toLowerCase();
+                if (cellVal !== filterValues[k]) {
+                    return false;
+                }
+            }
+
+            if (searchTerm) {
+                var matchSearch = currentConfig.keys.some(function (k) {
+                    var cellVal = (row[k] || '').toString().toLowerCase();
+                    return cellVal.indexOf(searchTerm) !== -1;
+                });
+                if (!matchSearch) return false;
+            }
+
+            return true;
+        });
+
+        if (currentSort.key) {
+            filtered.sort(function (a, b) {
+                var valA = (a[currentSort.key] || '').toString().trim();
+                var valB = (b[currentSort.key] || '').toString().trim();
+                return currentSort.dir === 'asc'
+                    ? valA.localeCompare(valB, undefined, { numeric: true, sensitivity: 'base' })
+                    : valB.localeCompare(valA, undefined, { numeric: true, sensitivity: 'base' });
+            });
+        }
+
+        renderModalRows(filtered);
+    }
+
+    function updateModalFilters(statusName, rawData) {
+        var filterRow = $('#modalDynamicFilterRow');
+        var filterDefs = statusFilterMap[statusName] || [
+            { key: 'department', label: 'Department' },
+            { key: 'pic_asset_planner', label: 'PIC Asset Planner' }
+        ];
+        var html = '';
+
+        filterDefs.forEach(function (f) {
+            var key = f.key;
+            var label = f.label;
+            var uniqueVals = [];
+            (rawData || []).forEach(function (r) {
+                var v = (r[key] || '').toString().trim();
+                if (v && v !== '-' && uniqueVals.indexOf(v) === -1) {
+                    uniqueVals.push(v);
+                }
+            });
+            uniqueVals.sort();
+
+            html += '<div style="flex: 1 1 140px; max-width: 200px; min-width: 120px;">';
+            html += '<select class="form-control form-control-sm custom-select custom-select-sm inbound-modal-col-filter" data-key="' + key + '" style="font-size: 0.78rem; border-radius: 6px;">';
+            html += '<option value="">Semua ' + label + '</option>';
+            uniqueVals.forEach(function (uv) {
+                html += '<option value="' + $('<div>').text(uv).html() + '">' + $('<div>').text(uv).html() + '</option>';
+            });
             html += '</select>';
             html += '</div>';
         });
 
-        // Fixed compact Search Bar
-        html += '<div style="flex: 0 0 180px; width: 180px; min-width: 150px;">';
-        html += '<input type="text" class="form-control form-control-sm" id="filter-modal-search" placeholder="Search...">';
+        html += '<div style="flex: 1 1 170px; max-width: 230px; min-width: 140px;">';
+        html += '<div class="input-group input-group-sm">';
+        html += '<div class="input-group-prepend"><span class="input-group-text bg-white border-right-0 text-muted" style="border-radius: 6px 0 0 6px;"><i class="fas fa-search" style="font-size: 0.72rem;"></i></span></div>';
+        html += '<input type="text" class="form-control form-control-sm border-left-0" id="filter-modal-search" placeholder="Search..." style="font-size: 0.78rem; border-radius: 0 6px 6px 0;">';
+        html += '</div>';
         html += '</div>';
 
-        $('#modalDynamicFilterRow').html(html);
+        html += '<div>';
+        html += '<button type="button" class="btn btn-outline-secondary btn-sm font-weight-bold" id="btn-reset-modal-filter" title="Reset Filter" style="border-radius: 6px; font-size: 0.75rem; padding: 0.25rem 0.65rem;">';
+        html += '<i class="fas fa-undo mr-1"></i> Reset';
+        html += '</button>';
+        html += '</div>';
+
+        filterRow.html(html);
+
+        $('.inbound-modal-col-filter').off('change').on('change', applyModalFilters);
+        $('#filter-modal-search').off('keyup input change').on('keyup input change', applyModalFilters);
+        $('#btn-reset-modal-filter').off('click').on('click', function () {
+            $('.inbound-modal-col-filter').val('');
+            $('#filter-modal-search').val('');
+            currentSort = { key: null, dir: 'asc' };
+            renderTableHeader();
+            applyModalFilters();
+        });
     }
 
-    function updateModalTable(statusName) {
+    $('#tablePoStatusDetailHead').off('click', '.sortable-modal-header').on('click', '.sortable-modal-header', function () {
+        var key = $(this).attr('data-key');
+        if (currentSort.key === key) {
+            currentSort.dir = (currentSort.dir === 'asc') ? 'desc' : 'asc';
+        } else {
+            currentSort.key = key;
+            currentSort.dir = 'asc';
+        }
+        renderTableHeader();
+        applyModalFilters();
+    });
+
+    function loadModalStatusTable(statusName) {
         var statusKey = (statusName || '').trim().toUpperCase();
-        var cols = statusColumnMap[statusKey] || ['No. PO', 'Deskripsi PO', 'PIC Asset Planner', 'Department'];
+        var cfg = statusColumnConfig[statusKey] || statusColumnConfig['TOTAL PO INBOUND'];
+        currentConfig = cfg;
+        currentStatusName = statusKey;
+        currentSort = { key: null, dir: 'asc' };
+        currentModalRows = [];
 
-        var theadHtml = '<tr>';
-        cols.forEach(function(col) {
-            theadHtml += '<th class="py-2 border-top-0">' + col + '</th>';
+        renderTableHeader();
+
+        var tbody = $('#tablePoStatusDetailBody');
+        var colCount = cfg.headers.length;
+        tbody.html('<tr><td colspan="' + colCount + '" class="py-5 text-center text-muted bg-white"><i class="fas fa-spinner fa-spin fa-2x text-primary mb-2 d-block"></i>Memuat data detail status...</td></tr>');
+        $('#modalDynamicFilterRow').empty();
+        $('#inbound-modal-count-display').text('Memuat...');
+
+        $.ajax({
+            url: 'api/get_inbound_status_detail.php',
+            type: 'GET',
+            data: { status: statusName, periode: currentPeriod },
+            dataType: 'json',
+            success: function (res) {
+                if (res.status === 'success' && res.data && res.data.length > 0) {
+                    currentModalRows = res.data;
+                    updateModalFilters(statusKey, res.data);
+                    renderModalRows(res.data);
+                } else {
+                    updateModalFilters(statusKey, []);
+                    tbody.html('<tr><td colspan="' + colCount + '" class="py-5 text-center text-muted bg-white"><i class="fas fa-folder-open fa-2x mb-2 d-block text-gray-300"></i>Belum ada data tersedia untuk status ini.</td></tr>');
+                    $('#inbound-modal-count-display').text('0');
+                }
+            },
+            error: function () {
+                tbody.html('<tr><td colspan="' + colCount + '" class="py-4 text-center text-danger bg-white"><i class="fas fa-exclamation-circle fa-2x mb-2 d-block"></i>Gagal memuat data dari server.</td></tr>');
+                $('#inbound-modal-count-display').text('0');
+            }
         });
-        theadHtml += '</tr>';
-        $('#tablePoStatusDetail thead').html(theadHtml);
-
-        var tbodyHtml = '<tr>' +
-            '<td colspan="' + cols.length + '" class="py-5 text-muted bg-white">' +
-                '<i class="fas fa-folder-open fa-2x mb-2 d-block text-gray-300"></i>' +
-                'Belum ada data tersedia untuk status ini.' +
-            '</td>' +
-        '</tr>';
-        $('#tablePoStatusDetail tbody').html(tbodyHtml);
     }
 
     $('.status-card-clickable').on('click', function() {
         var statusName = $(this).attr('data-status');
         $('#modalStatusTitleText').text(statusName);
-        updateModalFilters(statusName);
-        updateModalTable(statusName);
+        loadModalStatusTable(statusName);
     });
 
     var ALL_MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
@@ -349,6 +585,72 @@ $(document).ready(function() {
         });
     }
 
+    function resetInboundCards() {
+        $('#card-total-po-inbound').text(0);
+        $('#card-po-ontime-delivery').text(0);
+        $('#card-po-terlambat-delivery').text(0);
+        $('#card-po-sudah-gr').text(0);
+        $('#card-po-sudah-registrasi').text(0);
+        $('#card-gr-non-po').text(0);
+        $('#card-total-gr').text(0);
+        $('#card-total-registrasi').text(0);
+        $('.progress-bar').css('width', '0%');
+        if (window.updateInboundCharts) {
+            window.updateInboundCharts({
+                po_ontime_delivery: 0,
+                po_terlambat_delivery: 0,
+                po_sudah_gr: 0,
+                dept_chart: { labels: [], sudah_gr: [], belum_gr: [] },
+                trend_chart: { ontime: Array(12).fill(0), terlambat: Array(12).fill(0) }
+            });
+        }
+    }
+
+    function loadStatusCardCounts(period) {
+        if (!period) {
+            resetInboundCards();
+            return;
+        }
+
+        $.ajax({
+            url: 'api/get_inbound_status_detail.php',
+            type: 'GET',
+            data: { action: 'counts', periode: period },
+            dataType: 'json',
+            success: function (res) {
+                if (res.status === 'success' && res.counts) {
+                    var c = res.counts;
+                    var total = c.total_po_inbound || 0;
+
+                    $('#card-total-po-inbound').text(total);
+                    $('#card-po-ontime-delivery').text(c.po_ontime_delivery || 0);
+                    $('#card-po-terlambat-delivery').text(c.po_terlambat_delivery || 0);
+                    $('#card-po-sudah-gr').text(c.po_sudah_gr || 0);
+                    $('#card-po-sudah-registrasi').text(c.po_sudah_registrasi || 0);
+                    $('#card-gr-non-po').text(c.gr_non_po || 0);
+                    $('#card-total-gr').text(c.total_gr || 0);
+                    $('#card-total-registrasi').text(c.total_registrasi || 0);
+
+                    // Update progress bars
+                    if (total > 0) {
+                        $('#bar-total-po-inbound').css('width', '100%');
+                        $('#bar-po-ontime-delivery').css('width', Math.min(100, Math.round((c.po_ontime_delivery / total) * 100)) + '%');
+                        $('#bar-po-terlambat-delivery').css('width', Math.min(100, Math.round((c.po_terlambat_delivery / total) * 100)) + '%');
+                        $('#bar-po-sudah-gr').css('width', Math.min(100, Math.round((c.po_sudah_gr / total) * 100)) + '%');
+                        $('#bar-po-sudah-registrasi').css('width', Math.min(100, Math.round((c.po_sudah_registrasi / total) * 100)) + '%');
+                    } else {
+                        $('.progress-bar').css('width', '0%');
+                    }
+
+                    // Update Inbound Charts
+                    if (window.updateInboundCharts) {
+                        window.updateInboundCharts(c);
+                    }
+                }
+            }
+        });
+    }
+
     function loadPeriods() {
         fetch('api/get_periods.php')
             .then(function (r) { return r.json(); })
@@ -369,6 +671,8 @@ $(document).ready(function() {
 
                 var pText = document.getElementById('selected-period-text');
                 if (pText) pText.textContent = "PILIH PERIODE DATA";
+                currentPeriod = '';
+                resetInboundCards();
             })
             .catch(function (err) {
                 console.error('Error fetching periods:', err);
@@ -382,9 +686,10 @@ $(document).ready(function() {
             var b = document.getElementById('period-batch-select');
             var y = document.getElementById('period-year-select');
             if (m && m.value && b && b.value && y && y.value) {
-                var period = m.value + ' ' + y.value + '-Batch' + b.value;
+                currentPeriod = m.value + ' ' + y.value + '-Batch' + b.value;
                 var pText = document.getElementById('selected-period-text');
-                if (pText) pText.textContent = period.toUpperCase();
+                if (pText) pText.textContent = currentPeriod.toUpperCase();
+                loadStatusCardCounts(currentPeriod);
                 if (window.jQuery) {
                     $('#periodDropdown').dropdown('toggle');
                 }
@@ -399,8 +704,10 @@ $(document).ready(function() {
             if (batchSel) batchSel.value = '';
             if (yearSel) yearSel.value = '';
             updateLoadButton();
+            currentPeriod = '';
             var pText = document.getElementById('selected-period-text');
             if (pText) pText.textContent = "PILIH PERIODE DATA";
+            resetInboundCards();
         });
     }
 

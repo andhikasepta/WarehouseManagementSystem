@@ -165,6 +165,16 @@ try {
     }
 
     // Detail Action: fetch rows for the selected status
+    if (empty($periode) || $periode === 'PILIH PERIODE DATA' || $periode === '-') {
+        echo json_encode([
+            'status' => 'success',
+            'requested_status' => $status,
+            'count' => 0,
+            'data' => []
+        ]);
+        exit;
+    }
+
     $where = $periodWhere;
     $params = $periodParams;
 
