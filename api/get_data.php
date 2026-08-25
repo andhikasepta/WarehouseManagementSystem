@@ -12,6 +12,9 @@ if (!isLoggedIn()) {
 }
 
 try {
+    $driver = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+    $q = ($driver === 'pgsql') ? '"' : '`';
+
     $periodeGroup = $_GET['periode'] ?? null;
     $siteFilter   = $_GET['site'] ?? null;
     
@@ -57,7 +60,7 @@ try {
         if ($prevPGroup) {
             // ── Current period assets: status = IN (not in prev) or '-' (in prev) ──
             $sqlCurr = "SELECT c.spec_code, c.spec_name, c.reg_no, c.asset_planner_organization,
-                               c.nbv, c.so_result, c.so_location, c.`range`, c.sub_location,
+                               c.nbv, c.so_result, c.so_location, c.{$q}range{$q}, c.sub_location,
                                c.category, c.periode, c.periode_group,
                                CASE WHEN p.reg_no IS NULL THEN 'IN' ELSE '-' END AS status
                         FROM assets c
@@ -72,7 +75,7 @@ try {
 
             // ── OUT assets: in previous period but NOT in current ──
             $sqlOut = "SELECT p.spec_code, p.spec_name, p.reg_no, p.asset_planner_organization,
-                              p.nbv, p.so_result, p.so_location, p.`range`, p.sub_location,
+                              p.nbv, p.so_result, p.so_location, p.{$q}range{$q}, p.sub_location,
                               p.category, ? AS periode, ? AS periode_group,
                               'OUT' AS status
                        FROM assets p
@@ -91,7 +94,7 @@ try {
         } else {
             // No previous period — all assets are 'IN'
             $sql = "SELECT spec_code, spec_name, reg_no, asset_planner_organization,
-                           nbv, so_result, so_location, `range`, sub_location,
+                           nbv, so_result, so_location, {$q}range{$q}, sub_location,
                            category, periode, periode_group,
                            'IN' AS status
                     FROM assets WHERE periode_group = ?";
@@ -114,7 +117,7 @@ try {
         }
 
     } else {
-        $sql = "SELECT spec_code, spec_name, reg_no, asset_planner_organization, nbv, so_result, so_location, `range`, sub_location, category, periode FROM assets";
+        $sql = "SELECT spec_code, spec_name, reg_no, asset_planner_organization, nbv, so_result, so_location, {$q}range{$q}, sub_location, category, periode FROM assets";
         $params = [];
         if ($siteFilter) {
             $sql .= " WHERE so_location = ?";

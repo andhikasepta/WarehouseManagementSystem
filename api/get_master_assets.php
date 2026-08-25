@@ -14,6 +14,9 @@ if (!isLoggedIn()) {
 }
 
 try {
+    $driver = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+    $q = ($driver === 'pgsql') ? '"' : '`';
+
     // ─── DataTables Server-Side Parameters ───
     $draw    = isset($_GET['draw']) ? intval($_GET['draw']) : 0;
     $start   = isset($_GET['start']) ? intval($_GET['start']) : 0;
@@ -33,7 +36,7 @@ try {
         'nbv',                        // 4
         'so_result',                  // 5
         'so_location',                // 6
-        '`range`',                    // 7
+        "{$q}range{$q}",                    // 7
         'sub_location',               // 8
         'category',                   // 9
         'periode_group',              // 10
@@ -111,7 +114,7 @@ try {
         if ($idx === false || $idx === 0) {
             // First period (no previous period) — all IN
             $unionParts[] = "SELECT spec_code, spec_name, reg_no, asset_planner_organization, nbv, 
-                                    so_result, so_location, `range`, sub_location, category, 
+                                    so_result, so_location, {$q}range{$q}, sub_location, category, 
                                     periode_group, 'IN' AS status
                              FROM assets WHERE periode_group = ?";
             $unionParams[] = $pg;
@@ -120,7 +123,7 @@ try {
 
             // Current assets: IN or '-'
             $unionParts[] = "SELECT c.spec_code, c.spec_name, c.reg_no, c.asset_planner_organization, c.nbv,
-                                    c.so_result, c.so_location, c.`range`, c.sub_location, c.category,
+                                    c.so_result, c.so_location, c.{$q}range{$q}, c.sub_location, c.category,
                                     c.periode_group,
                                     CASE WHEN p.reg_no IS NULL THEN 'IN' ELSE '-' END AS status
                              FROM assets c
@@ -131,7 +134,7 @@ try {
 
             // OUT assets (in previous period but not in current)
             $unionParts[] = "SELECT p.spec_code, p.spec_name, p.reg_no, p.asset_planner_organization, p.nbv,
-                                    p.so_result, p.so_location, p.`range`, p.sub_location, p.category,
+                                    p.so_result, p.so_location, p.{$q}range{$q}, p.sub_location, p.category,
                                     ? AS periode_group,
                                     'OUT' AS status
                              FROM assets p
@@ -166,7 +169,7 @@ try {
 
     // Per-column search from DataTables (excluding period column 10 which is already scoped)
     $colNames = ['spec_code', 'spec_name', 'reg_no', 'asset_planner_organization', 'nbv',
-                 'so_result', 'so_location', '`range`', 'sub_location', 'category', 'periode_group', 'status'];
+                 'so_result', 'so_location', "{$q}range{$q}", 'sub_location', 'category', 'periode_group', 'status'];
     if (isset($_GET['columns']) && is_array($_GET['columns'])) {
         foreach ($_GET['columns'] as $colIdx => $colData) {
             if ($colIdx === 10) continue; // Periode handled at query scoping level

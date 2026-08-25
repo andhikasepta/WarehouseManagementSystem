@@ -68,6 +68,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (is_array($data)) {
         try {
+            $driver = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+            $q = ($driver === 'pgsql') ? '"' : '`';
             $action = isset($data['action']) ? $data['action'] : null;
 
             if ($action) {
@@ -99,7 +101,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     if (!empty($rows)) {
                         $pdo->beginTransaction();
                         $stmt = $pdo->prepare("INSERT INTO assets 
-                            (spec_code, spec_name, reg_no, asset_planner_organization, nbv, so_result, so_location, `range`, sub_location, category, periode, periode_group, raw_data) 
+                            (spec_code, spec_name, reg_no, asset_planner_organization, nbv, so_result, so_location, {$q}range{$q}, sub_location, category, periode, periode_group, raw_data) 
                             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
                         
                         // Get batch period info from the request
@@ -189,7 +191,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
 
                 $stmt = $pdo->prepare("INSERT INTO assets 
-                    (spec_code, spec_name, reg_no, asset_planner_organization, nbv, so_result, so_location, `range`, sub_location, category, periode, periode_group, raw_data) 
+                    (spec_code, spec_name, reg_no, asset_planner_organization, nbv, so_result, so_location, {$q}range{$q}, sub_location, category, periode, periode_group, raw_data) 
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
                 
                 foreach ($data as $row) {

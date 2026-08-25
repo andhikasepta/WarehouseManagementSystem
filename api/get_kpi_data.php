@@ -12,6 +12,9 @@ if (!isLoggedIn()) {
 }
 
 try {
+    $driver = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+    $q = ($driver === 'pgsql') ? '"' : '`';
+
     // ── Input Parameters & Validation ──
     $month = isset($_GET['month']) ? trim($_GET['month']) : '';
     $year = isset($_GET['year']) ? trim($_GET['year']) : '';
@@ -385,12 +388,12 @@ try {
                     WHEN LOWER(category) LIKE '%slow moving%' 
                       OR LOWER(category) LIKE '%need to utilize%' 
                       OR LOWER(category) LIKE '%re-use%'
-                      OR `range` LIKE '%> 1%'
-                      OR `range` LIKE '%>1%'
-                      OR `range` LIKE '%> 2%'
-                      OR `range` LIKE '%>2%'
-                      OR `range` LIKE '%> 3%'
-                      OR `range` LIKE '%>3%'
+                      OR {$q}range{$q} LIKE '%> 1%'
+                      OR {$q}range{$q} LIKE '%>1%'
+                      OR {$q}range{$q} LIKE '%> 2%'
+                      OR {$q}range{$q} LIKE '%>2%'
+                      OR {$q}range{$q} LIKE '%> 3%'
+                      OR {$q}range{$q} LIKE '%>3%'
                     THEN 1 ELSE 0 END) as slow_moving_count,
                 SUM(CASE WHEN so_result IS NOT NULL AND so_result != '' THEN 1 ELSE 0 END) as so_audited,
                 SUM(CASE WHEN LOWER(so_result) LIKE '%match%' OR LOWER(so_result) LIKE '%sesuai%' OR LOWER(so_result) LIKE '%ok%' THEN 1 ELSE 0 END) as so_matched,

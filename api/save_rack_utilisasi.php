@@ -58,26 +58,36 @@ if (isset($data['rows']) && is_array($data['rows'])) {
     }
 
     try {
+        $driver = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+        $idCol = ($driver === 'pgsql') ? "id SERIAL PRIMARY KEY" : "id INT AUTO_INCREMENT PRIMARY KEY";
+        $updatedAtCol = ($driver === 'pgsql') ? "updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP" : "updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP";
+
         // Ensure rack_utilisasi table exists
-        $pdo->exec("CREATE TABLE IF NOT EXISTS `rack_utilisasi` (
-            `id` INT AUTO_INCREMENT PRIMARY KEY,
-            `label` VARCHAR(255) NOT NULL,
-            `month` VARCHAR(20) NOT NULL,
-            `year` VARCHAR(10) NOT NULL,
-            `qty` INT NOT NULL DEFAULT 0,
-            `capacity` DECIMAL(5,2) NOT NULL DEFAULT 0.00,
-            `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-            UNIQUE KEY `unique_label_period` (`label`, `month`, `year`)
+        $pdo->exec("CREATE TABLE IF NOT EXISTS rack_utilisasi (
+            $idCol,
+            label VARCHAR(255) NOT NULL,
+            month VARCHAR(20) NOT NULL,
+            year VARCHAR(10) NOT NULL,
+            qty INT NOT NULL DEFAULT 0,
+            capacity DECIMAL(5,2) NOT NULL DEFAULT 0.00,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            $updatedAtCol,
+            CONSTRAINT unique_label_period UNIQUE (label, month, year)
         )");
 
         $pdo->beginTransaction();
 
-        $stmt = $pdo->prepare(
-            "INSERT INTO rack_utilisasi (`label`, `month`, `year`, `qty`, `capacity`)
-             VALUES (?, ?, ?, ?, ?)
-             ON DUPLICATE KEY UPDATE `qty` = VALUES(`qty`), `capacity` = VALUES(`capacity`), `updated_at` = CURRENT_TIMESTAMP"
-        );
+        if ($driver === 'pgsql') {
+            $insertSql = "INSERT INTO rack_utilisasi (label, month, year, qty, capacity)
+                          VALUES (?, ?, ?, ?, ?)
+                          ON CONFLICT (label, month, year) DO UPDATE SET 
+                          qty = EXCLUDED.qty, capacity = EXCLUDED.capacity, updated_at = CURRENT_TIMESTAMP";
+        } else {
+            $insertSql = "INSERT INTO rack_utilisasi (`label`, `month`, `year`, `qty`, `capacity`)
+                          VALUES (?, ?, ?, ?, ?)
+                          ON DUPLICATE KEY UPDATE `qty` = VALUES(`qty`), `capacity` = VALUES(`capacity`), `updated_at` = CURRENT_TIMESTAMP";
+        }
+        $stmt = $pdo->prepare($insertSql);
 
         $savedCount = 0;
         foreach ($data['rows'] as $row) {
@@ -154,23 +164,33 @@ if (isset($data['rows']) && is_array($data['rows'])) {
     $capacity = round((float)$capacity, 2);
 
     try {
-        $pdo->exec("CREATE TABLE IF NOT EXISTS `rack_utilisasi` (
-            `id` INT AUTO_INCREMENT PRIMARY KEY,
-            `label` VARCHAR(255) NOT NULL,
-            `month` VARCHAR(20) NOT NULL,
-            `year` VARCHAR(10) NOT NULL,
-            `qty` INT NOT NULL DEFAULT 0,
-            `capacity` DECIMAL(5,2) NOT NULL DEFAULT 0.00,
-            `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-            UNIQUE KEY `unique_label_period` (`label`, `month`, `year`)
+        $driver = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+        $idCol = ($driver === 'pgsql') ? "id SERIAL PRIMARY KEY" : "id INT AUTO_INCREMENT PRIMARY KEY";
+        $updatedAtCol = ($driver === 'pgsql') ? "updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP" : "updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP";
+
+        $pdo->exec("CREATE TABLE IF NOT EXISTS rack_utilisasi (
+            $idCol,
+            label VARCHAR(255) NOT NULL,
+            month VARCHAR(20) NOT NULL,
+            year VARCHAR(10) NOT NULL,
+            qty INT NOT NULL DEFAULT 0,
+            capacity DECIMAL(5,2) NOT NULL DEFAULT 0.00,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            $updatedAtCol,
+            CONSTRAINT unique_label_period UNIQUE (label, month, year)
         )");
 
-        $stmt = $pdo->prepare(
-            "INSERT INTO rack_utilisasi (`label`, `month`, `year`, `qty`, `capacity`)
-             VALUES (?, ?, ?, ?, ?)
-             ON DUPLICATE KEY UPDATE `qty` = VALUES(`qty`), `capacity` = VALUES(`capacity`), `updated_at` = CURRENT_TIMESTAMP"
-        );
+        if ($driver === 'pgsql') {
+            $insertSql = "INSERT INTO rack_utilisasi (label, month, year, qty, capacity)
+                          VALUES (?, ?, ?, ?, ?)
+                          ON CONFLICT (label, month, year) DO UPDATE SET 
+                          qty = EXCLUDED.qty, capacity = EXCLUDED.capacity, updated_at = CURRENT_TIMESTAMP";
+        } else {
+            $insertSql = "INSERT INTO rack_utilisasi (`label`, `month`, `year`, `qty`, `capacity`)
+                          VALUES (?, ?, ?, ?, ?)
+                          ON DUPLICATE KEY UPDATE `qty` = VALUES(`qty`), `capacity` = VALUES(`capacity`), `updated_at` = CURRENT_TIMESTAMP";
+        }
+        $stmt = $pdo->prepare($insertSql);
         $stmt->execute([$label, $month, $year, $qty, $capacity]);
 
         echo json_encode(['status' => 'success', 'message' => 'Data saved successfully']);

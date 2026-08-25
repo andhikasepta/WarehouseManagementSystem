@@ -128,9 +128,9 @@ try {
     $filteredStmt->execute($params);
     $recordsFiltered = (int)$filteredStmt->fetchColumn();
 
-    // ─── Fetch paginated data ───
-    // TEXT columns need backtick quoting for ORDER BY
-    $orderColumnEscaped = "`$orderColumn`";
+    $driver = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+    $q = ($driver === 'pgsql') ? '"' : '`';
+    $orderColumnEscaped = "{$q}{$orderColumn}{$q}";
     $dataSql = "SELECT id, pr_nomor, pr_kode_site, pr_nama_site, pr_item_kategori, pr_pic_teknis_nama,
                        pr_nama_bagian, pr_nama_divisi, pr_regional, pr_jenis_ma, po_nomor, po_deskripsi,
                        po_vendor, po_tgl_generate, po_nama_item, po_qty_item, po_uom_item, po_target_delivery,

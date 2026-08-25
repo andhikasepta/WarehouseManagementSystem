@@ -167,7 +167,8 @@ try {
     $filteredStmt->execute($params);
     $recordsFiltered = (int)$filteredStmt->fetchColumn();
 
-    $orderColumnEscaped = "`$orderColumn`";
+    $q = ($driver === 'pgsql') ? '"' : '`';
+    $orderColumnEscaped = "{$q}{$orderColumn}{$q}";
     $dataSql = "SELECT id, mr_no, mr_type, mr_desc, mr_status,
                        pck_no, pck_detail, pck_status,
                        awb, dn_no, pr_no, po_no,

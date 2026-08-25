@@ -1,49 +1,79 @@
 # =====================================================================
-# Docker Ignore - Exclude from build context
+# Warehouse Management System (WMS) - Docker Ignore
+# =====================================================================
+# Reducing build context speeds up `docker build` dramatically.
+# Every file NOT listed here gets sent to the Docker daemon on each build.
 # =====================================================================
 
-# Version control
+# ── Version control ─────────────────────────────────────────────────
 .git
 .gitignore
+.gitattributes
 
-# IDE / Editor
+# ── Dependencies (not used at runtime — no npm install in Dockerfile) ─
+node_modules
+package.json
+package-lock.json
+
+# ── SCSS sources (only compiled CSS in frontend/css is needed) ──────
+frontend/scss
+
+# ── Docker / environment files ──────────────────────────────────────
+docker-compose.yml
+docker-compose.*.yml
+Dockerfile
+Dockerfile.*
+.dockerignore
+.env
+.env.*
+
+# ── Uploads (should be mounted as a volume, not baked into image) ──
+uploads
+
+# ── Logs ────────────────────────────────────────────────────────────
+*.log
+logs
+*.log.*
+npm-debug.log*
+apache_logs
+error.log
+access.log
+
+# ── IDE and editor files ───────────────────────────────────────────
 .vscode
 .idea
 *.swp
 *.swo
 *~
+.project
+.settings
+.classpath
+*.sublime-project
+*.sublime-workspace
+.agents
 
-# Docker files (don't include themselves)
-docker-compose.yml
-docker-compose.*.yml
-Dockerfile
-.dockerignore
+# ── OS files ───────────────────────────────────────────────────────
+Thumbs.db
+.DS_Store
+Desktop.ini
+ehthumbs.db
 
-# Environment files (injected at runtime via env vars)
-.env
-.env.*
-!.env.example
-
-# Node.js (dev dependencies — vendor assets are pre-built)
-node_modules
-package-lock.json
-gulpfile.js
-
-# SCSS source (CSS is pre-compiled)
-frontend/scss
-
-# Documentation
-README.md
-LICENSE
-*.md
-
-# Temp & debug files
+# ── Temporary, test, and scratch files ─────────────────────────────
 output.txt
 temp.json
 temp_rack.json
 test_output.json
 api/test_output.json
+*.tmp
+*.bak
+*.orig
+*.cache
+backend/scratch_*.php
 
-# OS files
-Thumbs.db
-.DS_Store
+# ── Documentation (not needed at runtime) ──────────────────────────
+README.md
+LICENSE
+CHANGELOG.md
+docs
+*.md
+!docker-entrypoint.sh

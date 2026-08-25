@@ -4,6 +4,7 @@ return function ($pdo) {
     $idCol = ($driver === 'pgsql') ? "id SERIAL PRIMARY KEY" : "id INT AUTO_INCREMENT PRIMARY KEY";
     $jsonCol = ($driver === 'pgsql') ? "raw_data JSONB" : "raw_data JSON";
     $doubleCol = ($driver === 'pgsql') ? "nbv DOUBLE PRECISION DEFAULT 0" : "nbv DOUBLE DEFAULT 0";
+    $q = ($driver === 'pgsql') ? '"' : '`';
 
     $sql = "CREATE TABLE IF NOT EXISTS assets (
         $idCol,
@@ -14,7 +15,7 @@ return function ($pdo) {
         $doubleCol,
         so_result VARCHAR(255),
         so_location VARCHAR(255),
-        range_val VARCHAR(255),
+        {$q}range{$q} VARCHAR(255),
         sub_location VARCHAR(255),
         category VARCHAR(255),
         periode VARCHAR(255),

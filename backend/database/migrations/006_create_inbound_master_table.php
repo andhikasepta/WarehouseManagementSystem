@@ -25,6 +25,7 @@ return function ($pdo) {
         po_uom_item TEXT,
         po_target_delivery DATE,
         project_id TEXT,
+        periode_group TEXT,
         $jsonCol,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         $updatedAtCol

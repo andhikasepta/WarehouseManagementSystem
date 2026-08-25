@@ -2,62 +2,72 @@
 set -e
 
 # =====================================================================
-# WMS Docker Entrypoint
+# Warehouse Management System (WMS) - Docker Entrypoint
 # =====================================================================
-# - Waits for database to be ready
-# - Runs pending migrations automatically
-# - Starts Apache
+# This script runs on container startup before Apache starts.
+# It handles:
+#   1. Waiting for the database to be ready
+#   2. Running pending database migrations
+#   3. Setting correct file permissions
 # =====================================================================
 
-echo "========================================"
-echo "  WMS Container Starting..."
-echo "========================================"
+echo "============================================="
+echo " WMS - Container Starting"
+echo "============================================="
 
-# ── Wait for database ───────────────────────────────────────────────
-if [ -n "$DB_HOST" ]; then
-    DB_PORT_VAL="${DB_PORT:-3306}"
-    echo "⏳ Waiting for database at $DB_HOST:$DB_PORT_VAL ..."
-    
-    MAX_RETRIES=30
-    RETRY_COUNT=0
-    
-    while ! php -r "
-        try {
-            \$driver = getenv('DB_DRIVER') ?: 'mysql';
-            \$host = getenv('DB_HOST') ?: '127.0.0.1';
-            \$port = getenv('DB_PORT') ?: (\$driver === 'pgsql' ? '5432' : '3306');
-            \$user = getenv('DB_USER') ?: 'root';
-            \$pass = getenv('DB_PASSWORD') ?: '';
-            if (\$driver === 'pgsql') {
-                new PDO(\"pgsql:host=\$host;port=\$port\", \$user, \$pass);
-            } else {
-                new PDO(\"mysql:host=\$host;port=\$port\", \$user, \$pass);
-            }
-            echo 'OK';
-            exit(0);
-        } catch (Exception \$e) {
-            exit(1);
-        }
-    " 2>/dev/null; do
-        RETRY_COUNT=$((RETRY_COUNT + 1))
-        if [ $RETRY_COUNT -ge $MAX_RETRIES ]; then
-            echo "❌ Database not available after $MAX_RETRIES retries. Starting anyway..."
-            break
-        fi
-        echo "   Retry $RETRY_COUNT/$MAX_RETRIES..."
-        sleep 2
-    done
-    
-    echo "✅ Database connection established."
+# ── Wait for database ──────────────────────────────────────────────
+DB_HOST="${DB_HOST:-db}"
+DB_DRIVER="${DB_DRIVER:-mysql}"
+
+# Set default port based on driver
+if [ "$DB_DRIVER" = "pgsql" ]; then
+    DB_PORT="${DB_PORT:-5432}"
+    DSN="pgsql:host=${DB_HOST};port=${DB_PORT}"
+    DB_USER_DEFAULT="postgres"
+else
+    DB_PORT="${DB_PORT:-3306}"
+    DSN="mysql:host=${DB_HOST};port=${DB_PORT}"
+    DB_USER_DEFAULT="root"
 fi
 
-# ── Run migrations ──────────────────────────────────────────────────
-echo "🔄 Running database migrations..."
-php /var/www/html/migrate.php migrate 2>&1 || echo "⚠️  Migration warning (may already be up to date)"
+echo "[entrypoint] Waiting for database (${DB_DRIVER}) at ${DB_HOST}:${DB_PORT}..."
 
-echo "========================================"
-echo "  WMS Ready — Listening on port 80"
-echo "========================================"
+MAX_RETRIES=30
+RETRY_COUNT=0
 
-# ── Hand off to Apache ──────────────────────────────────────────────
+while ! php -r "
+    try {
+        new PDO('${DSN}', '${DB_USER:-${DB_USER_DEFAULT}}', '${DB_PASSWORD:-}');
+        echo 'OK';
+    } catch (Exception \$e) {
+        exit(1);
+    }
+" 2>/dev/null; do
+    RETRY_COUNT=$((RETRY_COUNT + 1))
+    if [ $RETRY_COUNT -ge $MAX_RETRIES ]; then
+        echo "[entrypoint] ERROR: Could not connect to database after ${MAX_RETRIES} attempts."
+        exit 1
+    fi
+    echo "[entrypoint] Database not ready (attempt ${RETRY_COUNT}/${MAX_RETRIES}). Retrying in 2s..."
+    sleep 2
+done
+
+echo "[entrypoint] Database is ready!"
+
+# ── Run database migrations ────────────────────────────────────────
+echo "[entrypoint] Running database migrations..."
+php /var/www/html/backend/migrate.php migrate || {
+    echo "[entrypoint] WARNING: Migration failed, but continuing startup..."
+}
+
+# ── Ensure correct permissions ─────────────────────────────────────
+echo "[entrypoint] Setting file permissions..."
+chown -R www-data:www-data /var/www/html/uploads 2>/dev/null || true
+chmod -R 775 /var/www/html/uploads 2>/dev/null || true
+
+echo "============================================="
+echo " WMS - Ready! Starting Apache..."
+echo "============================================="
+
+# ── Execute the main container command (apache2-foreground) ────────
 exec "$@"
