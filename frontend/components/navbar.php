@@ -7,7 +7,11 @@
 // Accepts optional $hideNavbarUl (boolean)
 
 if (session_status() === PHP_SESSION_NONE) {
-    session_start();
+    if (file_exists(__DIR__ . '/../../backend/auth.php')) {
+        require_once __DIR__ . '/../../backend/auth.php';
+    } else {
+        session_start();
+    }
 }
 
 if (!isset($activePage)) {

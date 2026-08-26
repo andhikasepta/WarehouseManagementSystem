@@ -2,11 +2,30 @@
 // backend/auth.php - Session & Permission Helper
 
 require_once __DIR__ . '/paths.php';
+require_once CONFIG_PATH . 'database.php';
+require_once __DIR__ . '/RedisSessionHandler.php';
 
 if (session_status() === PHP_SESSION_NONE) {
-    ini_set('session.cookie_httponly', 1);
-    ini_set('session.use_only_cookies', 1);
-    $isSecure = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on';
+    // Redis Session Configuration (Middleware VM 103.123.100.11 or environment override)
+    $sessionSaveHandler = getenv('SESSION_SAVE_HANDLER') ?: (ini_get('session.save_handler') ?: 'redis');
+    $redisHost = getenv('REDIS_HOST') ?: '103.123.100.11';
+    $redisPort = getenv('REDIS_PORT') ?: '6379';
+    $redisTimeout = getenv('REDIS_TIMEOUT') ?: '2.5';
+    $sessionLifetime = (int)(getenv('SESSION_LIFETIME') ?: 900);
+
+    if ($sessionSaveHandler === 'redis') {
+        $redisHandler = new RedisSessionHandler($redisHost, (int)$redisPort, (float)$redisTimeout, 'PHPREDIS_SESSION:', $sessionLifetime);
+        session_set_save_handler($redisHandler, true);
+    }
+
+    ini_set('session.gc_maxlifetime', (string)$sessionLifetime);
+    ini_set('session.cookie_httponly', '1');
+    ini_set('session.use_only_cookies', '1');
+
+    $isSecure = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ||
+                (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') ||
+                (getenv('SESSION_SECURE') === 'true');
+
     session_set_cookie_params([
         'lifetime' => 0,
         'path' => '/',
@@ -18,10 +37,8 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-require_once CONFIG_PATH . 'database.php';
-
-// Session inactivity timeout (15 minutes)
-$maxInactivity = 900;
+// Session inactivity timeout (15 minutes / 900 seconds)
+$maxInactivity = (int)(getenv('SESSION_LIFETIME') ?: 900);
 if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity'] > $maxInactivity)) {
     $_SESSION = array();
     if (ini_get("session.use_cookies")) {

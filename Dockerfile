@@ -1,24 +1,35 @@
 # =====================================================================
 # Warehouse Management System (WMS) - Dockerfile
 # =====================================================================
-# Multi-stage production build: PHP 8.2 + Apache
-# MySQL database driver
+# Production build: PHP 8.2 + Apache
+# Supports both MySQL and PostgreSQL database drivers
+# Target Host: 103.123.100.12
 # =====================================================================
 
-FROM php:8.2-apache AS base
+FROM php:8.2-apache
 
 LABEL maintainer="andhikasepta"
 LABEL description="Warehouse Management System - Lintasarta"
 
 # ── Install system dependencies & PHP extensions ─────────────────────
 RUN apt-get update && apt-get install -y --no-install-recommends \
+        libpq-dev \
         libzip-dev \
+        libpng-dev \
+        libjpeg-dev \
+        libfreetype6-dev \
         unzip \
         curl \
-    && docker-php-ext-install \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install -j$(nproc) \
         pdo_mysql \
+        pdo_pgsql \
+        pgsql \
         zip \
+        gd \
         opcache \
+    && pecl install redis \
+    && docker-php-ext-enable redis \
     && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
     && rm -rf /var/lib/apt/lists/*
 
@@ -26,46 +37,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN a2enmod rewrite headers expires
 
 # ── Configure Apache VirtualHost ────────────────────────────────────
-RUN echo '<VirtualHost *:80>\n\
-    ServerAdmin webmaster@localhost\n\
-    DocumentRoot /var/www/html\n\
-    <Directory /var/www/html>\n\
-        Options -Indexes +FollowSymLinks\n\
-        AllowOverride All\n\
-        Require all granted\n\
-    </Directory>\n\
-    ErrorLog ${APACHE_LOG_DIR}/error.log\n\
-    CustomLog ${APACHE_LOG_DIR}/access.log combined\n\
-</VirtualHost>' > /etc/apache2/sites-available/000-default.conf
+COPY docker/apache/000-default.conf /etc/apache2/sites-available/000-default.conf
 
 # ── PHP production configuration ────────────────────────────────────
 RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
-COPY <<EOF $PHP_INI_DIR/conf.d/wms-custom.ini
-; WMS Custom PHP Configuration
-upload_max_filesize = 64M
-post_max_size = 64M
-memory_limit = 256M
-max_execution_time = 300
-max_input_time = 300
-session.gc_maxlifetime = 7200
-
-; OPcache settings for production
-opcache.enable = 1
-opcache.memory_consumption = 128
-opcache.interned_strings_buffer = 16
-opcache.max_accelerated_files = 10000
-opcache.validate_timestamps = 0
-opcache.revalidate_freq = 0
-
-; Timezone
-date.timezone = Asia/Jakarta
-EOF
+COPY docker/php/custom.ini $PHP_INI_DIR/conf.d/wms-custom.ini
 
 # ── Set working directory ───────────────────────────────────────────
 WORKDIR /var/www/html
 
-# ── Copy application source ────────────────────────────────────────
-COPY . .
+# ── Copy application source code ────────────────────────────────────
+COPY . /var/www/html/
 
 # ── Ensure uploads directory exists with proper permissions ─────────
 RUN mkdir -p /var/www/html/uploads \
@@ -75,10 +57,12 @@ RUN mkdir -p /var/www/html/uploads \
 
 # ── Copy and prepare entrypoint ─────────────────────────────────────
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+RUN sed -i 's/\r$//' /usr/local/bin/docker-entrypoint.sh \
+    && chmod +x /usr/local/bin/docker-entrypoint.sh
 
-# ── Expose port & set entrypoint ────────────────────────────────────
+# ── Expose container HTTP port ──────────────────────────────────────
 EXPOSE 80
 
-ENTRYPOINT ["docker-entrypoint.sh"]
+# ── Set Entrypoint & Default Command ────────────────────────────────
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 CMD ["apache2-foreground"]

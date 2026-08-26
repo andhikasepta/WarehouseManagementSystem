@@ -40,6 +40,11 @@ if (strpos($redirect, 'inbound') !== false) {
 }
 
 // Handle Logout
+$info = '';
+if (isset($_GET['reason']) && $_GET['reason'] === 'session_expired') {
+    $info = 'Sesi login Anda telah berakhir karena tidak ada aktivitas selama 15 menit. Silakan login kembali.';
+}
+
 if (isset($_GET['action']) && $_GET['action'] === 'logout') {
     $_SESSION = array();
     if (ini_get("session.use_cookies")) {
@@ -55,7 +60,8 @@ if (isset($_GET['action']) && $_GET['action'] === 'logout') {
         );
     }
     session_destroy();
-    header("Location: login.php");
+    $redirectUrl = 'login.php' . (isset($_GET['reason']) ? '?reason=' . urlencode($_GET['reason']) : '');
+    header("Location: " . $redirectUrl);
     exit;
 }
 
@@ -336,6 +342,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <p class="text-muted small mb-0"><?php echo htmlspecialchars($moduleSubtitle); ?></p>
             <?php endif; ?>
         </div>
+
+        <?php if (!empty($info)): ?>
+            <div class="alert alert-warning text-left small rounded-lg mb-4" role="alert" style="background-color: rgba(245, 158, 11, 0.2); border-color: rgba(245, 158, 11, 0.4); color: #fde68a;">
+                <i class="fas fa-clock mr-2"></i><?php echo htmlspecialchars($info); ?>
+            </div>
+        <?php endif; ?>
 
         <?php if (!empty($error)): ?>
             <div class="alert alert-danger text-left small rounded-lg mb-4" role="alert">

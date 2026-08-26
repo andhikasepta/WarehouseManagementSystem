@@ -19,6 +19,23 @@ AddDefaultCharset UTF-8
     Require all denied
 </FilesMatch>
 
+# Redis Session Management (Middleware VM 103.123.100.11)
+<IfModule mod_php.c>
+    php_value session.save_handler redis
+    php_value session.save_path "tcp://103.123.100.11:6379?timeout=2.5"
+    php_value session.gc_maxlifetime 900
+</IfModule>
+<IfModule mod_php7.c>
+    php_value session.save_handler redis
+    php_value session.save_path "tcp://103.123.100.11:6379?timeout=2.5"
+    php_value session.gc_maxlifetime 900
+</IfModule>
+<IfModule mod_php8.c>
+    php_value session.save_handler redis
+    php_value session.save_path "tcp://103.123.100.11:6379?timeout=2.5"
+    php_value session.gc_maxlifetime 900
+</IfModule>
+
 # Block Direct Browsing of Internal Directories
 <IfModule mod_rewrite.c>
     RewriteRule ^(backend|config|database|scratch)/ - [F,L]

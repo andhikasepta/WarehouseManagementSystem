@@ -140,3 +140,25 @@ $currentAppVer = function_exists('getSystemAppVersion') ? getSystemAppVersion($p
         });
     }
     </script>
+
+    <!-- 15-Minute Session Inactivity Auto-Logout -->
+    <script>
+    (function() {
+        var INACTIVITY_TIMEOUT_MS = 15 * 60 * 1000; // 15 minutes (900 seconds)
+        var idleTimer = null;
+
+        function resetInactivityTimer() {
+            if (idleTimer) clearTimeout(idleTimer);
+            idleTimer = setTimeout(function() {
+                window.location.href = 'login.php?action=logout&reason=session_expired';
+            }, INACTIVITY_TIMEOUT_MS);
+        }
+
+        var userEvents = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
+        userEvents.forEach(function(evt) {
+            window.addEventListener(evt, resetInactivityTimer, { passive: true });
+        });
+
+        resetInactivityTimer();
+    })();
+    </script>

@@ -1,79 +1,133 @@
 # =====================================================================
-# Warehouse Management System (WMS) - Docker Ignore
+# Warehouse Management System (WMS) - Optimized .dockerignore
 # =====================================================================
-# Reducing build context speeds up `docker build` dramatically.
-# Every file NOT listed here gets sent to the Docker daemon on each build.
+# Minimizes Docker build context to maximize build speed & security.
 # =====================================================================
 
-# ── Version control ─────────────────────────────────────────────────
-.git
+# ── Version Control ─────────────────────────────────────────────────
+.git/
 .gitignore
 .gitattributes
+.github/
+.gitlab-ci.yml
 
-# ── Dependencies (not used at runtime — no npm install in Dockerfile) ─
-node_modules
+# ── Environment & Secret Files ──────────────────────────────────────
+.env
+.env.*
+!.env.example
+*.local
+*.pem
+*.key
+*.cert
+*.crt
+
+# ── Logs & Debugging ────────────────────────────────────────────────
+*.log
+**/*.log
+logs/
+log/
+apache_logs/
+error.log
+access.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ── Uploads & User Generated Content (Mounted as Volume) ────────────
+uploads/
+storage/
+storage_hub/
+
+# ── Database Dumps, SQLite & Migrations Scratch ─────────────────────
+*.sql
+*.sql.gz
+*.sqlite
+*.sqlite3
+*.db
+backend/scratch_*.php
+scratch/
+
+# ── Node.js, Build Tooling & Uncompiled Sources ─────────────────────
+node_modules/
 package.json
 package-lock.json
+yarn.lock
+pnpm-lock.yaml
+gulpfile.js
+frontend/scss/
+.sass-cache/
 
-# ── SCSS sources (only compiled CSS in frontend/css is needed) ──────
-frontend/scss
+# ── IDEs, Editors & AI Workspace Tools ──────────────────────────────
+.vscode/
+.idea/
+.agents/
+.gemini/
+.antigravity/
+.sublime-project
+.sublime-workspace
+.project
+.settings/
+.classpath
+.buildpath
+*.swp
+*.swo
+*~
+*.bak
+*.orig
+.editorconfig
 
-# ── Docker / environment files ──────────────────────────────────────
+# ── Operating System Metadata ───────────────────────────────────────
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+[Nn]et[Hh]ood
+[Pp]rint[Hh]ood
+
+# ── Temporary & Scratch Files ───────────────────────────────────────
+*.tmp
+*.temp
+*.cache
+.cache/
+temp/
+tmp/
+temp.json
+temp_rack.json
+output.txt
+test_output.json
+api/test_output.json
+
+# ── Testing & Code Quality Tools ────────────────────────────────────
+tests/
+test/
+phpunit.xml*
+.phpunit.result.cache
+.phpunit.cache/
+coverage/
+.coverage/
+.php-cs-fixer.cache
+
+# ── Documentation & Non-Runtime Assets ──────────────────────────────
+README.md
+CHANGELOG.md
+LICENSE
+docs/
+*.md
+
+# ── Docker Configs (Excluded from COPY . inside image) ──────────────
 docker-compose.yml
 docker-compose.*.yml
 Dockerfile
 Dockerfile.*
 .dockerignore
-.env
-.env.*
 
-# ── Uploads (should be mounted as a volume, not baked into image) ──
-uploads
-
-# ── Logs ────────────────────────────────────────────────────────────
-*.log
-logs
-*.log.*
-npm-debug.log*
-apache_logs
-error.log
-access.log
-
-# ── IDE and editor files ───────────────────────────────────────────
-.vscode
-.idea
-*.swp
-*.swo
-*~
-.project
-.settings
-.classpath
-*.sublime-project
-*.sublime-workspace
-.agents
-
-# ── OS files ───────────────────────────────────────────────────────
-Thumbs.db
-.DS_Store
-Desktop.ini
-ehthumbs.db
-
-# ── Temporary, test, and scratch files ─────────────────────────────
-output.txt
-temp.json
-temp_rack.json
-test_output.json
-api/test_output.json
-*.tmp
-*.bak
-*.orig
-*.cache
-backend/scratch_*.php
-
-# ── Documentation (not needed at runtime) ──────────────────────────
-README.md
-LICENSE
-CHANGELOG.md
-docs
-*.md
+# ── EXPLICIT WHITELIST: Ensure runtime configs are included ─────────
 !docker-entrypoint.sh
+!docker/
+!docker/apache/000-default.conf
+!docker/php/custom.ini
