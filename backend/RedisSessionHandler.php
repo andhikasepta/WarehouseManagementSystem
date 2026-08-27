@@ -1,11 +1,15 @@
 <?php
-// backend/RedisSessionHandler.php — Redis Session Handler for WMS
-// Target Middleware VM: 103.123.100.11:6379 (Timeout: 15 minutes / 900s)
+// backend/RedisSessionHandler.php — Secure Redis Session Handler for WMS
+// Target Middleware VM: 103.123.100.11:6379 (Timeout: 20 minutes / 1200s)
+// Supports: Native PECL Redis, Direct Socket (RESP), Redis AUTH, Redis 6+ ACL, and TLS/SSL encryption
 
 if (!class_exists('RedisSessionHandler')) {
     class RedisSessionHandler implements SessionHandlerInterface {
         private $host;
         private $port;
+        private $password;
+        private $username;
+        private $useTls;
         private $timeout;
         private $prefix;
         private $ttl;
@@ -17,13 +21,26 @@ if (!class_exists('RedisSessionHandler')) {
             $port = 6379,
             $timeout = 2.5,
             $prefix = 'PHPREDIS_SESSION:',
-            $ttl = 900
+            $ttl = 1200,
+            $password = null,
+            $username = null,
+            $useTls = false
         ) {
             $this->host = $host;
             $this->port = (int)$port;
             $this->timeout = (float)$timeout;
             $this->prefix = $prefix;
             $this->ttl = (int)$ttl;
+            $this->password = !empty($password) ? (string)$password : null;
+            $this->username = !empty($username) ? (string)$username : null;
+            $this->useTls = (bool)$useTls;
+        }
+
+        private function sanitizeKey($sessionId) {
+            if (!is_string($sessionId) || !preg_match('/^[a-zA-Z0-9,-]+$/', $sessionId)) {
+                return null;
+            }
+            return $this->prefix . $sessionId;
         }
 
         private function connect() {
@@ -38,8 +55,21 @@ if (!class_exists('RedisSessionHandler')) {
             if (extension_loaded('redis') && class_exists('Redis')) {
                 try {
                     $redis = new \Redis();
-                    $connected = @$redis->connect($this->host, $this->port, $this->timeout);
+                    $host = $this->useTls ? 'tls://' . $this->host : $this->host;
+                    $connected = @$redis->connect($host, $this->port, $this->timeout);
                     if ($connected) {
+                        if ($this->password !== null) {
+                            if ($this->username !== null) {
+                                $authed = @$redis->auth([$this->username, $this->password]);
+                            } else {
+                                $authed = @$redis->auth($this->password);
+                            }
+                            if (!$authed) {
+                                error_log("RedisSessionHandler: Redis AUTH failed for {$this->host}:{$this->port}");
+                                $redis->close();
+                                return false;
+                            }
+                        }
                         $this->redisExtObj = $redis;
                         return true;
                     }
@@ -48,19 +78,64 @@ if (!class_exists('RedisSessionHandler')) {
                 }
             }
 
-            // 2. Direct TCP Socket (RESP protocol) fallback (Works everywhere without PECL)
+            // 2. Direct TCP / TLS Socket (RESP protocol) fallback (Works everywhere without PECL)
             $errno = 0;
             $errstr = '';
-            $this->socket = @fsockopen($this->host, $this->port, $errno, $errstr, $this->timeout);
+            $protocol = $this->useTls ? 'tls://' : 'tcp://';
+            $remoteSocket = "{$protocol}{$this->host}:{$this->port}";
+            $context = stream_context_create([
+                'ssl' => [
+                    'verify_peer' => false,
+                    'verify_peer_name' => false,
+                    'allow_self_signed' => true
+                ]
+            ]);
+
+            $this->socket = @stream_socket_client(
+                $remoteSocket,
+                $errno,
+                $errstr,
+                $this->timeout,
+                STREAM_CLIENT_CONNECT,
+                $context
+            );
+
             if ($this->socket) {
                 $sec = (int)$this->timeout;
                 $usec = (int)(($this->timeout - $sec) * 1000000);
                 stream_set_timeout($this->socket, $sec, $usec);
+
+                // Authenticate if password is provided
+                if ($this->password !== null) {
+                    $authArgs = ($this->username !== null) 
+                        ? ['AUTH', $this->username, $this->password] 
+                        : ['AUTH', $this->password];
+                    
+                    $authRes = $this->sendRawSocketCommand($authArgs);
+                    if ($authRes !== 'OK' && $authRes !== '+OK') {
+                        error_log("RedisSessionHandler: Redis socket AUTH failed for {$this->host}:{$this->port}");
+                        $this->close();
+                        return false;
+                    }
+                }
                 return true;
             }
 
             error_log("RedisSessionHandler: Failed to connect to Redis at {$this->host}:{$this->port} - {$errstr}");
             return false;
+        }
+
+        private function sendRawSocketCommand(array $args) {
+            if (!$this->socket) return false;
+            $cmd = '*' . count($args) . "\r\n";
+            foreach ($args as $arg) {
+                $argStr = (string)$arg;
+                $cmd .= '$' . strlen($argStr) . "\r\n" . $argStr . "\r\n";
+            }
+            if (@fwrite($this->socket, $cmd) === false) {
+                return false;
+            }
+            return $this->readResponse();
         }
 
         private function sendCommand(array $args) {
@@ -83,18 +158,7 @@ if (!class_exists('RedisSessionHandler')) {
                 return false;
             }
 
-            $cmd = '*' . count($args) . "\r\n";
-            foreach ($args as $arg) {
-                $argStr = (string)$arg;
-                $cmd .= '$' . strlen($argStr) . "\r\n" . $argStr . "\r\n";
-            }
-
-            if (@fwrite($this->socket, $cmd) === false) {
-                $this->close();
-                return false;
-            }
-
-            return $this->readResponse();
+            return $this->sendRawSocketCommand($args);
         }
 
         private function readResponse() {
@@ -164,21 +228,24 @@ if (!class_exists('RedisSessionHandler')) {
 
         #[\ReturnTypeWillChange]
         public function read($sessionId) {
-            $key = $this->prefix . $sessionId;
+            $key = $this->sanitizeKey($sessionId);
+            if ($key === null) return '';
             $data = $this->sendCommand(['GET', $key]);
             return is_string($data) ? $data : '';
         }
 
         #[\ReturnTypeWillChange]
         public function write($sessionId, $data) {
-            $key = $this->prefix . $sessionId;
+            $key = $this->sanitizeKey($sessionId);
+            if ($key === null) return false;
             $res = $this->sendCommand(['SETEX', $key, (string)$this->ttl, $data]);
             return ($res === 'OK' || $res === '+OK' || $res === true || $res === 1);
         }
 
         #[\ReturnTypeWillChange]
         public function destroy($sessionId) {
-            $key = $this->prefix . $sessionId;
+            $key = $this->sanitizeKey($sessionId);
+            if ($key === null) return false;
             $this->sendCommand(['DEL', $key]);
             return true;
         }

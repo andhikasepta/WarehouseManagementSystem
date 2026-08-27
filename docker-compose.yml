@@ -37,11 +37,14 @@ services:
       DB_PASSWORD: ${DB_PASSWORD:-S3pt4@}
       SESSION_SAVE_HANDLER: ${SESSION_SAVE_HANDLER:-redis}
       SESSION_SAVE_PATH: ${SESSION_SAVE_PATH:-tcp://103.123.100.11:6379?timeout=2.5}
-      SESSION_LIFETIME: ${SESSION_LIFETIME:-900}
+      SESSION_LIFETIME: ${SESSION_LIFETIME:-1200}
       SESSION_SECURE: ${SESSION_SECURE:-false}
       REDIS_HOST: ${REDIS_HOST:-103.123.100.11}
       REDIS_PORT: ${REDIS_PORT:-6379}
       REDIS_TIMEOUT: ${REDIS_TIMEOUT:-2.5}
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+      REDIS_USER: ${REDIS_USER:-}
+      REDIS_TLS: ${REDIS_TLS:-false}
     volumes:
       - app-uploads:/var/www/html/uploads
     healthcheck:

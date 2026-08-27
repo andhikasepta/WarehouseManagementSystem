@@ -11,13 +11,26 @@ if (session_status() === PHP_SESSION_NONE) {
     $redisHost = getenv('REDIS_HOST') ?: '103.123.100.11';
     $redisPort = getenv('REDIS_PORT') ?: '6379';
     $redisTimeout = getenv('REDIS_TIMEOUT') ?: '2.5';
-    $sessionLifetime = (int)(getenv('SESSION_LIFETIME') ?: 900);
+    $redisPassword = getenv('REDIS_PASSWORD') ?: null;
+    $redisUser = getenv('REDIS_USER') ?: null;
+    $redisTls = (getenv('REDIS_TLS') === 'true' || getenv('REDIS_TLS') === '1');
+    $sessionLifetime = (int)(getenv('SESSION_LIFETIME') ?: 1200);
 
     if ($sessionSaveHandler === 'redis') {
-        $redisHandler = new RedisSessionHandler($redisHost, (int)$redisPort, (float)$redisTimeout, 'PHPREDIS_SESSION:', $sessionLifetime);
+        $redisHandler = new RedisSessionHandler(
+            $redisHost,
+            (int)$redisPort,
+            (float)$redisTimeout,
+            'PHPREDIS_SESSION:',
+            $sessionLifetime,
+            $redisPassword,
+            $redisUser,
+            $redisTls
+        );
         session_set_save_handler($redisHandler, true);
     }
 
+    // Security Hardening for Sessions
     ini_set('session.gc_maxlifetime', (string)$sessionLifetime);
     ini_set('session.cookie_httponly', '1');
     ini_set('session.use_only_cookies', '1');
@@ -37,8 +50,8 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Session inactivity timeout (15 minutes / 900 seconds)
-$maxInactivity = (int)(getenv('SESSION_LIFETIME') ?: 900);
+// Session inactivity timeout (20 minutes / 1200 seconds)
+$maxInactivity = (int)(getenv('SESSION_LIFETIME') ?: 1200);
 if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity'] > $maxInactivity)) {
     $_SESSION = array();
     if (ini_get("session.use_cookies")) {
@@ -49,9 +62,37 @@ if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity'] > 
         );
     }
     session_destroy();
+    
+    // Restart session bersih agar CSRF token baru dapat tersimpan dengan benar
+    session_start();
+    session_regenerate_id(true);
 }
+
+// ── Anti-Hijacking & Anti-Fraud Session Fingerprint Validation ─────
 if (isset($_SESSION['user_id']) && !empty($_SESSION['user_id'])) {
-    $_SESSION['last_activity'] = time();
+    $currentUaHash = hash('sha256', $_SERVER['HTTP_USER_AGENT'] ?? '');
+    if (isset($_SESSION['auth_ua_hash']) && !hash_equals($_SESSION['auth_ua_hash'], $currentUaHash)) {
+        // Hijacking attempt detected from a different browser/device -> destroy immediately
+        error_log("SECURITY ALERT: Session hijacking attempt detected for user ID " . $_SESSION['user_id']);
+        $_SESSION = array();
+        if (ini_get("session.use_cookies")) {
+            $params = session_get_cookie_params();
+            setcookie(session_name(), '', time() - 42000,
+                $params["path"], $params["domain"],
+                $params["secure"], $params["httponly"]
+            );
+        }
+        session_destroy();
+
+        // Restart session bersih
+        session_start();
+        session_regenerate_id(true);
+    } else {
+        if (!isset($_SESSION['auth_ua_hash'])) {
+            $_SESSION['auth_ua_hash'] = $currentUaHash;
+        }
+        $_SESSION['last_activity'] = time();
+    }
 }
 
 /**

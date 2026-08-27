@@ -9,10 +9,20 @@ $redirect = $_GET['redirect'] ?? $_POST['redirect'] ?? 'dashboard.php';
 // ── Open Redirect Protection ──────────────────────────────────────
 // Only allow redirects to known internal pages (no external URLs, no path traversal)
 $allowedRedirectPages = [
-    'wms_select.php', 'dashboard.php', 'inbound.php', 'warehouse.php',
-    'outbound.php', 'master_data.php', 'reports.php', 'analytics.php',
-    'kpi_monitoring.php', 'repository.php', 'repository_management.php',
-    'user_management.php', 'announcements.php', 'storage_hub.php'
+    'wms_select.php',
+    'dashboard.php',
+    'inbound.php',
+    'warehouse.php',
+    'outbound.php',
+    'master_data.php',
+    'reports.php',
+    'analytics.php',
+    'kpi_monitoring.php',
+    'repository.php',
+    'repository_management.php',
+    'user_management.php',
+    'announcements.php',
+    'storage_hub.php'
 ];
 $redirectBase = basename(parse_url($redirect, PHP_URL_PATH) ?: '');
 if (!in_array($redirectBase, $allowedRedirectPages, true)) {
@@ -42,7 +52,7 @@ if (strpos($redirect, 'inbound') !== false) {
 // Handle Logout
 $info = '';
 if (isset($_GET['reason']) && $_GET['reason'] === 'session_expired') {
-    $info = 'Sesi login Anda telah berakhir karena tidak ada aktivitas selama 15 menit. Silakan login kembali.';
+    $info = 'Sesi login Anda telah berakhir. Silakan login kembali.';
 }
 
 if (isset($_GET['action']) && $_GET['action'] === 'logout') {
@@ -142,6 +152,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['role'] = $user['role'];
                 $_SESSION['employment_type'] = $user['employment_type'] ?? 'Karyawan Tetap';
                 $_SESSION['job_title'] = $user['job_title'] ?? '';
+                $_SESSION['auth_ua_hash'] = hash('sha256', $_SERVER['HTTP_USER_AGENT'] ?? '');
                 $_SESSION['last_activity'] = time();
 
                 $decodedModules = json_decode($user['allowed_modules'], true);
@@ -344,8 +355,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
 
         <?php if (!empty($info)): ?>
-            <div class="alert alert-warning text-left small rounded-lg mb-4" role="alert" style="background-color: rgba(245, 158, 11, 0.2); border-color: rgba(245, 158, 11, 0.4); color: #fde68a;">
-                <i class="fas fa-clock mr-2"></i><?php echo htmlspecialchars($info); ?>
+            <div class="alert alert-warning text-left small rounded-lg mb-4" role="alert"
+                style="background-color: rgba(245, 158, 11, 0.2); border-color: rgba(245, 158, 11, 0.4); color: #fde68a;">
+                <?php echo htmlspecialchars($info); ?>
             </div>
         <?php endif; ?>
 

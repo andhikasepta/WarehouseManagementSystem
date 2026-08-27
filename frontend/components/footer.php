@@ -141,10 +141,10 @@ $currentAppVer = function_exists('getSystemAppVersion') ? getSystemAppVersion($p
     }
     </script>
 
-    <!-- 15-Minute Session Inactivity Auto-Logout -->
+    <!-- 20-Minute Session Inactivity Auto-Logout -->
     <script>
     (function() {
-        var INACTIVITY_TIMEOUT_MS = 15 * 60 * 1000; // 15 minutes (900 seconds)
+        var INACTIVITY_TIMEOUT_MS = 20 * 60 * 1000; // 20 minutes (1200 seconds)
         var idleTimer = null;
 
         function resetInactivityTimer() {
