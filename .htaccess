@@ -8,10 +8,18 @@ Options -Indexes
 # Set Default Charset
 AddDefaultCharset UTF-8
 
-# Enable Rewrite Engine
+# Enable Rewrite Engine & SPA Routing
 <IfModule mod_rewrite.c>
     RewriteEngine On
     RewriteBase /
+
+    # Allow direct access to api endpoints, uploads, and static assets
+    RewriteRule ^(api|uploads|frontend/(css|js|img|vendor|scss))/ - [L]
+
+    # Fallback all non-file/non-directory requests (including /repository) to index.php
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^ index.php [L]
 </IfModule>
 
 # Block Access to Sensitive Files (.env, .git, .example, etc.)

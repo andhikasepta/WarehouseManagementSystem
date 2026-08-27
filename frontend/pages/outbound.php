@@ -1,9 +1,10 @@
 <?php
 require_once __DIR__ . '/../../backend/auth.php';
-checkModuleAccess('outbound');
+if (!defined('SPA_MODE')) checkModuleAccess('outbound');
 
-$pageTitle = 'WMS - PT. Aplikanusa Lintasarta';
-include FRONTEND_PATH . 'components/header.php';
+if (!defined('SPA_MODE')) {
+    $pageTitle = 'WMS - PT. Aplikanusa Lintasarta';
+    include FRONTEND_PATH . 'components/header.php';
 ?>
 
 <body id="page-top">
@@ -15,6 +16,7 @@ include FRONTEND_PATH . 'components/header.php';
                 $activePage = 'outbound';
                 include FRONTEND_PATH . 'components/navbar.php';
                 ?>
+<?php } ?>
 
                 <div class="container-fluid" style="padding-top: 100px;">
                     <!-- Page Heading just like inbound -->
@@ -755,7 +757,7 @@ include FRONTEND_PATH . 'components/header.php';
                 </div>
             </div>
 
-            <?php include FRONTEND_PATH . 'components/footer.php'; ?>
+<?php if (!defined('SPA_MODE')) { include FRONTEND_PATH . 'components/footer.php'; } ?>
 
             <!-- Page level plugins & Custom Chart script -->
             <script src="frontend/vendor/chart.js/Chart.min.js"></script>
@@ -1264,7 +1266,9 @@ include FRONTEND_PATH . 'components/header.php';
                     });
                 });
             </script>
+<?php if (!defined('SPA_MODE')): ?>
 
 </body>
 
 </html>
+<?php endif; ?>

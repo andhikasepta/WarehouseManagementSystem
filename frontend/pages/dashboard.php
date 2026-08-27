@@ -2,11 +2,12 @@
 // dashboard.php - Head-Warehouse Management Dashboard Overview
 require_once __DIR__ . '/../../backend/auth.php';
 
-checkModuleAccess('dashboard');
+if (!defined('SPA_MODE')) checkModuleAccess('dashboard');
 $currentUser = getCurrentUser();
 
-$pageTitle = 'WMS - PT. Aplikanusa Lintasarta';
-include FRONTEND_PATH . 'components/header.php';
+if (!defined('SPA_MODE')) {
+    $pageTitle = 'WMS - PT. Aplikanusa Lintasarta';
+    include FRONTEND_PATH . 'components/header.php';
 ?>
 <style>
     .btn-detail-dark {
@@ -38,6 +39,27 @@ include FRONTEND_PATH . 'components/header.php';
                 $activePage = 'dashboard';
                 include FRONTEND_PATH . 'components/navbar.php';
                 ?>
+<?php } else { ?>
+<style>
+    .btn-detail-dark {
+        background: linear-gradient(135deg, #0b192c 0%, #1e3e62 100%);
+        color: #ffffff !important;
+        border: none;
+        font-size: 0.68rem;
+        border-radius: 6px;
+        transition: all 0.25s ease-in-out;
+    }
+
+    .btn-detail-dark:hover,
+    .btn-detail-dark:focus {
+        background: linear-gradient(135deg, #1e3e62 0%, #365e8d 100%) !important;
+        color: #ffffff !important;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(30, 62, 98, 0.4) !important;
+        filter: brightness(1.2);
+    }
+</style>
+<?php } ?>
 
                 <!-- Begin Page Content -->
                 <div class="container-fluid" style="padding-top: 100px;">
@@ -1124,7 +1146,7 @@ include FRONTEND_PATH . 'components/header.php';
                 <script src="frontend/js/formula-controller.js?v=23"></script>
                 <script src="frontend/js/demo/chart-dashboard-demo.js?v=<?= time() ?>"></script>
                 <script>
-                    document.addEventListener('DOMContentLoaded', function () {
+                    $(function () {
                         var ALL_MONTHS = [
                             "January", "February", "March", "April", "May", "June",
                             "July", "August", "September", "October", "November", "December"
@@ -2535,9 +2557,11 @@ include FRONTEND_PATH . 'components/header.php';
                     });
                 </script>
 
-                <?php include FRONTEND_PATH . 'components/footer.php'; ?>
+                <?php if (!defined('SPA_MODE')) { include FRONTEND_PATH . 'components/footer.php'; } ?>
             </div>
         </div>
+<?php if (!defined('SPA_MODE')): ?>
 </body>
 
 </html>
+<?php endif; ?>

@@ -4,7 +4,7 @@ require_once __DIR__ . '/../../backend/auth.php';
 
 // Authentication guard: user must be logged in to view repository
 if (!isLoggedIn()) {
-    header("Location: login.php?redirect=repository.php");
+    header("Location: /?view=login&redirect=" . urlencode('/repository'));
     exit;
 }
 
@@ -661,7 +661,7 @@ elseif ($user['role'] === 'repository_admin')
     <!-- ── Top Header Navigation ── -->
     <nav class="repo-nav">
         <div class="repo-nav__inner">
-            <a href="index.php" class="repo-nav__brand" title="Landing Page Portal">
+            <a href="/" class="repo-nav__brand" title="Landing Page Portal">
                 <img src="frontend/img/Lintasarta.png" alt="Lintasarta" class="repo-nav__logo-img">
                 <span class="repo-nav__separator"></span>
                 <span class="repo-nav__subtitle">Documents Repository</span>
@@ -682,16 +682,16 @@ elseif ($user['role'] === 'repository_admin')
                         $allowedRepoMods = is_array($user['allowed_modules'] ?? null) ? $user['allowed_modules'] : [];
                         $canManageRepo = $isSuperAdmin || ($user['role'] === 'repository_admin') || in_array('repository_management', $allowedRepoMods);
                         if ($canManageRepo): ?>
-                            <a class="dropdown-item py-2 text-primary font-weight-bold" href="repository_management.php">
+                            <a class="dropdown-item py-2 text-primary font-weight-bold" href="/">
                                 <i class="fas fa-folder-open mr-2 text-primary"></i> Manage Documents
                             </a>
                             <div class="dropdown-divider my-1"></div>
                         <?php endif; ?>
-                        <a class="dropdown-item py-2" href="index.php">
+                        <a class="dropdown-item py-2" href="/">
                             <i class="fas fa-th mr-2 text-primary"></i> Landing Page Portal
                         </a>
                         <div class="dropdown-divider my-1"></div>
-                        <a class="dropdown-item text-danger py-2" href="login.php?action=logout">
+                        <a class="dropdown-item text-danger py-2" href="/?action=logout&redirect=/repository">
                             <i class="fas fa-sign-out-alt mr-2"></i> Logout
                         </a>
                     </div>

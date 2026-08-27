@@ -1,9 +1,11 @@
 <?php
 require_once __DIR__ . '/../../backend/auth.php';
-checkModuleAccess('master_data');
+if (!defined('SPA_MODE')) checkModuleAccess('master_data');
 
-$pageTitle = 'WMS - PT. Aplikanusa Lintasarta';
-include FRONTEND_PATH . 'components/header.php';
+if (!defined('SPA_MODE')) {
+    $pageTitle = 'WMS - PT. Aplikanusa Lintasarta';
+    include FRONTEND_PATH . 'components/header.php';
+}
 ?>
 
     <style>
@@ -42,7 +44,7 @@ include FRONTEND_PATH . 'components/header.php';
             margin-bottom: 0;
         }
     </style>
-
+<?php if (!defined('SPA_MODE')) { ?>
 </head>
 
 <body id="page-top">
@@ -57,6 +59,7 @@ include FRONTEND_PATH . 'components/header.php';
                 include FRONTEND_PATH . 'components/navbar.php'; 
                 ?>
                 <!-- End of Topbar -->
+<?php } ?>
 
                 <!-- Begin Page Content -->
                 <div class="container-fluid" style="padding-top: 100px;">
@@ -70,7 +73,7 @@ include FRONTEND_PATH . 'components/header.php';
                     <div class="row mt-3">
                         <!-- Card 1: Master Data -->
                         <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
-                            <div class="card master-select-card shadow-sm h-100" onclick="window.location.href='master_data_detail.php'">
+                            <div class="card master-select-card shadow-sm h-100" onclick="if(window.WMS_SPA){ window.WMS_SPA.loadPage('master_data_detail', true); } else { window.location.href='master_data_detail.php'; }">
                                 <div class="card-body text-center py-4 px-3">
                                     <div class="card-icon-wrap">
                                         <i class="fas fa-database"></i>
@@ -82,7 +85,7 @@ include FRONTEND_PATH . 'components/header.php';
 
                         <!-- Card 2: Site Location Warehouse -->
                         <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
-                            <div class="card master-select-card shadow-sm h-100" onclick="window.location.href='site_location.php'">
+                            <div class="card master-select-card shadow-sm h-100" onclick="if(window.WMS_SPA){ window.WMS_SPA.loadPage('site_location', true); } else { window.location.href='site_location.php'; }">
                                 <div class="card-body text-center py-4 px-3">
                                     <div class="card-icon-wrap">
                                         <i class="fas fa-map-marked-alt"></i>
@@ -98,6 +101,7 @@ include FRONTEND_PATH . 'components/header.php';
             </div>
             <!-- End of Main Content -->
 
-<?php include FRONTEND_PATH . 'components/footer.php'; ?>
+<?php if (!defined('SPA_MODE')) { include FRONTEND_PATH . 'components/footer.php'; ?>
 </html>
+<?php } ?>
 

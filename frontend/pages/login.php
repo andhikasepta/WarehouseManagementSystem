@@ -18,6 +18,7 @@ $allowedRedirectPages = [
     'reports.php',
     'analytics.php',
     'kpi_monitoring.php',
+    'repository',
     'repository.php',
     'repository_management.php',
     'user_management.php',
@@ -25,8 +26,8 @@ $allowedRedirectPages = [
     'storage_hub.php'
 ];
 $redirectBase = basename(parse_url($redirect, PHP_URL_PATH) ?: '');
-if (!in_array($redirectBase, $allowedRedirectPages, true)) {
-    $redirect = 'dashboard.php';
+if (!in_array($redirectBase, $allowedRedirectPages, true) && $redirect !== '/repository' && $redirect !== 'repository') {
+    $redirect = '';
 }
 
 // Show access denied notification if redirected back
@@ -70,29 +71,19 @@ if (isset($_GET['action']) && $_GET['action'] === 'logout') {
         );
     }
     session_destroy();
-    $redirectUrl = 'login.php' . (isset($_GET['reason']) ? '?reason=' . urlencode($_GET['reason']) : '');
-    header("Location: " . $redirectUrl);
+    $reasonParam = isset($_GET['reason']) ? '&reason=' . urlencode($_GET['reason']) : '';
+    $redirectParam = isset($_GET['redirect']) ? '&redirect=' . urlencode($_GET['redirect']) : '';
+    header("Location: /?view=login" . $reasonParam . $redirectParam);
     exit;
 }
 
 // If already logged in and no logout request
 if (isset($_SESSION['user_id']) && !empty($_SESSION['user_id']) && !isset($_GET['action'])) {
-    if (($_SESSION['role'] ?? '') === 'superadmin') {
-        if ($redirect === 'repository.php' || $redirect === 'announcements.php' || $redirect === 'repository_management.php') {
-            header("Location: " . $redirect);
-            exit;
-        }
-        header("Location: user_management.php");
-        exit;
-    } elseif (($_SESSION['role'] ?? '') === 'repository_admin') {
-        if ($redirect === 'repository.php' || $redirect === 'repository_management.php') {
-            header("Location: " . $redirect);
-            exit;
-        }
-        header("Location: repository_management.php");
+    if ($redirect === 'repository' || $redirect === 'repository.php' || $redirect === '/repository') {
+        header("Location: /repository");
         exit;
     }
-    header("Location: " . $redirect);
+    header("Location: /");
     exit;
 }
 
@@ -199,37 +190,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
                 }
 
-                if ($user['role'] === 'superadmin') {
-                    if ($redirect === 'repository.php' || $redirect === 'announcements.php' || $redirect === 'repository_management.php') {
-                        header("Location: " . $redirect);
-                    } else {
-                        header("Location: user_management.php");
-                    }
-                } elseif ($user['role'] === 'repository_admin') {
-                    if ($redirect === 'repository.php' || $redirect === 'repository_management.php') {
-                        header("Location: " . $redirect);
-                    } else {
-                        header("Location: repository_management.php");
-                    }
-                } elseif ($redirect === 'wms_select.php' || $redirect === 'dashboard.php' || empty($redirect)) {
-                    $allowed = is_array($decodedModules) ? $decodedModules : [];
-                    if (in_array('dashboard', $allowed)) {
-                        header("Location: dashboard.php");
-                    } elseif (in_array('warehouse', $allowed)) {
-                        header("Location: warehouse.php");
-                    } elseif (in_array('inbound', $allowed)) {
-                        header("Location: inbound.php");
-                    } elseif (in_array('outbound', $allowed)) {
-                        header("Location: outbound.php");
-                    } elseif (in_array('repository_management', $allowed)) {
-                        header("Location: repository_management.php");
-                    } elseif (!empty($allowed)) {
-                        header("Location: " . $allowed[0] . ".php");
-                    } else {
-                        header("Location: dashboard.php");
-                    }
+                if ($redirect === 'repository' || $redirect === 'repository.php' || $redirect === '/repository') {
+                    header("Location: /repository");
                 } else {
-                    header("Location: " . $redirect);
+                    header("Location: /");
                 }
                 exit;
             } else {
@@ -367,7 +331,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
         <?php endif; ?>
 
-        <form method="POST" action="login.php">
+        <form method="POST" action="/?view=login">
             <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(getCsrfToken()); ?>">
             <input type="hidden" name="redirect" value="<?php echo htmlspecialchars($redirect); ?>">
 
@@ -394,7 +358,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </form>
 
         <div class="mt-3">
-            <a href="index.php" class="text-muted small">
+            <a href="/" class="text-muted small">
                 <i class="fas fa-chevron-left mr-1"></i> Kembali ke Portal Utama
             </a>
         </div>
@@ -408,7 +372,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <!-- Scripts -->
     <script src="frontend/vendor/jquery/jquery.min.js"></script>
     <script src="frontend/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
-
+    <script>
+    $(function() {
+        $('form').on('submit', function() {
+            sessionStorage.clear();
+        });
+    });
+    </script>
 </body>
 
 </html>

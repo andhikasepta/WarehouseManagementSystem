@@ -2,7 +2,7 @@
 // user_management.php
 require_once __DIR__ . '/../../backend/auth.php';
 
-checkModuleAccess('user_management'); // Enforce login & superadmin access
+if (!defined('SPA_MODE')) checkModuleAccess('user_management'); // Enforce login & superadmin access
 $user = getCurrentUser();
 
 if ($user['role'] !== 'superadmin') {
@@ -10,8 +10,9 @@ if ($user['role'] !== 'superadmin') {
     exit;
 }
 
-$pageTitle = 'WMS - PT. Aplikanusa Lintasarta';
-include FRONTEND_PATH . 'components/header.php';
+if (!defined('SPA_MODE')) {
+    $pageTitle = 'WMS - PT. Aplikanusa Lintasarta';
+    include FRONTEND_PATH . 'components/header.php';
 ?>
 
 <body id="page-top">
@@ -24,6 +25,7 @@ include FRONTEND_PATH . 'components/header.php';
                 $hidePeriodSelector = true;
                 include FRONTEND_PATH . 'components/navbar.php';
                 ?>
+<?php } ?>
 
                 <div class="container-fluid" style="padding-top: 100px;">
                     <!-- Page Heading -->
@@ -372,7 +374,7 @@ include FRONTEND_PATH . 'components/header.php';
                 </div>
             </div>
 
-            <?php include FRONTEND_PATH . 'components/footer.php'; ?>
+            <?php if (!defined('SPA_MODE')) { include FRONTEND_PATH . 'components/footer.php'; } ?>
 
             <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
             <script>
@@ -479,7 +481,7 @@ include FRONTEND_PATH . 'components/header.php';
                     });
                 }
 
-                document.addEventListener('DOMContentLoaded', function () {
+                $(function () {
                     loadUsersList();
 
                     // Role selection change event handler
@@ -957,7 +959,9 @@ include FRONTEND_PATH . 'components/header.php';
                     return String(text).replace(/'/g, "\\'");
                 }
             </script>
+<?php if (!defined('SPA_MODE')): ?>
 
 </body>
 
 </html>
+<?php endif; ?>

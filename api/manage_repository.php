@@ -9,7 +9,7 @@ $action = $_GET['action'] ?? $_POST['action'] ?? 'list';
 // Public/Guest access is not allowed - user must be logged in
 if (!isLoggedIn()) {
     if (in_array($action, ['download', 'view'])) {
-        header("Location: ../login.php?redirect=" . urlencode('repository.php'));
+        header("Location: /?view=login&redirect=" . urlencode('/repository'));
         exit;
     }
     header('Content-Type: application/json');

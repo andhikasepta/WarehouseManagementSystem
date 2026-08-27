@@ -1,9 +1,10 @@
 <?php
 require_once __DIR__ . '/../../backend/auth.php';
-checkModuleAccess('warehouse');
+if (!defined('SPA_MODE')) checkModuleAccess('warehouse');
 
-$pageTitle = 'WMS - PT. Aplikanusa Lintasarta';
-include FRONTEND_PATH . 'components/header.php';
+if (!defined('SPA_MODE')) {
+    $pageTitle = 'WMS - PT. Aplikanusa Lintasarta';
+    include FRONTEND_PATH . 'components/header.php';
 ?>
 
 <body id="page-top">
@@ -14,6 +15,7 @@ include FRONTEND_PATH . 'components/header.php';
                 $activePage = 'storage_hub';
                 include FRONTEND_PATH . 'components/navbar.php';
                 ?>
+<?php } ?>
                 <div class="container-fluid" style="padding-top: 100px;">
                     <!-- Page Heading -->
                     <div class="mb-4">
@@ -215,7 +217,7 @@ include FRONTEND_PATH . 'components/header.php';
                             </div>
                         </div>
                     </div>
-                    <?php include FRONTEND_PATH . 'components/footer.php'; ?>
+<?php if (!defined('SPA_MODE')) { include FRONTEND_PATH . 'components/footer.php'; } ?>
 
                     <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog"
                         aria-labelledby="exampleModalLabel" aria-hidden="true">
@@ -250,7 +252,7 @@ include FRONTEND_PATH . 'components/header.php';
 
                     <!-- Fetch data from database on load -->
                     <script>
-                        document.addEventListener('DOMContentLoaded', function () {
+                        $(function () {
                             var ALL_MONTHS = [
                                 "January", "February", "March", "April", "May", "June",
                                 "July", "August", "September", "October", "November", "December"

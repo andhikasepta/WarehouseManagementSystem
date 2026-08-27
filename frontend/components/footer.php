@@ -120,9 +120,12 @@ $currentAppVer = function_exists('getSystemAppVersion') ? getSystemAppVersion($p
     <!-- Custom scripts for all pages-->
     <script src="frontend/js/sb-admin-2.min.js"></script>
 
-    <!-- Page level plugins for DataTables -->
+    <!-- Page level plugins for DataTables & Charts & Select2 -->
     <script src="frontend/vendor/datatables/jquery.dataTables.min.js"></script>
     <script src="frontend/vendor/datatables/dataTables.bootstrap4.min.js"></script>
+    <script src="frontend/vendor/chart.js/Chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <!-- Global Modal Scroll Lock Handler -->
     <script>
@@ -150,7 +153,7 @@ $currentAppVer = function_exists('getSystemAppVersion') ? getSystemAppVersion($p
         function resetInactivityTimer() {
             if (idleTimer) clearTimeout(idleTimer);
             idleTimer = setTimeout(function() {
-                window.location.href = 'login.php?action=logout&reason=session_expired';
+                window.location.href = '/?action=logout&reason=session_expired';
             }, INACTIVITY_TIMEOUT_MS);
         }
 

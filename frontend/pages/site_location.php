@@ -1,12 +1,14 @@
 <?php
 require_once __DIR__ . '/../../backend/auth.php';
-checkModuleAccess('master_data');
+if (!defined('SPA_MODE')) checkModuleAccess('master_data');
 
 $currentUser = getCurrentUser();
 $userRole = $currentUser['role'] ?? 'admin';
 
-$pageTitle = 'WMS - PT. Aplikanusa Lintasarta';
-include FRONTEND_PATH . 'components/header.php';
+if (!defined('SPA_MODE')) {
+    $pageTitle = 'WMS - PT. Aplikanusa Lintasarta';
+    include FRONTEND_PATH . 'components/header.php';
+}
 ?>
 
 <!-- Select2 CSS -->
@@ -36,7 +38,7 @@ include FRONTEND_PATH . 'components/header.php';
         overflow-x: auto;
     }
 </style>
-
+<?php if (!defined('SPA_MODE')) { ?>
 </head>
 
 <body id="page-top">
@@ -51,6 +53,7 @@ include FRONTEND_PATH . 'components/header.php';
                 include FRONTEND_PATH . 'components/navbar.php';
                 ?>
                 <!-- End of Topbar -->
+<?php } ?>
 
                 <!-- Begin Page Content -->
                 <div class="container-fluid" style="padding-top: 100px;">
@@ -128,7 +131,7 @@ include FRONTEND_PATH . 'components/header.php';
             </div>
             <!-- End of Main Content -->
 
-            <?php include FRONTEND_PATH . 'components/footer.php'; ?>
+            <?php if (!defined('SPA_MODE')) { include FRONTEND_PATH . 'components/footer.php'; } ?>
 
             <!-- Import Excel Site Location Modal -->
             <div class="modal fade" id="uploadSiteLocationModal" tabindex="-1" role="dialog"
@@ -709,5 +712,7 @@ include FRONTEND_PATH . 'components/header.php';
                     });
                 })();
             </script>
+<?php if (!defined('SPA_MODE')): ?>
 
             </html>
+<?php endif; ?>

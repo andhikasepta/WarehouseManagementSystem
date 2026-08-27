@@ -270,10 +270,16 @@ getCsrfToken();
 
 function checkModuleAccess($requiredModule = '') {
     if (!isLoggedIn()) {
+        if (defined('SPA_MODE')) {
+            http_response_code(401);
+            header('Content-Type: application/json');
+            echo json_encode(['status' => 'error', 'message' => 'Session expired', 'action' => 'reload']);
+            exit;
+        }
         $currentPage = basename($_SERVER['PHP_SELF']);
         $queryString = $_SERVER['QUERY_STRING'] ? '?' . $_SERVER['QUERY_STRING'] : '';
         $redirectUrl = urlencode($currentPage . $queryString);
-        header("Location: login.php?redirect={$redirectUrl}");
+        header("Location: /?redirect={$redirectUrl}");
         exit;
     }
 
@@ -288,7 +294,7 @@ function checkModuleAccess($requiredModule = '') {
         return true;
     }
 
-    if ($requiredModule === 'repository' || $currentPage === 'repository.php') {
+    if ($requiredModule === 'repository' || $currentPage === 'repository.php' || $currentPage === 'repository') {
         return true;
     }
 
@@ -302,9 +308,11 @@ function checkModuleAccess($requiredModule = '') {
     }
 
     if ($user['role'] === 'superadmin') {
-        if ($currentPage !== 'user_management.php' && $currentPage !== 'announcements.php' && $currentPage !== 'repository.php' && $currentPage !== 'repository_management.php') {
-            header("Location: user_management.php");
-            exit;
+        if (!defined('SPA_MODE')) {
+            if ($currentPage !== 'user_management.php' && $currentPage !== 'announcements.php' && $currentPage !== 'repository.php' && $currentPage !== 'repository' && $currentPage !== 'repository_management.php') {
+                header("Location: /");
+                exit;
+            }
         }
         return true;
     }
@@ -401,6 +409,43 @@ function renderAccessDeniedPage($requiredModule = '', $user = null, $customMessa
     if (empty($customMessage)) {
         $customMessage = 'Akun Anda tidak diberikan izin akses ke modul ini.';
     }
+
+    if (defined('SPA_MODE')) {
+        ?>
+        <div class="container-fluid" style="padding-top: 100px; padding-bottom: 60px;">
+            <div class="row justify-content-center">
+                <div class="col-lg-7 text-center py-4">
+                    <div class="card shadow-lg border-0 rounded-lg p-4 p-md-5">
+                        <div class="card-body">
+                            <div class="mb-4">
+                                <div class="icon-circle bg-danger-light text-danger d-inline-flex align-items-center justify-content-center rounded-circle p-4 shadow-sm mb-3" style="width: 90px; height: 90px; background-color: #fde8e8;">
+                                    <i class="fas fa-user-lock fa-3x"></i>
+                                </div>
+                            </div>
+                            <h3 class="font-weight-bold text-gray-800 mb-2">Akses Ditolak</h3>
+                            <p class="text-muted lead mb-4">
+                                Akun <strong><?php echo htmlspecialchars($user['name'] ?? ''); ?></strong> tidak memiliki hak akses.
+                            </p>
+                            <div class="alert alert-warning text-left small mb-4">
+                                <i class="fas fa-exclamation-circle mr-1"></i> <?php echo htmlspecialchars($customMessage); ?>
+                            </div>
+                            <div class="d-flex flex-wrap justify-content-center gap-2">
+                                <a href="/" class="btn btn-primary px-4 py-2 mr-2">
+                                    <i class="fas fa-arrow-left mr-1"></i> Kembali Ke Dashboard
+                                </a>
+                                <a href="/?action=logout" class="btn btn-outline-danger px-4 py-2">
+                                    <i class="fas fa-sign-out-alt mr-1"></i> Logout
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <?php
+        return;
+    }
+
     $pageTitle = 'WMS - PT. Aplikanusa Lintasarta';
     include FRONTEND_PATH . 'components/header.php';
     ?>
@@ -463,9 +508,9 @@ function renderAccessDeniedPage($requiredModule = '', $user = null, $customMessa
                                                      <i class="fas fa-arrow-left mr-1"></i> Kembali Ke Modul
                                                  </a>
                                              <?php endif; ?>
-                                            <a href="login.php?action=logout" class="btn btn-outline-danger px-4 py-2">
-                                                <i class="fas fa-sign-out-alt mr-1"></i> Logout
-                                            </a>
+                                             <a href="/?action=logout" class="btn btn-outline-danger px-4 py-2">
+                                                 <i class="fas fa-sign-out-alt mr-1"></i> Logout
+                                             </a>
                                         </div>
                                     </div>
                                 </div>

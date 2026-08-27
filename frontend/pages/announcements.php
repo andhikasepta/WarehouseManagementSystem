@@ -2,7 +2,7 @@
 // announcements.php - Super Admin Management for Maintenance Notifications & Announcements
 require_once __DIR__ . '/../../backend/auth.php';
 
-checkModuleAccess('user_management'); // Enforce login & superadmin access
+if (!defined('SPA_MODE')) checkModuleAccess('user_management'); // Enforce login & superadmin access
 $user = getCurrentUser();
 
 if ($user['role'] !== 'superadmin') {
@@ -10,8 +10,9 @@ if ($user['role'] !== 'superadmin') {
     exit;
 }
 
-$pageTitle = 'WMS - PT. Aplikanusa Lintasarta';
-include FRONTEND_PATH . 'components/header.php';
+if (!defined('SPA_MODE')) {
+    $pageTitle = 'WMS - PT. Aplikanusa Lintasarta';
+    include FRONTEND_PATH . 'components/header.php';
 ?>
 
 <body id="page-top">
@@ -24,6 +25,7 @@ include FRONTEND_PATH . 'components/header.php';
                 $hidePeriodSelector = true;
                 include FRONTEND_PATH . 'components/navbar.php'; 
                 ?>
+<?php } ?>
 
                 <div class="container-fluid" style="padding-top: 100px;">
                     <!-- Page Heading -->
@@ -138,9 +140,11 @@ include FRONTEND_PATH . 'components/header.php';
                 </div>
             </div>
 
+            <?php if (!defined('SPA_MODE')) { ?>
             <?php include FRONTEND_PATH . 'components/footer.php'; ?>
         </div>
     </div>
+            <?php } ?>
 
     <script>
     var currentAnnouncements = [];
@@ -449,7 +453,9 @@ include FRONTEND_PATH . 'components/header.php';
             .replace(/'/g, "&#039;");
     }
     </script>
+<?php if (!defined('SPA_MODE')): ?>
 </body>
 </html>
+<?php endif; ?>
 
 

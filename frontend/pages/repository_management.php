@@ -2,7 +2,7 @@
 // frontend/pages/repository_management.php - Management for Repository Documents & Work Instructions (WI)
 require_once __DIR__ . '/../../backend/auth.php';
 
-checkModuleAccess('repository_management');
+if (!defined('SPA_MODE')) checkModuleAccess('repository_management');
 $user = getCurrentUser();
 $isSuperAdmin = ($user['role'] === 'superadmin');
 $isRepoAdmin = ($user['role'] === 'repository_admin');
@@ -17,8 +17,9 @@ if (!$hasRepoAccess) {
 $canUploadDoc = $isSuperAdmin || canAdd('repository_management');
 $canDeleteDoc = $isSuperAdmin || canDelete('repository_management');
 
-$pageTitle = 'WMS - Documents Repository Management';
-include FRONTEND_PATH . 'components/header.php';
+if (!defined('SPA_MODE')) {
+    $pageTitle = 'WMS - Documents Repository Management';
+    include FRONTEND_PATH . 'components/header.php';
 ?>
 
 <body id="page-top">
@@ -31,6 +32,7 @@ include FRONTEND_PATH . 'components/header.php';
                 $hidePeriodSelector = true;
                 include FRONTEND_PATH . 'components/navbar.php'; 
                 ?>
+<?php } ?>
 
                 <div class="container-fluid" style="padding-top: 100px;">
                     <!-- Page Heading -->
@@ -315,7 +317,7 @@ include FRONTEND_PATH . 'components/header.php';
             </div>
 
             <!-- Footer -->
-            <?php include FRONTEND_PATH . 'components/footer.php'; ?>
+            <?php if (!defined('SPA_MODE')) { include FRONTEND_PATH . 'components/footer.php'; } ?>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
@@ -701,5 +703,7 @@ include FRONTEND_PATH . 'components/header.php';
         loadDocumentsTable();
     })();
     </script>
+<?php if (!defined('SPA_MODE')): ?>
 </body>
 </html>
+<?php endif; ?>

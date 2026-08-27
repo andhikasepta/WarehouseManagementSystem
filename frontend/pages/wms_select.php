@@ -18,8 +18,10 @@ if (isLoggedIn()) {
     }
 }
 
-$pageTitle = 'WMS - PT. Aplikanusa Lintasarta';
-include FRONTEND_PATH . 'components/header.php';
+if (!defined('SPA_MODE')) {
+    $pageTitle = 'WMS - PT. Aplikanusa Lintasarta';
+    include FRONTEND_PATH . 'components/header.php';
+}
 ?>
     <style>
         .module-card {
@@ -64,6 +66,7 @@ include FRONTEND_PATH . 'components/header.php';
             letter-spacing: 0.5px;
         }
     </style>
+<?php if (!defined('SPA_MODE')) { ?>
 </head>
 
 <body id="page-top" class="bg-light">
@@ -80,6 +83,7 @@ include FRONTEND_PATH . 'components/header.php';
                 $hideNavbarUl = true;
                 include FRONTEND_PATH . 'components/navbar.php'; 
                 ?>
+<?php } ?>
 
                 <div class="container" style="padding-top: 120px; padding-bottom: 60px;">
                     <div class="text-center mb-5">
@@ -157,7 +161,8 @@ include FRONTEND_PATH . 'components/header.php';
 
             </div>
 
-<?php include FRONTEND_PATH . 'components/footer.php'; ?>
+<?php if (!defined('SPA_MODE')) { include FRONTEND_PATH . 'components/footer.php'; ?>
 
 </body>
 </html>
+<?php } ?>

@@ -1436,7 +1436,7 @@ if (isset($pdo)) {
             <?php if ($hasDashboardAccess): ?>
                 <div class="sidebar-heading">Overview</div>
                 <li class="nav-item <?php echo ($activePage == 'dashboard') ? 'active' : ''; ?>">
-                    <a class="nav-link" href="dashboard.php">
+                    <a class="nav-link" href="#" data-spa-page="dashboard">
                         <i class="fas fa-th-large fa-fw"></i>
                         <span>Dashboard</span>
                     </a>
@@ -1448,7 +1448,7 @@ if (isset($pdo)) {
                 <div class="sidebar-heading mt-2">Main Menu</div>
                 <?php if ($hasInboundAccess): ?>
                     <li class="nav-item <?php echo ($activePage == 'inbound') ? 'active' : ''; ?>">
-                        <a class="nav-link" href="inbound.php">
+                        <a class="nav-link" href="#" data-spa-page="inbound">
                             <i class="fas fa-box-open fa-fw"></i>
                             <span>Inbound</span>
                         </a>
@@ -1471,11 +1471,11 @@ if (isset($pdo)) {
                             data-parent="#wms-sidebar">
                             <div class="sidebar-submenu">
                                 <a class="sub-link <?php echo ($activePage == 'warehouse') ? 'active' : ''; ?>"
-                                    href="warehouse.php">
+                                    href="#" data-spa-page="warehouse">
                                     <i class="fas fa-building"></i> <span>Storage Tekno</span>
                                 </a>
                                 <a class="sub-link <?php echo ($activePage == 'storage_hub') ? 'active' : ''; ?>"
-                                    href="storage_hub.php">
+                                    href="#" data-spa-page="storage_hub">
                                     <i class="fas fa-store-alt"></i> <span>Storage HUB &amp; Outlet</span>
                                 </a>
                             </div>
@@ -1484,7 +1484,7 @@ if (isset($pdo)) {
                 <?php endif; ?>
                 <?php if ($hasOutboundAccess): ?>
                     <li class="nav-item <?php echo ($activePage == 'outbound') ? 'active' : ''; ?>">
-                        <a class="nav-link" href="outbound.php">
+                        <a class="nav-link" href="#" data-spa-page="outbound">
                             <i class="fas fa-truck-loading fa-fw"></i>
                             <span>Outbound</span>
                         </a>
@@ -1492,7 +1492,7 @@ if (isset($pdo)) {
                 <?php endif; ?>
                 <?php if ($hasKpiMonitoringAccess): ?>
                     <li class="nav-item <?php echo ($activePage == 'kpi_monitoring') ? 'active' : ''; ?>">
-                        <a class="nav-link" href="kpi_monitoring.php">
+                        <a class="nav-link" href="#" data-spa-page="kpi_monitoring">
                             <i class="fas fa-tachometer-alt fa-fw"></i>
                             <span>KPI Monitoring</span>
                         </a>
@@ -1505,7 +1505,7 @@ if (isset($pdo)) {
                 <div class="sidebar-heading mt-2">Data Settings</div>
                 <?php if ($hasMasterDataAccess): ?>
                     <li class="nav-item <?php echo ($activePage == 'master_data') ? 'active' : ''; ?>">
-                        <a class="nav-link" href="master_data.php">
+                        <a class="nav-link" href="#" data-spa-page="master_data">
                             <i class="fas fa-database fa-fw"></i>
                             <span>Master Data</span>
                         </a>
@@ -1518,7 +1518,7 @@ if (isset($pdo)) {
                 <div class="sidebar-heading mt-2">Report</div>
                 <?php if ($hasReportsAccess): ?>
                     <li class="nav-item <?php echo ($activePage == 'reports') ? 'active' : ''; ?>">
-                        <a class="nav-link" href="reports.php">
+                        <a class="nav-link" href="#" data-spa-page="reports">
                             <i class="fas fa-file-alt fa-fw"></i>
                             <span>Reports</span>
                         </a>
@@ -1526,7 +1526,7 @@ if (isset($pdo)) {
                 <?php endif; ?>
                 <?php if ($hasAnalyticsAccess): ?>
                     <li class="nav-item <?php echo ($activePage == 'analytics') ? 'active' : ''; ?>">
-                        <a class="nav-link" href="analytics.php">
+                        <a class="nav-link" href="#" data-spa-page="analytics">
                             <i class="fas fa-chart-line fa-fw"></i>
                             <span>Analytics</span>
                         </a>
@@ -1539,7 +1539,7 @@ if (isset($pdo)) {
                 <div class="sidebar-heading mt-2">System</div>
                 <?php if ($hasUserMgmtAccess): ?>
                     <li class="nav-item <?php echo ($activePage == 'user_management') ? 'active' : ''; ?>">
-                        <a class="nav-link" href="user_management.php">
+                        <a class="nav-link" href="#" data-spa-page="user_management">
                             <i class="fas fa-users-cog fa-fw"></i>
                             <span>User Management</span>
                         </a>
@@ -1547,7 +1547,7 @@ if (isset($pdo)) {
                 <?php endif; ?>
                 <?php if ($hasAnnouncementsAccess): ?>
                     <li class="nav-item <?php echo ($activePage == 'announcements') ? 'active' : ''; ?>">
-                        <a class="nav-link" href="announcements.php">
+                        <a class="nav-link" href="#" data-spa-page="announcements">
                             <i class="fas fa-bullhorn fa-fw"></i>
                             <span>Pengumuman</span>
                         </a>
@@ -1555,7 +1555,7 @@ if (isset($pdo)) {
                 <?php endif; ?>
                 <?php if ($hasRepositoryManagementAccess): ?>
                     <li class="nav-item <?php echo ($activePage == 'repository_management') ? 'active' : ''; ?>">
-                        <a class="nav-link" href="repository_management.php">
+                        <a class="nav-link" href="#" data-spa-page="repository_management">
                             <i class="fas fa-folder-open fa-fw"></i>
                             <span>Repository</span>
                         </a>
@@ -1721,14 +1721,14 @@ if (isset($pdo)) {
                             <i class="fas fa-key fa-sm fa-fw mr-2 text-gray-500"></i> Ganti Password
                         </a>
                         <div class="dropdown-divider my-1"></div>
-                        <a class="dropdown-item text-danger font-weight-bold text-nowrap py-2" href="login.php?action=logout">
+                        <a class="dropdown-item text-danger font-weight-bold text-nowrap py-2" href="/?action=logout">
                             <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-danger"></i> Logout
                         </a>
                     </div>
                 </li>
             <?php elseif (!$shouldHideLoginButton): ?>
                 <li class="nav-item text-nowrap">
-                    <a class="btn btn-primary btn-sm px-3 font-weight-bold text-nowrap" href="login.php">
+                    <a class="btn btn-primary btn-sm px-3 font-weight-bold text-nowrap" href="/">
                         <i class="fas fa-sign-in-alt mr-1"></i> Login
                     </a>
                 </li>

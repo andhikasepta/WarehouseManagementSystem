@@ -1,11 +1,12 @@
 <?php
 // frontend/pages/kpi_monitoring.php - Key Performance Indicators (KPI) Monitoring Dashboard
 require_once __DIR__ . '/../../backend/auth.php';
-checkModuleAccess('kpi_monitoring');
+if (!defined('SPA_MODE')) checkModuleAccess('kpi_monitoring');
 
 $currentUser = getCurrentUser();
-$pageTitle = 'KPI Monitoring - PT. Aplikanusa Lintasarta';
-include FRONTEND_PATH . 'components/header.php';
+if (!defined('SPA_MODE')) {
+    $pageTitle = 'KPI Monitoring - PT. Aplikanusa Lintasarta';
+    include FRONTEND_PATH . 'components/header.php';
 ?>
 
 <body id="page-top">
@@ -18,6 +19,7 @@ include FRONTEND_PATH . 'components/header.php';
                 $activePage = 'kpi_monitoring';
                 include FRONTEND_PATH . 'components/navbar.php';
                 ?>
+<?php } ?>
 
                 <!-- Custom Styling for KPI Monitoring Page (Placed after Navbar for Priority) -->
                 <style>
@@ -429,7 +431,7 @@ include FRONTEND_PATH . 'components/header.php';
                 </div>
             </div>
 
-            <?php include FRONTEND_PATH . 'components/footer.php'; ?>
+<?php if (!defined('SPA_MODE')) { include FRONTEND_PATH . 'components/footer.php'; } ?>
 
             <!-- Page level plugins & Chart Script -->
             <script src="frontend/vendor/chart.js/Chart.min.js"></script>
@@ -474,7 +476,7 @@ include FRONTEND_PATH . 'components/header.php';
                     }
 
                     // Initialize Page & Period Selector from Navbar
-                    document.addEventListener('DOMContentLoaded', function () {
+                    $(function () {
                         var periodMenu = document.getElementById('period-dropdown-menu');
                         if (periodMenu) {
                             periodMenu.addEventListener('click', function (e) {
@@ -986,7 +988,9 @@ include FRONTEND_PATH . 'components/header.php';
 
                 })();
             </script>
+<?php if (!defined('SPA_MODE')): ?>
 
 </body>
 
 </html>
+<?php endif; ?>
