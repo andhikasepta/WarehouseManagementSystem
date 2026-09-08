@@ -358,7 +358,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </form>
 
         <div class="mt-3">
-            <a href="/" class="text-muted small">
+            <a href="/portal" class="text-muted small">
                 <i class="fas fa-chevron-left mr-1"></i> Kembali ke Portal Utama
             </a>
         </div>

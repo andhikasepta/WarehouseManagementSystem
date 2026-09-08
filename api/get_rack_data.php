@@ -10,7 +10,7 @@ if (!isLoggedIn()) {
 }
 
 try {
-    $stmt = $pdo->query("SELECT label, rack, category FROM rack_master");
+    $stmt = $pdo->query("SELECT id, barcode, name, label, active, category, COALESCE(name, rack, label) AS rack FROM rack_master ORDER BY id ASC");
     $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
     echo json_encode(['status' => 'success', 'data' => $results]);

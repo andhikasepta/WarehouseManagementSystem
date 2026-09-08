@@ -2088,21 +2088,20 @@ if (!defined('SPA_MODE')) {
                             defOpt.value = '';
                             defOpt.textContent = placeholder;
                             sel.appendChild(defOpt);
-                            items.forEach(function (item) {
+                            (items || []).forEach(function (item) {
                                 var opt = document.createElement('option');
                                 opt.value = item;
-                                opt.textContent = item.toUpperCase();
+                                opt.textContent = String(item).toUpperCase();
                                 sel.appendChild(opt);
                             });
                         }
 
                         function updateLoadButton() {
                             var m = document.getElementById('period-month-select');
-                            var b = document.getElementById('period-batch-select');
                             var y = document.getElementById('period-year-select');
                             var btn = document.getElementById('btn-load-period');
                             if (btn) {
-                                btn.disabled = !(m && m.value && b && b.value && y && y.value);
+                                btn.disabled = !(m && m.value && y && y.value);
                             }
                         }
 
@@ -2112,6 +2111,11 @@ if (!defined('SPA_MODE')) {
                         if (monthSel) monthSel.addEventListener('change', updateLoadButton);
                         if (batchSel) batchSel.addEventListener('change', updateLoadButton);
                         if (yearSel) yearSel.addEventListener('change', updateLoadButton);
+
+                        var ALL_MONTHS = [
+                            "January", "February", "March", "April", "May", "June",
+                            "July", "August", "September", "October", "November", "December"
+                        ];
 
                         function fetchTrendsData(year) {
                             if (!year) year = new Date().getFullYear().toString();
@@ -2154,6 +2158,10 @@ if (!defined('SPA_MODE')) {
                                         });
                                     }
                                     var availableYears = (result.years && result.years.length > 0) ? result.years : Object.keys(yearsSet).sort();
+                                    availableYears = (availableYears || []).map(function (y) { return String(y); });
+                                    if (!availableYears || availableYears.length === 0) {
+                                        availableYears = [(new Date()).getFullYear().toString()];
+                                    }
                                     populateSelect('period-month-select', ALL_MONTHS, '-- Pilih Bulan --');
                                     populateSelect('period-year-select', availableYears, '-- Pilih Tahun --');
 
@@ -2181,8 +2189,8 @@ if (!defined('SPA_MODE')) {
                                 var m = document.getElementById('period-month-select');
                                 var b = document.getElementById('period-batch-select');
                                 var y = document.getElementById('period-year-select');
-                                if (m && m.value && b && b.value && y && y.value) {
-                                    var period = m.value + ' ' + y.value + '-Batch' + b.value;
+                                if (m && m.value && y && y.value) {
+                                    var period = (b && b.value) ? (m.value + ' ' + y.value + '-Batch' + b.value) : (m.value + ' ' + y.value);
                                     loadDashboardData(period);
                                     if (window.jQuery) {
                                         $('#periodDropdown').dropdown('toggle');
@@ -2241,7 +2249,7 @@ if (!defined('SPA_MODE')) {
 
                         function loadDashboardData(period) {
                             var pText = document.getElementById('selected-period-text');
-                            if (pText) pText.textContent = period.toUpperCase();
+                            if (pText) pText.textContent = (period.indexOf('-Batch') !== -1 ? period : period + ' (ALL BATCH)').toUpperCase();
 
                             if (typeof Swal !== 'undefined') {
                                 Swal.fire({

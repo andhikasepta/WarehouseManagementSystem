@@ -138,7 +138,7 @@ if (!defined('SPA_MODE')) {
                 aria-labelledby="uploadSiteLocationModalLabel" aria-hidden="true">
                 <div class="modal-dialog modal-md modal-dialog-centered" role="document">
                     <div class="modal-content upload-modal-content">
-                        <div class="modal-header upload-modal-header bg-success text-white">
+                        <div class="modal-header upload-modal-header">
                             <h5 class="modal-title font-weight-bold" id="uploadSiteLocationModalLabel">
                                 <i class="fas fa-file-excel mr-2"></i>Import Site Location Data
                             </h5>
@@ -147,18 +147,20 @@ if (!defined('SPA_MODE')) {
                             </button>
                         </div>
                         <div class="modal-body upload-modal-body p-4">
-                            <div class="upload-drop-zone border rounded p-4 text-center bg-light"
-                                id="site-upload-drop-zone">
-                                <i class="fas fa-cloud-upload-alt fa-3x text-success mb-3"></i>
-                                <h5 class="font-weight-bold">Drag & Drop Excel File</h5>
-                                <p class="text-muted small">atau pilih file dari komputer Anda</p>
+                            <div class="upload-drop-zone" id="site-upload-drop-zone">
                                 <input type="file" id="excel-file-site-input" accept=".xlsx,.xls,.csv" class="d-none" />
-                                <button class="btn btn-success btn-sm px-3 font-weight-bold" type="button"
-                                    id="btn-browse-site"
+                                <div class="upload-icon">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                </div>
+                                <h5>Drag &amp; Drop Excel File Site Location</h5>
+                                <p>atau klik untuk memilih file dari komputer Anda</p>
+                                <button class="btn-browse" type="button" id="btn-browse-site"
                                     onclick="document.getElementById('excel-file-site-input').click();">
                                     <i class="fas fa-folder-open mr-1"></i> Browse File
                                 </button>
-                                <div class="small text-muted mt-2">Formats: .xlsx, .xls, .csv &bull; Max 100MB</div>
+                                <div class="file-types">
+                                    Supported: .xlsx, .xls, .csv &bull; Max 200MB
+                                </div>
                             </div>
 
                             <!-- Upload progress & status -->
@@ -226,7 +228,7 @@ if (!defined('SPA_MODE')) {
                     'use strict';
 
                     var siteLocationTable = null;
-                    var MAX_FILE_SIZE = 100 * 1024 * 1024;
+                    var MAX_FILE_SIZE = 200 * 1024 * 1024;
                     var ALLOWED_EXTENSIONS = ['.xlsx', '.xls', '.csv'];
 
                     // ── Known header mappings (case-insensitive, fuzzy) ──
@@ -411,9 +413,17 @@ if (!defined('SPA_MODE')) {
                                 "<'row'<'col-sm-12'tr>>" +
                                 "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
                             language: {
+                                search: "Search:",
+                                searchPlaceholder: "Search...",
                                 processing: "Data Is Processing Please Wait",
                                 emptyTable: "Belum ada data Site Location. Silakan import Excel.",
                                 zeroRecords: "Tidak ada data yang cocok dengan pencarian."
+                            },
+                            initComplete: function () {
+                                var $input = $('#dataTableSiteLocation_filter input');
+                                if ($input.length) {
+                                    $input.attr('placeholder', 'Search...');
+                                }
                             },
                             drawCallback: function (settings) {
                                 var info = this.api().page.info();
@@ -432,7 +442,7 @@ if (!defined('SPA_MODE')) {
                             return;
                         }
                         if (file.size > MAX_FILE_SIZE) {
-                            Swal.fire('File Terlalu Besar', 'Ukuran file maksimum adalah 100 MB', 'error');
+                            Swal.fire('File Terlalu Besar', 'Ukuran file maksimum adalah 200 MB', 'error');
                             return;
                         }
 
@@ -451,28 +461,72 @@ if (!defined('SPA_MODE')) {
                             try {
                                 var data = new Uint8Array(e.target.result);
                                 var workbook = XLSX.read(data, { type: 'array', cellDates: true });
-                                var sheetName = workbook.SheetNames[0];
-                                var sheet = workbook.Sheets[sheetName];
 
-                                // Build flattened headers from multi-row structure
-                                var headerInfo = buildFlatHeaders(sheet);
-                                var flatHeaders = headerInfo.headers;
-                                var dataStartRow = headerInfo.dataStartRow;
-
-                                console.log('[SiteLocation] Detected headers:', flatHeaders);
-                                console.log('[SiteLocation] Data starts at row:', dataStartRow);
-
-                                // Read all rows as raw arrays
-                                var rawRows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
-
-                                // Extract data rows (skip header rows)
-                                var dataRows = rawRows.slice(dataStartRow);
-
-                                if (!dataRows || dataRows.length === 0) {
-                                    Swal.fire('Data Kosong', 'File Excel tidak berisi data.', 'warning');
+                                if (!workbook || !workbook.SheetNames || workbook.SheetNames.length === 0) {
+                                    Swal.fire('Data Kosong', 'File Excel tidak memiliki sheet data.', 'warning');
                                     resetUploadUI();
                                     return;
                                 }
+
+                                var sheetOptions = {};
+                                workbook.SheetNames.forEach(function (name) {
+                                    sheetOptions[name] = name;
+                                });
+
+                                var promptTitle = workbook.SheetNames.length > 1
+                                    ? 'Pilih Sheet Excel (' + workbook.SheetNames.length + ' Sheet Ditemukan)'
+                                    : 'Pilih Sheet Excel';
+
+                                Swal.fire({
+                                    title: promptTitle,
+                                    html: '<p class="text-muted small mb-2">Pilih sheet Site Location yang ingin di-import:</p>',
+                                    input: 'select',
+                                    inputOptions: sheetOptions,
+                                    inputValue: workbook.SheetNames[0],
+                                    showCancelButton: true,
+                                    confirmButtonText: '<i class="fas fa-check mr-1"></i> Pilih & Lanjutkan',
+                                    cancelButtonText: '<i class="fas fa-times mr-1"></i> Batal',
+                                    confirmButtonColor: '#4e73df',
+                                    cancelButtonColor: '#858796',
+                                    allowOutsideClick: false,
+                                    inputValidator: function (value) {
+                                        if (!value) {
+                                            return 'Silakan pilih sheet terlebih dahulu!';
+                                        }
+                                    }
+                                }).then(function (sheetResult) {
+                                    if (!sheetResult.isConfirmed || !sheetResult.value) {
+                                        resetUploadUI();
+                                        return;
+                                    }
+
+                                    var sheetName = sheetResult.value;
+                                    var sheet = workbook.Sheets[sheetName];
+                                    if (!sheet) {
+                                        Swal.fire('Error', 'Sheet "' + sheetName + '" tidak ditemukan.', 'error');
+                                        resetUploadUI();
+                                        return;
+                                    }
+
+                                    // Build flattened headers from multi-row structure
+                                    var headerInfo = buildFlatHeaders(sheet);
+                                    var flatHeaders = headerInfo.headers;
+                                    var dataStartRow = headerInfo.dataStartRow;
+
+                                    console.log('[SiteLocation] Detected headers:', flatHeaders);
+                                    console.log('[SiteLocation] Data starts at row:', dataStartRow);
+
+                                    // Read all rows as raw arrays
+                                    var rawRows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+
+                                    // Extract data rows (skip header rows)
+                                    var dataRows = rawRows.slice(dataStartRow);
+
+                                    if (!dataRows || dataRows.length === 0) {
+                                        Swal.fire('Data Kosong', 'Sheet "' + sheetName + '" tidak berisi baris data.', 'warning');
+                                        resetUploadUI();
+                                        return;
+                                    }
 
                                 $('#site-upload-progress').css('width', '60%');
                                 $('#site-upload-progress-text').text('Mapping ' + dataRows.length + ' baris...');
@@ -628,22 +682,24 @@ if (!defined('SPA_MODE')) {
                             dropZone.addEventListener('dragover', function (e) {
                                 e.preventDefault();
                                 e.stopPropagation();
-                                dropZone.style.borderColor = '#1cc88a';
-                                dropZone.style.backgroundColor = '#e8faf1';
+                                dropZone.classList.add('drag-over');
                             });
                             dropZone.addEventListener('dragleave', function (e) {
                                 e.preventDefault();
                                 e.stopPropagation();
-                                dropZone.style.borderColor = '';
-                                dropZone.style.backgroundColor = '';
+                                dropZone.classList.remove('drag-over');
                             });
                             dropZone.addEventListener('drop', function (e) {
                                 e.preventDefault();
                                 e.stopPropagation();
-                                dropZone.style.borderColor = '';
-                                dropZone.style.backgroundColor = '';
+                                dropZone.classList.remove('drag-over');
                                 if (e.dataTransfer.files && e.dataTransfer.files[0]) {
                                     handleSiteFile(e.dataTransfer.files[0]);
+                                }
+                            });
+                            dropZone.addEventListener('click', function (e) {
+                                if (e.target.tagName !== 'BUTTON' && !e.target.closest('button')) {
+                                    if (fileInput) fileInput.click();
                                 }
                             });
                         }

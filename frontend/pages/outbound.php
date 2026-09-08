@@ -485,7 +485,7 @@ if (!defined('SPA_MODE')) {
                                                     </h6>
                                                 </div>
                                                 <div class="card-body p-3">
-                                                    <div class="chart-bar" style="height: 250px; position: relative;">
+                                                    <div class="chart-area" style="height: 250px; position: relative;">
                                                         <canvas id="chartBulananJumlahMr"></canvas>
                                                     </div>
                                                 </div>
@@ -501,7 +501,7 @@ if (!defined('SPA_MODE')) {
                                                     </h6>
                                                 </div>
                                                 <div class="card-body p-3">
-                                                    <div class="chart-bar" style="height: 250px; position: relative;">
+                                                    <div class="chart-area" style="height: 250px; position: relative;">
                                                         <canvas id="chartBulananJumlahPo"></canvas>
                                                     </div>
                                                 </div>
@@ -509,7 +509,7 @@ if (!defined('SPA_MODE')) {
                                         </div>
                                     </div>
 
-                                    <!-- Bottom Sub-Row: 3 Cards (Chart Close MR (%), Cost Delivery per Moda (Value), Chart Tender / Direct Selection (%)) -->
+                                    <!-- Bottom Sub-Row: 3 Cards (Chart Close MR (%), Persentase Delivery per Moda (%), Chart Tender / Direct Selection (%)) -->
                                     <div class="row">
                                         <!-- Card 3: Chart Close MR (%) -->
                                         <div class="col-xl-4 col-lg-4 mb-4 mb-lg-0">
@@ -519,19 +519,19 @@ if (!defined('SPA_MODE')) {
                                                         style="letter-spacing: 0.5px;">Chart Close MR (%)</h6>
                                                 </div>
                                                 <div class="card-body p-3">
-                                                    <div class="chart-pie" style="height: 250px; position: relative;">
+                                                    <div class="chart-area" style="height: 250px; position: relative;">
                                                         <canvas id="chartCloseMr"></canvas>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
 
-                                        <!-- Card 4: Cost Delivery per Moda (Value) -->
+                                        <!-- Card 4: Delivery per Moda (Value) -->
                                         <div class="col-xl-4 col-lg-4 mb-4 mb-lg-0">
                                             <div class="card border shadow-sm h-100" style="border-radius: 8px;">
                                                 <div class="card-header bg-white py-2 px-3 border-bottom-0">
                                                     <h6 class="m-0 font-weight-bold text-primary small text-uppercase"
-                                                        style="letter-spacing: 0.5px;">Cost Delivery per Moda (Value)
+                                                        style="letter-spacing: 0.5px;">Delivery per Moda (Value)
                                                     </h6>
                                                 </div>
                                                 <div class="card-body p-3 d-flex flex-column justify-content-between">
@@ -574,7 +574,7 @@ if (!defined('SPA_MODE')) {
                                                         (%)</h6>
                                                 </div>
                                                 <div class="card-body p-3">
-                                                    <div class="chart-pie" style="height: 250px; position: relative;">
+                                                    <div class="chart-area" style="height: 250px; position: relative;">
                                                         <canvas id="chartTenderDirectSelection"></canvas>
                                                     </div>
                                                 </div>
@@ -760,8 +760,10 @@ if (!defined('SPA_MODE')) {
 <?php if (!defined('SPA_MODE')) { include FRONTEND_PATH . 'components/footer.php'; } ?>
 
             <!-- Page level plugins & Custom Chart script -->
+            <?php if (!defined('SPA_MODE')): ?>
             <script src="frontend/vendor/chart.js/Chart.min.js"></script>
-            <script src="frontend/js/demo/chart-outbound-demo.js"></script>
+            <?php endif; ?>
+            <script src="frontend/js/demo/chart-outbound-demo.js?v=<?php echo time(); ?>"></script>
 
             <script>
                 $(document).ready(function () {
@@ -1059,11 +1061,10 @@ if (!defined('SPA_MODE')) {
 
                     function updateLoadButton() {
                         var m = document.getElementById('period-month-select');
-                        var b = document.getElementById('period-batch-select');
                         var y = document.getElementById('period-year-select');
                         var btn = document.getElementById('btn-load-period');
                         if (btn) {
-                            btn.disabled = !(m && m.value && b && b.value && y && y.value);
+                            btn.disabled = !(m && m.value && y && y.value);
                         }
                     }
 
@@ -1085,7 +1086,7 @@ if (!defined('SPA_MODE')) {
                         items.forEach(function (item) {
                             var opt = document.createElement('option');
                             opt.value = item;
-                            opt.textContent = item.toUpperCase();
+                            opt.textContent = String(item).toUpperCase();
                             sel.appendChild(opt);
                         });
                     }
@@ -1105,6 +1106,9 @@ if (!defined('SPA_MODE')) {
                                     });
                                 }
                                 var availableYears = (result.years && result.years.length > 0) ? result.years : Object.keys(yearsSet).sort();
+                                if (!availableYears || availableYears.length === 0) {
+                                    availableYears = [(new Date()).getFullYear().toString()];
+                                }
                                 populateSelect('period-month-select', ALL_MONTHS, '-- Pilih Bulan --');
                                 populateSelect('period-year-select', availableYears, '-- Pilih Tahun --');
 
@@ -1135,6 +1139,55 @@ if (!defined('SPA_MODE')) {
                         $('#external-segment-total-qty').text(0);
                         $('#tab-external-qty').text(0);
                         $('#shipped-total-qty').text(0);
+                        $('#card-most-moda-delivery').text('-');
+                        render10SiteMrOpen([]);
+                    }
+
+                    // Render dynamic 10 Site MR Open with proportional progress bars relative to rank 1
+                    function render10SiteMrOpen(sites) {
+                        var container = $('#list-10-site-mr-open');
+                        if (!container.length) return;
+
+                        if (!sites || sites.length === 0) {
+                            var defaultHtml = '';
+                            for (var i = 1; i <= 10; i++) {
+                                defaultHtml += '<div class="d-flex flex-column justify-content-center flex-grow-1 mb-2">' +
+                                    '<div class="d-flex justify-content-between align-items-center mb-1">' +
+                                    '<span class="small font-weight-bold text-gray-700">' + i + '. Site ' + String.fromCharCode(64 + i) + '</span>' +
+                                    '<span class="small font-weight-bold text-warning">0 MR</span>' +
+                                    '</div>' +
+                                    '<div class="progress progress-sm" style="height: 5px; border-radius: 4px;">' +
+                                    '<div class="progress-bar bg-warning" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>' +
+                                    '</div>' +
+                                    '</div>';
+                            }
+                            container.html(defaultHtml);
+                            return;
+                        }
+
+                        var maxMr = parseInt(sites[0].total_mr) || 0;
+                        var html = '';
+
+                        sites.forEach(function (site, idx) {
+                            var rank = idx + 1;
+                            var name = site.site_destination || ('Site ' + rank);
+                            var totalMr = parseInt(site.total_mr) || 0;
+                            var pct = (maxMr > 0) ? Math.min(100, Math.round((totalMr / maxMr) * 100)) : 0;
+
+                            html += '<div class="d-flex flex-column justify-content-center flex-grow-1 mb-2">' +
+                                '<div class="d-flex justify-content-between align-items-center mb-1" style="min-width: 0;">' +
+                                '<span class="small font-weight-bold text-gray-800 text-truncate mr-2" title="' + $('<div>').text(name).html() + '" style="max-width: 78%;">' +
+                                rank + '. ' + $('<div>').text(name).html() +
+                                '</span>' +
+                                '<span class="small font-weight-bold text-warning text-nowrap">' + totalMr + ' MR</span>' +
+                                '</div>' +
+                                '<div class="progress progress-sm" style="height: 5px; border-radius: 4px; background-color: #f1f3f9;">' +
+                                '<div class="progress-bar bg-warning" role="progressbar" style="width: ' + pct + '%; transition: width 0.6s ease;" aria-valuenow="' + pct + '" aria-valuemin="0" aria-valuemax="100"></div>' +
+                                '</div>' +
+                                '</div>';
+                        });
+
+                        container.html(html);
                     }
 
                     var btnLoad = document.getElementById('btn-load-period');
@@ -1143,10 +1196,18 @@ if (!defined('SPA_MODE')) {
                             var m = document.getElementById('period-month-select');
                             var b = document.getElementById('period-batch-select');
                             var y = document.getElementById('period-year-select');
-                            if (m && m.value && b && b.value && y && y.value) {
-                                currentPeriod = m.value + ' ' + y.value + '-Batch' + b.value;
+                            if (m && m.value && y && y.value) {
+                                if (b && b.value) {
+                                    currentPeriod = m.value + ' ' + y.value + '-Batch' + b.value;
+                                } else {
+                                    currentPeriod = m.value + ' ' + y.value;
+                                }
                                 var pText = document.getElementById('selected-period-text');
-                                if (pText) pText.textContent = currentPeriod.toUpperCase();
+                                if (pText) {
+                                    pText.textContent = (b && b.value) 
+                                        ? currentPeriod.toUpperCase() 
+                                        : (currentPeriod + ' (ALL BATCH)').toUpperCase();
+                                }
                                 loadStatusCardCounts(currentPeriod);
                                 if (window.jQuery) {
                                     $('#periodDropdown').dropdown('toggle');
@@ -1218,13 +1279,60 @@ if (!defined('SPA_MODE')) {
                                         $('#tab-external-qty').text(s.external_mover || 0);
                                         $('#shipped-total-qty').text(c.total_shipped || 0);
                                     }
+
+                                    // Update 10 Site MR Open
+                                    if (c.top_sites_mr_open) {
+                                        render10SiteMrOpen(c.top_sites_mr_open);
+                                    } else {
+                                        render10SiteMrOpen([]);
+                                    }
+
+                                    // Update Most Moda Delivery
+                                    if (c.most_moda_delivery && c.most_moda_delivery !== '-') {
+                                        var countFormatted = Number(c.most_moda_count || 0).toLocaleString('id-ID');
+                                        $('#card-most-moda-delivery').html(c.most_moda_delivery + ' <small class="text-muted font-weight-normal">(' + countFormatted + ')</small>');
+                                    } else {
+                                        $('#card-most-moda-delivery').text('-');
+                                    }
+
+                                    // Update 2026 Monthly Charts
+                                    if (c.monthly_charts) {
+                                        if (typeof window.initOrUpdateOutboundCharts === 'function') {
+                                            window.initOrUpdateOutboundCharts(c.monthly_charts);
+                                        } else if (typeof window.updateOutboundCharts === 'function') {
+                                            window.updateOutboundCharts(c.monthly_charts);
+                                        }
+                                    }
                                 }
                             }
                         });
                     }
 
-                    // Initial Load: periods dropdown & empty cards default
+                    // Function to load initial 2026 monthly chart data
+                    function loadInitial2026Charts() {
+                        $.ajax({
+                            url: 'api/get_outbound_status_detail.php',
+                            type: 'GET',
+                            data: { action: 'counts', periode: '' },
+                            dataType: 'json',
+                            success: function (res) {
+                                if (res.status === 'success' && res.counts && res.counts.monthly_charts) {
+                                    if (typeof window.initOrUpdateOutboundCharts === 'function') {
+                                        window.initOrUpdateOutboundCharts(res.counts.monthly_charts);
+                                    } else if (typeof window.updateOutboundCharts === 'function') {
+                                        window.updateOutboundCharts(res.counts.monthly_charts);
+                                    }
+                                }
+                            }
+                        });
+                    }
+
+                    // Initial Load: periods dropdown, empty cards default & 2026 monthly charts
+                    if (typeof window.initOrUpdateOutboundCharts === 'function') {
+                        window.initOrUpdateOutboundCharts();
+                    }
                     loadPeriods();
+                    loadInitial2026Charts();
 
                     // Tab button click handlers for Carousel slider
                     $('#btn-tab-internal').on('click', function () {

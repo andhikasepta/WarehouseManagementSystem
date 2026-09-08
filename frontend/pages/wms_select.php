@@ -153,7 +153,7 @@ if (!defined('SPA_MODE')) {
                     </div>
 
                     <div class="text-center mt-4">
-                        <a href="index.php" class="text-muted font-weight-bold small">
+                        <a href="/portal" class="text-muted font-weight-bold small">
                             <i class="fas fa-chevron-left mr-1"></i> Kembali ke Landing Page Portal
                         </a>
                     </div>

@@ -13,7 +13,7 @@
     'use strict';
 
     // ── Constants ──────────────────────────────────────────
-    var MAX_FILE_SIZE = 100 * 1024 * 1024; // 100 MB
+    var MAX_FILE_SIZE = 200 * 1024 * 1024; // 200 MB
     var ALLOWED_EXTENSIONS = ['.xlsx', '.xls', '.csv'];
     var PREVIEW_ROWS = 5;
 
@@ -53,10 +53,18 @@
     var generateBtn, dynamicContainer, toastEl;
 
     // ── Initialization ─────────────────────────────────────
-    document.addEventListener('DOMContentLoaded', function () {
+    // SPA-compatible: DOMContentLoaded may have already fired when
+    // this script is loaded dynamically via $.html() in the SPA router.
+    function _initExcelUpload() {
         initDOMReferences();
         bindEvents();
-    });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', _initExcelUpload);
+    } else {
+        _initExcelUpload();
+    }
 
     function initDOMReferences() {
         dropZone = document.getElementById('upload-drop-zone');
@@ -104,7 +112,7 @@
 
         // Click to browse
         dropZone.addEventListener('click', function (e) {
-            if (e.target.tagName !== 'BUTTON') {
+            if (e.target.tagName !== 'BUTTON' && !e.target.closest('button')) {
                 fileInput.click();
             }
         });
@@ -148,6 +156,37 @@
                 generateCharts();
             });
         }
+
+        // Toggle period selectors based on data type (Rack is static master layout, no month/batch)
+        var dataTypeSelect = document.getElementById('upload-data-type');
+        var periodSelectors = document.getElementById('upload-period-selectors');
+        var rackInfoAlert = document.getElementById('upload-rack-info');
+
+        function updateUploadPeriodVisibility() {
+            if (!dataTypeSelect) return;
+            var isRack = (dataTypeSelect.value === 'rack');
+            if (periodSelectors) {
+                periodSelectors.style.display = isRack ? 'none' : '';
+            }
+            if (rackInfoAlert) {
+                rackInfoAlert.style.display = isRack ? 'block' : 'none';
+            }
+        }
+
+        if (dataTypeSelect) {
+            dataTypeSelect.addEventListener('change', updateUploadPeriodVisibility);
+        }
+
+        $('#uploadExcelModal').on('show.bs.modal', function () {
+            // Auto-detect current active tab in Master Data Storage
+            var activeSubTab = $('#masterDataTabs a.active').attr('href');
+            if (activeSubTab === '#rack-data') {
+                if (dataTypeSelect) dataTypeSelect.value = 'rack';
+            } else if (activeSubTab === '#asset-data') {
+                if (dataTypeSelect) dataTypeSelect.value = 'asset';
+            }
+            updateUploadPeriodVisibility();
+        });
 
         // Reset modal state when hidden
         $('#uploadExcelModal').on('hidden.bs.modal', function () {
@@ -380,7 +419,7 @@
         }
 
         if (file.size > MAX_FILE_SIZE) {
-            showToast('File too large. Maximum size is 100MB.', 'error');
+            showToast('File too large. Maximum size is 200MB.', 'error');
             return;
         }
 
@@ -399,9 +438,40 @@
                     parsedWorkbook = XLSX.read(data, { type: 'array', cellFormula: false, cellDates: true });
                     setStepState('step-parse', 'completed');
                     populateSheetSelector();
-                    loadSheet(parsedWorkbook.SheetNames[0]);
-                    setModalExpanded(true);
-                    showToast('File loaded successfully! ' + parsedWorkbook.SheetNames.length + ' sheet(s) found.', 'success');
+
+                    if (parsedWorkbook.SheetNames.length > 1 && typeof Swal !== 'undefined') {
+                        var sheetOpts = {};
+                        parsedWorkbook.SheetNames.forEach(function (s) { sheetOpts[s] = s; });
+                        Swal.fire({
+                            title: 'Pilih Sheet Excel (' + parsedWorkbook.SheetNames.length + ' Sheet)',
+                            html: '<p class="text-muted small mb-2">Pilih sheet Storage yang ingin Anda tampilkan dan proses:</p>',
+                            input: 'select',
+                            inputOptions: sheetOpts,
+                            inputValue: parsedWorkbook.SheetNames[0],
+                            showCancelButton: true,
+                            confirmButtonText: '<i class="fas fa-check mr-1"></i> Pilih & Lanjutkan',
+                            cancelButtonText: '<i class="fas fa-times mr-1"></i> Batal',
+                            confirmButtonColor: '#4e73df',
+                            cancelButtonColor: '#858796',
+                            allowOutsideClick: false,
+                            inputValidator: function (val) {
+                                if (!val) return 'Silakan pilih sheet terlebih dahulu!';
+                            }
+                        }).then(function (res) {
+                            if (res.isConfirmed && res.value) {
+                                loadSheet(res.value);
+                                if (sheetSelect) sheetSelect.value = res.value;
+                                setModalExpanded(true);
+                                showToast('Sheet "' + res.value + '" berhasil dimuat!', 'success');
+                            } else {
+                                resetUpload();
+                            }
+                        });
+                    } else {
+                        loadSheet(parsedWorkbook.SheetNames[0]);
+                        setModalExpanded(true);
+                        showToast('File loaded successfully! ' + parsedWorkbook.SheetNames.length + ' sheet(s) found.', 'success');
+                    }
                 } catch (err) {
                     showToast('Failed to parse file. Please check the format.', 'error');
                     resetUpload();
@@ -475,9 +545,66 @@
         var ws = parsedWorkbook.Sheets[sheetName];
         if (!ws) return;
 
-        // Convert to JSON with headers
-        var jsonData = XLSX.utils.sheet_to_json(ws, { defval: '' });
-        if (jsonData.length === 0) {
+        var dataTypeEl = document.getElementById('upload-data-type');
+        var isRack = (dataTypeEl && dataTypeEl.value === 'rack');
+        var jsonData;
+
+        if (isRack) {
+            var sheetAOA = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+            var headerKeywords = ['barcode', 'name', 'shelf', 'label', 'sub location', 'sub_location', 'active', 'category', 'status', 'kode', 'rack', 'project'];
+            var headerRowIndex = -1;
+            for (var r = 0; r < Math.min(sheetAOA.length, 5); r++) {
+                var rowArr = sheetAOA[r];
+                if (!rowArr || rowArr.length === 0) continue;
+                var matches = 0;
+                for (var c = 0; c < rowArr.length; c++) {
+                    var cellVal = String(rowArr[c] || '').trim().toLowerCase();
+                    if (headerKeywords.indexOf(cellVal) !== -1) matches++;
+                }
+                if (matches >= 2) {
+                    headerRowIndex = r;
+                    break;
+                }
+            }
+
+            var parsedRows = [];
+            if (headerRowIndex !== -1) {
+                var headers = [];
+                for (var hIdx = 0; hIdx < sheetAOA[headerRowIndex].length; hIdx++) {
+                    headers[hIdx] = String(sheetAOA[headerRowIndex][hIdx] || '').trim() || ('col_' + hIdx);
+                }
+                for (var rIdx = headerRowIndex + 1; rIdx < sheetAOA.length; rIdx++) {
+                    var curRow = sheetAOA[rIdx];
+                    if (!curRow || curRow.length === 0) continue;
+                    var hasVal = curRow.some(function (v) { return String(v || '').trim() !== ''; });
+                    if (!hasVal) continue;
+                    var rowObj = {};
+                    for (var cIdx = 0; cIdx < headers.length; cIdx++) {
+                        rowObj[headers[cIdx]] = (curRow[cIdx] !== undefined && curRow[cIdx] !== null) ? String(curRow[cIdx]).trim() : '';
+                    }
+                    parsedRows.push(rowObj);
+                }
+            } else {
+                var defaultHeaders = ['BARCODE', 'NAME', 'LABEL', 'ACTIVE', 'CATEGORY'];
+                for (var rIdx = 0; rIdx < sheetAOA.length; rIdx++) {
+                    var curRow = sheetAOA[rIdx];
+                    if (!curRow || curRow.length === 0) continue;
+                    var hasVal = curRow.some(function (v) { return String(v || '').trim() !== ''; });
+                    if (!hasVal) continue;
+                    var rowObj = {};
+                    for (var cIdx = 0; cIdx < curRow.length; cIdx++) {
+                        var h = (cIdx < defaultHeaders.length) ? defaultHeaders[cIdx] : ('col_' + cIdx);
+                        rowObj[h] = (curRow[cIdx] !== undefined && curRow[cIdx] !== null) ? String(curRow[cIdx]).trim() : '';
+                    }
+                    parsedRows.push(rowObj);
+                }
+            }
+            jsonData = parsedRows;
+        } else {
+            jsonData = XLSX.utils.sheet_to_json(ws, { defval: '' });
+        }
+
+        if (!jsonData || jsonData.length === 0) {
             showToast('Selected sheet is empty.', 'info');
             if (previewSection) previewSection.classList.remove('active');
             if (controlsPanel) controlsPanel.classList.remove('active');
@@ -639,7 +766,7 @@
 
         var initPayload = { action: 'init' };
 
-        // Read period selectors from the upload form
+        // Read period selectors from the upload form (Asset only)
         var uploadBulan = document.getElementById('upload-bulan-select');
         var uploadBatch = document.getElementById('upload-batch-select');
         var uploadTahun = document.getElementById('upload-tahun-select');
@@ -648,6 +775,16 @@
         var periodYear = uploadTahun ? uploadTahun.value : new Date().getFullYear().toString();
 
         if (dataType === 'asset') {
+            if (!periodMonth || !periodYear) {
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire('Peringatan', 'Silakan pilih Bulan dan Tahun Periode terlebih dahulu sebelum mengupload data asset.', 'warning');
+                } else {
+                    alert('Silakan pilih Bulan dan Tahun Periode terlebih dahulu.');
+                }
+                toggleModalInteractivity(true);
+                return;
+            }
+
             var pGroup;
             if (periodMonth && periodYear && periodBatch) {
                 pGroup = periodMonth + ' ' + periodYear + '-Batch' + periodBatch;
@@ -695,11 +832,13 @@
 
             var appendPayload = {
                 action: 'append',
-                data: batchRows,
-                month: periodMonth,
-                year: periodYear,
-                batch: periodBatch
+                data: batchRows
             };
+            if (dataType === 'asset') {
+                appendPayload.month = periodMonth;
+                appendPayload.year = periodYear;
+                appendPayload.batch = periodBatch;
+            }
 
             fetch(apiEndpoint, {
                 method: 'POST',
@@ -768,16 +907,38 @@
                         $('#uploadExcelModal').modal('hide');
                         resetUpload();
 
-                        if (typeof Swal !== 'undefined') {
-                            Swal.fire({
-                                title: 'Data Upload Success!',
-                                icon: 'success',
-                                confirmButtonText: 'OK'
-                            }).then(function () {
-                                window.location.reload();
-                            });
+                        if (dataType === 'rack') {
+                            if (typeof Swal !== 'undefined') {
+                                Swal.fire({
+                                    title: 'Data Upload Success!',
+                                    text: 'Master Data Utilisasi Rack berhasil di-upload.',
+                                    icon: 'success',
+                                    confirmButtonText: 'OK'
+                                }).then(function () {
+                                    if (window.rackTable) {
+                                        window.rackTable.ajax.reload(null, false);
+                                    } else if (typeof initRackTable === 'function') {
+                                        initRackTable();
+                                    } else {
+                                        window.location.reload();
+                                    }
+                                });
+                            } else {
+                                if (window.rackTable) window.rackTable.ajax.reload(null, false);
+                                else window.location.reload();
+                            }
                         } else {
-                            window.location.reload();
+                            if (typeof Swal !== 'undefined') {
+                                Swal.fire({
+                                    title: 'Data Upload Success!',
+                                    icon: 'success',
+                                    confirmButtonText: 'OK'
+                                }).then(function () {
+                                    window.location.reload();
+                                });
+                            } else {
+                                window.location.reload();
+                            }
                         }
                     }, 1000);
                 })

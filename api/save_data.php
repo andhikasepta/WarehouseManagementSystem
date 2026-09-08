@@ -53,10 +53,15 @@ function formatPeriode($rawDate, $year = null, $batch = '1') {
     return 'Unknown Period';
 }
 
-function getValCI($row, $key) {
-    foreach ($row as $k => $v) {
-        if (strcasecmp($k, $key) === 0) {
-            return $v;
+function getValCI($row, $keys) {
+    if (!is_array($keys)) {
+        $keys = [$keys];
+    }
+    foreach ($keys as $key) {
+        foreach ($row as $k => $v) {
+            if (strcasecmp($k, $key) === 0 && $v !== null && $v !== '') {
+                return $v;
+            }
         }
     }
     return null;
@@ -123,16 +128,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             $nbv = is_numeric($nbv) ? (float)$nbv : 0;
 
                             $stmt->execute([
-                                getValCI($row, 'spec_code'),
-                                getValCI($row, 'spec_name'),
-                                getValCI($row, 'reg_no'),
-                                getValCI($row, 'asset_planner_organization'),
+                                getValCI($row, ['spec_code', 'spec code', 'spek_code']),
+                                getValCI($row, ['spec_name', 'spec name', 'nama perangkat', 'boq_name']),
+                                getValCI($row, ['reg_no', 'reg no', 'no_reg']),
+                                getValCI($row, ['asset_planner_organization', 'organization', 'dept']),
                                 $nbv,
-                                getValCI($row, 'so_result'),
-                                getValCI($row, 'so_location'),
-                                getValCI($row, 'range'),
-                                getValCI($row, 'sub_location'),
-                                getValCI($row, 'category'),
+                                getValCI($row, ['so_result', 'so result']),
+                                getValCI($row, ['so_location', 'so location', 'loc_name']),
+                                getValCI($row, ['range', 'aging']),
+                                getValCI($row, ['sub_location', 'sub location']),
+                                getValCI($row, ['category', 'flag', 'kategori']),
                                 $periodeRaw,
                                 $periodeGroup,
                                 $rawData
@@ -208,16 +213,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $nbv = is_numeric($nbv) ? (float)$nbv : 0;
 
                     $stmt->execute([
-                        getValCI($row, 'spec_code'),
-                        getValCI($row, 'spec_name'),
-                        getValCI($row, 'reg_no'),
-                        getValCI($row, 'asset_planner_organization'),
+                        getValCI($row, ['spec_code', 'spec code', 'spek_code']),
+                        getValCI($row, ['spec_name', 'spec name', 'nama perangkat', 'boq_name']),
+                        getValCI($row, ['reg_no', 'reg no', 'no_reg']),
+                        getValCI($row, ['asset_planner_organization', 'organization', 'dept']),
                         $nbv,
-                        getValCI($row, 'so_result'),
-                        getValCI($row, 'so_location'),
-                        getValCI($row, 'range'),
-                        getValCI($row, 'sub_location'),
-                        getValCI($row, 'category'),
+                        getValCI($row, ['so_result', 'so result']),
+                        getValCI($row, ['so_location', 'so location', 'loc_name']),
+                        getValCI($row, ['range', 'aging']),
+                        getValCI($row, ['sub_location', 'sub location']),
+                        getValCI($row, ['category', 'flag', 'kategori']),
                         $periodeRaw,
                         $periodeGroup,
                         $rawData

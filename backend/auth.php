@@ -17,17 +17,32 @@ if (session_status() === PHP_SESSION_NONE) {
     $sessionLifetime = (int)(getenv('SESSION_LIFETIME') ?: 1200);
 
     if ($sessionSaveHandler === 'redis') {
-        $redisHandler = new RedisSessionHandler(
-            $redisHost,
-            (int)$redisPort,
-            (float)$redisTimeout,
-            'PHPREDIS_SESSION:',
-            $sessionLifetime,
-            $redisPassword,
-            $redisUser,
-            $redisTls
-        );
-        session_set_save_handler($redisHandler, true);
+        $redisOfflineFlag = __DIR__ . '/.redis_offline';
+        $isRedisOffline = file_exists($redisOfflineFlag) && (time() - filemtime($redisOfflineFlag) < 600);
+
+        if (!$isRedisOffline) {
+            $probe = @fsockopen($redisHost, (int)$redisPort, $probeErrno, $probeErrstr, 0.2);
+            if ($probe) {
+                fclose($probe);
+                if (file_exists($redisOfflineFlag)) @unlink($redisOfflineFlag);
+                $redisHandler = new RedisSessionHandler(
+                    $redisHost,
+                    (int)$redisPort,
+                    (float)$redisTimeout,
+                    'PHPREDIS_SESSION:',
+                    $sessionLifetime,
+                    $redisPassword,
+                    $redisUser,
+                    $redisTls
+                );
+                @session_set_save_handler($redisHandler, true);
+            } else {
+                @file_put_contents($redisOfflineFlag, (string)time());
+                ini_set('session.save_handler', 'files');
+            }
+        } else {
+            ini_set('session.save_handler', 'files');
+        }
     }
 
     // Security Hardening for Sessions
@@ -47,7 +62,10 @@ if (session_status() === PHP_SESSION_NONE) {
         'httponly' => true,
         'samesite' => 'Lax'
     ]);
-    session_start();
+    if (!@session_start()) {
+        ini_set('session.save_handler', 'files');
+        @session_start();
+    }
 }
 
 // Session inactivity timeout (20 minutes / 1200 seconds)
@@ -64,7 +82,7 @@ if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity'] > 
     session_destroy();
     
     // Restart session bersih agar CSRF token baru dapat tersimpan dengan benar
-    session_start();
+    @session_start();
     session_regenerate_id(true);
 }
 
@@ -85,7 +103,7 @@ if (isset($_SESSION['user_id']) && !empty($_SESSION['user_id'])) {
         session_destroy();
 
         // Restart session bersih
-        session_start();
+        @session_start();
         session_regenerate_id(true);
     } else {
         if (!isset($_SESSION['auth_ua_hash'])) {

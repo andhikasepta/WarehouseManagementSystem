@@ -43,6 +43,10 @@ if (!defined('SPA_MODE')) {
             color: #3a3b45;
             margin-bottom: 0;
         }
+        #nav-item-period-selector,
+        #periodDropdown {
+            display: none !important;
+        }
     </style>
 <?php if (!defined('SPA_MODE')) { ?>
 </head>

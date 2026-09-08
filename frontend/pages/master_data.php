@@ -9,6 +9,7 @@ $userModules = is_array($currentUser['allowed_modules'] ?? null) ? $currentUser[
 $canAccessInboundMaster = hasPermission('master_data_inbound', 'view');
 $canAccessStorageMaster = hasPermission('master_data_storage', 'view');
 $canAccessOutboundMaster = hasPermission('master_data_outbound', 'view');
+$canAccessKpiMaster = hasPermission('master_data_kpi', 'view');
 
 // Fallback: If user has main module access and no other master data sub-modules assigned
 if (!$canAccessInboundMaster && hasPermission('inbound', 'view') && !in_array('master_data_storage', $userModules) && !in_array('master_data_outbound', $userModules)) {
@@ -20,12 +21,16 @@ if (!$canAccessStorageMaster && hasPermission('warehouse', 'view') && !in_array(
 if (!$canAccessOutboundMaster && hasPermission('outbound', 'view') && !in_array('master_data_inbound', $userModules) && !in_array('master_data_storage', $userModules)) {
     $canAccessOutboundMaster = true;
 }
+if (!$canAccessKpiMaster && hasPermission('kpi_monitoring', 'view')) {
+    $canAccessKpiMaster = true;
+}
 
-// Superadmin has full access to all 3 tabs
+// Superadmin has full access to all tabs
 if ($userRole === 'superadmin') {
     $canAccessInboundMaster = true;
     $canAccessStorageMaster = true;
     $canAccessOutboundMaster = true;
+    $canAccessKpiMaster = true;
 }
 
 $defaultMasterSegment = '';
@@ -35,6 +40,8 @@ if ($canAccessInboundMaster) {
     $defaultMasterSegment = 'storage';
 } elseif ($canAccessOutboundMaster) {
     $defaultMasterSegment = 'outbound';
+} elseif ($canAccessKpiMaster) {
+    $defaultMasterSegment = 'kpi';
 }
 
 $canAddInbound = ($userRole === 'superadmin') || canAdd('master_data_inbound') || canAdd('inbound');
@@ -45,6 +52,9 @@ $canDeleteStorage = ($userRole === 'superadmin') || canDelete('master_data_stora
 
 $canAddOutbound = ($userRole === 'superadmin') || canAdd('master_data_outbound') || canAdd('outbound');
 $canDeleteOutbound = ($userRole === 'superadmin') || canDelete('master_data_outbound') || canDelete('outbound');
+
+$canAddKpi = ($userRole === 'superadmin') || canAdd('master_data_kpi') || canAdd('kpi_monitoring');
+$canDeleteKpi = ($userRole === 'superadmin') || canDelete('master_data_kpi') || canDelete('kpi_monitoring');
 
 if (!defined('SPA_MODE')) {
     $pageTitle = 'WMS - PT. Aplikanusa Lintasarta';
@@ -59,6 +69,8 @@ if (!defined('SPA_MODE')) {
     window.userCanDeleteInbound = <?php echo $canDeleteInbound ? 'true' : 'false'; ?>;
     window.userCanAddOutbound = <?php echo $canAddOutbound ? 'true' : 'false'; ?>;
     window.userCanDeleteOutbound = <?php echo $canDeleteOutbound ? 'true' : 'false'; ?>;
+    window.userCanAddKpi = <?php echo $canAddKpi ? 'true' : 'false'; ?>;
+    window.userCanDeleteKpi = <?php echo $canDeleteKpi ? 'true' : 'false'; ?>;
 </script>
 
 <!-- DataTables CSS -->
@@ -109,6 +121,11 @@ if (!defined('SPA_MODE')) {
     #dataTableAsset td:nth-child(1) {
         white-space: normal !important;
         min-width: 200px;
+    }
+
+    #nav-item-period-selector,
+    #periodDropdown {
+        display: none !important;
     }
 </style>
 <?php if (!defined('SPA_MODE')) { ?>
@@ -192,6 +209,25 @@ if (!defined('SPA_MODE')) {
                                     style="cursor: not-allowed; opacity: 0.55; background-color: #f1f3f9;"
                                     title="Modul ini terkunci (Khusus Hak Akses Outbound Administrator)">
                                     <i class="fas fa-lock mr-2 text-secondary"></i> Outbound Master Data
+                                </a>
+                            <?php endif; ?>
+                        </li>
+
+                        <!-- KPI Master Data Segment Tab -->
+                        <li class="nav-item" role="presentation">
+                            <?php if ($canAccessKpiMaster): ?>
+                                <a class="nav-link font-weight-bold text-uppercase py-2 <?php echo ($defaultMasterSegment === 'kpi') ? 'active' : ''; ?>"
+                                    id="seg-kpi-tab" data-toggle="pill" href="#seg-kpi" role="tab"
+                                    aria-controls="seg-kpi"
+                                    aria-selected="<?php echo ($defaultMasterSegment === 'kpi') ? 'true' : 'false'; ?>">
+                                    <i class="fas fa-tachometer-alt mr-2"></i> KPI Master Data
+                                </a>
+                            <?php else: ?>
+                                <a class="nav-link font-weight-bold text-uppercase py-2 disabled text-muted"
+                                    id="seg-kpi-tab" href="javascript:void(0)"
+                                    style="cursor: not-allowed; opacity: 0.55; background-color: #f1f3f9;"
+                                    title="Modul ini terkunci (Khusus Hak Akses KPI Administrator)">
+                                    <i class="fas fa-lock mr-2 text-secondary"></i> KPI Master Data
                                 </a>
                             <?php endif; ?>
                         </li>
@@ -456,9 +492,14 @@ if (!defined('SPA_MODE')) {
                                     <!-- Rack Data Tab -->
                                     <div class="tab-pane fade" id="rack-data" role="tabpanel" aria-labelledby="rack-tab">
                                         <div class="card shadow mb-4" style="min-height: calc(100vh - 380px);">
-                                            <div class="card-header py-3">
+                                            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
                                                 <h6 class="m-0 font-weight-bold text-primary">Tabel Master Utilisasi Rack
                                                 </h6>
+                                                <?php if ($canAddStorage): ?>
+                                                    <button class="btn btn-success btn-sm shadow-sm font-weight-bold" id="btn-import-rack-direct" type="button" data-toggle="modal" data-target="#uploadExcelModalRack">
+                                                        <i class="fas fa-file-import mr-1"></i> Import Excel Rack
+                                                    </button>
+                                                <?php endif; ?>
                                             </div>
                                             <div class="card-body">
 
@@ -487,9 +528,11 @@ if (!defined('SPA_MODE')) {
                                                         width="100%" cellspacing="0">
                                                         <thead>
                                                             <tr>
-                                                                <th>Label (Sub Location)</th>
-                                                                <th>Rack Group</th>
-                                                                <th>Category</th>
+                                                                <th>BARCODE</th>
+                                                                <th>NAME</th>
+                                                                <th>LABEL</th>
+                                                                <th>ACTIVE</th>
+                                                                <th>CATEGORY</th>
                                                             </tr>
                                                         </thead>
                                                         <tbody>
@@ -609,21 +652,327 @@ if (!defined('SPA_MODE')) {
                                 id="seg-outbound" role="tabpanel" aria-labelledby="seg-outbound-tab">
                                 <?php if ($canAddOutbound || $canDeleteOutbound): ?>
                                     <div
-                                        class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between mb-3 bg-white p-3 rounded shadow-sm border">
-                                        <h6 class="m-0 font-weight-bold text-primary">
+                                        class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between mb-3 bg-white p-3 rounded shadow-sm border" id="outbound-action-buttons">
+                                        <h6 class="m-0 font-weight-bold text-primary" id="outbound-menu-title">
                                             <i class="fas fa-truck-loading mr-2"></i>Menu Master Data Outbound
                                         </h6>
                                         <div class="mt-2 mt-sm-0">
-                                            <?php if ($canAddOutbound): ?>
+                                            <!-- Action Buttons for Pending List -->
+                                            <span id="btn-group-pending-actions">
+                                                <?php if ($canAddOutbound): ?>
+                                                    <button class="btn btn-success btn-sm shadow-sm font-weight-bold mr-2"
+                                                        data-toggle="modal" data-target="#uploadExcelModalOutbound">
+                                                        <i class="fas fa-file-import mr-1"></i> Import Excel Pending List
+                                                    </button>
+                                                <?php endif; ?>
+                                                <?php if ($canDeleteOutbound): ?>
+                                                    <button class="btn btn-danger btn-sm shadow-sm font-weight-bold" data-toggle="modal"
+                                                        data-target="#deleteDataModalOutbound">
+                                                        <i class="fas fa-trash-alt mr-1"></i> Hapus Data Pending List
+                                                    </button>
+                                                <?php endif; ?>
+                                            </span>
+
+                                            <!-- Action Buttons for PR Forwarder -->
+                                            <span id="btn-group-forwarder-actions" style="display: none;">
+                                                <?php if ($canAddOutbound): ?>
+                                                    <button class="btn btn-success btn-sm shadow-sm font-weight-bold mr-2"
+                                                        data-toggle="modal" data-target="#uploadExcelModalForwarder">
+                                                        <i class="fas fa-file-import mr-1"></i> Import Excel PR Forwarder
+                                                    </button>
+                                                <?php endif; ?>
+                                                <?php if ($canDeleteOutbound): ?>
+                                                    <button class="btn btn-danger btn-sm shadow-sm font-weight-bold" data-toggle="modal"
+                                                        data-target="#deleteDataModalForwarder">
+                                                        <i class="fas fa-trash-alt mr-1"></i> Hapus Data PR Forwarder
+                                                    </button>
+                                                <?php endif; ?>
+                                            </span>
+                                        </div>
+                                    </div>
+                                <?php endif; ?>
+
+                                <!-- Sub Master Data Tabs for Outbound (Just like Storage Master Data) -->
+                                <ul class="nav nav-tabs mb-4" id="outboundSubTabs" role="tablist">
+                                    <li class="nav-item" role="presentation">
+                                        <a class="nav-link active" id="tab-outbound-pending" data-toggle="tab" href="#pane-outbound-pending"
+                                            role="tab" aria-controls="pane-outbound-pending" aria-selected="true">
+                                            <i class="fas fa-list-alt mr-1"></i> Data Pending List
+                                        </a>
+                                    </li>
+                                    <li class="nav-item" role="presentation">
+                                        <a class="nav-link" id="tab-outbound-forwarder" data-toggle="tab" href="#pane-outbound-forwarder"
+                                            role="tab" aria-controls="pane-outbound-forwarder" aria-selected="false">
+                                            <i class="fas fa-shipping-fast mr-1"></i> Data PR Forwarder
+                                        </a>
+                                    </li>
+                                </ul>
+
+                                <div class="tab-content" id="outboundSubTabContent">
+                                    <!-- PANE 1: PENDING LIST -->
+                                    <div class="tab-pane fade show active" id="pane-outbound-pending" role="tabpanel" aria-labelledby="tab-outbound-pending">
+                                        <div class="card shadow mb-4" style="min-height: calc(100vh - 380px);">
+                                            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                                                <h6 class="m-0 font-weight-bold text-primary">Tabel Master Data Outbound (Pending List)</h6>
+                                            </div>
+                                            <div class="card-body">
+                                                <!-- Filter Control Bar (Dropdowns & Reset) -->
+                                                <div class="card shadow-sm border mb-4" style="border-radius: 8px;">
+                                                    <div class="card-body py-3 px-4">
+                                                        <div class="form-row align-items-end">
+                                                            <!-- Periode Dropdown -->
+                                                            <div class="col-md-2 col-sm-6 mb-2 mb-md-0">
+                                                                <label for="filter-outbound-periode"
+                                                                    class="small font-weight-bold text-gray-700 mb-1">Periode</label>
+                                                                <select
+                                                                    class="form-control form-control-sm custom-select custom-select-sm"
+                                                                    id="filter-outbound-periode">
+                                                                    <option value="">Semua Periode</option>
+                                                                </select>
+                                                            </div>
+
+                                                            <!-- Site Destination Dropdown -->
+                                                            <div class="col-md-2 col-sm-6 mb-2 mb-md-0">
+                                                                <label for="filter-tujuan-site-outbound"
+                                                                    class="small font-weight-bold text-gray-700 mb-1">Site
+                                                                    Destination</label>
+                                                                <select
+                                                                    class="form-control form-control-sm custom-select custom-select-sm"
+                                                                    id="filter-tujuan-site-outbound">
+                                                                    <option value="">Semua Site Destination</option>
+                                                                </select>
+                                                            </div>
+
+                                                            <!-- MR Status Dropdown -->
+                                                            <div class="col-md-2 col-sm-6 mb-2 mb-md-0">
+                                                                <label for="filter-mr-status-outbound"
+                                                                    class="small font-weight-bold text-gray-700 mb-1">MR
+                                                                    Status</label>
+                                                                <select
+                                                                    class="form-control form-control-sm custom-select custom-select-sm"
+                                                                    id="filter-mr-status-outbound">
+                                                                    <option value="">Semua MR Status</option>
+                                                                </select>
+                                                            </div>
+
+                                                            <!-- DN Status Dropdown -->
+                                                            <div class="col-md-2 col-sm-6 mb-2 mb-md-0">
+                                                                <label for="filter-dn-status-outbound"
+                                                                    class="small font-weight-bold text-gray-700 mb-1">DN
+                                                                    Status</label>
+                                                                <select
+                                                                    class="form-control form-control-sm custom-select custom-select-sm"
+                                                                    id="filter-dn-status-outbound">
+                                                                    <option value="">Semua DN Status</option>
+                                                                </select>
+                                                            </div>
+
+                                                            <!-- Search No. MR / PCK / DN / PO -->
+                                                            <div class="col-md-2 col-sm-6 mb-2 mb-md-0">
+                                                                <label for="filter-outbound-mr"
+                                                                    class="small font-weight-bold text-gray-700 mb-1">Search</label>
+                                                                <input type="text" class="form-control form-control-sm"
+                                                                    id="filter-outbound-mr"
+                                                                    placeholder="Search...">
+                                                            </div>
+
+                                                            <!-- Reset Filter Button -->
+                                                            <div class="col-md-2 col-sm-6 mb-2 mb-md-0">
+                                                                <button
+                                                                    class="btn btn-outline-secondary btn-sm font-weight-bold btn-block"
+                                                                    type="button" id="btn-reset-filter-outbound">
+                                                                    <i class="fas fa-undo mr-1"></i> Reset Filter
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div class="table-responsive">
+                                                    <table class="table table-bordered table-sm text-nowrap" id="dataTableOutbound"
+                                                        width="100%" cellspacing="0">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>MR NO</th>
+                                                                <th>MR TYPE</th>
+                                                                <th>MR DESC</th>
+                                                                <th>MR STATUS</th>
+                                                                <th>PCK NO</th>
+                                                                <th>PCK DETAIL</th>
+                                                                <th>PCK STATUS</th>
+                                                                <th>AWB</th>
+                                                                <th>DN NO</th>
+                                                                <th>PR NO</th>
+                                                                <th>PO NO</th>
+                                                                <th>FROM</th>
+                                                                <th>SITE ORIGIN</th>
+                                                                <th>SITE ORIGIN ADDR</th>
+                                                                <th>TO</th>
+                                                                <th>SITE DESTINATION</th>
+                                                                <th>SITE DESTINATION ADDR</th>
+                                                                <th>PICKUP TYPE</th>
+                                                                <th>VIA</th>
+                                                                <th>LT</th>
+                                                                <th>DELIVERY TARGET</th>
+                                                                <th>DN STATUS</th>
+                                                                <th>LAST LOG</th>
+                                                                <th>PERIODE GROUP</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <!-- Populated dynamically via DataTables -->
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- PANE 2: PR FORWARDER -->
+                                    <div class="tab-pane fade" id="pane-outbound-forwarder" role="tabpanel" aria-labelledby="tab-outbound-forwarder">
+                                        <div class="card shadow mb-4" style="min-height: calc(100vh - 380px);">
+                                            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                                                <h6 class="m-0 font-weight-bold text-primary">Tabel Master Data Outbound (PR Forwarder)</h6>
+                                            </div>
+                                            <div class="card-body">
+                                                <!-- Filter Control Bar PR Forwarder (Matching KPI Master Data Style) -->
+                                                <div class="card shadow-sm border mb-4" style="border-radius: 8px;">
+                                                    <div class="card-body py-3 px-4">
+                                                        <div class="form-row align-items-end">
+                                                            <!-- Periode Dropdown -->
+                                                            <div class="col-md-3 col-sm-6 mb-2 mb-md-0">
+                                                                <label for="filter-forwarder-periode"
+                                                                    class="small font-weight-bold text-gray-700 mb-1">Periode</label>
+                                                                <select
+                                                                    class="form-control form-control-sm custom-select custom-select-sm"
+                                                                    id="filter-forwarder-periode">
+                                                                    <option value="">Semua Periode</option>
+                                                                </select>
+                                                            </div>
+
+                                                            <!-- Reset Filter Button -->
+                                                            <div class="col-md-2 col-sm-6 mb-2 mb-md-0">
+                                                                <button
+                                                                    class="btn btn-outline-secondary btn-sm font-weight-bold btn-block"
+                                                                    type="button" id="btn-reset-filter-forwarder">
+                                                                    <i class="fas fa-undo mr-1"></i> Reset Filter
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- PR Forwarder Table with 3-Row Nested Headers -->
+                                                <div class="table-responsive">
+                                                    <table class="table table-bordered table-sm text-nowrap" id="dataTablePrForwarder"
+                                                        width="100%" cellspacing="0">
+                                                        <thead>
+                                                            <!-- Row 1: Super Headers -->
+                                                            <tr>
+                                                                <th rowspan="3" class="text-center align-middle">NO DN</th>
+                                                                <th rowspan="3" class="text-center align-middle">PRINT</th>
+                                                                <th rowspan="3" class="text-center align-middle">DN STATUS</th>
+                                                                <th colspan="4" class="text-center align-middle">ASAL</th>
+                                                                <th colspan="4" class="text-center align-middle">TUJUAN</th>
+                                                                <th colspan="17" class="text-center align-middle">PROCUREMENT</th>
+                                                                <th rowspan="3" class="text-center align-middle">DOC</th>
+                                                                <th rowspan="3" class="text-center align-middle">NOTE</th>
+                                                                <th colspan="7" class="text-center align-middle">DELIVERY</th>
+                                                                <th colspan="3" class="text-center align-middle">APPROVAL</th>
+                                                                <th rowspan="3" class="text-center align-middle">PERIODE GROUP</th>
+                                                            </tr>
+                                                            <!-- Row 2: Sub Headers -->
+                                                            <tr>
+                                                                <!-- Under ASAL -->
+                                                                <th rowspan="2" class="text-center align-middle">PENGIRIM</th>
+                                                                <th colspan="3" class="text-center align-middle">SITE</th>
+                                                                <!-- Under TUJUAN -->
+                                                                <th rowspan="2" class="text-center align-middle">PENERIMA</th>
+                                                                <th colspan="3" class="text-center align-middle">SITE</th>
+                                                                <!-- Under PROCUREMENT -->
+                                                                <th colspan="2" class="text-center align-middle">VENDOR</th>
+                                                                <th rowspan="2" class="text-center align-middle">KOLI</th>
+                                                                <th rowspan="2" class="text-center align-middle">MATA ANGGARAN</th>
+                                                                <th colspan="2" class="text-center align-middle">SR</th>
+                                                                <th colspan="2" class="text-center align-middle">PR</th>
+                                                                <th rowspan="2" class="text-center align-middle">VALUATION PRICE</th>
+                                                                <th rowspan="2" class="text-center align-middle">SUGGESTION</th>
+                                                                <th rowspan="2" class="text-center align-middle">PURPOSE</th>
+                                                                <th colspan="6" class="text-center align-middle">PO</th>
+                                                                <!-- Under DELIVERY -->
+                                                                <th rowspan="2" class="text-center align-middle">TYPE</th>
+                                                                <th rowspan="2" class="text-center align-middle">VIA</th>
+                                                                <th rowspan="2" class="text-center align-middle">NAMA</th>
+                                                                <th rowspan="2" class="text-center align-middle">AWB</th>
+                                                                <th rowspan="2" class="text-center align-middle">PICKUP</th>
+                                                                <th rowspan="2" class="text-center align-middle">LEAD TIME</th>
+                                                                <th rowspan="2" class="text-center align-middle">TARGET DLV</th>
+                                                                <!-- Under APPROVAL -->
+                                                                <th rowspan="2" class="text-center align-middle">STATUS</th>
+                                                                <th rowspan="2" class="text-center align-middle">APPROVER</th>
+                                                                <th rowspan="2" class="text-center align-middle">DATE</th>
+                                                            </tr>
+                                                            <!-- Row 3: Sub-Sub Headers (Leaf Columns) -->
+                                                            <tr>
+                                                                <!-- Under ASAL SITE -->
+                                                                <th class="text-center align-middle">CODE</th>
+                                                                <th class="text-center align-middle">SITE</th>
+                                                                <th class="text-center align-middle">ALAMAT</th>
+                                                                <!-- Under TUJUAN SITE -->
+                                                                <th class="text-center align-middle">CODE</th>
+                                                                <th class="text-center align-middle">SITE</th>
+                                                                <th class="text-center align-middle">ALAMAT</th>
+                                                                <!-- Under VENDOR -->
+                                                                <th class="text-center align-middle">MODE</th>
+                                                                <th class="text-center align-middle">NAME</th>
+                                                                <!-- Under SR -->
+                                                                <th class="text-center align-middle">NO</th>
+                                                                <th class="text-center align-middle">TGL</th>
+                                                                <!-- Under PR -->
+                                                                <th class="text-center align-middle">NO</th>
+                                                                <th class="text-center align-middle">TGL</th>
+                                                                <!-- Under PO -->
+                                                                <th class="text-center align-middle">NO</th>
+                                                                <th class="text-center align-middle">TGL</th>
+                                                                <th class="text-center align-middle">PRICE</th>
+                                                                <th class="text-center align-middle">VENDOR</th>
+                                                                <th class="text-center align-middle">TARGET DLV</th>
+                                                                <th class="text-center align-middle">BUYER</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <!-- Populated dynamically via DataTables -->
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endif; ?>
+
+                        <?php if ($canAccessKpiMaster): ?>
+                            <!-- 4. KPI MASTER DATA -->
+                            <div class="tab-pane fade <?php echo ($defaultMasterSegment === 'kpi') ? 'show active' : ''; ?>"
+                                id="seg-kpi" role="tabpanel" aria-labelledby="seg-kpi-tab">
+                                <?php if ($canAddKpi || $canDeleteKpi): ?>
+                                    <div
+                                        class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between mb-3 bg-white p-3 rounded shadow-sm border" id="kpi-action-buttons">
+                                        <h6 class="m-0 font-weight-bold text-primary">
+                                            <i class="fas fa-tachometer-alt mr-2"></i>Menu KPI Master Data
+                                        </h6>
+                                        <div class="mt-2 mt-sm-0">
+                                            <?php if ($canAddKpi): ?>
                                                 <button class="btn btn-success btn-sm shadow-sm font-weight-bold mr-2"
-                                                    data-toggle="modal" data-target="#uploadExcelModalOutbound">
-                                                    <i class="fas fa-file-import mr-1"></i> Import Excel Outbound
+                                                    data-toggle="modal" data-target="#uploadExcelModalKpi">
+                                                    <i class="fas fa-file-import mr-1"></i> Import Excel KPI
                                                 </button>
                                             <?php endif; ?>
-                                            <?php if ($canDeleteOutbound): ?>
+                                            <?php if ($canDeleteKpi): ?>
                                                 <button class="btn btn-danger btn-sm shadow-sm font-weight-bold" data-toggle="modal"
-                                                    data-target="#deleteDataModalOutbound">
-                                                    <i class="fas fa-trash-alt mr-1"></i> Hapus Data Outbound
+                                                    data-target="#deleteDataModalKpi">
+                                                    <i class="fas fa-trash-alt mr-1"></i> Hapus Data KPI
                                                 </button>
                                             <?php endif; ?>
                                         </div>
@@ -633,75 +982,32 @@ if (!defined('SPA_MODE')) {
                                 <div class="card shadow mb-4" style="min-height: calc(100vh - 380px);">
                                     <div
                                         class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                                        <h6 class="m-0 font-weight-bold text-primary">Tabel Master Data Outbound</h6>
+                                        <h6 class="m-0 font-weight-bold text-primary">Tabel KPI Master Data</h6>
                                     </div>
                                     <div class="card-body">
-                                        <!-- Filter Control Bar (Dropdowns & Reset) -->
+                                        <!-- Year Filter -->
                                         <div class="card shadow-sm border mb-4" style="border-radius: 8px;">
                                             <div class="card-body py-3 px-4">
                                                 <div class="form-row align-items-end">
-                                                    <!-- Periode Dropdown -->
-                                                    <div class="col-md-2 col-sm-6 mb-2 mb-md-0">
-                                                        <label for="filter-outbound-periode"
-                                                            class="small font-weight-bold text-gray-700 mb-1">Periode</label>
+                                                    <div class="col-md-3 col-sm-6 mb-2 mb-md-0">
+                                                        <label for="filter-kpi-year"
+                                                            class="small font-weight-bold text-gray-700 mb-1">Periode Tahun</label>
                                                         <select
                                                             class="form-control form-control-sm custom-select custom-select-sm"
-                                                            id="filter-outbound-periode">
-                                                            <option value="">Semua Periode</option>
+                                                            id="filter-kpi-year">
+                                                            <?php
+                                                            $curYear = (int) date('Y');
+                                                            $minKpiYear = 2026;
+                                                            $startYear = max($minKpiYear, $curYear);
+                                                            for ($y = $minKpiYear; $y <= $curYear + 5; $y++): ?>
+                                                                <option value="<?php echo $y; ?>" <?php echo ($y === $curYear) ? 'selected' : ''; ?>><?php echo $y; ?></option>
+                                                            <?php endfor; ?>
                                                         </select>
                                                     </div>
-
-                                                    <!-- Site Destination Dropdown -->
-                                                    <div class="col-md-2 col-sm-6 mb-2 mb-md-0">
-                                                        <label for="filter-tujuan-site-outbound"
-                                                            class="small font-weight-bold text-gray-700 mb-1">Site
-                                                            Destination</label>
-                                                        <select
-                                                            class="form-control form-control-sm custom-select custom-select-sm"
-                                                            id="filter-tujuan-site-outbound">
-                                                            <option value="">Semua Site Destination</option>
-                                                        </select>
-                                                    </div>
-
-                                                    <!-- MR Status Dropdown -->
-                                                    <div class="col-md-2 col-sm-6 mb-2 mb-md-0">
-                                                        <label for="filter-mr-status-outbound"
-                                                            class="small font-weight-bold text-gray-700 mb-1">MR
-                                                            Status</label>
-                                                        <select
-                                                            class="form-control form-control-sm custom-select custom-select-sm"
-                                                            id="filter-mr-status-outbound">
-                                                            <option value="">Semua MR Status</option>
-                                                        </select>
-                                                    </div>
-
-                                                    <!-- DN Status Dropdown -->
-                                                    <div class="col-md-2 col-sm-6 mb-2 mb-md-0">
-                                                        <label for="filter-dn-status-outbound"
-                                                            class="small font-weight-bold text-gray-700 mb-1">DN
-                                                            Status</label>
-                                                        <select
-                                                            class="form-control form-control-sm custom-select custom-select-sm"
-                                                            id="filter-dn-status-outbound">
-                                                            <option value="">Semua DN Status</option>
-                                                        </select>
-                                                    </div>
-
-                                                    <!-- Search No. MR / PCK / DN / PO -->
-                                                    <div class="col-md-2 col-sm-6 mb-2 mb-md-0">
-                                                        <label for="filter-outbound-mr"
-                                                            class="small font-weight-bold text-gray-700 mb-1">Cari
-                                                            Dokumen</label>
-                                                        <input type="text" class="form-control form-control-sm"
-                                                            id="filter-outbound-mr"
-                                                            placeholder="Search...">
-                                                    </div>
-
-                                                    <!-- Reset Filter Button -->
                                                     <div class="col-md-2 col-sm-6 mb-2 mb-md-0">
                                                         <button
                                                             class="btn btn-outline-secondary btn-sm font-weight-bold btn-block"
-                                                            type="button" id="btn-reset-filter-outbound">
+                                                            type="button" id="btn-reset-filter-kpi">
                                                             <i class="fas fa-undo mr-1"></i> Reset Filter
                                                         </button>
                                                     </div>
@@ -710,34 +1016,37 @@ if (!defined('SPA_MODE')) {
                                         </div>
 
                                         <div class="table-responsive">
-                                            <table class="table table-bordered table-sm text-nowrap" id="dataTableOutbound"
-                                                width="100%" cellspacing="0">
+                                            <table class="table table-bordered table-sm text-nowrap" id="dataTableKpi" width="100%"
+                                                cellspacing="0">
                                                 <thead>
                                                     <tr>
-                                                        <th>MR NO</th>
-                                                        <th>MR TYPE</th>
-                                                        <th>MR DESC</th>
-                                                        <th>MR STATUS</th>
-                                                        <th>PCK NO</th>
-                                                        <th>PCK DETAIL</th>
-                                                        <th>PCK STATUS</th>
-                                                        <th>AWB</th>
-                                                        <th>DN NO</th>
-                                                        <th>PR NO</th>
-                                                        <th>PO NO</th>
-                                                        <th>FROM</th>
-                                                        <th>SITE ORIGIN</th>
-                                                        <th>SITE ORIGIN ADDR</th>
-                                                        <th>TO</th>
-                                                        <th>SITE DESTINATION</th>
-                                                        <th>SITE DESTINATION ADDR</th>
-                                                        <th>PICKUP TYPE</th>
-                                                        <th>VIA</th>
-                                                        <th>LT</th>
-                                                        <th>DELIVERY TARGET</th>
-                                                        <th>DN STATUS</th>
-                                                        <th>LAST LOG</th>
-                                                        <th>PERIODE GROUP</th>
+                                                        <th rowspan="2" class="align-middle text-center" style="min-width:110px;">Bulan</th>
+                                                        <th colspan="2" class="text-center">GR</th>
+                                                        <th colspan="2" class="text-center">Registrasi</th>
+                                                        <th colspan="2" class="text-center">Slow Moving</th>
+                                                        <th colspan="2" class="text-center">Utilisasi Space</th>
+                                                        <th colspan="2" class="text-center">Stok Opname Hub &amp; Outlet Warehouse</th>
+                                                        <th colspan="2" class="text-center">Delivery Effectiveness</th>
+                                                        <th colspan="2" class="text-center">MR Closing (Akumulatif)</th>
+                                                        <th colspan="2" class="text-center">Efisiensi Delivery</th>
+                                                    </tr>
+                                                    <tr>
+                                                        <th class="text-center" style="min-width:80px;">Target</th>
+                                                        <th class="text-center" style="min-width:100px;">Achievement</th>
+                                                        <th class="text-center" style="min-width:80px;">Target</th>
+                                                        <th class="text-center" style="min-width:100px;">Achievement</th>
+                                                        <th class="text-center" style="min-width:80px;">Target</th>
+                                                        <th class="text-center" style="min-width:100px;">Achievement</th>
+                                                        <th class="text-center" style="min-width:80px;">Target</th>
+                                                        <th class="text-center" style="min-width:100px;">Achievement</th>
+                                                        <th class="text-center" style="min-width:80px;">Target</th>
+                                                        <th class="text-center" style="min-width:100px;">Achievement</th>
+                                                        <th class="text-center" style="min-width:80px;">Target</th>
+                                                        <th class="text-center" style="min-width:100px;">Achievement</th>
+                                                        <th class="text-center" style="min-width:80px;">Target</th>
+                                                        <th class="text-center" style="min-width:100px;">Achievement</th>
+                                                        <th class="text-center" style="min-width:80px;">Target</th>
+                                                        <th class="text-center" style="min-width:100px;">Achievement</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -828,7 +1137,7 @@ if (!defined('SPA_MODE')) {
                 aria-labelledby="uploadExcelModalLabel" aria-hidden="true">
                 <div class="modal-dialog modal-md modal-dialog-centered" role="document" id="uploadExcelModalDialog">
                     <div class="modal-content upload-modal-content">
-                        <div class="modal-header upload-modal-header bg-success text-white">
+                        <div class="modal-header upload-modal-header">
                             <h5 class="modal-title font-weight-bold" id="uploadExcelModalLabel">
                                 <i class="fas fa-file-excel mr-2"></i>Import Excel Data
                             </h5>
@@ -864,6 +1173,9 @@ if (!defined('SPA_MODE')) {
                                             <option value="asset">Data Asset</option>
                                             <option value="rack">Data Utilisasi Rack</option>
                                         </select>
+                                    </div>
+                                    <div class="alert alert-info py-2 px-3 mb-3 small" id="upload-rack-info" style="display: none;">
+                                        <i class="fas fa-info-circle mr-1"></i> Data Utilisasi Rack bersifat statis (master layout gudang), tidak memerlukan pemilihan Bulan dan Batch.
                                     </div>
                                     <div class="form-row mb-3" id="upload-period-selectors">
                                         <div class="col-4">
@@ -906,17 +1218,17 @@ if (!defined('SPA_MODE')) {
                                     </div>
                                     <div class="upload-drop-zone" id="upload-drop-zone">
                                         <input type="file" id="excel-file-input" accept=".xlsx,.xls,.csv"
-                                            style="display:none" />
+                                            class="d-none" />
                                         <div class="upload-icon">
                                             <i class="fas fa-cloud-upload-alt"></i>
                                         </div>
                                         <h5>Drag &amp; Drop Excel File</h5>
-                                        <p>or click to browse your computer</p>
+                                        <p>atau klik untuk memilih file dari komputer Anda</p>
                                         <button class="btn-browse" id="btn-browse-file" type="button">
-                                            <i class="fas fa-folder-open mr-1"></i> Browse Files
+                                            <i class="fas fa-folder-open mr-1"></i> Browse File
                                         </button>
                                         <div class="file-types">
-                                            Supported: .xlsx, .xls, .csv &bull; Max 100MB
+                                            Supported: .xlsx, .xls, .csv &bull; Max 200MB
                                         </div>
                                     </div>
 
@@ -944,6 +1256,62 @@ if (!defined('SPA_MODE')) {
                             </div>
                         </div>
                     </div>
+            <!-- Import Excel Rack Modal -->
+            <div class="modal fade" id="uploadExcelModalRack" tabindex="-1" role="dialog"
+                aria-labelledby="uploadExcelModalRackLabel" aria-hidden="true">
+                <div class="modal-dialog modal-md modal-dialog-centered" role="document">
+                    <div class="modal-content upload-modal-content">
+                        <div class="modal-header upload-modal-header" style="background: linear-gradient(135deg, #1cc88a 0%, #13855c 100%);">
+                            <h5 class="modal-title font-weight-bold text-white" id="uploadExcelModalRackLabel">
+                                <i class="fas fa-file-excel mr-2"></i>Import Data Utilisasi Rack
+                            </h5>
+                            <button class="close text-white" type="button" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body upload-modal-body">
+                            <!-- Download Template Section -->
+                            <div class="alert alert-light border mb-3 p-2 d-flex align-items-center justify-content-between">
+                                <span class="small font-weight-bold text-gray-700">
+                                    <i class="fas fa-download mr-1 text-success"></i> Download Template:
+                                </span>
+                                <button type="button" class="btn btn-sm btn-outline-success font-weight-bold" id="btn-template-rack-modal">
+                                    <i class="fas fa-file-excel mr-1"></i> Template Rack
+                                </button>
+                            </div>
+
+                            <div class="alert alert-info py-2 px-3 mb-3 small">
+                                <i class="fas fa-info-circle mr-1"></i> Kolom yang didukung:
+                                <strong>BARCODE | NAME | LABEL | ACTIVE | CATEGORY</strong>.
+                                <br><span class="text-muted">Data rak bersifat master layout gudang (statis). Mengunggah file akan memperbarui daftar rak.</span>
+                            </div>
+
+                            <div class="upload-drop-zone" id="upload-rack-drop-zone" style="cursor: pointer; border: 2px dashed #1cc88a; border-radius: 8px; padding: 25px 15px; text-align: center; background: #f8fbf9; transition: background 0.2s ease;">
+                                <input type="file" id="excel-rack-file-input" accept=".xlsx,.xls,.csv" class="d-none" />
+                                <div class="upload-icon mb-2">
+                                    <i class="fas fa-cloud-upload-alt fa-3x text-success"></i>
+                                </div>
+                                <h6 class="font-weight-bold text-gray-800 mb-1">Drag &amp; Drop File Excel Rack</h6>
+                                <p class="text-muted small mb-3">atau klik tombol di bawah untuk memilih file</p>
+                                <button class="btn btn-success btn-sm px-3 font-weight-bold shadow-sm" id="btn-browse-rack-file" type="button">
+                                    <i class="fas fa-folder-open mr-1"></i> Browse File
+                                </button>
+                                <div class="file-types mt-2 text-muted small">
+                                    Format didukung: .xlsx, .xls, .csv
+                                </div>
+                            </div>
+
+                            <div class="upload-progress-container mt-3" id="upload-rack-progress" style="display: none;">
+                                <div class="upload-file-info d-flex justify-content-between small text-muted mb-1">
+                                    <span class="file-name font-weight-bold text-gray-800" id="upload-rack-file-name"></span>
+                                    <span class="file-size" id="upload-rack-file-size"></span>
+                                </div>
+                                <div class="progress" style="height: 6px;">
+                                    <div class="progress-bar bg-success progress-bar-striped progress-bar-animated" id="upload-rack-progress-fill" style="width: 0%;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -952,7 +1320,7 @@ if (!defined('SPA_MODE')) {
                 aria-labelledby="uploadExcelModalInboundLabel" aria-hidden="true">
                 <div class="modal-dialog modal-md modal-dialog-centered" role="document">
                     <div class="modal-content upload-modal-content">
-                        <div class="modal-header upload-modal-header bg-success text-white">
+                        <div class="modal-header upload-modal-header">
                             <h5 class="modal-title font-weight-bold" id="uploadExcelModalInboundLabel">
                                 <i class="fas fa-file-excel mr-2"></i>Import Master Data Inbound
                             </h5>
@@ -1024,18 +1392,21 @@ if (!defined('SPA_MODE')) {
                             <!-- Period Availability Status Indicator -->
                             <div id="inbound-period-status" class="mb-3" style="display: none;"></div>
 
-                            <div class="upload-drop-zone border rounded p-4 text-center bg-light">
-                                <i class="fas fa-cloud-upload-alt fa-3x text-primary mb-3"></i>
-                                <h5 class="font-weight-bold">Drag &amp; Drop Excel File Inbound</h5>
-                                <p class="text-muted small">atau pilih file dari komputer Anda</p>
+                            <div class="upload-drop-zone" id="inbound-upload-drop-zone">
                                 <input type="file" id="excel-file-inbound-input" accept=".xlsx,.xls,.csv"
                                     class="d-none" />
-                                <button class="btn btn-primary btn-sm px-3 font-weight-bold" type="button"
-                                    id="btn-browse-inbound"
+                                <div class="upload-icon">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                </div>
+                                <h5>Drag &amp; Drop Excel File Inbound</h5>
+                                <p>atau klik untuk memilih file dari komputer Anda</p>
+                                <button class="btn-browse" type="button" id="btn-browse-inbound"
                                     onclick="document.getElementById('excel-file-inbound-input').click();">
                                     <i class="fas fa-folder-open mr-1"></i> Browse File
                                 </button>
-                                <div class="small text-muted mt-2">Formats: .xlsx, .xls, .csv</div>
+                                <div class="file-types">
+                                    Supported: .xlsx, .xls, .csv &bull; Max 200MB
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1047,7 +1418,7 @@ if (!defined('SPA_MODE')) {
                 aria-labelledby="uploadExcelModalOutboundLabel" aria-hidden="true">
                 <div class="modal-dialog modal-md modal-dialog-centered" role="document">
                     <div class="modal-content upload-modal-content">
-                        <div class="modal-header upload-modal-header bg-success text-white">
+                        <div class="modal-header upload-modal-header">
                             <h5 class="modal-title font-weight-bold" id="uploadExcelModalOutboundLabel">
                                 <i class="fas fa-file-excel mr-2"></i>Import Master Data Outbound
                             </h5>
@@ -1116,17 +1487,116 @@ if (!defined('SPA_MODE')) {
                                 </div>
                             </div>
 
-                            <div class="upload-drop-zone border rounded p-4 text-center bg-light">
-                                <i class="fas fa-cloud-upload-alt fa-3x text-primary mb-3"></i>
-                                <h5 class="font-weight-bold">Drag &amp; Drop Excel File Outbound</h5>
-                                <p class="text-muted small">atau pilih file dari komputer Anda</p>
+                            <div class="upload-drop-zone" id="outbound-upload-drop-zone">
                                 <input type="file" id="excel-file-outbound-input" accept=".xlsx,.xls,.csv"
                                     class="d-none" />
-                                <button class="btn btn-primary btn-sm px-3 font-weight-bold" type="button"
+                                <div class="upload-icon">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                </div>
+                                <h5>Drag &amp; Drop Excel File Outbound</h5>
+                                <p>atau klik untuk memilih file dari komputer Anda</p>
+                                <button class="btn-browse" type="button" id="btn-browse-outbound"
                                     onclick="document.getElementById('excel-file-outbound-input').click();">
                                     <i class="fas fa-folder-open mr-1"></i> Browse File
                                 </button>
-                                <div class="small text-muted mt-2">Formats: .xlsx, .xls, .csv</div>
+                                <div class="file-types">
+                                    Supported: .xlsx, .xls, .csv &bull; Max 200MB
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Import Excel PR Forwarder Modal -->
+            <div class="modal fade" id="uploadExcelModalForwarder" tabindex="-1" role="dialog"
+                aria-labelledby="uploadExcelModalForwarderLabel" aria-hidden="true">
+                <div class="modal-dialog modal-md modal-dialog-centered" role="document">
+                    <div class="modal-content upload-modal-content">
+                        <div class="modal-header upload-modal-header">
+                            <h5 class="modal-title font-weight-bold" id="uploadExcelModalForwarderLabel">
+                                <i class="fas fa-file-excel mr-2"></i>Import Master Data PR Forwarder
+                            </h5>
+                            <button class="close text-white" type="button" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body upload-modal-body p-4">
+                            <div
+                                class="alert alert-light border mb-3 p-2 d-flex align-items-center justify-content-between">
+                                <span class="small font-weight-bold text-gray-700">
+                                    <i class="fas fa-download mr-1 text-success"></i> Download Template:
+                                </span>
+                                <div>
+                                    <button type="button" class="btn btn-sm btn-outline-success font-weight-bold"
+                                        id="btn-template-forwarder">
+                                        <i class="fas fa-file-excel mr-1"></i> Template PR Forwarder
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Periode Group Selectors (Month, Batch & Year) -->
+                            <div class="form-row mb-2">
+                                <div class="col-4">
+                                    <label for="uploadForwarderMonthSelect"
+                                        class="small font-weight-bold text-gray-700 mb-1">Bulan Periode <span
+                                            class="text-danger">*</span></label>
+                                    <select class="form-control form-control-sm" id="uploadForwarderMonthSelect">
+                                        <option value="">-- Pilih Bulan --</option>
+                                        <option value="January">January</option>
+                                        <option value="February">February</option>
+                                        <option value="March">March</option>
+                                        <option value="April">April</option>
+                                        <option value="May">May</option>
+                                        <option value="June">June</option>
+                                        <option value="July">July</option>
+                                        <option value="August">August</option>
+                                        <option value="September">September</option>
+                                        <option value="October">October</option>
+                                        <option value="November">November</option>
+                                        <option value="December">December</option>
+                                    </select>
+                                </div>
+                                <div class="col-4">
+                                    <label for="uploadForwarderBatchSelect"
+                                        class="small font-weight-bold text-gray-700 mb-1">Batch <span
+                                            class="text-danger">*</span></label>
+                                    <select class="form-control form-control-sm" id="uploadForwarderBatchSelect">
+                                        <option value="">-- Pilih Batch --</option>
+                                        <option value="1">Batch 1</option>
+                                        <option value="2">Batch 2</option>
+                                    </select>
+                                </div>
+                                <div class="col-4">
+                                    <label for="uploadForwarderYearSelect"
+                                        class="small font-weight-bold text-gray-700 mb-1">Tahun Periode <span
+                                            class="text-danger">*</span></label>
+                                    <select class="form-control form-control-sm" id="uploadForwarderYearSelect">
+                                        <option value="">-- Pilih Tahun --</option>
+                                        <?php
+                                        $curY = (int) date('Y');
+                                        for ($y = 2024; $y <= $curY + 5; $y++): ?>
+                                            <option value="<?php echo $y; ?>" <?php echo ($y === $curY) ? 'selected' : ''; ?>><?php echo $y; ?></option>
+                                        <?php endfor; ?>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="upload-drop-zone" id="forwarder-upload-drop-zone">
+                                <input type="file" id="excel-file-forwarder-input" accept=".xlsx,.xls,.csv"
+                                    class="d-none" />
+                                <div class="upload-icon">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                </div>
+                                <h5>Drag &amp; Drop Excel File PR Forwarder</h5>
+                                <p>atau klik untuk memilih file dari komputer Anda</p>
+                                <button class="btn-browse" type="button" id="btn-browse-forwarder"
+                                    onclick="document.getElementById('excel-file-forwarder-input').click();">
+                                    <i class="fas fa-folder-open mr-1"></i> Browse File
+                                </button>
+                                <div class="file-types">
+                                    Supported: .xlsx, .xls, .csv &bull; Max 200MB
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1247,6 +1717,198 @@ if (!defined('SPA_MODE')) {
                 </div>
             </div>
 
+            <!-- Delete Data PR Forwarder Modal -->
+            <div class="modal fade" id="deleteDataModalForwarder" tabindex="-1" role="dialog"
+                aria-labelledby="deleteDataModalForwarderLabel" aria-hidden="true">
+                <div class="modal-dialog modal-md modal-dialog-centered" role="document">
+                    <div class="modal-content upload-modal-content">
+                        <div class="modal-header upload-modal-header"
+                            style="background: linear-gradient(135deg, #e74a3b 0%, #be2617 100%);">
+                            <h5 class="modal-title text-white" id="deleteDataModalForwarderLabel">
+                                <i class="fas fa-trash-alt mr-2 text-white"></i>Hapus Master Data PR Forwarder
+                            </h5>
+                            <button class="close text-white" type="button" data-dismiss="modal" aria-label="Close"
+                                style="opacity: 0.8;">
+                                <span aria-hidden="true">×</span>
+                            </button>
+                        </div>
+                        <div class="modal-body upload-modal-body">
+                            <div class="p-3">
+                                <div class="text-center text-gray-600 mb-4">
+                                    <h3 class="text-danger font-weight-bold mb-3"><i
+                                            class="fas fa-exclamation-triangle mr-2"></i>Peringatan</h3>
+                                    <p class="mb-0" style="font-size: 1.1rem;">Data PR Forwarder untuk periode yang Anda
+                                        pilih akan dihapus dari sistem (atau kosongkan periode untuk menghapus semua).</p>
+                                </div>
+                                <div class="form-group mb-3">
+                                    <label for="deleteForwarderMonthSelect"
+                                        class="small font-weight-bold text-gray-600">Bulan</label>
+                                    <select class="form-control form-control-sm" id="deleteForwarderMonthSelect">
+                                        <option value="">-- Pilih Bulan (Kosongkan untuk Hapus Semua) --</option>
+                                        <option value="January">January</option>
+                                        <option value="February">February</option>
+                                        <option value="March">March</option>
+                                        <option value="April">April</option>
+                                        <option value="May">May</option>
+                                        <option value="June">June</option>
+                                        <option value="July">July</option>
+                                        <option value="August">August</option>
+                                        <option value="September">September</option>
+                                        <option value="October">October</option>
+                                        <option value="November">November</option>
+                                        <option value="December">December</option>
+                                    </select>
+                                </div>
+                                <div class="form-group mb-3">
+                                    <label for="deleteForwarderBatchSelect"
+                                        class="small font-weight-bold text-gray-600">Batch</label>
+                                    <select class="form-control form-control-sm" id="deleteForwarderBatchSelect">
+                                        <option value="">-- Pilih Batch --</option>
+                                        <option value="1">Batch 1</option>
+                                        <option value="2">Batch 2</option>
+                                    </select>
+                                </div>
+                                <div class="form-group mb-4">
+                                    <label for="deleteForwarderYearSelect"
+                                        class="small font-weight-bold text-gray-600">Tahun</label>
+                                    <select class="form-control form-control-sm" id="deleteForwarderYearSelect">
+                                        <option value="">-- Pilih Tahun --</option>
+                                        <?php
+                                        $curY = (int) date('Y');
+                                        for ($y = 2024; $y <= $curY + 5; $y++): ?>
+                                            <option value="<?php echo $y; ?>" <?php echo ($y === $curY) ? 'selected' : ''; ?>><?php echo $y; ?></option>
+                                        <?php endfor; ?>
+                                    </select>
+                                </div>
+                                <div class="d-flex justify-content-end mt-4">
+                                    <button class="btn btn-light px-4 mr-2" type="button" data-dismiss="modal"
+                                        style="border-radius: 6px; font-weight: 600;">Batal</button>
+                                    <button class="btn btn-danger px-4" type="button" id="btn-confirm-delete-forwarder"
+                                        style="border-radius: 6px; font-weight: 600; box-shadow: 0 4px 10px rgba(231,74,59,0.3);">
+                                        <i class="fas fa-trash mr-1"></i> Hapus Data PR Forwarder
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Import Excel KPI Modal -->
+            <div class="modal fade" id="uploadExcelModalKpi" tabindex="-1" role="dialog"
+                aria-labelledby="uploadExcelModalKpiLabel" aria-hidden="true">
+                <div class="modal-dialog modal-md modal-dialog-centered" role="document">
+                    <div class="modal-content upload-modal-content">
+                        <div class="modal-header upload-modal-header">
+                            <h5 class="modal-title font-weight-bold" id="uploadExcelModalKpiLabel">
+                                <i class="fas fa-file-excel mr-2"></i>Import KPI Master Data
+                            </h5>
+                            <button class="close text-white" type="button" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body upload-modal-body p-4">
+                            <div
+                                class="alert alert-light border mb-3 p-2 d-flex align-items-center justify-content-between">
+                                <span class="small font-weight-bold text-gray-700">
+                                    <i class="fas fa-download mr-1 text-success"></i> Download Template:
+                                </span>
+                                <div>
+                                    <button type="button" class="btn btn-sm btn-outline-success font-weight-bold"
+                                        id="btn-template-kpi">
+                                        <i class="fas fa-file-excel mr-1"></i> Template KPI
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Tahun Periode Selector Only (No Bulan/Batch) -->
+                            <div class="form-row mb-3">
+                                <div class="col-12">
+                                    <label for="uploadKpiYearSelect"
+                                        class="small font-weight-bold text-gray-700 mb-1">Tahun Periode <span
+                                            class="text-danger">*</span></label>
+                                    <select class="form-control form-control-sm" id="uploadKpiYearSelect">
+                                        <option value="">-- Pilih Tahun --</option>
+                                        <?php
+                                        $curY = (int) date('Y');
+                                        $minKpiY = 2026;
+                                        for ($y = $minKpiY; $y <= $curY + 5; $y++): ?>
+                                            <option value="<?php echo $y; ?>" <?php echo ($y === $curY) ? 'selected' : ''; ?>><?php echo $y; ?></option>
+                                        <?php endfor; ?>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="upload-drop-zone" id="kpi-upload-drop-zone">
+                                <input type="file" id="excel-file-kpi-input" accept=".xlsx,.xls,.csv"
+                                    class="d-none" />
+                                <div class="upload-icon">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                </div>
+                                <h5>Drag &amp; Drop Excel File KPI</h5>
+                                <p>atau klik untuk memilih file dari komputer Anda</p>
+                                <button class="btn-browse" type="button" id="btn-browse-kpi"
+                                    onclick="document.getElementById('excel-file-kpi-input').click();">
+                                    <i class="fas fa-folder-open mr-1"></i> Browse File
+                                </button>
+                                <div class="file-types">
+                                    Supported: .xlsx, .xls, .csv &bull; Max 200MB
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Delete Data KPI Modal -->
+            <div class="modal fade" id="deleteDataModalKpi" tabindex="-1" role="dialog"
+                aria-labelledby="deleteDataModalKpiLabel" aria-hidden="true">
+                <div class="modal-dialog modal-md modal-dialog-centered" role="document">
+                    <div class="modal-content upload-modal-content">
+                        <div class="modal-header upload-modal-header"
+                            style="background: linear-gradient(135deg, #e74a3b 0%, #be2617 100%);">
+                            <h5 class="modal-title text-white" id="deleteDataModalKpiLabel">
+                                <i class="fas fa-trash-alt mr-2 text-white"></i>Hapus KPI Master Data
+                            </h5>
+                            <button class="close text-white" type="button" data-dismiss="modal" aria-label="Close"
+                                style="opacity: 0.8;">
+                                <span aria-hidden="true">×</span>
+                            </button>
+                        </div>
+                        <div class="modal-body upload-modal-body">
+                            <div class="p-3">
+                                <div class="text-center text-gray-600 mb-4">
+                                    <h3 class="text-danger font-weight-bold mb-3"><i
+                                            class="fas fa-exclamation-triangle mr-2"></i>Peringatan</h3>
+                                    <p class="mb-0" style="font-size: 1.1rem;">Data KPI untuk tahun yang Anda
+                                        pilih akan dihapus secara permanen dari sistem.</p>
+                                </div>
+                                <div class="form-group mb-4">
+                                    <label for="deleteKpiYearSelect"
+                                        class="small font-weight-bold text-gray-600">Tahun Periode</label>
+                                    <select class="form-control form-control-sm" id="deleteKpiYearSelect">
+                                        <option value="">-- Pilih Tahun --</option>
+                                        <?php
+                                        $curY = (int) date('Y');
+                                        for ($y = 2026; $y <= $curY + 5; $y++): ?>
+                                            <option value="<?php echo $y; ?>" <?php echo ($y === $curY) ? 'selected' : ''; ?>><?php echo $y; ?></option>
+                                        <?php endfor; ?>
+                                    </select>
+                                </div>
+                                <div class="d-flex justify-content-end mt-4">
+                                    <button class="btn btn-light px-4 mr-2" type="button" data-dismiss="modal"
+                                        style="border-radius: 6px; font-weight: 600;">Batal</button>
+                                    <button class="btn btn-danger px-4" type="button" id="btn-confirm-delete-kpi"
+                                        style="border-radius: 6px; font-weight: 600; box-shadow: 0 4px 10px rgba(231,74,59,0.3);">
+                                        <i class="fas fa-trash mr-1"></i> Hapus Data KPI
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- DataTables JS -->
             <script src="frontend/vendor/datatables/jquery.dataTables.min.js"></script>
             <script src="frontend/vendor/datatables/dataTables.bootstrap4.min.js"></script>
@@ -1290,6 +1952,11 @@ if (!defined('SPA_MODE')) {
                     } else {
                         $('#storage-action-buttons').show();
                     }
+                    if (currentSeg && currentSeg !== '#seg-kpi') {
+                        $('#kpi-action-buttons').hide();
+                    } else {
+                        $('#kpi-action-buttons').show();
+                    }
 
                     // Save active segment tab on change
                     $('#masterSegmentTabs a[data-toggle="pill"]').on('shown.bs.tab', function (e) {
@@ -1299,6 +1966,11 @@ if (!defined('SPA_MODE')) {
                             $('#storage-action-buttons').fadeIn(200);
                         } else {
                             $('#storage-action-buttons').fadeOut(200);
+                        }
+                        if (targetSeg === '#seg-kpi') {
+                            $('#kpi-action-buttons').fadeIn(200);
+                        } else {
+                            $('#kpi-action-buttons').fadeOut(200);
                         }
                         if (typeof loadActiveMasterTabTable === 'function') {
                             loadActiveMasterTabTable();
@@ -1588,6 +2260,87 @@ if (!defined('SPA_MODE')) {
                         } else {
                             if (confirm("Apakah Anda YAKIN ingin menghapus SEMUA Data Master Outbound?")) {
                                 executeOutboundDelete();
+                            }
+                        }
+                    });
+                }
+
+                // 4. Confirm Delete PR Forwarder Data
+                var btnConfirmDeleteForwarder = document.getElementById('btn-confirm-delete-forwarder');
+                if (btnConfirmDeleteForwarder) {
+                    btnConfirmDeleteForwarder.addEventListener('click', function () {
+                        var m = document.getElementById('deleteForwarderMonthSelect') ? document.getElementById('deleteForwarderMonthSelect').value : '';
+                        var b = document.getElementById('deleteForwarderBatchSelect') ? document.getElementById('deleteForwarderBatchSelect').value : '';
+                        var y = document.getElementById('deleteForwarderYearSelect') ? document.getElementById('deleteForwarderYearSelect').value : '';
+                        var period = (m && y) ? (m + ' ' + y + (b ? '-Batch' + b : '')) : null;
+
+                        var isTruncate = (!m && !y && !b);
+                        var msg = isTruncate
+                            ? "Ingin menghapus SEMUA Data Master PR Forwarder dari database?"
+                            : (period ? "Ingin menghapus data PR Forwarder untuk periode " + period.toUpperCase() + "?" : "Ingin menghapus data PR Forwarder untuk periode yang dipilih?");
+
+                        var executeForwarderDelete = function () {
+                            showProcessingModal();
+                            fetch('api/delete_outbound_forwarder.php', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    action: isTruncate ? 'truncate_all' : 'delete_period',
+                                    periode: period,
+                                    month: m,
+                                    year: y,
+                                    batch: b
+                                })
+                            })
+                                .then(r => r.json())
+                                .then(res => {
+                                    if (res.status === 'success') {
+                                        if (typeof Swal !== 'undefined') {
+                                            Swal.fire('Berhasil!', res.message || 'Data PR Forwarder berhasil dihapus.', 'success');
+                                        } else {
+                                            alert(res.message || 'Data PR Forwarder berhasil dihapus.');
+                                        }
+                                        $('#deleteDataModalForwarder').modal('hide');
+                                        if (typeof forwarderTable !== 'undefined' && forwarderTable) {
+                                            forwarderTable.ajax.reload();
+                                            if (typeof refreshForwarderFilters === 'function') refreshForwarderFilters();
+                                        } else {
+                                            location.reload();
+                                        }
+                                    } else {
+                                        if (typeof Swal !== 'undefined') {
+                                            Swal.fire('Error', 'Gagal menghapus data: ' + res.message, 'error');
+                                        } else {
+                                            alert('Gagal menghapus data: ' + res.message);
+                                        }
+                                    }
+                                })
+                                .catch(err => {
+                                    if (typeof Swal !== 'undefined') {
+                                        Swal.fire('Error', 'Terjadi kesalahan saat menghubungi server.', 'error');
+                                    } else {
+                                        alert('Terjadi kesalahan saat menghubungi server.');
+                                    }
+                                });
+                        };
+
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                title: 'Apakah Anda YAKIN?',
+                                text: msg,
+                                icon: 'warning',
+                                showCancelButton: true,
+                                confirmButtonColor: '#e74a3b',
+                                cancelButtonColor: '#858796',
+                                confirmButtonText: 'Ya, Hapus!'
+                            }).then((result) => {
+                                if (result.isConfirmed) {
+                                    executeForwarderDelete();
+                                }
+                            });
+                        } else {
+                            if (confirm("Apakah Anda YAKIN " + msg)) {
+                                executeForwarderDelete();
                             }
                         }
                     });

@@ -82,6 +82,12 @@ return [
                 'pages' => ['site_location.php'],
                 'permissions' => ['view', 'add', 'delete']
             ],
+            'master_data_kpi' => [
+                'label' => 'KPI Master Data',
+                'icon'  => 'fas fa-tachometer-alt text-info',
+                'pages' => [],
+                'permissions' => ['view', 'add', 'delete']
+            ],
         ],
     ],
     'reports' => [

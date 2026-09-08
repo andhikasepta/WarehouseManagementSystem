@@ -22,6 +22,16 @@ if ($requestPath === '/repository.php') {
     exit;
 }
 
+// ── Handle /portal or view=portal directly in Front Controller ─────
+if ($requestPath === '/portal' || $requestPath === '/portal/' || ($_GET['view'] ?? '') === 'portal') {
+    require FRONTEND_PATH . 'pages/index.php';
+    exit;
+}
+if ($requestPath === '/portal.php') {
+    header("Location: /portal", true, 301);
+    exit;
+}
+
 // ── Handle Logout ──────────────────────────────────────────────────
 if (isset($_GET['action']) && $_GET['action'] === 'logout') {
     $_SESSION = array();
@@ -184,6 +194,15 @@ include FRONTEND_PATH . 'components/header.php';
                     window.history.replaceState({ page: initialPage }, '', window.location.pathname);
                 }
                 
+                var noPeriodPages = ['master_data', 'master_data_detail', 'site_location', 'user_management', 'announcements', 'repository_management', 'wms_select'];
+                if (noPeriodPages.indexOf(initialPage) !== -1) {
+                    $('#nav-item-period-selector, #periodDropdown').closest('.nav-item').hide();
+                } else if (initialPage === 'kpi_monitoring') {
+                    $('#month-select-group, #period-month-select').closest('.form-group').hide();
+                    $('#batch-select-group, #period-batch-select').closest('.form-group').hide();
+                    $('#site-select-group').hide();
+                }
+
                 this.loadPage(initialPage, false);
             },
 
@@ -253,6 +272,26 @@ include FRONTEND_PATH . 'components/header.php';
 
                         // Save current page state
                         sessionStorage.setItem('wms_spa_active_page', pageName);
+
+                        // Toggle navbar period dropdown visibility based on active page
+                        var noPeriodPages = ['master_data', 'master_data_detail', 'site_location', 'user_management', 'announcements', 'repository_management', 'wms_select'];
+                        if (noPeriodPages.indexOf(pageName) !== -1) {
+                            $('#nav-item-period-selector, #periodDropdown').closest('.nav-item').hide();
+                        } else {
+                            $('#nav-item-period-selector, #periodDropdown').closest('.nav-item').show();
+                            // KPI Monitoring shows only Tahun in period dropdown
+                            if (pageName === 'kpi_monitoring') {
+                                $('#month-select-group, #period-month-select').closest('.form-group').hide();
+                                $('#batch-select-group, #period-batch-select').closest('.form-group').hide();
+                                $('#site-select-group').hide();
+                            } else {
+                                $('#month-select-group, #period-month-select').closest('.form-group').show();
+                                if (pageName !== 'storage_hub') {
+                                    $('#site-select-group').hide();
+                                }
+                                $('#batch-select-group, #period-batch-select').closest('.form-group').show();
+                            }
+                        }
 
                         // Keep browser address bar strictly clean as / (NO # in URL)
                         if (pushState) {

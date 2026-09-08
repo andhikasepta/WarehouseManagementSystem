@@ -556,11 +556,10 @@ $(document).ready(function() {
 
     function updateLoadButton() {
         var m = document.getElementById('period-month-select');
-        var b = document.getElementById('period-batch-select');
         var y = document.getElementById('period-year-select');
         var btn = document.getElementById('btn-load-period');
         if (btn) {
-            btn.disabled = !(m && m.value && b && b.value && y && y.value);
+            btn.disabled = !(m && m.value && y && y.value);
         }
     }
 
@@ -571,6 +570,13 @@ $(document).ready(function() {
     if (batchSel) batchSel.addEventListener('change', updateLoadButton);
     if (yearSel) yearSel.addEventListener('change', updateLoadButton);
 
+    var periodMenu = document.getElementById('period-dropdown-menu');
+    if (periodMenu) {
+        periodMenu.addEventListener('click', function (e) {
+            e.stopPropagation();
+        });
+    }
+
     function populateSelect(selectId, items, placeholder) {
         var sel = document.getElementById(selectId);
         if (!sel) return;
@@ -579,10 +585,10 @@ $(document).ready(function() {
         defOpt.value = '';
         defOpt.textContent = placeholder;
         sel.appendChild(defOpt);
-        items.forEach(function (item) {
+        (items || []).forEach(function (item) {
             var opt = document.createElement('option');
             opt.value = item;
-            opt.textContent = item.toUpperCase();
+            opt.textContent = String(item).toUpperCase();
             sel.appendChild(opt);
         });
     }
@@ -599,9 +605,14 @@ $(document).ready(function() {
         $('.progress-bar').css('width', '0%');
         if (window.updateInboundCharts) {
             window.updateInboundCharts({
+                total_po_inbound: 0,
                 po_ontime_delivery: 0,
                 po_terlambat_delivery: 0,
                 po_sudah_gr: 0,
+                po_sudah_registrasi: 0,
+                gr_non_po: 0,
+                total_gr: 0,
+                total_registrasi: 0,
                 dept_chart: { labels: [], sudah_gr: [], belum_gr: [] },
                 trend_chart: { ontime: Array(12).fill(0), terlambat: Array(12).fill(0) }
             });
@@ -668,6 +679,9 @@ $(document).ready(function() {
                     });
                 }
                 var availableYears = (result.years && result.years.length > 0) ? result.years : Object.keys(yearsSet).sort();
+                if (!availableYears || availableYears.length === 0) {
+                    availableYears = [(new Date()).getFullYear().toString()];
+                }
                 populateSelect('period-month-select', ALL_MONTHS, '-- Pilih Bulan --');
                 populateSelect('period-year-select', availableYears, '-- Pilih Tahun --');
 
@@ -687,10 +701,18 @@ $(document).ready(function() {
             var m = document.getElementById('period-month-select');
             var b = document.getElementById('period-batch-select');
             var y = document.getElementById('period-year-select');
-            if (m && m.value && b && b.value && y && y.value) {
-                currentPeriod = m.value + ' ' + y.value + '-Batch' + b.value;
+            if (m && m.value && y && y.value) {
+                if (b && b.value) {
+                    currentPeriod = m.value + ' ' + y.value + '-Batch' + b.value;
+                } else {
+                    currentPeriod = m.value + ' ' + y.value;
+                }
                 var pText = document.getElementById('selected-period-text');
-                if (pText) pText.textContent = currentPeriod.toUpperCase();
+                if (pText) {
+                    pText.textContent = (b && b.value) 
+                        ? currentPeriod.toUpperCase() 
+                        : (currentPeriod + ' (ALL BATCH)').toUpperCase();
+                }
                 loadStatusCardCounts(currentPeriod);
                 if (window.jQuery) {
                     $('#periodDropdown').dropdown('toggle');

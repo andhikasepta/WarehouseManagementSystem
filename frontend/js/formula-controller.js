@@ -254,7 +254,8 @@
                     deferRender: true,
                     language: {
                         lengthMenu: "Tampilkan _MENU_ entries",
-                        search: "Cari:",
+                        search: "Search:",
+                        searchPlaceholder: "Search...",
                         zeroRecords: "Tidak ada data yang ditemukan",
                         info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ entries",
                         infoEmpty: "Menampilkan 0 sampai 0 dari 0 entries",
@@ -578,6 +579,10 @@
                         filteredBarData.push(sheetData[i]);
                     }
                 }
+                // Fallback: if category filter produced no matches, use full sheetData so the chart is not empty
+                if (filteredBarData.length === 0 && sheetData.length > 0) {
+                    filteredBarData = sheetData;
+                }
             } else {
                 filteredBarData = sheetData;
             }
@@ -833,12 +838,14 @@
             var periodMonth = '';
             var periodYear = '';
             if (currentPeriodStr && currentPeriodStr !== 'PILIH DATA' && currentPeriodStr !== 'PILIH PERIODE DATA' && currentPeriodStr !== '-') {
-                var periodParts = currentPeriodStr.split(' ');
-                if (periodParts.length >= 2) {
-                    // Capitalize first letter, lowercase rest for API
-                    var rawMonth = periodParts[0];
+                var mMatch = currentPeriodStr.match(/^[A-Za-z]+/);
+                var yMatch = currentPeriodStr.match(/\b(20\d{2})\b/);
+                if (mMatch) {
+                    var rawMonth = mMatch[0];
                     periodMonth = rawMonth.charAt(0).toUpperCase() + rawMonth.slice(1).toLowerCase();
-                    periodYear = periodParts[1];
+                }
+                if (yMatch) {
+                    periodYear = yMatch[1];
                 }
             }
             

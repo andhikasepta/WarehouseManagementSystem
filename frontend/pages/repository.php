@@ -661,7 +661,7 @@ elseif ($user['role'] === 'repository_admin')
     <!-- ── Top Header Navigation ── -->
     <nav class="repo-nav">
         <div class="repo-nav__inner">
-            <a href="/" class="repo-nav__brand" title="Landing Page Portal">
+            <a href="/portal" class="repo-nav__brand" title="Landing Page Portal">
                 <img src="frontend/img/Lintasarta.png" alt="Lintasarta" class="repo-nav__logo-img">
                 <span class="repo-nav__separator"></span>
                 <span class="repo-nav__subtitle">Documents Repository</span>
@@ -687,7 +687,7 @@ elseif ($user['role'] === 'repository_admin')
                             </a>
                             <div class="dropdown-divider my-1"></div>
                         <?php endif; ?>
-                        <a class="dropdown-item py-2" href="/">
+                        <a class="dropdown-item py-2" href="/portal">
                             <i class="fas fa-th mr-2 text-primary"></i> Landing Page Portal
                         </a>
                         <div class="dropdown-divider my-1"></div>

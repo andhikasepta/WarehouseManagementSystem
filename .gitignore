@@ -6,3 +6,5 @@ temp_rack.json
 test_output.json
 .env
 .env.docker
+.redis_offline
+*.flag

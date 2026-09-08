@@ -1635,7 +1635,7 @@ if (isset($pdo)) {
     <?php if (!$shouldHideNavbarUl): ?>
         <ul class="navbar-nav ml-auto align-items-center text-nowrap" style="white-space: nowrap;">
             <?php if (!isset($hidePeriodSelector) || !$hidePeriodSelector): ?>
-                <li class="nav-item dropdown no-arrow mx-1">
+                <li class="nav-item dropdown no-arrow mx-1" id="nav-item-period-selector">
                     <a class="nav-link dropdown-toggle text-nowrap d-flex align-items-center" href="#" id="periodDropdown"
                         role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         <i class="far fa-calendar-alt fa-fw text-gray-600" style="font-size: 1.1rem;"></i>
@@ -1659,21 +1659,21 @@ if (isset($pdo)) {
                             </div>
                         <?php endif; ?>
 
-                        <div class="form-group mb-2">
+                        <div class="form-group mb-2" id="month-select-group" <?php if ($activePage == 'kpi_monitoring') echo 'style="display:none;"'; ?>>
                             <label for="period-month-select" class="small font-weight-bold text-gray-600 mb-1">Bulan</label>
                             <select class="form-control form-control-sm" id="period-month-select">
                                 <option value="">-- Pilih Bulan --</option>
                             </select>
                         </div>
-                        <div class="form-group mb-2">
+                        <div class="form-group mb-2" id="batch-select-group" <?php if ($activePage == 'kpi_monitoring') echo 'style="display:none;"'; ?>>
                             <label for="period-batch-select" class="small font-weight-bold text-gray-600 mb-1">Batch</label>
                             <select class="form-control form-control-sm" id="period-batch-select">
-                                <option value="">-- Pilih Batch --</option>
+                                <option value="">-- Semua Batch (1 & 2) --</option>
                                 <option value="1">Batch 1</option>
                                 <option value="2">Batch 2</option>
                             </select>
                         </div>
-                        <div class="form-group mb-2">
+                        <div class="form-group mb-2" id="year-select-group">
                             <label for="period-year-select" class="small font-weight-bold text-gray-600 mb-1">Tahun</label>
                             <select class="form-control form-control-sm" id="period-year-select">
                                 <option value="">-- Pilih Tahun --</option>
@@ -1719,6 +1719,10 @@ if (isset($pdo)) {
                         <a class="dropdown-item text-gray-700 font-weight-bold text-nowrap py-2" href="#" data-toggle="modal"
                             data-target="#changePasswordModal">
                             <i class="fas fa-key fa-sm fa-fw mr-2 text-gray-500"></i> Ganti Password
+                        </a>
+                        <div class="dropdown-divider my-1"></div>
+                        <a class="dropdown-item text-primary font-weight-bold text-nowrap py-2" href="/portal">
+                            <i class="fas fa-th fa-sm fa-fw mr-2 text-primary"></i> Landing Page Portal
                         </a>
                         <div class="dropdown-divider my-1"></div>
                         <a class="dropdown-item text-danger font-weight-bold text-nowrap py-2" href="/?action=logout">
@@ -1837,6 +1841,13 @@ if (isset($pdo)) {
                 if (yearSel) yearSel.value = '';
 
                 if (btnLoad) btnLoad.disabled = true;
+            });
+        }
+
+        var periodMenu = document.getElementById('period-dropdown-menu');
+        if (periodMenu) {
+            periodMenu.addEventListener('click', function (e) {
+                e.stopPropagation();
             });
         }
 

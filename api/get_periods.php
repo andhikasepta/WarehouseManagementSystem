@@ -60,32 +60,83 @@ function sortPeriodeGroups($periods) {
 }
 
 try {
-    $stmt = $pdo->query("SELECT DISTINCT periode_group FROM assets WHERE periode_group IS NOT NULL");
+    $periodTables = ['assets', 'inbound_master', 'outbound_master', 'outbound_forwarder'];
+    $periodQueries = [];
+    foreach ($periodTables as $t) {
+        try {
+            $pdo->query("SELECT 1 FROM $t LIMIT 1");
+            $periodQueries[] = "SELECT periode_group FROM $t WHERE periode_group IS NOT NULL AND TRIM(periode_group) != ''";
+        } catch (Exception $e) {
+            // Table doesn't exist yet, skip
+        }
+    }
+    if (empty($periodQueries)) {
+        $periodQueries[] = "SELECT periode_group FROM assets WHERE periode_group IS NOT NULL";
+    }
+    $unionSql = "SELECT DISTINCT periode_group FROM (" . implode(" UNION ", $periodQueries) . ") all_periods";
+    $stmt = $pdo->query($unionSql);
     $results = $stmt->fetchAll(PDO::FETCH_COLUMN);
     
     // Sort periods chronologically (newest first)
     $results = sortPeriodeGroups($results);
 
     // Query distinct sites from so_location or sub_location
-    $stmtSites = $pdo->query("SELECT DISTINCT so_location FROM assets WHERE so_location IS NOT NULL AND so_location != '' ORDER BY so_location ASC");
-    $sites = $stmtSites->fetchAll(PDO::FETCH_COLUMN);
+    $sites = [];
+    try {
+        $stmtSites = $pdo->query("SELECT DISTINCT so_location FROM assets WHERE so_location IS NOT NULL AND so_location != '' ORDER BY so_location ASC");
+        $sites = $stmtSites->fetchAll(PDO::FETCH_COLUMN);
+    } catch (Exception $e) {
+        $sites = [];
+    }
 
     // Extract unique years from the period data
     $years = [];
     foreach ($results as $pg) {
         $parsed = parsePeriodeGroup($pg);
         if ($parsed) {
-            $years[$parsed['year']] = true;
+            $years[(string)$parsed['year']] = true;
         }
     }
     $years = array_keys($years);
     sort($years);
+    if (empty($years)) {
+        $years = [(string)date('Y')];
+    }
+    $years = array_values(array_map('strval', $years));
+
+    // Retrieve unique grouping years strictly from kpi_master table
+    $kpiYears = [];
+    try {
+        $rawKpi = $pdo->query("SELECT DISTINCT periode_tahun FROM kpi_master WHERE periode_tahun IS NOT NULL ORDER BY periode_tahun ASC")->fetchAll(PDO::FETCH_COLUMN);
+        foreach ($rawKpi as $ky) {
+            if (!empty($ky)) {
+                $kpiYears[] = (string)$ky;
+            }
+        }
+        $kpiYears = array_values(array_unique(array_map('strval', $kpiYears)));
+        sort($kpiYears);
+    } catch (Exception $e) {
+        $kpiYears = [];
+    }
+
+    $type = strtolower($_GET['type'] ?? '');
+    if ($type === 'kpi') {
+        echo json_encode([
+            'status' => 'success', 
+            'data' => [],
+            'sites' => [],
+            'years' => $kpiYears,
+            'kpi_years' => $kpiYears
+        ]);
+        exit;
+    }
 
     echo json_encode([
         'status' => 'success', 
         'data' => $results,
         'sites' => $sites,
-        'years' => $years
+        'years' => $years,
+        'kpi_years' => $kpiYears
     ]);
 } catch(PDOException $e) {
     error_log('get_periods.php error: ' . $e->getMessage());

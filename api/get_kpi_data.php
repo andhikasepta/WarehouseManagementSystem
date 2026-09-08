@@ -31,17 +31,8 @@ try {
         'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
     ];
 
-    // Check if user explicitly selected "DATA DUMMY"
-    $isDummy = (
-        stripos($periode, 'dummy') !== false ||
-        stripos($periode, 'tester') !== false ||
-        stripos($month, 'dummy') !== false ||
-        stripos($month, 'tester') !== false ||
-        stripos($year, 'dummy') !== false
-    );
-
-    // If periode is provided like "June 2026-Batch1", parse into month, year, batch
-    if (!$isDummy && !empty($periode) && $periode !== '-' && $periode !== 'PILIH PERIODE DATA') {
+    // If periode is provided like "June 2026-Batch1", "June 2026", "2026", parse into month, year, batch
+    if (!empty($periode) && $periode !== '-' && $periode !== 'PILIH PERIODE DATA') {
         // Handle new "Month Year-BatchN" format
         if (preg_match('/^(\w+)\s+(\d{4})-Batch(\d+)$/i', $periode, $pParts)) {
             $month = ucfirst(strtolower($pParts[1]));
@@ -50,6 +41,8 @@ try {
             // Legacy "Month Year" format
             $month = ucfirst(strtolower($pParts[1]));
             $year = $pParts[2];
+        } elseif (preg_match('/(\d{4})/', $periode, $pParts)) {
+            $year = $pParts[1];
         } else {
             $parts = explode(' ', $periode);
             if (count($parts) >= 2) {
@@ -57,6 +50,9 @@ try {
                 $year = $parts[1];
             }
         }
+    }
+    if (empty($year)) {
+        $year = '2026';
     }
 
     $hasPeriod = (!empty($month) && !empty($year) && preg_match('/^\d{4}$/', $year));
@@ -76,36 +72,120 @@ try {
 
     $selectedPeriodGroup = $month . ' ' . $year;
 
-    // ── Targets Definition ──
-    $receivingSlaTarget = 95.0;
+    // ── Targets Definition (From Specifications) ──
+    $receivingSlaTarget = 98.0;
     $registrationSlaTarget = 98.0;
-    $stockOpnameTarget = 99.5;
-    $stockOpnameHubTarget = 99.5;
-    $stockOpnameOutletTarget = 99.5;
-    $slowMovingTarget = 15.0; // Max threshold
-    $capacityTarget = 80.0;
-    $deliveryEffectivenessTarget = 95.0;
-    $deliveryEfficiencyTarget = 130000000; // Rp 130.000.000 Target
+    $mrClosingTarget = 90.0;
+    $stockOpnameTarget = 85.0;
+    $stockOpnameHubTarget = 85.0;
+    $stockOpnameOutletTarget = 85.0;
+    $slowMovingTarget = 85.0;
+    $capacityTarget = 90.0;
+    $deliveryEffectivenessTarget = 97.0;
+    $deliveryEfficiencyTarget = 10.0; // 10.0%
 
-    // ── Calculation / Evaluation Logic ──
-    if ($isDummy) {
-        // Dummy / Tester Data
-        $receivingSlaVal = 96.5;
-        $registrationSlaVal = 98.2;
-        $stockOpnameVal = 99.8;
-        $stockOpnameHubVal = 99.9;
-        $stockOpnameOutletVal = 99.0;
-        $slowMovingVal = 12.8;
-        $capacityVal = 76.4;
-        $deliveryEffectivenessVal = 97.4;
-        $deliveryEfficiencyVal = 148500000;
-        $hasDataInPeriod = true;
-        $month = 'DATA DUMMY';
-        $monthIndoName = 'DATA DUMMY';
-        $year = 'TESTER';
-        $selectedPeriodGroup = 'DATA DUMMY';
+    // ── Check KPI Master Data first (Prioritized for 2026+ or when kpi_master records exist) ──
+    $kpiYear = (!empty($year) && preg_match('/^\d{4}$/', $year)) ? (int)$year : 2026;
+    $kpiMasterRows = [];
+    try {
+        $stmtKpi = $pdo->prepare("SELECT * FROM kpi_master WHERE periode_tahun = ?");
+        $stmtKpi->execute([$kpiYear]);
+        $kpiMasterRows = $stmtKpi->fetchAll(PDO::FETCH_ASSOC);
+    } catch (Exception $e) {
+        $kpiMasterRows = [];
+    }
 
-        $kpiList = [
+    if (!empty($kpiMasterRows) || $kpiYear >= 2026) {
+        $hasKpiData = !empty($kpiMasterRows);
+        $kpiByMonth = [];
+        foreach ($kpiMasterRows as $kr) {
+            $mKey = ucfirst(strtolower(trim($kr['bulan'])));
+            $kpiByMonth[$mKey] = $kr;
+        }
+
+        // Initialize 12-month series for all 9 metrics
+        $trendReceivingTarget = []; $trendReceivingRealisasi = [];
+        $trendRegTarget = []; $trendRegRealisasi = [];
+        $trendMrTarget = []; $trendMrRealisasi = [];
+        $trendSoHubTarget = []; $trendSoHubRealisasi = [];
+        $trendSoOutletTarget = []; $trendSoOutletRealisasi = [];
+        $trendSlowTarget = []; $trendSlowRealisasi = [];
+        $trendCapTarget = []; $trendCapRealisasi = [];
+        $trendDelEffTarget = []; $trendDelEffRealisasi = [];
+        $trendDelEconTarget = []; $trendDelEconRealisasi = [];
+
+        foreach ($validMonths as $idx => $mName) {
+            // Target is ALWAYS static as defined by KPI specifications
+            $trendReceivingTarget[] = $receivingSlaTarget;
+            $trendRegTarget[] = $registrationSlaTarget;
+            $trendMrTarget[] = $mrClosingTarget;
+            $trendSoHubTarget[] = $stockOpnameHubTarget;
+            $trendSoOutletTarget[] = $stockOpnameOutletTarget;
+            $trendSlowTarget[] = $slowMovingTarget;
+            $trendCapTarget[] = $capacityTarget;
+            $trendDelEffTarget[] = $deliveryEffectivenessTarget;
+            $trendDelEconTarget[] = $deliveryEfficiencyTarget;
+
+            if (isset($kpiByMonth[$mName])) {
+                $kr = $kpiByMonth[$mName];
+                $normVal = function ($v) {
+                    $num = (float)$v;
+                    return ($num > 0 && $num <= 1.0) ? round($num * 100, 2) : round($num, 2);
+                };
+                // Achievement values from KPI Master Data
+                $trendReceivingRealisasi[] = $normVal($kr['gr_achievement'] ?? 0);
+                $trendRegRealisasi[] = $normVal($kr['registrasi_achievement'] ?? 0);
+                $trendMrRealisasi[] = $normVal($kr['mr_closing_achievement'] ?? 0);
+                $trendSoHubRealisasi[] = $normVal($kr['stok_opname_achievement'] ?? 0);
+                $trendSoOutletRealisasi[] = $normVal($kr['stok_opname_achievement'] ?? 0);
+                $trendSlowRealisasi[] = $normVal($kr['slow_moving_achievement'] ?? 0);
+                $trendCapRealisasi[] = $normVal($kr['utilisasi_space_achievement'] ?? 0);
+                $trendDelEffRealisasi[] = $normVal($kr['delivery_effectiveness_achievement'] ?? 0);
+                $trendDelEconRealisasi[] = $normVal($kr['efisiensi_delivery_achievement'] ?? 0);
+            } else {
+                $trendReceivingRealisasi[] = 0.0;
+                $trendRegRealisasi[] = 0.0;
+                $trendMrRealisasi[] = 0.0;
+                $trendSoHubRealisasi[] = 0.0;
+                $trendSoOutletRealisasi[] = 0.0;
+                $trendSlowRealisasi[] = 0.0;
+                $trendCapRealisasi[] = 0.0;
+                $trendDelEffRealisasi[] = 0.0;
+                $trendDelEconRealisasi[] = 0.0;
+            }
+        }
+
+        // Helper to pick card value: if month selected, take that month's realisasi; else average of non-zero entries (or latest month)
+        $calcCardVal = function ($series) use ($monthIdx) {
+            if ($monthIdx !== false && isset($series[$monthIdx])) {
+                return (float)$series[$monthIdx];
+            }
+            $nonZero = array_filter($series, function ($v) { return $v > 0; });
+            if (!empty($nonZero)) {
+                return round(array_sum($nonZero) / count($nonZero), 1);
+            }
+            return 0.0;
+        };
+
+        $valRec = $calcCardVal($trendReceivingRealisasi);
+        $valReg = $calcCardVal($trendRegRealisasi);
+        $valMr = $calcCardVal($trendMrRealisasi);
+        $valSoHub = $calcCardVal($trendSoHubRealisasi);
+        $valSoOutlet = $calcCardVal($trendSoOutletRealisasi);
+        $valSlow = $calcCardVal($trendSlowRealisasi);
+        $valCap = $calcCardVal($trendCapRealisasi);
+        $valDelEff = $calcCardVal($trendDelEffRealisasi);
+        $valDelEcon = $calcCardVal($trendDelEconRealisasi);
+
+        // Status helpers according to requirement: SLA Tercapai if above/equal target, Tidak Tercapai if below target
+        $getStatus = function ($val, $target) {
+            return ($val >= $target) ? 'SLA Tercapai' : 'Tidak Tercapai';
+        };
+        $getStatusInfo = function ($val, $target, $yr) use ($getStatus) {
+            return 'Periode ' . $yr . ' ' . $getStatus($val, $target);
+        };
+
+        $kpiListMaster = [
             [
                 'id' => 'receiving_sla',
                 'code' => 'KPI-IN-01',
@@ -114,12 +194,12 @@ try {
                 'unit' => '%',
                 'is_currency' => false,
                 'target' => $receivingSlaTarget,
-                'target_display' => '≥ 95.0%',
-                'actual' => $receivingSlaVal,
-                'actual_display' => '96,5%',
-                'achievement' => 101.6,
-                'status' => 'Achieved',
-                'description' => 'Ketepatan waktu penerbitan Goods Receipt (GR) terhadap PO masuk sesuai Service Level Agreement (≤ 14 hari).',
+                'target_display' => '≥ ' . number_format($receivingSlaTarget, 1) . '%',
+                'actual' => $valRec,
+                'actual_display' => number_format($valRec, 1, ',', '.') . '%',
+                'status' => $getStatus($valRec, $receivingSlaTarget),
+                'status_info' => $getStatusInfo($valRec, $receivingSlaTarget, $kpiYear),
+                'description' => 'Ketepatan waktu penerbitan Goods Receipt (GR) terhadap PO masuk sesuai Service Level Agreement.',
                 'formula' => '(Jumlah PO Terbit GR Tepat Waktu / Total PO Diterima) × 100%',
                 'icon' => 'fa-clipboard-check',
                 'color' => '#4e73df'
@@ -132,32 +212,50 @@ try {
                 'unit' => '%',
                 'is_currency' => false,
                 'target' => $registrationSlaTarget,
-                'target_display' => '≥ 98.0%',
-                'actual' => $registrationSlaVal,
-                'actual_display' => '98,2%',
-                'achievement' => 100.2,
-                'status' => 'Achieved',
-                'description' => 'Kecepatan dan kepatuhan registrasi serial number & tagging barcode perangkat pasca Goods Receipt (≤ 3 hari kerja).',
+                'target_display' => '≥ ' . number_format($registrationSlaTarget, 1) . '%',
+                'actual' => $valReg,
+                'actual_display' => number_format($valReg, 1, ',', '.') . '%',
+                'status' => $getStatus($valReg, $registrationSlaTarget),
+                'status_info' => $getStatusInfo($valReg, $registrationSlaTarget, $kpiYear),
+                'description' => 'Kecepatan dan kepatuhan registrasi serial number & tagging barcode perangkat pasca Goods Receipt.',
                 'formula' => '(Jumlah Perangkat Diregistrasi Tepat Waktu / Total Perangkat GR) × 100%',
                 'icon' => 'fa-barcode',
                 'color' => '#36b9cc'
             ],
             [
-                'id' => 'stock_opname',
-                'code' => 'KPI-ST-01',
-                'name' => 'Stock Opname',
-                'category' => 'Storage & Warehouse Management',
+                'id' => 'mr_closing',
+                'code' => 'KPI-OB-03',
+                'name' => 'MR Closing (Akumulatif) SLA',
+                'category' => 'Outbound Management',
                 'unit' => '%',
                 'is_currency' => false,
-                'target' => $stockOpnameTarget,
-                'target_display' => '≥ 99.5%',
-                'actual' => $stockOpnameVal,
-                'actual_display' => '99,8%',
-                'achievement' => 100.3,
-                'status' => 'Achieved',
-                'description' => 'Akurasi kecocokan fisik inventori perangkat warehouse terhadap pencatatan sistem WMS saat audit berkala.',
-                'formula' => '(Jumlah Item Fisik Match Sistem / Total Item Diaudit) × 100%',
-                'icon' => 'fa-boxes',
+                'target' => $mrClosingTarget,
+                'target_display' => '≥ ' . number_format($mrClosingTarget, 1) . '%',
+                'actual' => $valMr,
+                'actual_display' => number_format($valMr, 1, ',', '.') . '%',
+                'status' => $getStatus($valMr, $mrClosingTarget),
+                'status_info' => $getStatusInfo($valMr, $mrClosingTarget, $kpiYear),
+                'description' => 'Persentase penyelesaian dan penutupan Material Request (MR) secara akumulatif.',
+                'formula' => '(Total MR Closed Akumulatif / Total MR Masuk) × 100%',
+                'icon' => 'fa-check-double',
+                'color' => '#1cc88a'
+            ],
+            [
+                'id' => 'stock_opname',
+                'code' => 'KPI-OB-03',
+                'name' => 'MR Closing (Akumulatif) SLA',
+                'category' => 'Outbound Management',
+                'unit' => '%',
+                'is_currency' => false,
+                'target' => $mrClosingTarget,
+                'target_display' => '≥ ' . number_format($mrClosingTarget, 1) . '%',
+                'actual' => $valMr,
+                'actual_display' => number_format($valMr, 1, ',', '.') . '%',
+                'status' => $getStatus($valMr, $mrClosingTarget),
+                'status_info' => $getStatusInfo($valMr, $mrClosingTarget, $kpiYear),
+                'description' => 'Persentase penyelesaian dan penutupan Material Request (MR) secara akumulatif.',
+                'formula' => '(Total MR Closed Akumulatif / Total MR Masuk) × 100%',
+                'icon' => 'fa-check-double',
                 'color' => '#1cc88a'
             ],
             [
@@ -168,15 +266,15 @@ try {
                 'unit' => '%',
                 'is_currency' => false,
                 'target' => $stockOpnameHubTarget,
-                'target_display' => '≥ 99.5%',
-                'actual' => $stockOpnameHubVal,
-                'actual_display' => '99,9%',
-                'achievement' => 100.4,
-                'status' => 'Achieved',
-                'description' => 'Akurasi kecocokan fisik inventori perangkat pada Warehouse Hub Utama terhadap pencatatan sistem WMS saat audit berkala.',
-                'formula' => '(Jumlah Item Fisik Match Sistem di Warehouse Hub / Total Item Diaudit di Warehouse Hub) × 100%',
+                'target_display' => '≥ ' . number_format($stockOpnameHubTarget, 1) . '%',
+                'actual' => $valSoHub,
+                'actual_display' => number_format($valSoHub, 1, ',', '.') . '%',
+                'status' => $getStatus($valSoHub, $stockOpnameHubTarget),
+                'status_info' => $getStatusInfo($valSoHub, $stockOpnameHubTarget, $kpiYear),
+                'description' => 'Akurasi kecocokan fisik inventori perangkat pada Warehouse Hub & Outlet Warehouse.',
+                'formula' => '(Jumlah Item Fisik Match Sistem / Total Item Diaudit) × 100%',
                 'icon' => 'fa-warehouse',
-                'color' => '#1cc88a'
+                'color' => '#20c997'
             ],
             [
                 'id' => 'stock_opname_outlet',
@@ -186,48 +284,48 @@ try {
                 'unit' => '%',
                 'is_currency' => false,
                 'target' => $stockOpnameOutletTarget,
-                'target_display' => '≥ 99.5%',
-                'actual' => $stockOpnameOutletVal,
-                'actual_display' => '99,0%',
-                'achievement' => 99.5,
-                'status' => 'Achieved',
-                'description' => 'Akurasi kecocokan fisik inventori perangkat pada Outlet Warehouse Regional terhadap pencatatan sistem WMS saat audit berkala.',
-                'formula' => '(Jumlah Item Fisik Match Sistem di Outlet Warehouse / Total Item Diaudit di Outlet Warehouse) × 100%',
+                'target_display' => '≥ ' . number_format($stockOpnameOutletTarget, 1) . '%',
+                'actual' => $valSoOutlet,
+                'actual_display' => number_format($valSoOutlet, 1, ',', '.') . '%',
+                'status' => $getStatus($valSoOutlet, $stockOpnameOutletTarget),
+                'status_info' => $getStatusInfo($valSoOutlet, $stockOpnameOutletTarget, $kpiYear),
+                'description' => 'Akurasi kecocokan fisik inventori perangkat pada Outlet Warehouse & Warehouse Hub.',
+                'formula' => '(Jumlah Item Fisik Match Sistem / Total Item Diaudit) × 100%',
                 'icon' => 'fa-store',
-                'color' => '#36b9cc'
+                'color' => '#0dcaf0'
             ],
             [
                 'id' => 'slow_moving',
                 'code' => 'KPI-ST-02',
-                'name' => 'Slow Moving',
+                'name' => 'Slow Moving SLA',
                 'category' => 'Storage & Warehouse Management',
                 'unit' => '%',
                 'is_currency' => false,
                 'target' => $slowMovingTarget,
-                'target_display' => '≤ 15.0%',
-                'actual' => $slowMovingVal,
-                'actual_display' => '12,8%',
-                'achievement' => 100.0,
-                'status' => 'Achieved',
-                'description' => 'Rasio perbandingan jumlah item perangkat mengendap/aging > 12 bulan terhadap total keseluruhan inventori.',
-                'formula' => '(Total Qty Perangkat Aging > 12 Bulan / Total Qty Inventory on Hand) × 100%',
+                'target_display' => '≥ ' . number_format($slowMovingTarget, 1) . '%',
+                'actual' => $valSlow,
+                'actual_display' => number_format($valSlow, 1, ',', '.') . '%',
+                'status' => $getStatus($valSlow, $slowMovingTarget),
+                'status_info' => $getStatusInfo($valSlow, $slowMovingTarget, $kpiYear),
+                'description' => 'Target efektivitas pengelolaan perputaran dan pengurangan inventori slow moving.',
+                'formula' => 'Target: 85% dari KPI Master Data',
                 'icon' => 'fa-hourglass-half',
                 'color' => '#f6c23e'
             ],
             [
                 'id' => 'capacity',
                 'code' => 'KPI-ST-03',
-                'name' => 'Capacity',
+                'name' => 'Capacity SLA (Utilisasi Space)',
                 'category' => 'Storage & Warehouse Management',
                 'unit' => '%',
                 'is_currency' => false,
                 'target' => $capacityTarget,
-                'target_display' => '70.0% - 80.0%',
-                'actual' => $capacityVal,
-                'actual_display' => '76,4%',
-                'achievement' => 95.5,
-                'status' => 'Achieved',
-                'description' => 'Tingkat utilisasi kapasitas ruang penyimpanan rak dan staging area warehouse utama serta HUB regional.',
+                'target_display' => '≥ ' . number_format($capacityTarget, 1) . '%',
+                'actual' => $valCap,
+                'actual_display' => number_format($valCap, 1, ',', '.') . '%',
+                'status' => $getStatus($valCap, $capacityTarget),
+                'status_info' => $getStatusInfo($valCap, $capacityTarget, $kpiYear),
+                'description' => 'Tingkat utilisasi kapasitas ruang penyimpanan rak dan staging area warehouse.',
                 'formula' => '(Kapasitas Ruang Terpakai / Total Kapasitas Maksimal Ruang) × 100%',
                 'icon' => 'fa-warehouse',
                 'color' => '#6f42c1'
@@ -235,17 +333,17 @@ try {
             [
                 'id' => 'delivery_effectiveness',
                 'code' => 'KPI-OB-01',
-                'name' => 'Delivery Effectiveness',
+                'name' => 'Delivery Effectiveness SLA',
                 'category' => 'Outbound Management',
                 'unit' => '%',
                 'is_currency' => false,
                 'target' => $deliveryEffectivenessTarget,
-                'target_display' => '≥ 95.0%',
-                'actual' => $deliveryEffectivenessVal,
-                'actual_display' => '97,4%',
-                'achievement' => 102.5,
-                'status' => 'Achieved',
-                'description' => 'Efektivitas dan ketepatan pemenuhan Material Request (MR) & Delivery Order (DO) sampai di site tujuan tepat waktu.',
+                'target_display' => '≥ ' . number_format($deliveryEffectivenessTarget, 1) . '%',
+                'actual' => $valDelEff,
+                'actual_display' => number_format($valDelEff, 1, ',', '.') . '%',
+                'status' => $getStatus($valDelEff, $deliveryEffectivenessTarget),
+                'status_info' => $getStatusInfo($valDelEff, $deliveryEffectivenessTarget, $kpiYear),
+                'description' => 'Efektivitas dan ketepatan pemenuhan Material Request (MR) & Delivery Order (DO).',
                 'formula' => '(Jumlah Pengiriman On-Time & Sempurna / Total Permintaan Pengiriman) × 100%',
                 'icon' => 'fa-truck-fast',
                 'color' => '#e83e8c'
@@ -253,100 +351,233 @@ try {
             [
                 'id' => 'delivery_efficiency',
                 'code' => 'KPI-OB-02',
-                'name' => 'Efisiensi Delivery',
+                'name' => 'Efisiensi Delivery SLA',
                 'category' => 'Outbound Management',
-                'unit' => 'IDR',
-                'is_currency' => true,
+                'unit' => '%',
+                'is_currency' => false,
                 'target' => $deliveryEfficiencyTarget,
-                'target_display' => 'Rp ' . number_format($deliveryEfficiencyTarget, 0, ',', '.'),
-                'actual' => $deliveryEfficiencyVal,
-                'actual_display' => 'Rp ' . number_format($deliveryEfficiencyVal, 0, ',', '.'),
-                'achievement' => 114.2,
-                'status' => 'Achieved',
-                'description' => 'Total penghematan biaya logistik pengiriman melalui konsolidasi muatan armada dan optimasi rute regional.',
-                'formula' => 'Estimasi Biaya Logistik Standar - Aktual Realisasi Pengeluaran Logistik',
-                'icon' => 'fa-money-bill-wave',
+                'target_display' => '≥ ' . number_format($deliveryEfficiencyTarget, 1) . '%',
+                'actual' => $valDelEcon,
+                'actual_display' => number_format($valDelEcon, 1, ',', '.') . '%',
+                'status' => $getStatus($valDelEcon, $deliveryEfficiencyTarget),
+                'status_info' => $getStatusInfo($valDelEcon, $deliveryEfficiencyTarget, $kpiYear),
+                'description' => 'Persentase efisiensi dan penghematan biaya logistik pengiriman armada.',
+                'formula' => 'Persentase Efisiensi Biaya Logistik Pengiriman (Target: 10%)',
+                'icon' => 'fa-percentage',
+                'color' => '#17a2b8'
+            ]
+        ];
+
+        $monthlyTrendsMaster = [
+            'labels' => ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'],
+            'receiving_sla' => [
+                'name' => 'Receiving (GR) SLA',
+                'code' => 'KPI-IN-01',
+                'unit' => '%',
+                'target' => $trendReceivingTarget,
+                'realisasi' => $trendReceivingRealisasi,
+                'achievement' => $trendReceivingRealisasi,
+                'target_display' => '≥ ' . number_format($receivingSlaTarget, 1) . '%',
+                'color' => '#4e73df'
+            ],
+            'registration_sla' => [
+                'name' => 'Registration SLA',
+                'code' => 'KPI-IN-02',
+                'unit' => '%',
+                'target' => $trendRegTarget,
+                'realisasi' => $trendRegRealisasi,
+                'achievement' => $trendRegRealisasi,
+                'target_display' => '≥ ' . number_format($registrationSlaTarget, 1) . '%',
+                'color' => '#36b9cc'
+            ],
+            'mr_closing' => [
+                'name' => 'MR Closing (Akumulatif) SLA',
+                'code' => 'KPI-OB-03',
+                'unit' => '%',
+                'target' => $trendMrTarget,
+                'realisasi' => $trendMrRealisasi,
+                'achievement' => $trendMrRealisasi,
+                'target_display' => '≥ ' . number_format($mrClosingTarget, 1) . '%',
+                'color' => '#1cc88a'
+            ],
+            'stock_opname' => [ // Alias for backward compatibility
+                'name' => 'MR Closing (Akumulatif) SLA',
+                'code' => 'KPI-OB-03',
+                'unit' => '%',
+                'target' => $trendMrTarget,
+                'realisasi' => $trendMrRealisasi,
+                'achievement' => $trendMrRealisasi,
+                'target_display' => '≥ ' . number_format($mrClosingTarget, 1) . '%',
+                'color' => '#1cc88a'
+            ],
+            'stock_opname_hub' => [
+                'name' => 'Stock Opname Warehouse Hub',
+                'code' => 'KPI-ST-01A',
+                'unit' => '%',
+                'target' => $trendSoHubTarget,
+                'realisasi' => $trendSoHubRealisasi,
+                'achievement' => $trendSoHubRealisasi,
+                'target_display' => '≥ ' . number_format($stockOpnameHubTarget, 1) . '%',
                 'color' => '#20c997'
+            ],
+            'stock_opname_outlet' => [
+                'name' => 'Stock Opname Outlet Warehouse',
+                'code' => 'KPI-ST-01B',
+                'unit' => '%',
+                'target' => $trendSoOutletTarget,
+                'realisasi' => $trendSoOutletRealisasi,
+                'achievement' => $trendSoOutletRealisasi,
+                'target_display' => '≥ ' . number_format($stockOpnameOutletTarget, 1) . '%',
+                'color' => '#0dcaf0'
+            ],
+            'slow_moving' => [
+                'name' => 'Slow Moving SLA',
+                'code' => 'KPI-ST-02',
+                'unit' => '%',
+                'target' => $trendSlowTarget,
+                'realisasi' => $trendSlowRealisasi,
+                'achievement' => $trendSlowRealisasi,
+                'target_display' => '≥ ' . number_format($slowMovingTarget, 1) . '%',
+                'color' => '#f6c23e'
+            ],
+            'capacity' => [
+                'name' => 'Capacity SLA',
+                'code' => 'KPI-ST-03',
+                'unit' => '%',
+                'target' => $trendCapTarget,
+                'realisasi' => $trendCapRealisasi,
+                'achievement' => $trendCapRealisasi,
+                'target_display' => '≥ ' . number_format($capacityTarget, 1) . '%',
+                'color' => '#6f42c1'
+            ],
+            'delivery_effectiveness' => [
+                'name' => 'Delivery Effectiveness SLA',
+                'code' => 'KPI-OB-01',
+                'unit' => '%',
+                'target' => $trendDelEffTarget,
+                'realisasi' => $trendDelEffRealisasi,
+                'achievement' => $trendDelEffRealisasi,
+                'target_display' => '≥ ' . number_format($deliveryEffectivenessTarget, 1) . '%',
+                'color' => '#e83e8c'
+            ],
+            'delivery_efficiency' => [
+                'name' => 'Efisiensi Delivery SLA',
+                'code' => 'KPI-OB-02',
+                'unit' => '%',
+                'target' => $trendDelEconTarget,
+                'realisasi' => $trendDelEconRealisasi,
+                'achievement' => $trendDelEconRealisasi,
+                'target_display' => '≥ ' . number_format($deliveryEfficiencyTarget, 1) . '%',
+                'color' => '#17a2b8'
             ]
         ];
 
         echo json_encode([
             'status' => 'success',
-            'is_dummy' => true,
-            'has_data' => true,
+            'is_dummy' => false,
+            'has_data' => $hasKpiData,
+            'source' => 'kpi_master',
             'period' => [
-                'month' => 'DATA DUMMY',
-                'month_indo' => 'DATA DUMMY',
-                'year' => 'TESTER',
-                'group' => 'DATA DUMMY',
+                'month' => $month,
+                'month_indo' => $monthIndoName,
+                'year' => (string)$kpiYear,
+                'group' => (!empty($month) ? $month . ' ' : '') . $kpiYear,
                 'site' => $site
             ],
             'cards' => [
                 'receiving_sla' => [
                     'name' => 'Receiving (GR) SLA',
-                    'value' => $receivingSlaVal,
-                    'value_formatted' => '96,5%',
+                    'value' => $valRec,
+                    'value_formatted' => number_format($valRec, 1, ',', '.') . '%',
                     'target' => $receivingSlaTarget,
-                    'unit' => '%'
+                    'unit' => '%',
+                    'status' => $getStatus($valRec, $receivingSlaTarget),
+                    'status_info' => $getStatusInfo($valRec, $receivingSlaTarget, $kpiYear)
                 ],
                 'registration_sla' => [
                     'name' => 'Registration SLA',
-                    'value' => $registrationSlaVal,
-                    'value_formatted' => '98,2%',
+                    'value' => $valReg,
+                    'value_formatted' => number_format($valReg, 1, ',', '.') . '%',
                     'target' => $registrationSlaTarget,
-                    'unit' => '%'
+                    'unit' => '%',
+                    'status' => $getStatus($valReg, $registrationSlaTarget),
+                    'status_info' => $getStatusInfo($valReg, $registrationSlaTarget, $kpiYear)
                 ],
-                'stock_opname' => [
-                    'name' => 'Stock Opname',
-                    'value' => $stockOpnameVal,
-                    'value_formatted' => '99,8%',
-                    'target' => $stockOpnameTarget,
-                    'unit' => '%'
+                'mr_closing' => [
+                    'name' => 'MR Closing (Akumulatif) SLA',
+                    'value' => $valMr,
+                    'value_formatted' => number_format($valMr, 1, ',', '.') . '%',
+                    'target' => $mrClosingTarget,
+                    'unit' => '%',
+                    'status' => $getStatus($valMr, $mrClosingTarget),
+                    'status_info' => $getStatusInfo($valMr, $mrClosingTarget, $kpiYear)
+                ],
+                'stock_opname' => [ // Backward compatibility alias
+                    'name' => 'MR Closing (Akumulatif) SLA',
+                    'value' => $valMr,
+                    'value_formatted' => number_format($valMr, 1, ',', '.') . '%',
+                    'target' => $mrClosingTarget,
+                    'unit' => '%',
+                    'status' => $getStatus($valMr, $mrClosingTarget),
+                    'status_info' => $getStatusInfo($valMr, $mrClosingTarget, $kpiYear)
                 ],
                 'stock_opname_hub' => [
                     'name' => 'Stock Opname Warehouse Hub',
-                    'value' => $stockOpnameHubVal,
-                    'value_formatted' => '99,9%',
+                    'value' => $valSoHub,
+                    'value_formatted' => number_format($valSoHub, 1, ',', '.') . '%',
                     'target' => $stockOpnameHubTarget,
-                    'unit' => '%'
+                    'unit' => '%',
+                    'status' => $getStatus($valSoHub, $stockOpnameHubTarget),
+                    'status_info' => $getStatusInfo($valSoHub, $stockOpnameHubTarget, $kpiYear)
                 ],
                 'stock_opname_outlet' => [
                     'name' => 'Stock Opname Outlet Warehouse',
-                    'value' => $stockOpnameOutletVal,
-                    'value_formatted' => '99,0%',
+                    'value' => $valSoOutlet,
+                    'value_formatted' => number_format($valSoOutlet, 1, ',', '.') . '%',
                     'target' => $stockOpnameOutletTarget,
-                    'unit' => '%'
+                    'unit' => '%',
+                    'status' => $getStatus($valSoOutlet, $stockOpnameOutletTarget),
+                    'status_info' => $getStatusInfo($valSoOutlet, $stockOpnameOutletTarget, $kpiYear)
                 ],
                 'slow_moving' => [
-                    'name' => 'Slow Moving',
-                    'value' => $slowMovingVal,
-                    'value_formatted' => '12,8%',
+                    'name' => 'Slow Moving SLA',
+                    'value' => $valSlow,
+                    'value_formatted' => number_format($valSlow, 1, ',', '.') . '%',
                     'target' => $slowMovingTarget,
-                    'unit' => '%'
+                    'unit' => '%',
+                    'status' => $getStatus($valSlow, $slowMovingTarget),
+                    'status_info' => $getStatusInfo($valSlow, $slowMovingTarget, $kpiYear)
                 ],
                 'capacity' => [
-                    'name' => 'Capacity',
-                    'value' => $capacityVal,
-                    'value_formatted' => '76,4%',
+                    'name' => 'Capacity SLA',
+                    'value' => $valCap,
+                    'value_formatted' => number_format($valCap, 1, ',', '.') . '%',
                     'target' => $capacityTarget,
-                    'unit' => '%'
+                    'unit' => '%',
+                    'status' => $getStatus($valCap, $capacityTarget),
+                    'status_info' => $getStatusInfo($valCap, $capacityTarget, $kpiYear)
                 ],
                 'delivery_effectiveness' => [
-                    'name' => 'Delivery Effectiveness',
-                    'value' => $deliveryEffectivenessVal,
-                    'value_formatted' => '97,4%',
+                    'name' => 'Delivery Effectiveness SLA',
+                    'value' => $valDelEff,
+                    'value_formatted' => number_format($valDelEff, 1, ',', '.') . '%',
                     'target' => $deliveryEffectivenessTarget,
-                    'unit' => '%'
+                    'unit' => '%',
+                    'status' => $getStatus($valDelEff, $deliveryEffectivenessTarget),
+                    'status_info' => $getStatusInfo($valDelEff, $deliveryEffectivenessTarget, $kpiYear)
                 ],
                 'delivery_efficiency' => [
-                    'name' => 'Efisiensi Delivery',
-                    'value' => $deliveryEfficiencyVal,
-                    'value_formatted' => 'Rp ' . number_format($deliveryEfficiencyVal, 0, ',', '.'),
+                    'name' => 'Efisiensi Delivery SLA',
+                    'value' => $valDelEcon,
+                    'value_formatted' => number_format($valDelEcon, 1, ',', '.') . '%',
                     'target' => $deliveryEfficiencyTarget,
-                    'unit' => 'IDR'
+                    'unit' => '%',
+                    'status' => $getStatus($valDelEcon, $deliveryEfficiencyTarget),
+                    'status_info' => $getStatusInfo($valDelEcon, $deliveryEfficiencyTarget, $kpiYear)
                 ]
             ],
-            'kpi_list' => $kpiList
+            'kpi_list' => $kpiListMaster,
+            'monthly_trends' => $monthlyTrendsMaster
         ]);
         exit;
     }

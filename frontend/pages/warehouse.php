@@ -253,7 +253,7 @@ if (!defined('SPA_MODE')) {
                     <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 
                     <!-- Page level custom scripts -->
-                    <script src="frontend/js/formula-controller.js?v=23"></script>
+                    <script src="frontend/js/formula-controller.js?v=24"></script>
                     <script src="frontend/js/demo/chart-bar-demo.js?v=8"></script>
                     <script src="frontend/js/demo/chart-horizontal-bar-demo.js?v=5"></script>
 
@@ -292,6 +292,10 @@ if (!defined('SPA_MODE')) {
 
                                         // Build sorted year list ascending
                                         var availableYears = (result.years && result.years.length > 0) ? result.years : Object.keys(yearsSet).sort();
+                                        availableYears = (availableYears || []).map(function (y) { return String(y); });
+                                        if (!availableYears || availableYears.length === 0) {
+                                            availableYears = [(new Date()).getFullYear().toString()];
+                                        }
 
                                         // Populate navbar Month select (always all 12 months)
                                         populateSelect('period-month-select', ALL_MONTHS, '-- Pilih Bulan --');
@@ -306,6 +310,10 @@ if (!defined('SPA_MODE')) {
                                         if (selectPeriod) {
                                             preselectPeriod(selectPeriod);
                                             loadDataForPeriod(selectPeriod);
+                                        } else if (result.data && result.data.length > 0) {
+                                            // Automatically select and load the latest available period from database
+                                            preselectPeriod(result.data[0]);
+                                            loadDataForPeriod(result.data[0]);
                                         } else {
                                             document.getElementById('selected-period-text').textContent = "PILIH PERIODE DATA";
                                             if (window.FormulaController) {
@@ -326,15 +334,16 @@ if (!defined('SPA_MODE')) {
                                 defOpt.value = '';
                                 defOpt.textContent = placeholder;
                                 sel.appendChild(defOpt);
-                                items.forEach(function (item) {
+                                (items || []).forEach(function (item) {
                                     var opt = document.createElement('option');
                                     opt.value = item;
-                                    opt.textContent = item.toUpperCase();
+                                    opt.textContent = String(item).toUpperCase();
                                     sel.appendChild(opt);
                                 });
                             }
 
                             function preselectPeriod(period) {
+                                if (!period) return;
                                 // Parse "Month Year-BatchN" format
                                 var match = period.match(/^(\w+)\s+(\d{4})-Batch(\d+)$/i);
                                 if (match) {
@@ -359,11 +368,10 @@ if (!defined('SPA_MODE')) {
 
                             function updateLoadButton() {
                                 var m = document.getElementById('period-month-select');
-                                var b = document.getElementById('period-batch-select');
                                 var y = document.getElementById('period-year-select');
                                 var btn = document.getElementById('btn-load-period');
                                 if (btn) {
-                                    btn.disabled = !(m && m.value && b && b.value && y && y.value);
+                                    btn.disabled = !(m && m.value && y && y.value);
                                 }
                             }
 
@@ -381,8 +389,8 @@ if (!defined('SPA_MODE')) {
                                     var m = document.getElementById('period-month-select');
                                     var b = document.getElementById('period-batch-select');
                                     var y = document.getElementById('period-year-select');
-                                    if (m && m.value && b && b.value && y && y.value) {
-                                        var period = m.value + ' ' + y.value + '-Batch' + b.value;
+                                    if (m && m.value && y && y.value) {
+                                        var period = (b && b.value) ? (m.value + ' ' + y.value + '-Batch' + b.value) : (m.value + ' ' + y.value);
                                         loadDataForPeriod(period);
                                         $(periodMenu).closest('.dropdown').find('.dropdown-toggle').dropdown('toggle');
                                     }
@@ -414,7 +422,7 @@ if (!defined('SPA_MODE')) {
 
                             // ── Fetch & render data for a period ──
                             function loadDataForPeriod(period) {
-                                document.getElementById('selected-period-text').textContent = period.toUpperCase();
+                                document.getElementById('selected-period-text').textContent = (period.indexOf('-Batch') !== -1 ? period : period + ' (ALL BATCH)').toUpperCase();
 
                                 if (typeof Swal !== 'undefined') {
                                     Swal.fire({

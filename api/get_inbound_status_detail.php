@@ -1,12 +1,12 @@
 <?php
 // api/get_inbound_status_detail.php
 // Returns summary counts and detail rows for Inbound Status Flow
-header('Content-Type: application/json');
+@header('Content-Type: application/json');
 require_once __DIR__ . '/../backend/config/database.php';
 require_once __DIR__ . '/../backend/auth.php';
 
 if (!isLoggedIn()) {
-    http_response_code(401);
+    @http_response_code(401);
     echo json_encode(['status' => 'error', 'message' => 'Unauthorized']);
     exit;
 }
@@ -231,9 +231,32 @@ try {
         $where .= " AND (po_nomor IS NOT NULL AND TRIM(po_nomor) != '')";
     }
 
-    $stmt = $pdo->prepare("SELECT id, pr_nomor, pr_nama_site, pr_item_kategori, pr_pic_teknis_nama, pr_nama_bagian, pr_nama_divisi, po_nomor, po_deskripsi, po_vendor, po_tgl_generate, po_nama_item, po_qty_item, po_uom_item, po_target_delivery, project_id, periode_group FROM inbound_master WHERE $where ORDER BY id DESC LIMIT 500");
-    $stmt->execute($params);
-    $rawRows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $isGroupedPo = ($status !== 'GR NON PO');
+
+    if ($isGroupedPo) {
+        $stmt = $pdo->prepare("SELECT 
+            po_nomor,
+            MAX(COALESCE(NULLIF(TRIM(po_deskripsi), ''), po_nama_item)) as po_deskripsi,
+            MAX(pr_pic_teknis_nama) as pr_pic_teknis_nama,
+            MAX(COALESCE(NULLIF(TRIM(pr_nama_bagian), ''), pr_nama_divisi)) as pr_nama_bagian,
+            MAX(po_vendor) as po_vendor,
+            SUM(COALESCE(po_qty_item, 0)) as po_qty_item,
+            MAX(po_uom_item) as po_uom_item,
+            MAX(po_tgl_generate) as po_tgl_generate,
+            MAX(po_target_delivery) as po_target_delivery,
+            MAX(periode_group) as periode_group
+        FROM inbound_master 
+        WHERE $where 
+        GROUP BY po_nomor 
+        ORDER BY MAX(id) DESC 
+        LIMIT 500");
+        $stmt->execute($params);
+        $rawRows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } else {
+        $stmt = $pdo->prepare("SELECT id, pr_nomor, pr_nama_site, pr_item_kategori, pr_pic_teknis_nama, pr_nama_bagian, pr_nama_divisi, po_nomor, po_deskripsi, po_vendor, po_tgl_generate, po_nama_item, po_qty_item, po_uom_item, po_target_delivery, project_id, periode_group FROM inbound_master WHERE $where ORDER BY id DESC LIMIT 500");
+        $stmt->execute($params);
+        $rawRows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 
     // Format rows according to the requested status
     $formattedRows = [];
@@ -242,7 +265,9 @@ try {
         $pic = !empty($r['pr_pic_teknis_nama']) ? $r['pr_pic_teknis_nama'] : '-';
         $dept = !empty($r['pr_nama_bagian']) ? $r['pr_nama_bagian'] : (!empty($r['pr_nama_divisi']) ? $r['pr_nama_divisi'] : '-');
         $vendor = !empty($r['po_vendor']) ? $r['po_vendor'] : '-';
-        $qtyStr = ($r['po_qty_item'] !== null) ? number_format((float)$r['po_qty_item'], 0, ',', '.') . ' ' . ($r['po_uom_item'] ?: 'Unit') : '-';
+        $qtyVal = (float)($r['po_qty_item'] ?? 0);
+        $formattedQty = ($qtyVal == floor($qtyVal)) ? number_format($qtyVal, 0, ',', '.') : number_format($qtyVal, 2, ',', '.');
+        $qtyStr = ($r['po_qty_item'] !== null) ? $formattedQty . ' ' . ($r['po_uom_item'] ?: 'Unit') : '-';
 
         if ($status === 'GR NON PO') {
             $formattedRows[] = [

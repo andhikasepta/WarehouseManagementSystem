@@ -282,6 +282,10 @@ if (!defined('SPA_MODE')) {
                                         }
 
                                         var availableYears = (result.years && result.years.length > 0) ? result.years : Object.keys(yearsSet).sort();
+                                        availableYears = (availableYears || []).map(function (y) { return String(y); });
+                                        if (!availableYears || availableYears.length === 0) {
+                                            availableYears = [(new Date()).getFullYear().toString()];
+                                        }
                                         var availableSites = (result.sites && result.sites.length > 0)
                                             ? result.sites
                                             : ['HUB TEKNO', 'HUB JAKARTA', 'OUTLET BANDUNG', 'OUTLET SURABAYA'];
@@ -295,6 +299,9 @@ if (!defined('SPA_MODE')) {
                                         if (selectPeriod) {
                                             preselectPeriod(selectPeriod);
                                             loadDataForPeriod(selectPeriod);
+                                        } else if (result.data && result.data.length > 0) {
+                                            preselectPeriod(result.data[0]);
+                                            loadDataForPeriod(result.data[0]);
                                         } else {
                                             document.getElementById('selected-period-text').textContent = "PILIH PERIODE DATA";
                                             if (window.FormulaController) {
@@ -315,10 +322,10 @@ if (!defined('SPA_MODE')) {
                                 defOpt.value = '';
                                 defOpt.textContent = placeholder;
                                 sel.appendChild(defOpt);
-                                items.forEach(function (item) {
+                                (items || []).forEach(function (item) {
                                     var opt = document.createElement('option');
                                     opt.value = item;
-                                    opt.textContent = item.toUpperCase();
+                                    opt.textContent = String(item).toUpperCase();
                                     sel.appendChild(opt);
                                 });
                             }
@@ -349,11 +356,10 @@ if (!defined('SPA_MODE')) {
 
                             function updateLoadButton() {
                                 var m = document.getElementById('period-month-select');
-                                var b = document.getElementById('period-batch-select');
                                 var y = document.getElementById('period-year-select');
                                 var btn = document.getElementById('btn-load-period');
                                 if (btn) {
-                                    btn.disabled = !(m && m.value && b && b.value && y && y.value);
+                                    btn.disabled = !(m && m.value && y && y.value);
                                 }
                             }
 
@@ -379,8 +385,8 @@ if (!defined('SPA_MODE')) {
                                     var m = document.getElementById('period-month-select');
                                     var b = document.getElementById('period-batch-select');
                                     var y = document.getElementById('period-year-select');
-                                    if (m && m.value && b && b.value && y && y.value) {
-                                        var period = m.value + ' ' + y.value + '-Batch' + b.value;
+                                    if (m && m.value && y && y.value) {
+                                        var period = (b && b.value) ? (m.value + ' ' + y.value + '-Batch' + b.value) : (m.value + ' ' + y.value);
                                         loadDataForPeriod(period);
                                         $(periodMenu).closest('.dropdown').find('.dropdown-toggle').dropdown('toggle');
                                     }
@@ -426,7 +432,7 @@ if (!defined('SPA_MODE')) {
                                      }
                                  }
 
-                                 document.getElementById('selected-period-text').textContent = period.toUpperCase();
+                                 document.getElementById('selected-period-text').textContent = (period.indexOf('-Batch') !== -1 ? period : period + ' (ALL BATCH)').toUpperCase();
 
                                 if (typeof Swal !== 'undefined') {
                                     Swal.fire({

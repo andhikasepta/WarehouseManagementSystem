@@ -1,7 +1,7 @@
 <?php
 // api/get_data.php
-ini_set('memory_limit', '256M');
-set_time_limit(60);
+ini_set('memory_limit', '512M');
+set_time_limit(120);
 header('Content-Type: application/json');
 require_once __DIR__ . '/../backend/config/database.php';
 require_once __DIR__ . '/../backend/auth.php';
@@ -44,11 +44,22 @@ try {
         });
         
         $currentIndex = array_search($periodeGroup, $allPeriods);
+        $isBatchSpecific = (bool)preg_match('/-Batch\d+$/i', $periodeGroup);
+        if ($currentIndex === false && !$isBatchSpecific) {
+            foreach ($allPeriods as $idx => $ap) {
+                if (strpos($ap, $periodeGroup) === 0) {
+                    $currentIndex = $idx;
+                    break;
+                }
+            }
+        }
         $prevPGroup = ($currentIndex !== false && $currentIndex > 0) ? $allPeriods[$currentIndex - 1] : null;
+        $currWhere = $isBatchSpecific ? "c.periode_group = ?" : "(c.periode_group = ? OR c.periode_group LIKE ?)";
+        $currPeriodParams = $isBatchSpecific ? [$periodeGroup] : [$periodeGroup, $periodeGroup . '%'];
 
         // 2. Get current period's actual 'periode' value (for OUT assets)
-        $stmtP = $pdo->prepare("SELECT periode FROM assets WHERE periode_group = ? LIMIT 1");
-        $stmtP->execute([$periodeGroup]);
+        $stmtP = $pdo->prepare("SELECT periode FROM assets WHERE (periode_group = ? OR periode_group LIKE ?) LIMIT 1");
+        $stmtP->execute([$periodeGroup, $periodeGroup . '%']);
         $currentPeriode = $stmtP->fetchColumn();
 
         // 3. Use SQL LEFT JOINs to compute IN/OUT status at the database level
@@ -65,8 +76,8 @@ try {
                                CASE WHEN p.reg_no IS NULL THEN 'IN' ELSE '-' END AS status
                         FROM assets c
                         LEFT JOIN assets p ON p.reg_no = c.reg_no AND p.periode_group = ?
-                        WHERE c.periode_group = ?";
-            $paramsCurr = [$prevPGroup, $periodeGroup];
+                        WHERE $currWhere";
+            $paramsCurr = array_merge([$prevPGroup], $currPeriodParams);
 
             if ($siteFilter) {
                 $sqlCurr .= " AND c.so_location = ?";
@@ -79,9 +90,9 @@ try {
                               p.category, ? AS periode, ? AS periode_group,
                               'OUT' AS status
                        FROM assets p
-                       LEFT JOIN assets c ON c.reg_no = p.reg_no AND c.periode_group = ?
+                       LEFT JOIN assets c ON c.reg_no = p.reg_no AND ($currWhere)
                        WHERE p.periode_group = ? AND c.reg_no IS NULL";
-            $paramsOut = [$currentPeriode, $periodeGroup, $periodeGroup, $prevPGroup];
+            $paramsOut = array_merge([$currentPeriode, $periodeGroup], $currPeriodParams, [$prevPGroup]);
 
             if ($siteFilter) {
                 $sqlOut .= " AND p.so_location = ?";
@@ -97,8 +108,8 @@ try {
                            nbv, so_result, so_location, {$q}range{$q}, sub_location,
                            category, periode, periode_group,
                            'IN' AS status
-                    FROM assets WHERE periode_group = ?";
-            $params = [$periodeGroup];
+                    FROM assets WHERE " . ($isBatchSpecific ? "periode_group = ?" : "(periode_group = ? OR periode_group LIKE ?)");
+            $params = $currPeriodParams;
 
             if ($siteFilter) {
                 $sql .= " AND so_location = ?";

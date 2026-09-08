@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../../backend/config/database.php';
+require_once __DIR__ . '/../../backend/auth.php';
 
 if (!function_exists('assetUrl')) {
     function assetUrl($path)
@@ -241,7 +242,7 @@ if (!function_exists('assetUrl')) {
         <div class="row justify-content-center align-items-stretch my-auto py-2 px-md-3">
             <!-- Card 1: AWan System -->
             <div class="col-md-4 col-lg-4 mb-3 mb-md-0 text-center px-md-2 px-lg-2">
-                <a href="https://centrals.lintasarta.net/assets/" class="portal-card-link h-100 d-flex flex-column">
+                <a href="/awan/" class="portal-card-link h-100 d-flex flex-column">
                     <img src="<?php echo assetUrl('frontend/img/AWan.png'); ?>" alt="AWan System"
                         class="portal-card-img">
                     <div class="portal-card-body flex-grow-1 d-flex flex-column justify-content-between">
@@ -255,7 +256,7 @@ if (!function_exists('assetUrl')) {
 
             <!-- Card 2: WMS System -->
             <div class="col-md-4 col-lg-4 mb-3 mb-md-0 text-center px-md-2 px-lg-2">
-                <a href="/?view=login" class="portal-card-link h-100 d-flex flex-column">
+                <a href="<?php echo (function_exists('isLoggedIn') && isLoggedIn()) ? '/' : '/?view=login'; ?>" class="portal-card-link h-100 d-flex flex-column">
                     <img src="<?php echo assetUrl('frontend/img/WMS.png'); ?>" alt="Warehouse Management System"
                         class="portal-card-img">
                     <div class="portal-card-body flex-grow-1 d-flex flex-column justify-content-between">
