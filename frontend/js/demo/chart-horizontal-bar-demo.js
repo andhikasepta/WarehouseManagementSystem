@@ -53,8 +53,8 @@ var myHorizontalBarChart = new Chart(ctx, {
     maintainAspectRatio: false,
     layout: {
       padding: {
-        left: 5,
-        right: 70,
+        left: 10,
+        right: 80,
         top: 20,
         bottom: 0
       }
@@ -112,13 +112,15 @@ var myHorizontalBarChart = new Chart(ctx, {
           drawBorder: false
         },
         ticks: {
-          fontSize: 9.5,
-          padding: 4,
+          fontSize: 10.5,
+          fontStyle: '600',
+          fontColor: '#2e384d',
+          padding: 8,
           callback: function (value) {
             return value;
           }
         },
-        maxBarThickness: 22,
+        maxBarThickness: 24,
       }],
     },
     legend: {
@@ -132,19 +134,27 @@ var myHorizontalBarChart = new Chart(ctx, {
     tooltips: {
       mode: 'index',
       intersect: false,
-      titleMarginBottom: 4,
-      titleFontColor: '#6e707e',
-      titleFontSize: 11,
-      bodyFontSize: 10,
-      backgroundColor: "rgb(255,255,255)",
-      bodyFontColor: "#858796",
+      titleMarginBottom: 6,
+      titleFontColor: '#2e384d',
+      titleFontSize: 12,
+      titleFontStyle: 'bold',
+      bodyFontSize: 11,
+      backgroundColor: "rgba(255, 255, 255, 0.98)",
+      bodyFontColor: "#5a5c69",
       borderColor: '#dddfeb',
       borderWidth: 1,
-      xPadding: 8,
-      yPadding: 6,
-      displayColors: false,
+      xPadding: 12,
+      yPadding: 10,
+      displayColors: true,
       caretPadding: 6,
       callbacks: {
+        title: function (tooltipItems, data) {
+          if (tooltipItems && tooltipItems.length > 0) {
+            var idx = tooltipItems[0].index;
+            return data.labels[idx] || '';
+          }
+          return '';
+        },
         label: function (tooltipItem, chart) {
           var datasetLabel = chart.datasets[tooltipItem.datasetIndex].label || '';
           var val = number_format(tooltipItem.xLabel);
@@ -159,22 +169,22 @@ var myHorizontalBarChart = new Chart(ctx, {
     },
     plugins: {
       datalabels: {
-        color: '#5a5c69',
+        color: '#4a5568',
         anchor: 'end',
         align: 'right',
         font: {
-          size: 11,
+          size: 10.5,
           weight: 'bold'
         },
         formatter: function (value, context) {
           if (value === 0 || value == null) return '';
           var datasetLabel = context.dataset.label || '';
           if (datasetLabel.includes('NBV')) {
-            if (value >= 1000000000) return number_format(value / 1000000000, 1) + 'B';
-            if (value >= 1000000) return number_format(value / 1000000, 1) + 'M';
-            return number_format(value);
+            if (value >= 1000000000) return 'Rp ' + number_format(value / 1000000000, 1) + 'B';
+            if (value >= 1000000) return 'Rp ' + number_format(value / 1000000, 1) + 'M';
+            return 'Rp ' + number_format(value);
           }
-          return number_format(value);
+          return number_format(value) + ' Unit';
         }
       }
     }

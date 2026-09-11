@@ -2,64 +2,65 @@
 // dashboard.php - Head-Warehouse Management Dashboard Overview
 require_once __DIR__ . '/../../backend/auth.php';
 
-if (!defined('SPA_MODE')) checkModuleAccess('dashboard');
+if (!defined('SPA_MODE'))
+    checkModuleAccess('dashboard');
 $currentUser = getCurrentUser();
 
 if (!defined('SPA_MODE')) {
     $pageTitle = 'WMS - PT. Aplikanusa Lintasarta';
     include FRONTEND_PATH . 'components/header.php';
-?>
-<style>
-    .btn-detail-dark {
-        background: linear-gradient(135deg, #0b192c 0%, #1e3e62 100%);
-        color: #ffffff !important;
-        border: none;
-        font-size: 0.68rem;
-        border-radius: 6px;
-        transition: all 0.25s ease-in-out;
-    }
+    ?>
+    <style>
+        .btn-detail-dark {
+            background: linear-gradient(135deg, #0b192c 0%, #1e3e62 100%);
+            color: #ffffff !important;
+            border: none;
+            font-size: 0.68rem;
+            border-radius: 6px;
+            transition: all 0.25s ease-in-out;
+        }
 
-    .btn-detail-dark:hover,
-    .btn-detail-dark:focus {
-        background: linear-gradient(135deg, #1e3e62 0%, #365e8d 100%) !important;
-        color: #ffffff !important;
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(30, 62, 98, 0.4) !important;
-        filter: brightness(1.2);
-    }
-</style>
+        .btn-detail-dark:hover,
+        .btn-detail-dark:focus {
+            background: linear-gradient(135deg, #1e3e62 0%, #365e8d 100%) !important;
+            color: #ffffff !important;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(30, 62, 98, 0.4) !important;
+            filter: brightness(1.2);
+        }
+    </style>
 
-<body id="page-top">
-    <div id="wrapper">
-        <div id="content-wrapper" class="d-flex flex-column min-vh-100 bg-light">
-            <div id="content" class="flex-grow-1">
+    <body id="page-top">
+        <div id="wrapper">
+            <div id="content-wrapper" class="d-flex flex-column min-vh-100 bg-light">
+                <div id="content" class="flex-grow-1">
 
-                <!-- Topbar Navigation -->
-                <?php
-                $activePage = 'dashboard';
-                include FRONTEND_PATH . 'components/navbar.php';
-                ?>
-<?php } else { ?>
-<style>
-    .btn-detail-dark {
-        background: linear-gradient(135deg, #0b192c 0%, #1e3e62 100%);
-        color: #ffffff !important;
-        border: none;
-        font-size: 0.68rem;
-        border-radius: 6px;
-        transition: all 0.25s ease-in-out;
-    }
+                    <!-- Topbar Navigation -->
+                    <?php
+                    $activePage = 'dashboard';
+                    include FRONTEND_PATH . 'components/navbar.php';
+                    ?>
+                <?php } else { ?>
+                    <style>
+                        .btn-detail-dark {
+                            background: linear-gradient(135deg, #0b192c 0%, #1e3e62 100%);
+                            color: #ffffff !important;
+                            border: none;
+                            font-size: 0.68rem;
+                            border-radius: 6px;
+                            transition: all 0.25s ease-in-out;
+                        }
 
-    .btn-detail-dark:hover,
-    .btn-detail-dark:focus {
-        background: linear-gradient(135deg, #1e3e62 0%, #365e8d 100%) !important;
-        color: #ffffff !important;
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(30, 62, 98, 0.4) !important;
-        filter: brightness(1.2);
-    }
-</style>
-<?php } ?>
+                        .btn-detail-dark:hover,
+                        .btn-detail-dark:focus {
+                            background: linear-gradient(135deg, #1e3e62 0%, #365e8d 100%) !important;
+                            color: #ffffff !important;
+                            transform: translateY(-1px);
+                            box-shadow: 0 4px 12px rgba(30, 62, 98, 0.4) !important;
+                            filter: brightness(1.2);
+                        }
+                    </style>
+                <?php } ?>
 
                 <!-- Begin Page Content -->
                 <div class="container-fluid" style="padding-top: 100px;">
@@ -1124,7 +1125,7 @@ if (!defined('SPA_MODE')) {
                                                     <th class="text-center py-2" style="width: 40px;">No</th>
                                                     <th class="py-2">Indikator KPI</th>
                                                     <th class="text-center py-2">Target</th>
-                                                    <th class="text-right py-2">Realisasi</th>
+                                                    <th class="text-right py-2">Achievement</th>
                                                     <th class="text-center py-2">Status</th>
                                                 </tr>
                                             </thead>
@@ -2262,19 +2263,27 @@ if (!defined('SPA_MODE')) {
 
                             var parts = period.match(/^(\w+)\s+(\d{4})(?:-Batch(\d+))?$/);
                             var yr = parts ? parts[2] : new Date().getFullYear().toString();
+                            var controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+                            var timeoutTimer = controller ? setTimeout(function () { controller.abort(); }, 60000) : null;
 
-                            var fetchDashboard = fetch('api/get_data.php?periode=' + encodeURIComponent(period))
-                                .then(function (response) { return response.json(); });
+                            var fetchDashboard = fetch('api/get_data.php?periode=' + encodeURIComponent(period), { signal: controller ? controller.signal : undefined })
+                                .then(function (response) {
+                                    if (!response.ok) throw new Error('HTTP ' + response.status + ' on get_data');
+                                    return response.json();
+                                });
 
-                            var fetchYearly = fetch('api/get_yearly_in_out.php?year=' + encodeURIComponent(yr))
-                                .then(function (response) { return response.json(); });
+                            var fetchYearly = fetch('api/get_yearly_in_out.php?year=' + encodeURIComponent(yr), { signal: controller ? controller.signal : undefined })
+                                .then(function (response) {
+                                    if (!response.ok) throw new Error('HTTP ' + response.status + ' on get_yearly_in_out');
+                                    return response.json();
+                                });
 
-                            var fetchInbound = fetch('api/get_inbound_status_detail.php?action=counts&periode=' + encodeURIComponent(period))
-                                .then(function (response) { return response.json(); })
+                            var fetchInbound = fetch('api/get_inbound_status_detail.php?action=counts&periode=' + encodeURIComponent(period), { signal: controller ? controller.signal : undefined })
+                                .then(function (response) { return response.ok ? response.json() : null; })
                                 .catch(function () { return null; });
 
-                            var fetchOutbound = fetch('api/get_outbound_status_detail.php?action=counts&periode=' + encodeURIComponent(period))
-                                .then(function (response) { return response.json(); })
+                            var fetchOutbound = fetch('api/get_outbound_status_detail.php?action=counts&periode=' + encodeURIComponent(period), { signal: controller ? controller.signal : undefined })
+                                .then(function (response) { return response.ok ? response.json() : null; })
                                 .catch(function () { return null; });
 
                             Promise.all([fetchDashboard, fetchYearly, fetchInbound, fetchOutbound])
@@ -2284,12 +2293,12 @@ if (!defined('SPA_MODE')) {
                                     var inboundRes = results[2];
                                     var outboundRes = results[3];
 
-                                    if (result && result.status === 'success' && result.data && result.data.length > 0) {
-                                        var headers = Object.keys(result.data[0]);
-                                        window.currentDashboardData = result.data;
+                                    if (result && result.status === 'success' && (result.summary || (result.data && result.data.length > 0))) {
+                                        var headers = (result.data && result.data.length > 0) ? Object.keys(result.data[0]) : [];
+                                        window.currentDashboardData = result.data || [];
                                         window.currentDashboardHeaders = headers;
                                         if (window.FormulaController) {
-                                            window.FormulaController.updateDashboardCards(result.data, headers);
+                                            window.FormulaController.updateDashboardCards(result.data || [], headers, null, result.summary);
                                         }
                                     } else {
                                         window.currentDashboardData = [];
@@ -2329,6 +2338,33 @@ if (!defined('SPA_MODE')) {
                                     }
 
                                     if (resData && resData.status === 'success' && resData.data) {
+                                        var mLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                                        if (window.perangkatInChart && window.perangkatInChart.data) {
+                                            try {
+                                                if (!window.perangkatInChart.$datalabels) window.perangkatInChart.$datalabels = { _listened: true };
+                                                window.perangkatInChart.data.labels = mLabels;
+                                                window.perangkatInChart.data.datasets[0].data = resData.data.in;
+                                                window.perangkatInChart._recordsPerIndex = resData.data.in_details || [];
+                                                window.perangkatInChart._chartTitle = "Perangkat IN";
+                                                window.perangkatInChart.update(0);
+                                                if (window.FormulaController) {
+                                                    window.FormulaController.makeChartClickable(window.perangkatInChart, "Perangkat IN");
+                                                }
+                                            } catch (e) { console.warn('perangkatInChart error:', e); }
+                                        }
+                                        if (window.perangkatOutChart && window.perangkatOutChart.data) {
+                                            try {
+                                                if (!window.perangkatOutChart.$datalabels) window.perangkatOutChart.$datalabels = { _listened: true };
+                                                window.perangkatOutChart.data.labels = mLabels;
+                                                window.perangkatOutChart.data.datasets[0].data = resData.data.out;
+                                                window.perangkatOutChart._recordsPerIndex = resData.data.out_details || [];
+                                                window.perangkatOutChart._chartTitle = "Perangkat OUT";
+                                                window.perangkatOutChart.update(0);
+                                                if (window.FormulaController) {
+                                                    window.FormulaController.makeChartClickable(window.perangkatOutChart, "Perangkat OUT");
+                                                }
+                                            } catch (e) { console.warn('perangkatOutChart error:', e); }
+                                        }
                                         if (window.updateDashReceivingTrendChart) {
                                             window.updateDashReceivingTrendChart(
                                                 resData.data.in,
@@ -2347,10 +2383,14 @@ if (!defined('SPA_MODE')) {
                                     if (typeof Swal !== 'undefined') Swal.close();
                                 })
                                 .catch(function (error) {
-                                    console.error('Error fetching dashboard data:', error);
+                                    console.error('Error fetching data:', error);
                                     if (typeof Swal !== 'undefined') {
-                                        Swal.fire('Error', 'Failed to load data. Please try again.', 'error');
+                                        var msg = (error.name === 'AbortError') ? 'Waktu koneksi melebihi batas (Timeout 60 detik).' : ('Gagal memuat data: ' + (error.message || 'Silakan coba lagi.'));
+                                        Swal.fire('Error', msg, 'error');
                                     }
+                                })
+                                .finally(function () {
+                                    if (timeoutTimer) clearTimeout(timeoutTimer);
                                 });
                         }
 
@@ -2565,11 +2605,13 @@ if (!defined('SPA_MODE')) {
                     });
                 </script>
 
-                <?php if (!defined('SPA_MODE')) { include FRONTEND_PATH . 'components/footer.php'; } ?>
+                <?php if (!defined('SPA_MODE')) {
+                    include FRONTEND_PATH . 'components/footer.php';
+                } ?>
             </div>
         </div>
-<?php if (!defined('SPA_MODE')): ?>
-</body>
+        <?php if (!defined('SPA_MODE')): ?>
+    </body>
 
-</html>
+    </html>
 <?php endif; ?>

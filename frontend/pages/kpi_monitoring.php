@@ -1,25 +1,26 @@
 <?php
 // frontend/pages/kpi_monitoring.php - Key Performance Indicators (KPI) Monitoring Dashboard
 require_once __DIR__ . '/../../backend/auth.php';
-if (!defined('SPA_MODE')) checkModuleAccess('kpi_monitoring');
+if (!defined('SPA_MODE'))
+    checkModuleAccess('kpi_monitoring');
 
 $currentUser = getCurrentUser();
 if (!defined('SPA_MODE')) {
     $pageTitle = 'KPI Monitoring - PT. Aplikanusa Lintasarta';
     include FRONTEND_PATH . 'components/header.php';
-?>
+    ?>
 
-<body id="page-top">
-    <div id="wrapper">
-        <div id="content-wrapper" class="d-flex flex-column min-vh-100 bg-light">
-            <div id="content" class="flex-grow-1">
+    <body id="page-top">
+        <div id="wrapper">
+            <div id="content-wrapper" class="d-flex flex-column min-vh-100 bg-light">
+                <div id="content" class="flex-grow-1">
 
-                <!-- Topbar Navigation -->
-                <?php
-                $activePage = 'kpi_monitoring';
-                include FRONTEND_PATH . 'components/navbar.php';
-                ?>
-<?php } ?>
+                    <!-- Topbar Navigation -->
+                    <?php
+                    $activePage = 'kpi_monitoring';
+                    include FRONTEND_PATH . 'components/navbar.php';
+                    ?>
+                <?php } ?>
 
                 <!-- Custom Styling for KPI Monitoring Page (Placed after Navbar for Priority) -->
                 <style>
@@ -88,8 +89,7 @@ if (!defined('SPA_MODE')) {
                         <!-- Card 3: MR Closing (Akumulatif) SLA (%) -->
                         <div class="col-xl-4 col-md-4 col-sm-6 mb-4" style="padding-left: 4px; padding-right: 4px;">
                             <div class="card border-left-success shadow h-100 py-2 kpi-metric-card"
-                                onclick="openKpiModal('mr_closing')"
-                                title="Klik untuk detail kalkulasi &amp; formula">
+                                onclick="openKpiModal('mr_closing')" title="Klik untuk detail kalkulasi &amp; formula">
                                 <div class="card-body p-3 d-flex flex-column justify-content-between">
                                     <div class="text-xs font-weight-bold text-success text-uppercase mb-1"
                                         style="font-size: 0.72rem; line-height: 1.15;">
@@ -133,8 +133,7 @@ if (!defined('SPA_MODE')) {
                         <!-- Card 6: Slow Moving SLA (%) -->
                         <div class="col-xl-4 col-md-4 col-sm-6 mb-4" style="padding-left: 4px; padding-right: 4px;">
                             <div class="card border-left-warning shadow h-100 py-2 kpi-metric-card"
-                                onclick="openKpiModal('slow_moving')"
-                                title="Klik untuk detail kalkulasi &amp; formula">
+                                onclick="openKpiModal('slow_moving')" title="Klik untuk detail kalkulasi &amp; formula">
                                 <div class="card-body p-3 d-flex flex-column justify-content-between">
                                     <div class="text-xs font-weight-bold text-warning text-uppercase mb-1"
                                         style="font-size: 0.72rem; line-height: 1.15;">
@@ -148,8 +147,7 @@ if (!defined('SPA_MODE')) {
                         <!-- Card 7: Capacity SLA (%) -->
                         <div class="col-xl-4 col-md-4 col-sm-6 mb-4" style="padding-left: 4px; padding-right: 4px;">
                             <div class="card border-left-secondary shadow h-100 py-2 kpi-metric-card"
-                                onclick="openKpiModal('capacity')"
-                                title="Klik untuk detail kalkulasi &amp; formula">
+                                onclick="openKpiModal('capacity')" title="Klik untuk detail kalkulasi &amp; formula">
                                 <div class="card-body p-3 d-flex flex-column justify-content-between">
                                     <div class="text-xs font-weight-bold text-secondary text-uppercase mb-1"
                                         style="font-size: 0.72rem; line-height: 1.15;">
@@ -201,7 +199,8 @@ if (!defined('SPA_MODE')) {
                                         <h6 class="m-0 font-weight-bold text-primary">
                                             <i class="fas fa-chart-line mr-2"></i>Tren Evaluasi KPI Bulanan
                                         </h6>
-                                        <span class="text-xs text-muted">Grafik menampilkan data realisasi setiap bulan vs target standar</span>
+                                        <span class="text-xs text-muted">Grafik menampilkan data achievement setiap
+                                            bulan vs Target</span>
                                     </div>
                                     <div class="d-flex align-items-center mt-2 mt-sm-0">
                                         <div class="d-flex align-items-center mr-3">
@@ -212,7 +211,8 @@ if (!defined('SPA_MODE')) {
                                         <div class="d-flex align-items-center mr-3">
                                             <span
                                                 style="display:inline-block; width: 14px; height: 3px; background-color: #4e73df; border-radius: 2px; margin-right: 6px;"></span>
-                                            <span class="small font-weight-bold text-gray-700">Realisasi Bulanan</span>
+                                            <span class="small font-weight-bold text-gray-700">Achievement
+                                                Bulanan</span>
                                         </div>
                                         <span class="badge badge-info">9 Indikator KPI</span>
                                     </div>
@@ -384,7 +384,8 @@ if (!defined('SPA_MODE')) {
                                                     <h6 class="m-0 font-weight-bold text-gray-800 small text-truncate">
                                                         Efisiensi Delivery SLA</h6>
                                                     <span class="badge px-2 py-1 text-white"
-                                                        style="font-size: 0.7rem; background-color: #17a2b8;">Target: ≥ 10.0%</span>
+                                                        style="font-size: 0.7rem; background-color: #17a2b8;">Target: ≥
+                                                        10.0%</span>
                                                 </div>
                                                 <div class="card-body p-2 bg-white">
                                                     <div style="height: 180px; position: relative;">
@@ -421,12 +422,13 @@ if (!defined('SPA_MODE')) {
                             <!-- Metrics Quick Bar (Target vs Realisasi) -->
                             <div class="row text-center mb-4">
                                 <div class="col-6 border-right">
-                                    <div class="text-xs text-muted text-uppercase font-weight-bold">Target Standar</div>
+                                    <div class="text-xs text-muted text-uppercase font-weight-bold">Target</div>
                                     <div class="h5 font-weight-bold text-gray-800 mt-1 mb-0" id="modal-kpi-target">-
                                     </div>
                                 </div>
                                 <div class="col-6">
-                                    <div class="text-xs text-muted text-uppercase font-weight-bold" id="modal-kpi-actual-lbl">Realisasi
+                                    <div class="text-xs text-muted text-uppercase font-weight-bold"
+                                        id="modal-kpi-actual-lbl">Achievement
                                     </div>
                                     <div class="h5 font-weight-bold text-primary mt-1 mb-0" id="modal-kpi-actual">-
                                     </div>
@@ -441,7 +443,9 @@ if (!defined('SPA_MODE')) {
                 </div>
             </div>
 
-<?php if (!defined('SPA_MODE')) { include FRONTEND_PATH . 'components/footer.php'; } ?>
+            <?php if (!defined('SPA_MODE')) {
+                include FRONTEND_PATH . 'components/footer.php';
+            } ?>
 
             <!-- Page level plugins & Chart Script -->
             <script src="frontend/vendor/chart.js/Chart.min.js"></script>
@@ -562,8 +566,8 @@ if (!defined('SPA_MODE')) {
                             .then(function (r) { return r.json(); })
                             .then(function (result) {
                                 // Strictly use grouping years from uploaded KPI Master Data
-                                var availableYears = (result.kpi_years && result.kpi_years.length > 0) 
-                                    ? result.kpi_years 
+                                var availableYears = (result.kpi_years && result.kpi_years.length > 0)
+                                    ? result.kpi_years
                                     : ((result.years && result.years.length > 0) ? result.years : []);
                                 availableYears = (availableYears || []).map(function (y) { return String(y); });
 
@@ -578,15 +582,6 @@ if (!defined('SPA_MODE')) {
                                         loadDataForPeriod(yMatch[1]);
                                     } else {
                                         loadDataForPeriod(selectPeriod);
-                                    }
-                                } else if (availableYears.length > 0) {
-                                    // Default to 2026 if available or latest uploaded year
-                                    var defaultYear = availableYears.indexOf('2026') !== -1 ? '2026' : availableYears[availableYears.length - 1];
-                                    var ySel = document.getElementById('period-year-select');
-                                    if (ySel) {
-                                        ySel.value = defaultYear;
-                                        updateLoadButton();
-                                        loadDataForPeriod(defaultYear);
                                     }
                                 } else {
                                     var periodText = document.getElementById('selected-period-text');
@@ -742,7 +737,7 @@ if (!defined('SPA_MODE')) {
                                             order: 2
                                         },
                                         {
-                                            label: 'Realisasi',
+                                            label: 'Achievement',
                                             data: realisasiData,
                                             borderColor: themeColor,
                                             backgroundColor: gradient,
@@ -945,9 +940,9 @@ if (!defined('SPA_MODE')) {
 
                 })();
             </script>
-<?php if (!defined('SPA_MODE')): ?>
+            <?php if (!defined('SPA_MODE')): ?>
 
-</body>
+    </body>
 
-</html>
+    </html>
 <?php endif; ?>

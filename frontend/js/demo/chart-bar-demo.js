@@ -61,20 +61,20 @@ var myBarChart = new Chart(ctx, {
     },
     scales: {
       xAxes: [{
-        time: {
-          unit: 'month'
-        },
         gridLines: {
           display: false,
           drawBorder: false
         },
         ticks: {
-          maxTicksLimit: 6,
-          fontSize: 10.5
+          maxTicksLimit: 8,
+          fontSize: 11,
+          fontStyle: '600',
+          fontColor: '#2e384d',
+          padding: 6
         },
-        barPercentage: 1.0,
-        categoryPercentage: 0.5,
-        maxBarThickness: 18,
+        barPercentage: 0.85,
+        categoryPercentage: 0.6,
+        maxBarThickness: 28,
       }],
       yAxes: [{
         id: "y-axis-qty",
@@ -133,19 +133,27 @@ var myBarChart = new Chart(ctx, {
     tooltips: {
       mode: 'index',
       intersect: false,
-      titleMarginBottom: 4,
-      titleFontColor: '#6e707e',
-      titleFontSize: 11,
-      bodyFontSize: 10,
-      backgroundColor: "rgb(255,255,255)",
-      bodyFontColor: "#858796",
+      titleMarginBottom: 6,
+      titleFontColor: '#2e384d',
+      titleFontSize: 12,
+      titleFontStyle: 'bold',
+      bodyFontSize: 11,
+      backgroundColor: "rgba(255, 255, 255, 0.98)",
+      bodyFontColor: "#5a5c69",
       borderColor: '#dddfeb',
       borderWidth: 1,
-      xPadding: 8,
-      yPadding: 6,
-      displayColors: false,
+      xPadding: 12,
+      yPadding: 10,
+      displayColors: true,
       caretPadding: 6,
       callbacks: {
+        title: function (tooltipItems, data) {
+          if (tooltipItems && tooltipItems.length > 0) {
+            var idx = tooltipItems[0].index;
+            return data.labels[idx] || '';
+          }
+          return '';
+        },
         label: function (tooltipItem, chart) {
           var datasetLabel = chart.datasets[tooltipItem.datasetIndex].label || '';
           var val = number_format(tooltipItem.yLabel);

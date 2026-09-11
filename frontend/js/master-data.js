@@ -13,13 +13,65 @@ if (window.jQuery) {
         if (typeof Swal !== 'undefined' && Swal.isVisible()) {
             Swal.close();
         }
+        $('.dataTables_processing').hide();
     }
 
-    // Close any lingering alerts on table events
-    $(document).on('xhr.dt error.dt draw.dt init.dt', closeDtLoading);
+    // Close any lingering alerts and ensure processing overlay is always dismissed on table events
+    $(document).on('xhr.dt error.dt draw.dt init.dt processing.dt', function (e, settings, processing) {
+        if (processing === false || e.type !== 'processing') {
+            closeDtLoading();
+        }
+    });
+
+    // Global jQuery AJAX error handler: guarantee no stuck processing indicators
+    $(document).ajaxError(function (event, jqXHR, ajaxSettings, thrownError) {
+        $('.dataTables_processing').hide();
+        if (typeof Swal !== 'undefined' && Swal.isVisible()) {
+            Swal.close();
+        }
+        if (jqXHR.status === 401 || jqXHR.status === 403) {
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Sesi Berakhir',
+                    text: 'Sesi login Anda telah berakhir atau tidak memiliki izin akses. Silakan login kembali.',
+                    confirmButtonText: 'Login'
+                }).then(function () {
+                    window.location.href = 'login.php';
+                });
+            }
+        }
+    });
 
     // Master Data menu does not use the navbar period selector
     $('#nav-item-period-selector, #periodDropdown').closest('.nav-item').hide();
+}
+
+/**
+ * Robust fetch wrapper with timeout, HTTP status validation, and clean error messages.
+ */
+function safeFetchJson(url, options, timeoutMs) {
+    timeoutMs = timeoutMs || 120000;
+    var controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+    var timer = controller ? setTimeout(function () { controller.abort(); }, timeoutMs) : null;
+    var opts = Object.assign({}, options);
+    if (controller) opts.signal = controller.signal;
+
+    return fetch(url, opts)
+        .then(function (r) {
+            if (timer) clearTimeout(timer);
+            if (!r.ok) {
+                throw new Error('Server mengembalikan error HTTP ' + r.status + ' (' + r.statusText + ')');
+            }
+            return r.json();
+        })
+        .catch(function (err) {
+            if (timer) clearTimeout(timer);
+            if (err.name === 'AbortError') {
+                throw new Error('Waktu proses melebihi batas (Timeout ' + Math.round(timeoutMs / 1000) + ' detik). Silakan coba lagi.');
+            }
+            throw err;
+        });
 }
 var inboundTable = null;
 var assetTable = null;
@@ -523,7 +575,7 @@ function initInboundTable() {
     }
     populateAllYearDropdowns();
 
-    $('#uploadExcelModal, #uploadExcelModalInbound, #uploadExcelModalOutbound, #deleteDataModal, #deleteDataModalInbound, #deleteDataModalOutbound').on('show.bs.modal', function () {
+    $('#uploadExcelModal, #uploadExcelModalRack, #uploadExcelModalInbound, #uploadExcelModalOutbound, #uploadExcelModalForwarder, #uploadExcelModalKpi, #deleteDataModal, #deleteDataModalInbound, #deleteDataModalOutbound, #deleteDataModalForwarder, #deleteDataModalKpi').on('show.bs.modal', function () {
         populateAllYearDropdowns();
     });
 
@@ -672,6 +724,20 @@ function initAssetTable() {
     });
 }
 
+function formatCapCell(data) {
+    if (data === null || data === undefined || data === '') {
+        return '<span class="text-muted font-weight-bold">-</span>';
+    }
+    var num = parseFloat(data);
+    if (isNaN(num)) return '<span class="text-muted font-weight-bold">-</span>';
+    // If decimal percentage from Excel/DB (e.g. 1.0 = 100%, 0.85 = 85%), convert to percentage scale
+    if (num > 0 && num <= 1.0) {
+        num = num * 100;
+    }
+    var color = num >= 90 ? '#1cc88a' : (num >= 70 ? '#36b9cc' : (num >= 50 ? '#f6c23e' : '#e74a3b'));
+    return '<span style="font-weight: 600; color: ' + color + ';">' + num.toFixed(1) + '%</span>';
+}
+
 function initRackTable() {
     if ($('#dataTableRack').length === 0) return;
     if (rackTable) {
@@ -682,9 +748,26 @@ function initRackTable() {
     rackTable = $('#dataTableRack').DataTable({
         processing: true,
         deferRender: true,
+        scrollX: true,
         ajax: {
             url: 'api/get_rack_data.php',
+            data: function (d) {
+                var y = $('#filterRackYear').val();
+                if (y) d.year = y;
+            },
             dataSrc: function (json) {
+                if (json.available_years && json.available_years.length > 0) {
+                    var $ySel = $('#filterRackYear');
+                    var curVal = $ySel.val();
+                    if (!$ySel.data('populated')) {
+                        $ySel.empty();
+                        json.available_years.forEach(function (yr) {
+                            var isSelected = curVal ? (yr == curVal) : (yr == json.selected_year);
+                            $ySel.append('<option value="' + yr + '"' + (isSelected ? ' selected' : '') + '>' + yr + '</option>');
+                        });
+                        $ySel.data('populated', true);
+                    }
+                }
                 return json.data || [];
             }
         },
@@ -693,7 +776,19 @@ function initRackTable() {
             { data: 'name', defaultContent: '-' },
             { data: 'label', defaultContent: '-' },
             { data: 'active', defaultContent: 'ACTIVE' },
-            { data: 'category', defaultContent: '-' }
+            { data: 'category', defaultContent: '-' },
+            { data: 'CAP JAN', defaultContent: '-', className: 'text-center', render: formatCapCell },
+            { data: 'CAP FEB', defaultContent: '-', className: 'text-center', render: formatCapCell },
+            { data: 'CAP MAR', defaultContent: '-', className: 'text-center', render: formatCapCell },
+            { data: 'CAP APR', defaultContent: '-', className: 'text-center', render: formatCapCell },
+            { data: 'CAP MEI', defaultContent: '-', className: 'text-center', render: formatCapCell },
+            { data: 'CAP JUN', defaultContent: '-', className: 'text-center', render: formatCapCell },
+            { data: 'CAP JUL', defaultContent: '-', className: 'text-center', render: formatCapCell },
+            { data: 'CAP AGU', defaultContent: '-', className: 'text-center', render: formatCapCell },
+            { data: 'CAP SEP', defaultContent: '-', className: 'text-center', render: formatCapCell },
+            { data: 'CAP OKT', defaultContent: '-', className: 'text-center', render: formatCapCell },
+            { data: 'CAP NOV', defaultContent: '-', className: 'text-center', render: formatCapCell },
+            { data: 'CAP DES', defaultContent: '-', className: 'text-center', render: formatCapCell }
         ],
         language: {
             search: "Search:",
@@ -739,6 +834,12 @@ function initRackTable() {
         }
     });
     window.rackTable = rackTable;
+
+    $('#filterRackYear').off('change.rack').on('change.rack', function () {
+        if (rackTable) {
+            rackTable.ajax.reload(null, false);
+        }
+    });
 
     $('#filterRackCategory').off('change.rack').on('change.rack', function () {
         var val = $.fn.dataTable.util.escapeRegex($(this).val());
@@ -795,9 +896,6 @@ function loadActiveMasterTabTable() {
 // NOTE: Custom client-side search for Inbound PR/PO removed — now handled server-side
 
 $(document).ready(function () {
-    // Initialize dedicated Rack upload handler
-    initRackUpload();
-
     // Restore saved segment and subtab from localStorage
     try {
         var savedSeg = localStorage.getItem('activeMasterSegment');
@@ -821,7 +919,7 @@ $(document).ready(function () {
         try {
             var href = $(this).attr('href');
             if (href) localStorage.setItem('activeMasterSegment', href);
-        } catch (e) {}
+        } catch (e) { }
         loadActiveMasterTabTable();
     });
 
@@ -829,7 +927,16 @@ $(document).ready(function () {
         try {
             var href = $(this).attr('href');
             if (href) localStorage.setItem('activeStorageSubTab', href);
-        } catch (e) {}
+            if (href === '#rack-data') {
+                $('#btn-group-asset-actions').hide();
+                $('#btn-group-rack-actions').show();
+                $('#storage-menu-title').html('<i class="fas fa-th mr-2"></i>Menu Master Data Storage (Data Utilisasi Rack)');
+            } else {
+                $('#btn-group-rack-actions').hide();
+                $('#btn-group-asset-actions').show();
+                $('#storage-menu-title').html('<i class="fas fa-boxes mr-2"></i>Menu Master Data Storage (Data Asset)');
+            }
+        } catch (e) { }
         loadActiveMasterTabTable();
     });
 
@@ -875,238 +982,7 @@ $(document).ready(function () {
         }
     });
 
-    // ═══════════════════════════════════════════════════════════════
-    // 3. UTILISASI AREA/RACK — Inline Editing
-    // ═══════════════════════════════════════════════════════════════
 
-    // Populate year dropdown (starting from 2026)
-    var yearSel = document.getElementById('utilisasi-year-select');
-    if (yearSel) {
-        var currentYear = new Date().getFullYear();
-        var maxYear = Math.max(2030, currentYear + 5);
-        for (var y = 2026; y <= maxYear; y++) {
-            var opt = document.createElement('option');
-            opt.value = String(y);
-            opt.textContent = String(y);
-            yearSel.appendChild(opt);
-        }
-    }
-
-    // Enable/disable "Tampilkan Data" button
-    function updateLoadUtilisasiButton() {
-        var m = document.getElementById('utilisasi-month-select');
-        var yr = document.getElementById('utilisasi-year-select');
-        var btn = document.getElementById('btn-load-utilisasi');
-        if (btn) {
-            btn.disabled = !(m && m.value && yr && yr.value);
-        }
-    }
-
-    $('#utilisasi-month-select, #utilisasi-year-select').on('change', updateLoadUtilisasiButton);
-
-    // Load data for selected period
-    $('#btn-load-utilisasi').on('click', function () {
-        var month = document.getElementById('utilisasi-month-select').value;
-        var year = document.getElementById('utilisasi-year-select').value;
-        if (!month || !year) return;
-        loadUtilisasiData(month, year);
-    });
-
-    function loadUtilisasiData(month, year) {
-        var tbody = document.getElementById('utilisasi-table-body');
-        var infoDiv = document.getElementById('utilisasi-table-info');
-        var tableWrapper = document.getElementById('utilisasi-table-wrapper');
-        var btnSave = document.getElementById('btn-save-utilisasi-all');
-
-        if (!tbody) return;
-
-        // Show loading
-        if (typeof Swal !== 'undefined') {
-            Swal.fire({
-                title: 'Data Is Processing Please Wait',
-                allowOutsideClick: false,
-                allowEscapeKey: false,
-                didOpen: function () { Swal.showLoading(); }
-            });
-        }
-
-        fetch('api/get_rack_utilisasi.php?month=' + encodeURIComponent(month) + '&year=' + encodeURIComponent(year))
-            .then(function (r) { return r.json(); })
-            .then(function (result) {
-                // Clear table body
-                while (tbody.firstChild) {
-                    tbody.removeChild(tbody.firstChild);
-                }
-
-                if (result.status === 'success' && result.data && result.data.length > 0) {
-                    // Hide info, show table
-                    if (infoDiv) infoDiv.style.display = 'none';
-                    if (tableWrapper) tableWrapper.style.display = 'block';
-                    if (btnSave) btnSave.disabled = false;
-
-                    for (var i = 0; i < result.data.length; i++) {
-                        var row = result.data[i];
-                        var tr = document.createElement('tr');
-
-                        // Label
-                        var tdLabel = document.createElement('td');
-                        tdLabel.textContent = row.label || '';
-                        tdLabel.style.fontSize = '0.85rem';
-                        tdLabel.setAttribute('data-label', row.label || '');
-                        tr.appendChild(tdLabel);
-
-                        // Rack Group
-                        var tdRack = document.createElement('td');
-                        tdRack.textContent = row.rack_group || '';
-                        tdRack.style.fontSize = '0.85rem';
-                        tr.appendChild(tdRack);
-
-                        // Category
-                        var tdCat = document.createElement('td');
-                        tdCat.textContent = row.category || '';
-                        tdCat.style.fontSize = '0.85rem';
-                        tr.appendChild(tdCat);
-
-                        // Qty (editable for admins, view-only for head_warehouse_admin)
-                        var tdQty = document.createElement('td');
-                        var inputQty = document.createElement('input');
-                        inputQty.type = 'number';
-                        inputQty.className = 'form-control form-control-sm utilisasi-qty-input';
-                        inputQty.min = '0';
-                        inputQty.value = parseInt(row.qty) || 0;
-                        inputQty.style.textAlign = 'center';
-                        inputQty.setAttribute('data-label', row.label || '');
-                        var canEditStorage = (window.currentUserRole === 'superadmin' || window.userCanAddStorage === true) && window.currentUserRole !== 'head_warehouse_admin';
-                        if (!canEditStorage) {
-                            inputQty.disabled = true;
-                            inputQty.style.backgroundColor = '#eaecf4';
-                        }
-                        tdQty.appendChild(inputQty);
-                        tr.appendChild(tdQty);
-
-                        // Capacity (editable for admins with Add/Edit permission)
-                        var tdCap = document.createElement('td');
-                        var inputCap = document.createElement('input');
-                        inputCap.type = 'number';
-                        inputCap.className = 'form-control form-control-sm utilisasi-cap-input';
-                        inputCap.min = '0';
-                        inputCap.max = '100';
-                        inputCap.step = '0.01';
-                        inputCap.value = parseFloat(row.capacity) || 0;
-                        inputCap.style.textAlign = 'center';
-                        inputCap.setAttribute('data-label', row.label || '');
-                        if (!canEditStorage) {
-                            inputCap.disabled = true;
-                            inputCap.style.backgroundColor = '#eaecf4';
-                        }
-                        tdCap.appendChild(inputCap);
-                        tr.appendChild(tdCap);
-
-                        tbody.appendChild(tr);
-                    }
-                } else {
-                    // No rack_master data at all
-                    if (infoDiv) {
-                        infoDiv.style.display = 'block';
-                        infoDiv.textContent = 'Tidak ada data rack master. Upload Data Utilisasi Rack terlebih dahulu.';
-                    }
-                    if (tableWrapper) tableWrapper.style.display = 'none';
-                    if (btnSave) btnSave.disabled = true;
-                }
-
-                if (typeof Swal !== 'undefined') Swal.close();
-            })
-            .catch(function (err) {
-                if (typeof Swal !== 'undefined') {
-                    Swal.fire('Error', 'Gagal memuat data utilisasi.', 'error');
-                }
-            });
-    }
-
-    // Save All button
-    $('#btn-save-utilisasi-all').on('click', function () {
-        var month = document.getElementById('utilisasi-month-select').value;
-        var year = document.getElementById('utilisasi-year-select').value;
-
-        if (!month || !year) {
-            if (typeof Swal !== 'undefined') {
-                Swal.fire('Peringatan', 'Pilih Bulan dan Tahun terlebih dahulu.', 'warning');
-            }
-            return;
-        }
-
-        // Collect all rows from the table
-        var rows = [];
-        var tbody = document.getElementById('utilisasi-table-body');
-        if (!tbody) return;
-
-        var trs = tbody.getElementsByTagName('tr');
-        for (var i = 0; i < trs.length; i++) {
-            var labelCell = trs[i].querySelector('td[data-label]');
-            var qtyInput = trs[i].querySelector('.utilisasi-qty-input');
-            var capInput = trs[i].querySelector('.utilisasi-cap-input');
-
-            if (labelCell && qtyInput && capInput) {
-                var qtyVal = parseInt(qtyInput.value) || 0;
-                var capVal = parseFloat(capInput.value) || 0;
-
-                // Client-side clamp
-                if (qtyVal < 0) qtyVal = 0;
-                if (capVal < 0) capVal = 0;
-                if (capVal > 100) capVal = 100;
-
-                rows.push({
-                    label: labelCell.getAttribute('data-label'),
-                    qty: qtyVal,
-                    capacity: capVal
-                });
-            }
-        }
-
-        if (rows.length === 0) {
-            if (typeof Swal !== 'undefined') {
-                Swal.fire('Peringatan', 'Tidak ada data untuk disimpan.', 'warning');
-            }
-            return;
-        }
-
-        // Show loading
-        if (typeof Swal !== 'undefined') {
-            Swal.fire({
-                title: 'Menyimpan...',
-                allowOutsideClick: false,
-                allowEscapeKey: false,
-                didOpen: function () { Swal.showLoading(); }
-            });
-        }
-
-        fetch('api/save_rack_utilisasi.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                month: month,
-                year: year,
-                rows: rows
-            })
-        })
-            .then(function (r) { return r.json(); })
-            .then(function (res) {
-                if (res.status === 'success') {
-                    if (typeof Swal !== 'undefined') {
-                        Swal.fire('Berhasil!', res.message || 'Data utilisasi berhasil disimpan.', 'success');
-                    }
-                } else {
-                    if (typeof Swal !== 'undefined') {
-                        Swal.fire('Error', 'Gagal menyimpan: ' + (res.message || 'Unknown error'), 'error');
-                    }
-                }
-            })
-            .catch(function (err) {
-                if (typeof Swal !== 'undefined') {
-                    Swal.fire('Error', 'Terjadi kesalahan saat menyimpan data.', 'error');
-                }
-            });
-    });
 
     // ═══════════════════════════════════════════════════════════════
     // 4. EXPORT EXCEL HANDLER
@@ -1155,50 +1031,31 @@ $(document).ready(function () {
                 if (typeof Swal !== 'undefined') Swal.fire('Info', 'Tidak ada data Rack untuk di-export.', 'info');
                 return;
             }
+            var selYear = $('#filterRackYear').val() || new Date().getFullYear();
             var exportData = data.map(function (row) {
                 return {
                     'BARCODE': row.barcode || '',
                     'NAME': row.name || '',
                     'LABEL': row.label || '',
                     'ACTIVE': row.active || 'ACTIVE',
-                    'CATEGORY': row.category || ''
+                    'CATEGORY': row.category || '',
+                    'CAP JAN': row['CAP JAN'] !== null && row['CAP JAN'] !== undefined ? row['CAP JAN'] : '',
+                    'CAP FEB': row['CAP FEB'] !== null && row['CAP FEB'] !== undefined ? row['CAP FEB'] : '',
+                    'CAP MAR': row['CAP MAR'] !== null && row['CAP MAR'] !== undefined ? row['CAP MAR'] : '',
+                    'CAP APR': row['CAP APR'] !== null && row['CAP APR'] !== undefined ? row['CAP APR'] : '',
+                    'CAP MEI': row['CAP MEI'] !== null && row['CAP MEI'] !== undefined ? row['CAP MEI'] : '',
+                    'CAP JUN': row['CAP JUN'] !== null && row['CAP JUN'] !== undefined ? row['CAP JUN'] : '',
+                    'CAP JUL': row['CAP JUL'] !== null && row['CAP JUL'] !== undefined ? row['CAP JUL'] : '',
+                    'CAP AGU': row['CAP AGU'] !== null && row['CAP AGU'] !== undefined ? row['CAP AGU'] : '',
+                    'CAP SEP': row['CAP SEP'] !== null && row['CAP SEP'] !== undefined ? row['CAP SEP'] : '',
+                    'CAP OKT': row['CAP OKT'] !== null && row['CAP OKT'] !== undefined ? row['CAP OKT'] : '',
+                    'CAP NOV': row['CAP NOV'] !== null && row['CAP NOV'] !== undefined ? row['CAP NOV'] : '',
+                    'CAP DES': row['CAP DES'] !== null && row['CAP DES'] !== undefined ? row['CAP DES'] : ''
                 };
             });
             var ws = XLSX.utils.json_to_sheet(exportData);
-            XLSX.utils.book_append_sheet(wb, ws, "Data Utilisasi Rack");
-            XLSX.writeFile(wb, "Data_Utilisasi_Rack_" + dateStr + ".xlsx");
-
-        } else if (activeTab === 'utilisasi-tab') {
-            var tbody = document.getElementById('utilisasi-table-body');
-            if (!tbody || tbody.children.length === 0) {
-                if (typeof Swal !== 'undefined') Swal.fire('Info', 'Tampilkan data Utilisasi Area/Rack terlebih dahulu sebelum export.', 'info');
-                return;
-            }
-            var exportData = [];
-            var trs = tbody.getElementsByTagName('tr');
-            for (var i = 0; i < trs.length; i++) {
-                var tds = trs[i].getElementsByTagName('td');
-                if (tds.length >= 5) {
-                    var label = tds[0].textContent.trim();
-                    var rackGroup = tds[1].textContent.trim();
-                    var category = tds[2].textContent.trim();
-                    var qtyInput = trs[i].querySelector('.utilisasi-qty-input');
-                    var capInput = trs[i].querySelector('.utilisasi-cap-input');
-                    exportData.push({
-                        'Label Area/Rack': label,
-                        'Rack Group': rackGroup,
-                        'Category': category,
-                        'Qty': qtyInput ? parseInt(qtyInput.value) || 0 : 0,
-                        'Capacity (%)': capInput ? parseFloat(capInput.value) || 0 : 0
-                    });
-                }
-            }
-            var ws = XLSX.utils.json_to_sheet(exportData);
-            var m = document.getElementById('utilisasi-month-select');
-            var y = document.getElementById('utilisasi-year-select');
-            var periodName = (m && m.value && y && y.value) ? (m.value + "_" + y.value) : dateStr;
-            XLSX.utils.book_append_sheet(wb, ws, "Utilisasi Area");
-            XLSX.writeFile(wb, "Utilisasi_Area_Rack_" + periodName + ".xlsx");
+            XLSX.utils.book_append_sheet(wb, ws, "Data Utilisasi Rack " + selYear);
+            XLSX.writeFile(wb, "Data_Utilisasi_Rack_" + selYear + "_" + dateStr + ".xlsx");
         }
     });
 
@@ -1226,266 +1083,447 @@ $(document).ready(function () {
     $('#btn-template-rack, #btn-template-rack-modal').on('click', function () {
         if (typeof XLSX === 'undefined') return;
         var wb = XLSX.utils.book_new();
-        var sampleData = [{
-            'BARCODE': 'SL221200182',
-            'NAME': 'SHELF-01',
-            'LABEL': 'WHE-01/LANTAI-01/FASTMOVING/AISLE-01/RACK-01/ROW-01/SHELF-01',
-            'ACTIVE': 'Checked',
-            'CATEGORY': 'PROJECT'
-        }];
+        var sampleData = [
+            {
+                'BARCODE': 'SL221200182',
+                'NAME': 'RACK-01',
+                'LABEL': 'WHE-01/LANTAI-01/FASTMOVING/AISLE-01/RACK-01/ROW-01/SHELF-01',
+                'ACTIVE': 'Checked',
+                'CATEGORY': 'PROJECT',
+                'CAP JAN': '100%',
+                'CAP FEB': '100%',
+                'CAP MAR': '100%',
+                'CAP APR': '100%',
+                'CAP MEI': '100%',
+                'CAP JUN': '100%',
+                'CAP JUL': '100%',
+                'CAP AGU': '100%',
+                'CAP SEP': '100%',
+                'CAP OKT': '100%',
+                'CAP NOV': '100%',
+                'CAP DES': '100%'
+            },
+            {
+                'BARCODE': 'SL221200183',
+                'NAME': 'RACK-01',
+                'LABEL': 'WHE-01/LANTAI-01/FASTMOVING/AISLE-01/RACK-01/ROW-01/SHELF-02',
+                'ACTIVE': 'Checked',
+                'CATEGORY': 'PROJECT',
+                'CAP JAN': '100%',
+                'CAP FEB': '100%',
+                'CAP MAR': '100%',
+                'CAP APR': '100%',
+                'CAP MEI': '100%',
+                'CAP JUN': '100%',
+                'CAP JUL': '100%',
+                'CAP AGU': '100%',
+                'CAP SEP': '100%',
+                'CAP OKT': '100%',
+                'CAP NOV': '100%',
+                'CAP DES': '100%'
+            }
+        ];
         var ws = XLSX.utils.json_to_sheet(sampleData);
         ws['!cols'] = [
-            { wch: 18 }, { wch: 16 }, { wch: 65 }, { wch: 14 }, { wch: 16 }
+            { wch: 18 }, { wch: 16 }, { wch: 65 }, { wch: 14 }, { wch: 16 },
+            { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 12 },
+            { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 12 },
+            { wch: 12 }, { wch: 12 }
         ];
         XLSX.utils.book_append_sheet(wb, ws, "Data Utilisasi Rack");
         XLSX.writeFile(wb, "Template_Import_Data_Rack.xlsx");
     });
 
-    // Dedicated Rack Excel File Upload Handler
-    function initRackUpload() {
-        var $dropZone = $('#upload-rack-drop-zone');
-        var $fileInput = $('#excel-rack-file-input');
-        var $browseBtn = $('#btn-browse-rack-file');
-        var $progressContainer = $('#upload-rack-progress');
-        var $fileName = $('#upload-rack-file-name');
-        var $fileSize = $('#upload-rack-file-size');
-        var $progressBar = $('#upload-rack-progress-fill');
+    // ═════════════════════════════════════════════════════════════════════════
+    // UNIVERSAL EXCEL UPLOAD & PROCESS CHECKING SYSTEM FOR ALL MASTER DATA
+    // ═════════════════════════════════════════════════════════════════════════
 
-        if ($dropZone.length === 0) return;
+    function setUploadStepState(stepElementOrId, state) {
+        var $step = (typeof stepElementOrId === 'string') ? $('#' + stepElementOrId) : $(stepElementOrId);
+        if (!$step.length) return;
 
-        $browseBtn.off('click').on('click', function (e) {
+        var $iconBox = $step.find('.step-icon-container');
+        $step.removeClass('active completed');
+        $iconBox.empty();
+
+        var stepId = $step.attr('id') || '';
+        var defIcon = 'fa-circle';
+        if (stepId.indexOf('step-read') !== -1) defIcon = 'fa-file';
+        else if (stepId.indexOf('step-parse') !== -1) defIcon = 'fa-table';
+        else if (stepId.indexOf('step-upload') !== -1) defIcon = 'fa-database';
+        else if (stepId.indexOf('step-finalize') !== -1) defIcon = 'fa-sync-alt';
+
+        if (state === 'active') {
+            $step.addClass('active');
+            $iconBox.html('<div class="step-spinner"></div>');
+        } else if (state === 'completed') {
+            $step.addClass('completed');
+            $iconBox.html('<i class="fas fa-check text-success"></i>');
+        } else {
+            $iconBox.html('<i class="fas ' + defIcon + '"></i>');
+        }
+    }
+
+    function setupUniversalMasterImporter(config) {
+        var prefix = config.prefix;
+        var $modal = $(config.modalId);
+        var $dialog = $(config.dialogId || (config.modalId + 'Dialog'));
+        var $dropZone = $('#' + config.dropZoneId);
+        var $fileInput = $('#' + config.fileInputId);
+        var $colLeft = $('#' + prefix + '-col-left');
+        var $colRight = $('#' + prefix + '-col-right');
+        var $processContainer = $('#' + prefix + '-process-container');
+        var $fileName = $('#' + prefix + '-file-name');
+        var $fileSize = $('#' + prefix + '-file-size');
+        var $btnChangeFile = $('#' + prefix + '-btn-change-file');
+        var $sheetSelect = $('#' + prefix + '-sheet-select');
+        var $sheetBadge = $('#' + prefix + '-sheet-badge');
+        var $sheetInfoText = $('#' + prefix + '-sheet-info-text');
+        var $btnSubmit = $('#' + prefix + '-btn-submit');
+
+        var $batchProgress = $('#' + prefix + '-batch-progress');
+        var $progressText = $('#' + prefix + '-progress-text');
+        var $progressPercent = $('#' + prefix + '-progress-percent');
+        var $progressFill = $('#' + prefix + '-progress-fill');
+
+        var currentWorkbook = null;
+        var isUploading = false;
+
+        function resetImporter() {
+            isUploading = false;
+            currentWorkbook = null;
+            $fileInput.val('');
+            $dialog.removeClass('modal-expanded');
+            $colLeft.removeClass('col-lg-6').addClass('col-12');
+            $processContainer.hide();
+            $dropZone.show();
+            $colRight.hide();
+            $sheetSelect.empty();
+            $sheetBadge.text('0 Sheet');
+            $sheetInfoText.html('Silakan pilih sheet di atas.');
+            $btnSubmit.prop('disabled', false).html('<i class="fas fa-file-import mr-1"></i> Mulai Import Sheet Ini');
+            $btnChangeFile.prop('disabled', false);
+            $sheetSelect.prop('disabled', false);
+            if (config.periodSelectors) {
+                Object.values(config.periodSelectors).forEach(function (sel) { $(sel).prop('disabled', false); });
+            }
+            $batchProgress.hide();
+            if ($progressFill.length) $progressFill.css('width', '0%');
+            if ($progressText.length) $progressText.text('0 / 0 baris');
+            if ($progressPercent.length) $progressPercent.text('0%');
+
+            setUploadStepState(prefix + '-step-read', 'idle');
+            setUploadStepState(prefix + '-step-parse', 'idle');
+            setUploadStepState(prefix + '-step-upload', 'idle');
+            setUploadStepState(prefix + '-step-finalize', 'idle');
+        }
+
+        $modal.off('hidden.bs.modal.importer').on('hidden.bs.modal.importer', function () {
+            resetImporter();
+            setTimeout(function () {
+                if ($('.modal.show').length === 0) {
+                    $('.modal-backdrop').remove();
+                    $('body').removeClass('modal-open').css('padding-right', '');
+                }
+            }, 150);
+        });
+
+        $btnChangeFile.off('click').on('click', function (e) {
+            e.preventDefault();
             e.stopPropagation();
+            if (isUploading) return;
+            resetImporter();
             $fileInput.trigger('click');
         });
 
-        $dropZone.off('click').on('click', function (e) {
-            if (e.target !== $browseBtn[0] && !$.contains($browseBtn[0], e.target)) {
-                $fileInput.trigger('click');
-            }
-        });
+        $fileInput.off('change.importer').on('change.importer', function (e) {
+            var file = (e.target.files && e.target.files[0]) ? e.target.files[0] : null;
+            if (!file) return;
 
-        $dropZone.off('dragover dragenter').on('dragover dragenter', function (e) {
-            e.preventDefault();
-            e.stopPropagation();
-            $dropZone.css('background', '#e8f8f2');
-        });
-
-        $dropZone.off('dragleave drop').on('dragleave', function (e) {
-            e.preventDefault();
-            e.stopPropagation();
-            $dropZone.css('background', '#f8fbf9');
-        });
-
-        $dropZone.off('drop').on('drop', function (e) {
-            e.preventDefault();
-            e.stopPropagation();
-            $dropZone.css('background', '#f8fbf9');
-            var files = e.originalEvent.dataTransfer.files;
-            if (files && files.length > 0) {
-                handleRackFile(files[0]);
-            }
-        });
-
-        $fileInput.off('change').on('change', function () {
-            if (this.files && this.files.length > 0) {
-                handleRackFile(this.files[0]);
-            }
-        });
-
-        function handleRackFile(file) {
             var ext = file.name.split('.').pop().toLowerCase();
             if (['xlsx', 'xls', 'csv'].indexOf(ext) === -1) {
                 if (typeof Swal !== 'undefined') {
-                    Swal.fire('Error', 'Format file tidak didukung. Harap unggah file .xlsx, .xls, atau .csv', 'error');
+                    Swal.fire('Format Tidak Didukung', 'Harap unggah file dengan format .xlsx, .xls, atau .csv', 'error');
+                } else {
+                    alert('Harap unggah file dengan format .xlsx, .xls, atau .csv');
                 }
+                $fileInput.val('');
                 return;
             }
 
-            $progressContainer.show();
+            if (file.size > 200 * 1024 * 1024) {
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire('File Terlalu Besar', 'Ukuran file maksimum adalah 200MB.', 'error');
+                } else {
+                    alert('Ukuran file maksimum adalah 200MB.');
+                }
+                $fileInput.val('');
+                return;
+            }
+
+            // Visual transition: Expand modal, switch to 2 columns
+            $dropZone.hide();
+            $processContainer.show();
             $fileName.text(file.name);
-            $fileSize.text((file.size / 1024).toFixed(1) + ' KB');
-            $progressBar.css('width', '35%');
+            $fileSize.text((file.size > 1024 * 1024) ? (file.size / (1024 * 1024)).toFixed(2) + ' MB' : (file.size / 1024).toFixed(1) + ' KB');
+            $dialog.addClass('modal-expanded');
+            $colLeft.removeClass('col-12').addClass('col-lg-6');
+            $colRight.show();
+
+            // Step 1: Upload & Read File
+            setUploadStepState(prefix + '-step-read', 'active');
+            setUploadStepState(prefix + '-step-parse', 'idle');
+            setUploadStepState(prefix + '-step-upload', 'idle');
+            setUploadStepState(prefix + '-step-finalize', 'idle');
 
             var reader = new FileReader();
-            reader.onload = function (e) {
-                $progressBar.css('width', '70%');
-                try {
-                    var data = new Uint8Array(e.target.result);
-                    var workbook = XLSX.read(data, { type: 'array', cellDates: true });
-                    
-                    if (workbook.SheetNames.length > 1 && typeof Swal !== 'undefined') {
-                        var sheetOpts = {};
-                        workbook.SheetNames.forEach(function (s) { sheetOpts[s] = s; });
-                        Swal.fire({
-                            title: 'Pilih Sheet Excel (' + workbook.SheetNames.length + ' Sheet)',
-                            text: 'Pilih sheet yang memuat Data Utilisasi Rack:',
-                            input: 'select',
-                            inputOptions: sheetOpts,
-                            inputValue: workbook.SheetNames[0],
-                            showCancelButton: true,
-                            confirmButtonText: 'Proses Sheet Ini',
-                            cancelButtonText: 'Batal'
-                        }).then(function (res) {
-                            if (res.isConfirmed && res.value) {
-                                processRackSheet(workbook.Sheets[res.value]);
-                            } else {
-                                $progressContainer.hide();
-                                $fileInput.val('');
-                            }
+            reader.onload = function (evt) {
+                setUploadStepState(prefix + '-step-read', 'completed');
+                setUploadStepState(prefix + '-step-parse', 'active');
+
+                setTimeout(function () {
+                    try {
+                        var data = new Uint8Array(evt.target.result);
+                        currentWorkbook = XLSX.read(data, {
+                            type: 'array',
+                            dense: true,
+                            cellFormula: false,
+                            cellHTML: false,
+                            cellText: false
                         });
-                    } else {
-                        processRackSheet(workbook.Sheets[workbook.SheetNames[0]]);
+
+                        if (!currentWorkbook || !currentWorkbook.SheetNames || currentWorkbook.SheetNames.length === 0) {
+                            throw new Error('File Excel tidak memiliki sheet.');
+                        }
+
+                        // Populate sheet select
+                        $sheetSelect.empty();
+                        currentWorkbook.SheetNames.forEach(function (sheetName) {
+                            $sheetSelect.append($('<option></option>').attr('value', sheetName).text(sheetName));
+                        });
+
+                        $sheetBadge.text(currentWorkbook.SheetNames.length + ' Sheet');
+                        setUploadStepState(prefix + '-step-parse', 'completed');
+
+                        // Trigger sheet selection change to calculate row count immediately
+                        $sheetSelect.trigger('change');
+                    } catch (err) {
+                        console.error('XLSX parse error:', err);
+                        setUploadStepState(prefix + '-step-parse', 'idle');
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire('Error', 'Gagal memproses file Excel: ' + err.message, 'error');
+                        } else {
+                            alert('Gagal memproses file Excel: ' + err.message);
+                        }
+                        resetImporter();
                     }
-                } catch (err) {
-                    console.error(err);
-                    $progressContainer.hide();
-                    $fileInput.val('');
-                    if (typeof Swal !== 'undefined') {
-                        Swal.fire('Error', 'Gagal membaca file Excel: ' + err.message, 'error');
-                    }
+                }, 80);
+            };
+            reader.onerror = function () {
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire('Error', 'Gagal membaca file.', 'error');
+                } else {
+                    alert('Gagal membaca file dari komputer.');
                 }
+                resetImporter();
             };
             reader.readAsArrayBuffer(file);
-        }
+        });
 
-        function processRackSheet(sheet) {
-            if (!sheet) {
-                if (typeof Swal !== 'undefined') Swal.fire('Error', 'Sheet tidak valid atau kosong.', 'error');
-                $progressContainer.hide();
-                $fileInput.val('');
+        // When sheet selection dropdown changes
+        $sheetSelect.off('change').on('change', function () {
+            var chosenSheet = $(this).val();
+            if (!currentWorkbook || !chosenSheet || !currentWorkbook.Sheets[chosenSheet]) {
+                $sheetInfoText.html('Silakan pilih sheet di atas.');
                 return;
             }
 
-            var sheetAOA = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
-            if (!sheetAOA || sheetAOA.length === 0) {
-                if (typeof Swal !== 'undefined') Swal.fire('Warning', 'Sheet yang dipilih kosong.', 'warning');
-                $progressContainer.hide();
-                $fileInput.val('');
-                return;
-            }
-
-            var headerKeywords = ['barcode', 'name', 'shelf', 'label', 'sub location', 'sub_location', 'active', 'category', 'status', 'kode', 'rack', 'project'];
-            var headerRowIndex = -1;
-            for (var r = 0; r < Math.min(sheetAOA.length, 5); r++) {
-                var rowArr = sheetAOA[r];
-                if (!rowArr || rowArr.length === 0) continue;
-                var matches = 0;
-                for (var c = 0; c < rowArr.length; c++) {
-                    var cellVal = String(rowArr[c] || '').trim().toLowerCase();
-                    if (headerKeywords.indexOf(cellVal) !== -1) {
-                        matches++;
-                    }
-                }
-                if (matches >= 2) {
-                    headerRowIndex = r;
-                    break;
+            var ws = currentWorkbook.Sheets[chosenSheet];
+            var countInfo = 'siap diproses';
+            if (ws && ws['!ref']) {
+                try {
+                    var range = XLSX.utils.decode_range(ws['!ref']);
+                    var totalRows = Math.max(0, range.e.r - range.s.r);
+                    countInfo = 'estimasi <b>' + totalRows.toLocaleString('id-ID') + ' baris data</b>';
+                } catch (e) {
+                    countInfo = 'siap diproses';
                 }
             }
 
-            var mappedRows = [];
-            if (headerRowIndex !== -1) {
-                var headers = [];
-                for (var hIdx = 0; hIdx < sheetAOA[headerRowIndex].length; hIdx++) {
-                    headers[hIdx] = String(sheetAOA[headerRowIndex][hIdx] || '').trim() || ('col_' + hIdx);
-                }
-                for (var rIdx = headerRowIndex + 1; rIdx < sheetAOA.length; rIdx++) {
-                    var curRow = sheetAOA[rIdx];
-                    if (!curRow || curRow.length === 0) continue;
-                    var hasVal = curRow.some(function (v) { return String(v || '').trim() !== ''; });
-                    if (!hasVal) continue;
-                    var rowObj = {};
-                    for (var cIdx = 0; cIdx < headers.length; cIdx++) {
-                        rowObj[headers[cIdx]] = (curRow[cIdx] !== undefined && curRow[cIdx] !== null) ? String(curRow[cIdx]).trim() : '';
-                    }
-                    mappedRows.push(rowObj);
-                }
-            } else {
-                // No header row -> row 0 is first data row!
-                var defaultHeaders = ['BARCODE', 'NAME', 'LABEL', 'ACTIVE', 'CATEGORY'];
-                for (var rIdx = 0; rIdx < sheetAOA.length; rIdx++) {
-                    var curRow = sheetAOA[rIdx];
-                    if (!curRow || curRow.length === 0) continue;
-                    var hasVal = curRow.some(function (v) { return String(v || '').trim() !== ''; });
-                    if (!hasVal) continue;
-                    var rowObj = {};
-                    for (var cIdx = 0; cIdx < curRow.length; cIdx++) {
-                        var h = (cIdx < defaultHeaders.length) ? defaultHeaders[cIdx] : ('col_' + cIdx);
-                        rowObj[h] = (curRow[cIdx] !== undefined && curRow[cIdx] !== null) ? String(curRow[cIdx]).trim() : '';
-                    }
-                    mappedRows.push(rowObj);
-                }
-            }
+            $sheetInfoText.html('Sheet "<b>' + chosenSheet + '</b>" dipilih &bull; ' + countInfo + '.');
+        });
 
-            if (mappedRows.length === 0) {
-                if (typeof Swal !== 'undefined') Swal.fire('Warning', 'Tidak ditemukan baris data pada sheet.', 'warning');
-                $progressContainer.hide();
-                $fileInput.val('');
-                return;
-            }
+        // Submit button handler
+        $btnSubmit.off('click').on('click', function (e) {
+            e.preventDefault();
+            if (isUploading) return;
 
-            $progressBar.css('width', '90%');
-
-            if (typeof Swal !== 'undefined') {
-                Swal.fire({
-                    title: 'Data Is Processing Please Wait',
-                    html: 'Menyimpan <b>' + mappedRows.length.toLocaleString('id-ID') + '</b> data rak ke database...',
-                    allowOutsideClick: false,
-                    allowEscapeKey: false,
-                    didOpen: function () { Swal.showLoading(); }
-                });
-            }
-
-            var csrfToken = (window.WMS_CSRF_TOKEN) || ($('meta[name="csrf-token"]').attr('content')) || '';
-
-            fetch('api/save_rack_data.php', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': csrfToken
-                },
-                body: JSON.stringify({
-                    action: 'batch',
-                    csrf_token: csrfToken,
-                    data: mappedRows
-                })
-            })
-            .then(function (r) { return r.json(); })
-            .then(function (res) {
-                $progressBar.css('width', '100%');
-                $progressContainer.hide();
-                $fileInput.val('');
-                $('#uploadExcelModalRack').modal('hide');
-
-                if (res.status === 'success') {
-                    if (typeof Swal !== 'undefined') {
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Upload Berhasil!',
-                            text: res.message || ('Berhasil menyimpan ' + mappedRows.length + ' data rak.'),
-                            confirmButtonColor: '#1cc88a'
-                        });
-                    }
-                    // Reload rack table immediately
-                    if (rackTable) {
-                        rackTable.ajax.reload(null, false);
-                    } else {
-                        initRackTable();
-                    }
-                } else {
-                    if (typeof Swal !== 'undefined') {
-                        Swal.fire('Gagal Menyimpan', res.message || 'Terjadi kesalahan pada server.', 'error');
-                    }
-                }
-            })
-            .catch(function (err) {
-                console.error(err);
-                $progressContainer.hide();
-                $fileInput.val('');
+            var chosenSheet = $sheetSelect.val();
+            if (!currentWorkbook || !chosenSheet || !currentWorkbook.Sheets[chosenSheet]) {
                 if (typeof Swal !== 'undefined') {
-                    Swal.fire('Error', 'Terjadi kesalahan koneksi saat mengirim data.', 'error');
+                    Swal.fire('Pilih Sheet', 'Silakan pilih sheet.', 'warning');
+                } else {
+                    alert('Silakan pilih sheet.');
                 }
-            });
-        }
+                return;
+            }
+
+            // Period Validation
+            var monthVal = '', batchVal = '', yearVal = '';
+            if (config.periodType === 'full') {
+                monthVal = $(config.periodSelectors.month).val();
+                batchVal = $(config.periodSelectors.batch).val();
+                yearVal = $(config.periodSelectors.year).val();
+                if (!monthVal || !batchVal || !yearVal) {
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire('Periode Belum Lengkap', 'Silakan pilih Bulan, Batch, dan Tahun Periode terlebih dahulu.', 'warning');
+                    } else {
+                        alert('Silakan pilih Bulan, Batch, dan Tahun Periode terlebih dahulu.');
+                    }
+                    return;
+                }
+            } else if (config.periodType === 'year') {
+                yearVal = $(config.periodSelectors.year).val();
+                if (!yearVal) {
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire('Tahun Belum Dipilih', 'Silakan pilih Tahun Periode terlebih dahulu.', 'warning');
+                    } else {
+                        alert('Silakan pilih Tahun Periode terlebih dahulu.');
+                    }
+                    return;
+                }
+            }
+
+            // Lock UI & Start Upload
+            isUploading = true;
+            $btnSubmit.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-1"></i> Membaca Data Sheet...');
+            $btnChangeFile.prop('disabled', true);
+            $sheetSelect.prop('disabled', true);
+            if (config.periodSelectors) {
+                Object.values(config.periodSelectors).forEach(function (sel) { $(sel).prop('disabled', true); });
+            }
+
+            setUploadStepState(prefix + '-step-upload', 'active');
+            $batchProgress.show();
+
+            // Yield execution to allow UI to paint the loading state
+            setTimeout(function () {
+                var parsedRows = [];
+                try {
+                    parsedRows = config.parseRows(currentWorkbook, chosenSheet);
+                } catch (parseErr) {
+                    console.error('Row parsing error:', parseErr);
+                    isUploading = false;
+                    $btnSubmit.prop('disabled', false).html('<i class="fas fa-file-import mr-1"></i> Mulai Import Sheet Ini');
+                    $btnChangeFile.prop('disabled', false);
+                    $sheetSelect.prop('disabled', false);
+                    if (config.periodSelectors) {
+                        Object.values(config.periodSelectors).forEach(function (sel) { $(sel).prop('disabled', false); });
+                    }
+                    setUploadStepState(prefix + '-step-upload', 'idle');
+                    $batchProgress.hide();
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire('Error', 'Gagal memetakan baris data sheet: ' + parseErr.message, 'error');
+                    } else {
+                        alert('Gagal memetakan baris data sheet: ' + parseErr.message);
+                    }
+                    return;
+                }
+
+                if (!parsedRows || parsedRows.length === 0) {
+                    isUploading = false;
+                    $btnSubmit.prop('disabled', false).html('<i class="fas fa-file-import mr-1"></i> Mulai Import Sheet Ini');
+                    $btnChangeFile.prop('disabled', false);
+                    $sheetSelect.prop('disabled', false);
+                    if (config.periodSelectors) {
+                        Object.values(config.periodSelectors).forEach(function (sel) { $(sel).prop('disabled', false); });
+                    }
+                    setUploadStepState(prefix + '-step-upload', 'idle');
+                    $batchProgress.hide();
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire('Peringatan', 'Sheet "' + chosenSheet + '" tidak memiliki baris data yang valid.', 'warning');
+                    } else {
+                        alert('Sheet "' + chosenSheet + '" tidak memiliki baris data yang valid.');
+                    }
+                    return;
+                }
+
+                $btnSubmit.html('<i class="fas fa-spinner fa-spin mr-1"></i> Mengimpor Data (' + parsedRows.length.toLocaleString('id-ID') + ' baris)...');
+
+                function updateProgress(sent, total) {
+                    var percent = total > 0 ? Math.min(100, Math.round((sent / total) * 100)) : 0;
+                    $progressFill.css('width', percent + '%');
+                    $progressText.text(sent.toLocaleString('id-ID') + ' / ' + total.toLocaleString('id-ID') + ' baris');
+                    $progressPercent.text(percent + '%');
+                }
+
+                updateProgress(0, parsedRows.length);
+
+                config.processUpload({
+                    rows: parsedRows,
+                    month: monthVal,
+                    batch: batchVal,
+                    year: yearVal,
+                    chosenSheet: chosenSheet,
+                    updateProgress: updateProgress,
+                    setStepState: function (stepName, state) {
+                        setUploadStepState(prefix + '-' + stepName, state);
+                    }
+                })
+                    .then(function (result) {
+                        updateProgress(parsedRows.length, parsedRows.length);
+                        setUploadStepState(prefix + '-step-upload', 'completed');
+                        setUploadStepState(prefix + '-step-finalize', 'active');
+
+                        setTimeout(function () {
+                            setUploadStepState(prefix + '-step-finalize', 'completed');
+
+                            var successMsg = (result && result.message)
+                                ? result.message
+                                : ('Berhasil mengimpor ' + parsedRows.length.toLocaleString('id-ID') + ' baris data dari sheet "' + chosenSheet + '".');
+
+                            if (typeof Swal !== 'undefined') {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Import Berhasil!',
+                                    text: successMsg,
+                                    confirmButtonColor: '#4e73df'
+                                });
+                            }
+
+                            $modal.modal('hide');
+                            resetImporter();
+
+                            if (typeof config.onSuccess === 'function') {
+                                config.onSuccess(result, { month: monthVal, batch: batchVal, year: yearVal });
+                            }
+                        }, 300);
+                    })
+                    .catch(function (err) {
+                        console.error('Import error (' + prefix + '):', err);
+                        isUploading = false;
+                        $btnSubmit.prop('disabled', false).html('<i class="fas fa-file-import mr-1"></i> Mulai Import Sheet Ini');
+                        $btnChangeFile.prop('disabled', false);
+                        $sheetSelect.prop('disabled', false);
+                        if (config.periodSelectors) {
+                            Object.values(config.periodSelectors).forEach(function (sel) { $(sel).prop('disabled', false); });
+                        }
+                        setUploadStepState(prefix + '-step-upload', 'idle');
+                        $batchProgress.hide();
+
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Import Gagal',
+                                text: err.message || 'Terjadi kesalahan saat mengimpor data.',
+                                confirmButtonColor: '#e74a3b'
+                            });
+                        } else {
+                            alert('Import Gagal: ' + (err.message || 'Terjadi kesalahan saat mengimpor data.'));
+                        }
+                    });
+            }, 50);
+        });
     }
 
     $('#btn-template-inbound').on('click', function () {
@@ -1530,6 +1568,8 @@ $(document).ready(function () {
         var zone = document.getElementById(zoneId);
         var input = document.getElementById(inputId);
         if (!zone || !input) return;
+        if (zone._hasDropListener) return;
+        zone._hasDropListener = true;
 
         zone.addEventListener('dragover', function (e) {
             e.preventDefault();
@@ -1568,11 +1608,21 @@ $(document).ready(function () {
         });
     }
 
-    // Initialize drag & drop for all master data modals
-    setupExcelDropZone('inbound-upload-drop-zone', 'excel-file-inbound-input');
-    setupExcelDropZone('outbound-upload-drop-zone', 'excel-file-outbound-input');
-    setupExcelDropZone('forwarder-upload-drop-zone', 'excel-file-forwarder-input');
-    setupExcelDropZone('kpi-upload-drop-zone', 'excel-file-kpi-input');
+    function initAllDropZones() {
+        setupExcelDropZone('upload-drop-zone', 'excel-file-input');
+        setupExcelDropZone('upload-rack-drop-zone', 'excel-rack-file-input');
+        setupExcelDropZone('inbound-upload-drop-zone', 'excel-file-inbound-input');
+        setupExcelDropZone('outbound-upload-drop-zone', 'excel-file-outbound-input');
+        setupExcelDropZone('forwarder-upload-drop-zone', 'excel-file-forwarder-input');
+        setupExcelDropZone('kpi-upload-drop-zone', 'excel-file-kpi-input');
+    }
+
+    // Initialize drag & drop immediately and on modal open
+    initAllDropZones();
+    $(document).ready(initAllDropZones);
+    $('#uploadExcelModal, #uploadExcelModalRack, #uploadExcelModalInbound, #uploadExcelModalOutbound, #uploadExcelModalForwarder, #uploadExcelModalKpi').on('show.bs.modal shown.bs.modal', function () {
+        initAllDropZones();
+    });
 
     /**
      * Reusable dialog to let user choose a sheet from a parsed workbook
@@ -1628,108 +1678,366 @@ $(document).ready(function () {
         }
     }
 
-    // Handle Inbound Excel File Upload
-    $('#excel-file-inbound-input').on('change', function (e) {
-        var file = e.target.files[0];
-        if (!file) return;
-
-        if (file.size > 200 * 1024 * 1024) {
-            if (typeof Swal !== 'undefined') Swal.fire('File Terlalu Besar', 'Ukuran file maksimum adalah 200MB.', 'error');
-            $(this).val('');
-            return;
-        }
-
-        var monthVal = $('#uploadInboundMonthSelect').val();
-        var batchVal = $('#uploadInboundBatchSelect').val();
-        var yearVal = $('#uploadInboundYearSelect').val();
-
-        if (!monthVal || !batchVal || !yearVal) {
-            if (typeof Swal !== 'undefined') {
-                Swal.fire('Peringatan', 'Silakan pilih Bulan, Batch, dan Tahun Periode terlebih dahulu sebelum mengupload file.', 'warning');
-            } else {
-                alert('Silakan pilih Bulan, Batch, dan Tahun Periode terlebih dahulu sebelum mengupload file.');
+    // Handle Storage Data Asset Excel File Upload with Universal Importer
+    setupUniversalMasterImporter({
+        prefix: 'asset',
+        modalId: '#uploadExcelModal',
+        dialogId: '#uploadExcelModalDialog',
+        dropZoneId: 'upload-drop-zone',
+        fileInputId: 'excel-file-input',
+        periodType: 'full',
+        periodSelectors: {
+            month: '#upload-bulan-select',
+            batch: '#upload-batch-select',
+            year: '#upload-tahun-select'
+        },
+        parseRows: function (workbook, sheetName) {
+            var worksheet = workbook.Sheets[sheetName];
+            if (!worksheet) return [];
+            var rows = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
+            for (var idx = 0; idx < rows.length; idx++) {
+                rows[idx]['periode'] = sheetName;
             }
-            $(this).val('');
-            return;
-        }
+            return rows;
+        },
+        processUpload: function (ctx) {
+            var rows = ctx.rows;
+            var monthVal = ctx.month;
+            var batchVal = ctx.batch;
+            var yearVal = ctx.year;
+            var periodGroup = monthVal + ' ' + yearVal + '-Batch' + batchVal;
+            var csrfToken = (window.WMS_CSRF_TOKEN) || ($('meta[name="csrf-token"]').attr('content')) || '';
+            var totalRows = rows.length;
+            var BATCH_SIZE = 1500;
 
-        if (typeof XLSX === 'undefined') {
-            if (typeof Swal !== 'undefined') Swal.fire('Error', 'SheetJS (XLSX) library tidak ditemukan.', 'error');
-            return;
-        }
-
-        var reader = new FileReader();
-        reader.onload = function (e) {
-            try {
-                var data = new Uint8Array(e.target.result);
-                var workbook = XLSX.read(data, { type: 'array' });
-
-                promptSelectSheet(workbook, 'Pilih Sheet Inbound', workbook.SheetNames[0], function (chosenSheet) {
-                    if (typeof Swal !== 'undefined') {
-                        Swal.fire({
-                            title: 'Data Is Processing Please Wait',
-                            html: 'Memproses sheet <b>' + chosenSheet + '</b> untuk periode <b>' + monthVal + ' ' + yearVal + '-Batch' + batchVal + '</b>...',
-                            allowOutsideClick: false,
-                            didOpen: () => { Swal.showLoading(); }
-                        });
+            return safeFetchJson('api/save_data.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
+                body: JSON.stringify({
+                    action: 'init',
+                    csrf_token: csrfToken,
+                    month: monthVal,
+                    year: yearVal,
+                    batch: batchVal,
+                    periods: [periodGroup]
+                })
+            }, 60000)
+                .then(function (initRes) {
+                    if (initRes.status !== 'success') {
+                        throw new Error(initRes.message || 'Gagal inisialisasi periode.');
                     }
-
-                    var worksheet = workbook.Sheets[chosenSheet];
-                    if (!worksheet) {
-                        if (typeof Swal !== 'undefined') Swal.fire('Error', 'Sheet "' + chosenSheet + '" tidak ditemukan.', 'error');
-                        return;
-                    }
-                    var jsonRows = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
-
-                    if (jsonRows.length === 0) {
-                        if (typeof Swal !== 'undefined') Swal.fire('Warning', 'Sheet "' + chosenSheet + '" kosong.', 'warning');
-                        return;
-                    }
-
-                    // Send to backend API with month and year parameters
-                    fetch('api/save_inbound_master.php', {
+                    return sendAssetBatches(0);
+                })
+                .then(function () {
+                    return safeFetchJson('api/save_data.php', {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            action: 'batch',
-                            month: monthVal,
-                            year: yearVal,
-                            batch: batchVal,
-                            data: jsonRows
-                        })
-                    })
-                    .then(r => r.json())
-                    .then(res => {
-                        if (res.status === 'success') {
-                            if (typeof Swal !== 'undefined') {
-                                Swal.fire('Sukses', res.message || 'Import Data Inbound Berhasil!', 'success');
-                            }
-                            $('#uploadExcelModalInbound').modal('hide');
-                            if (inboundTable) {
-                                inboundTable.ajax.reload();
-                                refreshInboundFilters();
-                            } else {
-                                location.reload();
-                            }
-                        } else {
-                            if (typeof Swal !== 'undefined') Swal.fire('Error', res.message || 'Gagal import data.', 'error');
-                        }
-                    })
-                    .catch(err => {
-                        console.error(err);
-                        if (typeof Swal !== 'undefined') Swal.fire('Error', 'Terjadi kesalahan server saat menyimpan data.', 'error');
-                    });
-                }, function () {
-                    $('#excel-file-inbound-input').val('');
+                        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
+                        body: JSON.stringify({ action: 'finalize', csrf_token: csrfToken })
+                    }, 60000);
+                })
+                .then(function (finalRes) {
+                    return {
+                        success: true,
+                        message: 'Berhasil mengimport ' + totalRows.toLocaleString('id-ID') + ' data asset (' + periodGroup + ').'
+                    };
                 });
-            } catch (err) {
-                console.error(err);
-                if (typeof Swal !== 'undefined') Swal.fire('Error', 'Format file Excel tidak valid.', 'error');
+
+            function sendAssetBatches(startIndex) {
+                if (startIndex >= totalRows) {
+                    return Promise.resolve();
+                }
+                var endIndex = Math.min(startIndex + BATCH_SIZE, totalRows);
+                var batchRows = rows.slice(startIndex, endIndex);
+
+                return safeFetchJson('api/save_data.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
+                    body: JSON.stringify({
+                        action: 'append',
+                        csrf_token: csrfToken,
+                        month: monthVal,
+                        year: yearVal,
+                        batch: batchVal,
+                        data: batchRows
+                    })
+                }, 120000)
+                    .then(function (appendRes) {
+                        if (appendRes.status !== 'success') {
+                            throw new Error(appendRes.message || 'Gagal menyimpan batch asset.');
+                        }
+                        ctx.updateProgress(endIndex, totalRows);
+                        return sendAssetBatches(endIndex);
+                    });
             }
-        };
-        reader.readAsArrayBuffer(file);
-        // Reset input value
-        $(this).val('');
+        },
+        onSuccess: function (res, period) {
+            if (masterDataTable) {
+                masterDataTable.ajax.reload();
+            }
+            if (typeof populateFilterPeriods === 'function') {
+                populateFilterPeriods();
+            }
+        }
+    });
+
+    // Handle Storage Rack Utilisasi Excel File Upload with Universal Importer
+    setupUniversalMasterImporter({
+        prefix: 'rack',
+        modalId: '#uploadExcelModalRack',
+        dialogId: '#uploadExcelModalRackDialog',
+        dropZoneId: 'upload-rack-drop-zone',
+        fileInputId: 'excel-rack-file-input',
+        periodType: 'year',
+        periodSelectors: {
+            year: '#upload-rack-year'
+        },
+        parseRows: function (workbook, sheetName) {
+            var worksheet = workbook.Sheets[sheetName];
+            if (!worksheet) return [];
+            var sheetAOA = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' });
+            if (!sheetAOA || sheetAOA.length === 0) return [];
+
+            var headerKeywords = ['barcode', 'name', 'shelf', 'label', 'sub location', 'sub_location', 'active', 'category', 'status', 'kode', 'rack', 'project'];
+            var headerRowIndex = -1;
+            for (var r = 0; r < Math.min(sheetAOA.length, 5); r++) {
+                var rowArr = sheetAOA[r];
+                if (!rowArr || rowArr.length === 0) continue;
+                var matches = 0;
+                for (var c = 0; c < rowArr.length; c++) {
+                    var cellVal = String(rowArr[c] || '').trim().toLowerCase();
+                    if (headerKeywords.indexOf(cellVal) !== -1) {
+                        matches++;
+                    }
+                }
+                if (matches >= 2) {
+                    headerRowIndex = r;
+                    break;
+                }
+            }
+
+            var mappedRows = [];
+            if (headerRowIndex !== -1) {
+                var headers = [];
+                for (var hIdx = 0; hIdx < sheetAOA[headerRowIndex].length; hIdx++) {
+                    headers[hIdx] = String(sheetAOA[headerRowIndex][hIdx] || '').trim() || ('col_' + hIdx);
+                }
+                for (var rIdx = headerRowIndex + 1; rIdx < sheetAOA.length; rIdx++) {
+                    var curRow = sheetAOA[rIdx];
+                    if (!curRow || curRow.length === 0) continue;
+                    var hasVal = curRow.some(function (v) { return String(v || '').trim() !== ''; });
+                    if (!hasVal) continue;
+                    var rowObj = {};
+                    for (var cIdx = 0; cIdx < headers.length; cIdx++) {
+                        var hName = headers[cIdx];
+                        var rawCell = curRow[cIdx];
+                        if (rawCell !== undefined && rawCell !== null) {
+                            if (typeof rawCell === 'number' && rawCell > 0 && rawCell <= 1.0 && /^CAP/i.test(hName)) {
+                                rawCell = Math.round(rawCell * 10000) / 100;
+                            }
+                            rowObj[hName] = String(rawCell).trim();
+                        } else {
+                            rowObj[hName] = '';
+                        }
+                    }
+                    mappedRows.push(rowObj);
+                }
+            } else {
+                var defaultHeaders = ['BARCODE', 'NAME', 'LABEL', 'ACTIVE', 'CATEGORY'];
+                for (var rIdx = 0; rIdx < sheetAOA.length; rIdx++) {
+                    var curRow = sheetAOA[rIdx];
+                    if (!curRow || curRow.length === 0) continue;
+                    var hasVal = curRow.some(function (v) { return String(v || '').trim() !== ''; });
+                    if (!hasVal) continue;
+                    var rowObj = {};
+                    for (var cIdx = 0; cIdx < curRow.length; cIdx++) {
+                        var h = (cIdx < defaultHeaders.length) ? defaultHeaders[cIdx] : ('col_' + cIdx);
+                        var rawCell = curRow[cIdx];
+                        if (rawCell !== undefined && rawCell !== null) {
+                            if (typeof rawCell === 'number' && rawCell > 0 && rawCell <= 1.0 && /^CAP/i.test(h)) {
+                                rawCell = Math.round(rawCell * 10000) / 100;
+                            }
+                            rowObj[h] = String(rawCell).trim();
+                        } else {
+                            rowObj[h] = '';
+                        }
+                    }
+                    mappedRows.push(rowObj);
+                }
+            }
+            return mappedRows;
+        },
+        processUpload: function (ctx) {
+            var rows = ctx.rows;
+            var yearVal = ctx.year;
+            var csrfToken = (window.WMS_CSRF_TOKEN) || ($('meta[name="csrf-token"]').attr('content')) || '';
+            var totalRows = rows.length;
+            var BATCH_SIZE = 1000;
+
+            return safeFetchJson('api/save_rack_data.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
+                body: JSON.stringify({
+                    action: 'init',
+                    csrf_token: csrfToken,
+                    year: yearVal
+                })
+            }, 60000)
+                .then(function (initRes) {
+                    if (initRes.status !== 'success') {
+                        throw new Error(initRes.message || 'Gagal inisialisasi master data rack.');
+                    }
+                    return sendRackBatches(0);
+                })
+                .then(function () {
+                    return safeFetchJson('api/save_rack_data.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
+                        body: JSON.stringify({
+                            action: 'finalize',
+                            csrf_token: csrfToken,
+                            year: yearVal
+                        })
+                    }, 60000);
+                })
+                .then(function (finalRes) {
+                    return {
+                        success: true,
+                        message: 'Berhasil mengimport ' + totalRows.toLocaleString('id-ID') + ' data utilisasi rack (Tahun ' + yearVal + ').'
+                    };
+                });
+
+            function sendRackBatches(startIndex) {
+                if (startIndex >= totalRows) {
+                    return Promise.resolve();
+                }
+                var endIndex = Math.min(startIndex + BATCH_SIZE, totalRows);
+                var batchRows = rows.slice(startIndex, endIndex);
+
+                return safeFetchJson('api/save_rack_data.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
+                    body: JSON.stringify({
+                        action: 'append',
+                        csrf_token: csrfToken,
+                        year: yearVal,
+                        data: batchRows
+                    })
+                }, 120000)
+                    .then(function (appendRes) {
+                        if (appendRes.status !== 'success') {
+                            throw new Error(appendRes.message || 'Gagal menyimpan batch rack.');
+                        }
+                        ctx.updateProgress(endIndex, totalRows);
+                        return sendRackBatches(endIndex);
+                    });
+            }
+        },
+        onSuccess: function (res, period) {
+            if (rackTable) {
+                rackTable.ajax.reload(null, false);
+            } else {
+                initRackTable();
+            }
+        }
+    });
+
+    // Handle Inbound Excel File Upload with Universal Importer
+    setupUniversalMasterImporter({
+        prefix: 'inbound',
+        modalId: '#uploadExcelModalInbound',
+        dialogId: '#uploadExcelModalInboundDialog',
+        dropZoneId: 'inbound-upload-drop-zone',
+        fileInputId: 'excel-file-inbound-input',
+        periodType: 'full',
+        periodSelectors: {
+            month: '#uploadInboundMonthSelect',
+            batch: '#uploadInboundBatchSelect',
+            year: '#uploadInboundYearSelect'
+        },
+        parseRows: function (workbook, sheetName) {
+            var worksheet = workbook.Sheets[sheetName];
+            if (!worksheet) return [];
+            return XLSX.utils.sheet_to_json(worksheet, { defval: '' });
+        },
+        processUpload: function (ctx) {
+            var rows = ctx.rows;
+            var monthVal = ctx.month;
+            var batchVal = ctx.batch;
+            var yearVal = ctx.year;
+            var periodGroup = monthVal + ' ' + yearVal + '-Batch' + batchVal;
+            var csrfToken = (window.WMS_CSRF_TOKEN) || ($('meta[name="csrf-token"]').attr('content')) || '';
+            var totalRows = rows.length;
+            var BATCH_SIZE = 1500;
+
+            return safeFetchJson('api/save_inbound_master.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
+                body: JSON.stringify({
+                    action: 'init',
+                    csrf_token: csrfToken,
+                    month: monthVal,
+                    year: yearVal,
+                    batch: batchVal,
+                    periode_group: periodGroup
+                })
+            }, 60000)
+                .then(function (initRes) {
+                    if (initRes.status !== 'success') {
+                        throw new Error(initRes.message || 'Gagal inisialisasi periode inbound.');
+                    }
+                    return sendInboundBatches(0);
+                })
+                .then(function () {
+                    return safeFetchJson('api/save_inbound_master.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
+                        body: JSON.stringify({ action: 'finalize', csrf_token: csrfToken })
+                    }, 60000);
+                })
+                .then(function () {
+                    return {
+                        success: true,
+                        message: 'Berhasil mengimport ' + totalRows.toLocaleString('id-ID') + ' data inbound (' + periodGroup + ').'
+                    };
+                });
+
+            function sendInboundBatches(startIndex) {
+                if (startIndex >= totalRows) {
+                    return Promise.resolve();
+                }
+                var endIndex = Math.min(startIndex + BATCH_SIZE, totalRows);
+                var batchRows = rows.slice(startIndex, endIndex);
+
+                return safeFetchJson('api/save_inbound_master.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
+                    body: JSON.stringify({
+                        action: 'append',
+                        csrf_token: csrfToken,
+                        month: monthVal,
+                        year: yearVal,
+                        batch: batchVal,
+                        periode_group: periodGroup,
+                        data: batchRows
+                    })
+                }, 120000)
+                    .then(function (appendRes) {
+                        if (appendRes.status !== 'success') {
+                            throw new Error(appendRes.message || 'Gagal menyimpan batch inbound.');
+                        }
+                        ctx.updateProgress(endIndex, totalRows);
+                        return sendInboundBatches(endIndex);
+                    });
+            }
+        },
+        onSuccess: function (res, period) {
+            if (inboundTable) {
+                inboundTable.ajax.reload();
+                refreshInboundFilters();
+            } else {
+                location.reload();
+            }
+        }
     });
 
     // Outbound Excel Template Generator
@@ -1774,155 +2082,150 @@ $(document).ready(function () {
         XLSX.writeFile(wb, "Template_Import_Master_Data_Outbound.xlsx");
     });
 
-    // Outbound Excel File Upload Handler with intelligent 23-column mapping
-    $('#excel-file-outbound-input').on('change', function (e) {
-        var file = e.target.files[0];
-        if (!file) return;
+    // Handle Outbound Excel File Upload with Universal Importer
+    setupUniversalMasterImporter({
+        prefix: 'outbound',
+        modalId: '#uploadExcelModalOutbound',
+        dialogId: '#uploadExcelModalOutboundDialog',
+        dropZoneId: 'outbound-upload-drop-zone',
+        fileInputId: 'excel-file-outbound-input',
+        periodType: 'full',
+        periodSelectors: {
+            month: '#uploadOutboundMonthSelect',
+            batch: '#uploadOutboundBatchSelect',
+            year: '#uploadOutboundYearSelect'
+        },
+        parseRows: function (workbook, sheetName) {
+            var worksheet = workbook.Sheets[sheetName];
+            if (!worksheet) return [];
+            var rawJson = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
+            if (!rawJson || rawJson.length === 0) return [];
 
-        if (file.size > 200 * 1024 * 1024) {
-            if (typeof Swal !== 'undefined') Swal.fire('File Terlalu Besar', 'Ukuran file maksimum adalah 200MB.', 'error');
-            $(this).val('');
-            return;
-        }
+            var FIELD_MAP = {
+                mr_no: ['mr no', 'mr_no', 'mrno', 'no mr', 'nomr', 'no. mr', 'mr number'],
+                mr_type: ['mr type', 'mr_type', 'mrtype', 'tipe mr', 'type mr'],
+                mr_desc: ['mr desc', 'mr_desc', 'mrdesc', 'mr description', 'deskripsi mr', 'keterangan mr'],
+                mr_status: ['mr status', 'mr_status', 'mrstatus', 'status mr'],
+                pck_no: ['pck no', 'pck_no', 'pckno', 'packing no', 'no pck', 'no. pck', 'package no'],
+                pck_detail: ['pck detail', 'pck_detail', 'pckdetail', 'packing detail', 'detail pck'],
+                pck_status: ['pck status', 'pck_status', 'pckstatus', 'packing status', 'status pck'],
+                awb: ['awb', 'no awb', 'airwaybill', 'resi', 'no resi', 'no. awb'],
+                dn_no: ['dn no', 'dn_no', 'dnno', 'delivery note no', 'no dn', 'no. dn', 'dn number'],
+                pr_no: ['pr no', 'pr_no', 'prno', 'no pr', 'no. pr', 'purchase request no', 'pr number'],
+                po_no: ['po no', 'po_no', 'pono', 'no po', 'no. po', 'purchase order no', 'po number'],
+                origin_from: ['from', 'origin from', 'origin_from', 'dari', 'asal'],
+                site_origin: ['site origin', 'site_origin', 'siteorigin', 'origin site', 'site asal'],
+                site_origin_addr: ['site origin addr', 'site_origin_addr', 'site origin address', 'alamat origin', 'alamat site asal'],
+                destination_to: ['to', 'destination to', 'destination_to', 'tujuan', 'ke'],
+                site_destination: ['site destination', 'site_destination', 'sitedestination', 'destination site', 'tujuan site', 'site tujuan'],
+                site_destination_addr: ['site destination addr', 'site_destination_addr', 'site destination address', 'alamat destination', 'alamat site tujuan', 'alamat tujuan'],
+                pickup_type: ['pickup type', 'pickup_type', 'pickuptype', 'tipe pickup', 'jenis pickup'],
+                via: ['via', 'pengiriman via', 'ekspedisi', 'kurir', 'transport'],
+                lt: ['lt', 'lead time', 'leadtime', 'lead_time'],
+                delivery_target: ['delivery target', 'delivery_target', 'target delivery', 'target_delivery', 'tgl target delivery'],
+                dn_status: ['dn status', 'dn_status', 'dnstatus', 'status dn'],
+                last_log: ['last log', 'last_log', 'lastlog', 'log terakhir', 'status log']
+            };
 
-        var outMonthVal = $('#uploadOutboundMonthSelect').val();
-        var outBatchVal = $('#uploadOutboundBatchSelect').val();
-        var outYearVal = $('#uploadOutboundYearSelect').val();
-
-        if (!outMonthVal || !outBatchVal || !outYearVal) {
-            if (typeof Swal !== 'undefined') {
-                Swal.fire('Peringatan', 'Silakan pilih Bulan, Batch, dan Tahun Periode terlebih dahulu sebelum mengupload file.', 'warning');
-            } else {
-                alert('Silakan pilih Bulan, Batch, dan Tahun Periode terlebih dahulu sebelum mengupload file.');
+            function normalizeKey(str) {
+                return String(str || '').toLowerCase().replace(/[^a-z0-9]/g, ' ').trim().replace(/\s+/g, ' ');
             }
-            $(this).val('');
-            return;
-        }
 
-        if (typeof XLSX === 'undefined') {
-            if (typeof Swal !== 'undefined') Swal.fire('Error', 'SheetJS (XLSX) library tidak ditemukan.', 'error');
-            return;
-        }
+            return rawJson.map(function (rawRow) {
+                var out = { _raw: rawRow };
+                var rawKeys = Object.keys(rawRow);
 
-        var reader = new FileReader();
-        reader.onload = function (e) {
-            try {
-                var data = new Uint8Array(e.target.result);
-                var workbook = XLSX.read(data, { type: 'array' });
-
-                promptSelectSheet(workbook, 'Pilih Sheet Outbound', workbook.SheetNames[0], function (chosenSheet) {
-                    if (typeof Swal !== 'undefined') {
-                        Swal.fire({
-                            title: 'Data Is Processing Please Wait',
-                            html: 'Memproses sheet <b>' + chosenSheet + '</b> untuk periode <b>' + outMonthVal + ' ' + outYearVal + '-Batch' + outBatchVal + '</b>...',
-                            allowOutsideClick: false,
-                            didOpen: () => { Swal.showLoading(); }
-                        });
-                    }
-
-                    var worksheet = workbook.Sheets[chosenSheet];
-                    if (!worksheet) {
-                        if (typeof Swal !== 'undefined') Swal.fire('Error', 'Sheet "' + chosenSheet + '" tidak ditemukan.', 'error');
-                        return;
-                    }
-                    var rawJson = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
-
-                    if (rawJson.length === 0) {
-                        if (typeof Swal !== 'undefined') Swal.fire('Warning', 'Sheet "' + chosenSheet + '" kosong.', 'warning');
-                        return;
-                    }
-
-                // 23-Field Alias Definitions for intelligent fuzzy matching
-                var FIELD_MAP = {
-                    mr_no: ['mr no', 'mr_no', 'mrno', 'no mr', 'nomr', 'no. mr', 'mr number'],
-                    mr_type: ['mr type', 'mr_type', 'mrtype', 'tipe mr', 'type mr'],
-                    mr_desc: ['mr desc', 'mr_desc', 'mrdesc', 'mr description', 'deskripsi mr', 'keterangan mr'],
-                    mr_status: ['mr status', 'mr_status', 'mrstatus', 'status mr'],
-                    pck_no: ['pck no', 'pck_no', 'pckno', 'packing no', 'no pck', 'no. pck', 'package no'],
-                    pck_detail: ['pck detail', 'pck_detail', 'pckdetail', 'packing detail', 'detail pck'],
-                    pck_status: ['pck status', 'pck_status', 'pckstatus', 'packing status', 'status pck'],
-                    awb: ['awb', 'no awb', 'airwaybill', 'resi', 'no resi', 'no. awb'],
-                    dn_no: ['dn no', 'dn_no', 'dnno', 'delivery note no', 'no dn', 'no. dn', 'dn number'],
-                    pr_no: ['pr no', 'pr_no', 'prno', 'no pr', 'no. pr', 'purchase request no', 'pr number'],
-                    po_no: ['po no', 'po_no', 'pono', 'no po', 'no. po', 'purchase order no', 'po number'],
-                    origin_from: ['from', 'origin from', 'origin_from', 'dari', 'asal'],
-                    site_origin: ['site origin', 'site_origin', 'siteorigin', 'origin site', 'site asal'],
-                    site_origin_addr: ['site origin addr', 'site_origin_addr', 'site origin address', 'alamat origin', 'alamat site asal'],
-                    destination_to: ['to', 'destination to', 'destination_to', 'tujuan', 'ke'],
-                    site_destination: ['site destination', 'site_destination', 'sitedestination', 'destination site', 'tujuan site', 'site tujuan'],
-                    site_destination_addr: ['site destination addr', 'site_destination_addr', 'site destination address', 'alamat destination', 'alamat site tujuan', 'alamat tujuan'],
-                    pickup_type: ['pickup type', 'pickup_type', 'pickuptype', 'tipe pickup', 'jenis pickup'],
-                    via: ['via', 'pengiriman via', 'ekspedisi', 'kurir', 'transport'],
-                    lt: ['lt', 'lead time', 'leadtime', 'lead_time'],
-                    delivery_target: ['delivery target', 'delivery_target', 'target delivery', 'target_delivery', 'tgl target delivery'],
-                    dn_status: ['dn status', 'dn_status', 'dnstatus', 'status dn'],
-                    last_log: ['last log', 'last_log', 'lastlog', 'log terakhir', 'status log']
-                };
-
-                function normalizeKey(str) {
-                    return String(str || '').toLowerCase().replace(/[^a-z0-9]/g, ' ').trim().replace(/\s+/g, ' ');
-                }
-
-                // Map raw Excel rows to normalized 23-column format
-                var mappedRows = rawJson.map(function (rawRow) {
-                    var out = { _raw: rawRow };
-                    var rawKeys = Object.keys(rawRow);
-
-                    Object.keys(FIELD_MAP).forEach(function (canonical) {
-                        var aliases = FIELD_MAP[canonical];
-                        var foundKey = rawKeys.find(function (k) {
-                            var norm = normalizeKey(k);
-                            return aliases.includes(norm);
-                        });
-                        out[canonical] = foundKey ? String(rawRow[foundKey]).trim() : '';
+                Object.keys(FIELD_MAP).forEach(function (canonical) {
+                    var aliases = FIELD_MAP[canonical];
+                    var foundKey = rawKeys.find(function (k) {
+                        var norm = normalizeKey(k);
+                        return aliases.includes(norm);
                     });
-
-                    return out;
+                    out[canonical] = foundKey ? String(rawRow[foundKey]).trim() : '';
                 });
 
-                // Send to backend API
-                fetch('api/save_outbound_master.php', {
+                return out;
+            });
+        },
+        processUpload: function (ctx) {
+            var rows = ctx.rows;
+            var outMonthVal = ctx.month;
+            var outBatchVal = ctx.batch;
+            var outYearVal = ctx.year;
+            var periodGroup = outMonthVal + ' ' + outYearVal + '-Batch' + outBatchVal;
+            var csrfToken = (window.WMS_CSRF_TOKEN) || ($('meta[name="csrf-token"]').attr('content')) || '';
+            var totalRows = rows.length;
+            var BATCH_SIZE = 1500;
+
+            return safeFetchJson('api/save_outbound_master.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
+                body: JSON.stringify({
+                    action: 'init',
+                    csrf_token: csrfToken,
+                    month: outMonthVal,
+                    year: outYearVal,
+                    batch: outBatchVal,
+                    periode_group: periodGroup
+                })
+            }, 60000)
+                .then(function (initRes) {
+                    if (initRes.status !== 'success') {
+                        throw new Error(initRes.message || 'Gagal inisialisasi periode outbound.');
+                    }
+                    return sendOutboundBatches(0);
+                })
+                .then(function () {
+                    return safeFetchJson('api/save_outbound_master.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
+                        body: JSON.stringify({ action: 'finalize', csrf_token: csrfToken })
+                    }, 60000);
+                })
+                .then(function () {
+                    return {
+                        success: true,
+                        message: 'Berhasil mengimport ' + totalRows.toLocaleString('id-ID') + ' data outbound (' + periodGroup + ').'
+                    };
+                });
+
+            function sendOutboundBatches(startIndex) {
+                if (startIndex >= totalRows) {
+                    return Promise.resolve();
+                }
+                var endIndex = Math.min(startIndex + BATCH_SIZE, totalRows);
+                var batchRows = rows.slice(startIndex, endIndex);
+
+                return safeFetchJson('api/save_outbound_master.php', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
                     body: JSON.stringify({
-                        action: 'batch',
+                        action: 'append',
+                        csrf_token: csrfToken,
                         month: outMonthVal,
                         year: outYearVal,
                         batch: outBatchVal,
-                        data: mappedRows
+                        periode_group: periodGroup,
+                        data: batchRows
                     })
-                })
-                    .then(r => r.json())
-                    .then(res => {
-                        if (res.status === 'success') {
-                            if (typeof Swal !== 'undefined') {
-                                Swal.fire('Sukses', res.message || 'Import Data Outbound Berhasil!', 'success');
-                            }
-                            $('#uploadExcelModalOutbound').modal('hide');
-                            if (outboundTable) {
-                                outboundTable.ajax.reload();
-                                refreshOutboundFilters();
-                            } else {
-                                location.reload();
-                            }
-                        } else {
-                            if (typeof Swal !== 'undefined') Swal.fire('Error', res.message || 'Gagal import data.', 'error');
+                }, 120000)
+                    .then(function (appendRes) {
+                        if (appendRes.status !== 'success') {
+                            throw new Error(appendRes.message || 'Gagal menyimpan batch outbound.');
                         }
-                    })
-                    .catch(err => {
-                        console.error(err);
-                        if (typeof Swal !== 'undefined') Swal.fire('Error', 'Terjadi kesalahan server saat menyimpan data.', 'error');
+                        ctx.updateProgress(endIndex, totalRows);
+                        return sendOutboundBatches(endIndex);
                     });
-                }, function () {
-                    $('#excel-file-outbound-input').val('');
-                });
-            } catch (err) {
-                console.error(err);
-                if (typeof Swal !== 'undefined') Swal.fire('Error', 'Format file Excel tidak valid.', 'error');
             }
-        };
-        reader.readAsArrayBuffer(file);
-        $(this).val('');
+        },
+        onSuccess: function (res, period) {
+            if (outboundTable) {
+                outboundTable.ajax.reload();
+                refreshOutboundFilters();
+            } else {
+                location.reload();
+            }
+        }
     });
 
     // ═══════════════════════════════════════════════════
@@ -1992,182 +2295,173 @@ $(document).ready(function () {
         XLSX.writeFile(wb, "Template_Import_Master_Data_PR_Forwarder.xlsx");
     });
 
-    // PR Forwarder Excel File Upload Handler (Hierarchical multi-row header & positional column parsing)
-    $('#excel-file-forwarder-input').on('change', function (e) {
-        var file = e.target.files[0];
-        if (!file) return;
+    // Handle PR Forwarder Excel File Upload with Universal Importer
+    setupUniversalMasterImporter({
+        prefix: 'forwarder',
+        modalId: '#uploadExcelModalForwarder',
+        dialogId: '#uploadExcelModalForwarderDialog',
+        dropZoneId: 'forwarder-upload-drop-zone',
+        fileInputId: 'excel-file-forwarder-input',
+        periodType: 'full',
+        periodSelectors: {
+            month: '#uploadForwarderMonthSelect',
+            batch: '#uploadForwarderBatchSelect',
+            year: '#uploadForwarderYearSelect'
+        },
+        parseRows: function (workbook, sheetName) {
+            var worksheet = workbook.Sheets[sheetName];
+            if (!worksheet) return [];
 
-        if (file.size > 200 * 1024 * 1024) {
-            if (typeof Swal !== 'undefined') Swal.fire('File Terlalu Besar', 'Ukuran file maksimum adalah 200MB.', 'error');
-            $(this).val('');
-            return;
-        }
+            var sheetAOA = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' });
+            if (!sheetAOA || sheetAOA.length === 0) return [];
 
-        var fwdMonthVal = $('#uploadForwarderMonthSelect').val();
-        var fwdBatchVal = $('#uploadForwarderBatchSelect').val();
-        var fwdYearVal = $('#uploadForwarderYearSelect').val();
+            var FORWARDER_COLUMNS = [
+                'no_dn', 'print_status', 'dn_status',
+                'asal_pengirim', 'asal_code', 'asal_site', 'asal_alamat',
+                'tujuan_penerima', 'tujuan_code', 'tujuan_site', 'tujuan_alamat',
+                'proc_vendor_mode', 'proc_vendor_name', 'koli', 'mata_anggaran',
+                'sr_no', 'sr_tgl', 'pr_no', 'pr_tgl',
+                'valuation_price', 'suggestion', 'purpose',
+                'po_no', 'po_tgl', 'po_price', 'po_vendor', 'po_target_dlv', 'po_buyer',
+                'doc', 'note',
+                'delivery_type', 'delivery_via', 'delivery_nama', 'delivery_awb',
+                'delivery_pickup', 'delivery_lead_time', 'delivery_target_dlv',
+                'approval_status', 'approval_approver', 'approval_date'
+            ];
 
-        if (!fwdMonthVal || !fwdBatchVal || !fwdYearVal) {
-            if (typeof Swal !== 'undefined') {
-                Swal.fire('Peringatan', 'Silakan pilih Bulan, Batch, dan Tahun Periode terlebih dahulu sebelum mengupload file.', 'warning');
-            } else {
-                alert('Silakan pilih Bulan, Batch, dan Tahun Periode terlebih dahulu sebelum mengupload file.');
-            }
-            $(this).val('');
-            return;
-        }
+            var headerKeywords = [
+                'no', 'no dn', 'no. dn', 'dn no', 'print', 'dn status',
+                'asal', 'pengirim', 'site', 'code', 'alamat',
+                'tujuan', 'penerima', 'procurement', 'vendor', 'mode', 'name', 'koli',
+                'mata anggaran', 'sr', 'pr', 'valuation price', 'suggestion', 'purpose',
+                'po', 'price', 'target dlv', 'buyer', 'doc', 'note', 'delivery',
+                'type', 'via', 'nama', 'awb', 'pickup', 'lead time', 'approval', 'status', 'approver', 'date'
+            ];
 
-        if (typeof XLSX === 'undefined') {
-            if (typeof Swal !== 'undefined') Swal.fire('Error', 'SheetJS (XLSX) library tidak ditemukan.', 'error');
-            return;
-        }
-
-        var reader = new FileReader();
-        reader.onload = function (e) {
-            try {
-                var data = new Uint8Array(e.target.result);
-                var workbook = XLSX.read(data, { type: 'array' });
-
-                promptSelectSheet(workbook, 'Pilih Sheet PR Forwarder', workbook.SheetNames[0], function (chosenSheet) {
-                    if (typeof Swal !== 'undefined') {
-                        Swal.fire({
-                            title: 'Data Is Processing Please Wait',
-                            html: 'Memproses sheet <b>' + chosenSheet + '</b> untuk periode <b>' + fwdMonthVal + ' ' + fwdYearVal + '-Batch' + fwdBatchVal + '</b>...',
-                            allowOutsideClick: false,
-                            didOpen: () => { Swal.showLoading(); }
-                        });
-                    }
-
-                    var worksheet = workbook.Sheets[chosenSheet];
-                    if (!worksheet) {
-                        if (typeof Swal !== 'undefined') Swal.fire('Error', 'Sheet "' + chosenSheet + '" tidak ditemukan.', 'error');
-                        return;
-                    }
-
-                    // Parse 2D Array of rows
-                    var sheetAOA = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' });
-
-                    if (!sheetAOA || sheetAOA.length === 0) {
-                        if (typeof Swal !== 'undefined') Swal.fire('Warning', 'Sheet "' + chosenSheet + '" kosong.', 'warning');
-                        return;
-                    }
-
-                var FORWARDER_COLUMNS = [
-                    'no_dn', 'print_status', 'dn_status',
-                    'asal_pengirim', 'asal_code', 'asal_site', 'asal_alamat',
-                    'tujuan_penerima', 'tujuan_code', 'tujuan_site', 'tujuan_alamat',
-                    'proc_vendor_mode', 'proc_vendor_name', 'koli', 'mata_anggaran',
-                    'sr_no', 'sr_tgl', 'pr_no', 'pr_tgl',
-                    'valuation_price', 'suggestion', 'purpose',
-                    'po_no', 'po_tgl', 'po_price', 'po_vendor', 'po_target_dlv', 'po_buyer',
-                    'doc', 'note',
-                    'delivery_type', 'delivery_via', 'delivery_nama', 'delivery_awb',
-                    'delivery_pickup', 'delivery_lead_time', 'delivery_target_dlv',
-                    'approval_status', 'approval_approver', 'approval_date'
-                ];
-
-                var headerKeywords = [
-                    'no', 'no dn', 'no. dn', 'dn no', 'print', 'dn status',
-                    'asal', 'pengirim', 'site', 'code', 'alamat',
-                    'tujuan', 'penerima', 'procurement', 'vendor', 'mode', 'name', 'koli',
-                    'mata anggaran', 'sr', 'pr', 'valuation price', 'suggestion', 'purpose',
-                    'po', 'price', 'target dlv', 'buyer', 'doc', 'note', 'delivery',
-                    'type', 'via', 'nama', 'awb', 'pickup', 'lead time', 'approval', 'status', 'approver', 'date'
-                ];
-
-                function isHeaderRow(rowArr) {
-                    if (!rowArr || rowArr.length === 0) return true;
-                    var matchCount = 0;
-                    var totalCells = 0;
-                    for (var c = 0; c < Math.min(rowArr.length, 30); c++) {
-                        var cellVal = String(rowArr[c] || '').trim().toLowerCase();
-                        if (cellVal !== '') {
-                            totalCells++;
-                            if (headerKeywords.includes(cellVal)) {
-                                matchCount++;
-                            }
+            function isHeaderRow(rowArr) {
+                if (!rowArr || rowArr.length === 0) return true;
+                var matchCount = 0;
+                var totalCells = 0;
+                for (var c = 0; c < Math.min(rowArr.length, 30); c++) {
+                    var cellVal = String(rowArr[c] || '').trim().toLowerCase();
+                    if (cellVal !== '') {
+                        totalCells++;
+                        if (headerKeywords.includes(cellVal)) {
+                            matchCount++;
                         }
                     }
-                    if (totalCells === 0) return true; // empty row
-                    return (matchCount / totalCells) >= 0.35;
                 }
+                if (totalCells === 0) return true;
+                return (matchCount / totalCells) >= 0.35;
+            }
 
-                // Determine data starting row index (skip header rows)
-                var dataStartIndex = 0;
-                while (dataStartIndex < sheetAOA.length && dataStartIndex < 6 && isHeaderRow(sheetAOA[dataStartIndex])) {
-                    dataStartIndex++;
+            var dataStartIndex = 0;
+            while (dataStartIndex < sheetAOA.length && dataStartIndex < 6 && isHeaderRow(sheetAOA[dataStartIndex])) {
+                dataStartIndex++;
+            }
+
+            var mappedRows = [];
+            for (var rIdx = dataStartIndex; rIdx < sheetAOA.length; rIdx++) {
+                var rowArr = sheetAOA[rIdx];
+                if (!rowArr || rowArr.length === 0) continue;
+
+                var hasContent = rowArr.some(function (cell) {
+                    return String(cell || '').trim() !== '';
+                });
+                if (!hasContent) continue;
+
+                if (isHeaderRow(rowArr)) continue;
+
+                var rowObj = {};
+                for (var colIdx = 0; colIdx < FORWARDER_COLUMNS.length; colIdx++) {
+                    var colKey = FORWARDER_COLUMNS[colIdx];
+                    var cellVal = (rowArr[colIdx] !== undefined && rowArr[colIdx] !== null) ? String(rowArr[colIdx]).trim() : '';
+                    rowObj[colKey] = cellVal;
                 }
+                mappedRows.push(rowObj);
+            }
 
-                var mappedRows = [];
-                for (var rIdx = dataStartIndex; rIdx < sheetAOA.length; rIdx++) {
-                    var rowArr = sheetAOA[rIdx];
-                    if (!rowArr || rowArr.length === 0) continue;
+            return mappedRows;
+        },
+        processUpload: function (ctx) {
+            var rows = ctx.rows;
+            var fwdMonthVal = ctx.month;
+            var fwdBatchVal = ctx.batch;
+            var fwdYearVal = ctx.year;
+            var periodGroup = fwdMonthVal + ' ' + fwdYearVal + '-Batch' + fwdBatchVal;
+            var csrfToken = (window.WMS_CSRF_TOKEN) || ($('meta[name="csrf-token"]').attr('content')) || '';
+            var totalRows = rows.length;
+            var BATCH_SIZE = 1500;
 
-                    var hasContent = rowArr.some(function (cell) {
-                        return String(cell || '').trim() !== '';
-                    });
-                    if (!hasContent) continue;
-
-                    // Skip repeated sub-headers
-                    if (isHeaderRow(rowArr)) continue;
-
-                    var rowObj = {};
-                    for (var colIdx = 0; colIdx < FORWARDER_COLUMNS.length; colIdx++) {
-                        var colKey = FORWARDER_COLUMNS[colIdx];
-                        var cellVal = (rowArr[colIdx] !== undefined && rowArr[colIdx] !== null) ? String(rowArr[colIdx]).trim() : '';
-                        rowObj[colKey] = cellVal;
+            return safeFetchJson('api/save_outbound_forwarder.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
+                body: JSON.stringify({
+                    action: 'init',
+                    csrf_token: csrfToken,
+                    month: fwdMonthVal,
+                    year: fwdYearVal,
+                    batch: fwdBatchVal,
+                    periode_group: periodGroup
+                })
+            }, 60000)
+                .then(function (initRes) {
+                    if (initRes.status !== 'success') {
+                        throw new Error(initRes.message || 'Gagal inisialisasi periode PR Forwarder.');
                     }
-                    mappedRows.push(rowObj);
-                }
+                    return sendForwarderBatches(0);
+                })
+                .then(function () {
+                    return safeFetchJson('api/save_outbound_forwarder.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
+                        body: JSON.stringify({ action: 'finalize', csrf_token: csrfToken })
+                    }, 60000);
+                })
+                .then(function () {
+                    return {
+                        success: true,
+                        message: 'Berhasil mengimpor ' + totalRows.toLocaleString('id-ID') + ' data PR Forwarder (' + periodGroup + ').'
+                    };
+                });
 
-                if (mappedRows.length === 0) {
-                    if (typeof Swal !== 'undefined') Swal.fire('Warning', 'Tidak ditemukan baris data yang valid pada file Excel.', 'warning');
-                    return;
+            function sendForwarderBatches(startIndex) {
+                if (startIndex >= totalRows) {
+                    return Promise.resolve();
                 }
+                var endIndex = Math.min(startIndex + BATCH_SIZE, totalRows);
+                var batchRows = rows.slice(startIndex, endIndex);
 
-                // Send to backend API
-                fetch('api/save_outbound_forwarder.php', {
+                return safeFetchJson('api/save_outbound_forwarder.php', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
                     body: JSON.stringify({
-                        action: 'batch',
+                        action: 'append',
+                        csrf_token: csrfToken,
                         month: fwdMonthVal,
                         year: fwdYearVal,
                         batch: fwdBatchVal,
-                        data: mappedRows
+                        periode_group: periodGroup,
+                        data: batchRows
                     })
-                })
-                    .then(r => r.json())
-                    .then(res => {
-                        if (res.status === 'success') {
-                            if (typeof Swal !== 'undefined') {
-                                Swal.fire('Sukses', res.message || 'Import Data PR Forwarder Berhasil!', 'success');
-                            }
-                            $('#uploadExcelModalForwarder').modal('hide');
-                            if (forwarderTable) {
-                                forwarderTable.ajax.reload();
-                                refreshForwarderFilters();
-                            } else {
-                                location.reload();
-                            }
-                        } else {
-                            if (typeof Swal !== 'undefined') Swal.fire('Error', res.message || 'Gagal import data.', 'error');
+                }, 120000)
+                    .then(function (appendRes) {
+                        if (appendRes.status !== 'success') {
+                            throw new Error(appendRes.message || 'Gagal menyimpan batch PR Forwarder.');
                         }
-                    })
-                    .catch(err => {
-                        console.error(err);
-                        if (typeof Swal !== 'undefined') Swal.fire('Error', 'Terjadi kesalahan server saat menyimpan data.', 'error');
+                        ctx.updateProgress(endIndex, totalRows);
+                        return sendForwarderBatches(endIndex);
                     });
-                }, function () {
-                    $('#excel-file-forwarder-input').val('');
-                });
-            } catch (err) {
-                console.error(err);
-                if (typeof Swal !== 'undefined') Swal.fire('Error', 'Format file Excel tidak valid.', 'error');
             }
-        };
-        reader.readAsArrayBuffer(file);
-        $(this).val('');
+        },
+        onSuccess: function (res, period) {
+            if (forwarderTable) {
+                forwarderTable.ajax.reload();
+                refreshForwarderFilters();
+            } else {
+                location.reload();
+            }
+        }
     });
 
     // ═══════════════════════════════════════════════════
@@ -2311,102 +2605,60 @@ $(document).ready(function () {
         XLSX.writeFile(wb, "Template_Import_KPI_Master_Data.xlsx");
     });
 
-    // KPI Excel File Upload Handler
-    $('#excel-file-kpi-input').on('change', function (e) {
-        var file = e.target.files[0];
-        if (!file) return;
+    // KPI Excel File Upload Handler with Universal Importer
+    setupUniversalMasterImporter({
+        prefix: 'kpi',
+        modalId: '#uploadExcelModalKpi',
+        dialogId: '#uploadExcelModalKpiDialog',
+        dropZoneId: 'kpi-upload-drop-zone',
+        fileInputId: 'excel-file-kpi-input',
+        periodType: 'year',
+        periodSelectors: {
+            year: '#uploadKpiYearSelect'
+        },
+        parseRows: function (workbook, sheetName) {
+            var worksheet = workbook.Sheets[sheetName];
+            if (!worksheet) return [];
+            return XLSX.utils.sheet_to_json(worksheet, { defval: '' });
+        },
+        processUpload: function (ctx) {
+            var rows = ctx.rows;
+            var yearVal = ctx.year;
+            var csrfToken = (window.WMS_CSRF_TOKEN) || ($('meta[name="csrf-token"]').attr('content')) || '';
 
-        if (file.size > 200 * 1024 * 1024) {
-            if (typeof Swal !== 'undefined') Swal.fire('File Terlalu Besar', 'Ukuran file maksimum adalah 200MB.', 'error');
-            $(this).val('');
-            return;
-        }
+            ctx.updateProgress(Math.floor(rows.length / 2), rows.length);
 
-        var yearVal = $('#uploadKpiYearSelect').val();
-
-        if (!yearVal) {
-            if (typeof Swal !== 'undefined') {
-                Swal.fire('Peringatan', 'Silakan pilih Tahun Periode terlebih dahulu sebelum mengupload file.', 'warning');
-            } else {
-                alert('Silakan pilih Tahun Periode terlebih dahulu sebelum mengupload file.');
-            }
-            $(this).val('');
-            return;
-        }
-
-        if (typeof XLSX === 'undefined') {
-            if (typeof Swal !== 'undefined') Swal.fire('Error', 'SheetJS (XLSX) library tidak ditemukan.', 'error');
-            return;
-        }
-
-        var reader = new FileReader();
-        reader.onload = function (ev) {
-            try {
-                var data = new Uint8Array(ev.target.result);
-                var workbook = XLSX.read(data, { type: 'array' });
-
-                promptSelectSheet(workbook, 'Pilih Sheet KPI Master', workbook.SheetNames[0], function (chosenSheet) {
-                    if (typeof Swal !== 'undefined') {
-                        Swal.fire({
-                            title: 'Data Is Processing Please Wait',
-                            html: 'Memproses sheet <b>' + chosenSheet + '</b> untuk KPI tahun <b>' + yearVal + '</b>...',
-                            allowOutsideClick: false,
-                            didOpen: function () { Swal.showLoading(); }
-                        });
+            return safeFetchJson('api/save_kpi_master.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken
+                },
+                body: JSON.stringify({
+                    action: 'batch',
+                    csrf_token: csrfToken,
+                    year: yearVal,
+                    data: rows
+                })
+            }, 120000)
+                .then(function (res) {
+                    if (res.status !== 'success') {
+                        throw new Error(res.message || 'Gagal import data KPI.');
                     }
-
-                    var worksheet = workbook.Sheets[chosenSheet];
-                    if (!worksheet) {
-                        if (typeof Swal !== 'undefined') Swal.fire('Error', 'Sheet "' + chosenSheet + '" tidak ditemukan.', 'error');
-                        return;
-                    }
-                    var jsonRows = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
-
-                    if (jsonRows.length === 0) {
-                        if (typeof Swal !== 'undefined') Swal.fire('Warning', 'Sheet "' + chosenSheet + '" kosong.', 'warning');
-                        return;
-                    }
-
-                    // Send to backend API
-                    fetch('api/save_kpi_master.php', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            action: 'batch',
-                            year: yearVal,
-                            data: jsonRows
-                        })
-                    })
-                        .then(function (r) { return r.json(); })
-                        .then(function (res) {
-                            if (res.status === 'success') {
-                                if (typeof Swal !== 'undefined') {
-                                    Swal.fire('Sukses', res.message || 'Import Data KPI Berhasil!', 'success');
-                                }
-                                $('#uploadExcelModalKpi').modal('hide');
-                                if (kpiMasterTable) {
-                                    kpiMasterTable.ajax.reload();
-                                } else {
-                                    location.reload();
-                                }
-                            } else {
-                                if (typeof Swal !== 'undefined') Swal.fire('Error', res.message || 'Gagal import data.', 'error');
-                            }
-                        })
-                        .catch(function (err) {
-                            console.error(err);
-                            if (typeof Swal !== 'undefined') Swal.fire('Error', 'Terjadi kesalahan server saat menyimpan data.', 'error');
-                        });
-                }, function () {
-                    $('#excel-file-kpi-input').val('');
+                    ctx.updateProgress(rows.length, rows.length);
+                    return {
+                        success: true,
+                        message: res.message || ('Berhasil mengimpor ' + rows.length.toLocaleString('id-ID') + ' data KPI.')
+                    };
                 });
-            } catch (err) {
-                console.error(err);
-                if (typeof Swal !== 'undefined') Swal.fire('Error', 'Format file Excel tidak valid.', 'error');
+        },
+        onSuccess: function (res, period) {
+            if (kpiMasterTable) {
+                kpiMasterTable.ajax.reload();
+            } else {
+                location.reload();
             }
-        };
-        reader.readAsArrayBuffer(file);
-        $(this).val('');
+        }
     });
 
     // KPI Delete Handler
@@ -2488,4 +2740,119 @@ $(document).ready(function () {
         }
     });
 
+    // ── Delete Rack Data Logic ──
+    $('#deleteRackScopeSelect').on('change', function () {
+        var scope = $(this).val();
+        if (scope === 'all') {
+            $('#deleteRackYearContainer').slideUp(200);
+        } else {
+            $('#deleteRackYearContainer').slideDown(200);
+        }
+    });
+
+    $('#btn-confirm-delete-rack').on('click', function () {
+        var scope = $('#deleteRackScopeSelect').val();
+        var delYear = $('#deleteRackYearSelect').val();
+
+        if (scope === 'year' && !delYear) {
+            if (typeof Swal !== 'undefined') {
+                Swal.fire('Peringatan', 'Silakan pilih Tahun untuk menghapus data utilisasi rack.', 'warning');
+            } else {
+                alert('Silakan pilih Tahun untuk menghapus data utilisasi rack.');
+            }
+            return;
+        }
+
+        var confirmMsg = (scope === 'all')
+            ? 'PERINGATAN: Semua data master layout dan utilisasi rack akan DIHAPUS PERMANEN dari sistem!'
+            : 'Ingin menghapus data utilisasi rack untuk tahun ' + delYear + '?';
+
+        var executeRackDelete = function () {
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    title: 'Data Is Processing Please Wait',
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    didOpen: function () { Swal.showLoading(); }
+                });
+            }
+
+            var csrfToken = (window.WMS_CSRF_TOKEN) || ($('meta[name="csrf-token"]').attr('content')) || '';
+            var payload = {
+                action: (scope === 'all') ? 'delete_all' : 'delete_year',
+                year: delYear,
+                csrf_token: csrfToken
+            };
+
+            fetch('api/delete_rack_utilisasi.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken
+                },
+                body: JSON.stringify(payload)
+            })
+                .then(function (r) { return r.json(); })
+                .then(function (res) {
+                    if (res.status === 'success') {
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire('Berhasil!', res.message || 'Data rack berhasil dihapus.', 'success');
+                        } else {
+                            alert(res.message || 'Data rack berhasil dihapus.');
+                        }
+                        $('#deleteDataModalRack').modal('hide');
+                        if (rackTable) {
+                            rackTable.ajax.reload();
+                        } else {
+                            initRackTable();
+                        }
+                    } else {
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire('Error', 'Gagal menghapus data: ' + (res.message || 'Terjadi kesalahan.'), 'error');
+                        } else {
+                            alert('Gagal menghapus data: ' + (res.message || 'Terjadi kesalahan.'));
+                        }
+                    }
+                })
+                .catch(function (err) {
+                    console.error('Delete rack error:', err);
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire('Error', 'Terjadi kesalahan saat menghubungi server.', 'error');
+                    }
+                });
+        };
+
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                title: 'Konfirmasi Hapus Data Rack',
+                text: confirmMsg,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#e74a3b',
+                cancelButtonColor: '#858796',
+                confirmButtonText: 'Ya, Hapus!'
+            }).then(function (result) {
+                if (result.isConfirmed) {
+                    executeRackDelete();
+                }
+            });
+        } else {
+            if (confirm(confirmMsg)) {
+                executeRackDelete();
+            }
+        }
+    });
+
+    // Global backdrop & modal cleanup safeguard
+    // Prevents stuck gray backdrop overlays when modals are dismissed or closed after errors/uploads
+    $(document).on('hidden.bs.modal', '.modal', function () {
+        setTimeout(function () {
+            if ($('.modal.show').length === 0) {
+                $('.modal-backdrop').remove();
+                $('body').removeClass('modal-open').css('padding-right', '');
+            }
+        }, 150);
+    });
+
 });
+

@@ -46,7 +46,7 @@ if (!defined('SPA_MODE')) {
                         </div>
 
                         <!-- Utilisasi Space -->
-                        <div class="col-xl-2 col-md-6 mb-4" style="padding-left: 4px; padding-right: 4px;">
+                        <div class="col-xl-3 col-md-6 mb-4" style="padding-left: 4px; padding-right: 4px;">
                             <div class="card border-left-info shadow h-100 py-2">
                                 <div class="card-body">
                                     <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
@@ -66,7 +66,7 @@ if (!defined('SPA_MODE')) {
                         </div>
 
                         <!-- Free Space -->
-                        <div class="col-xl-2 col-md-6 mb-4" style="padding-left: 4px; padding-right: 4px;">
+                        <div class="col-xl-3 col-md-6 mb-4" style="padding-left: 4px; padding-right: 4px;">
                             <div class="card border-left-secondary shadow h-100 py-2">
                                 <div class="card-body">
                                     <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
@@ -81,18 +81,6 @@ if (!defined('SPA_MODE')) {
                                                 aria-valuemin="0" aria-valuemax="100"></div>
                                         </div>
                                     </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Last Update -->
-                        <div class="col-xl-2 col-md-6 mb-4" style="padding-left: 4px; padding-right: 4px;">
-                            <div class="card border-left-warning shadow h-100 py-2">
-                                <div class="card-body">
-                                    <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                                        LAST UPDATE</div>
-                                    <div class="mb-0 font-weight-bold text-gray-800" style="font-size: 0.72rem;"
-                                        id="card-last-update">-</div>
                                 </div>
                             </div>
                         </div>
@@ -130,7 +118,7 @@ if (!defined('SPA_MODE')) {
                                 </div>
                                 <div class="card-body" style="padding: 0.5rem;">
                                     <div id="horizontalBarScrollWrapper"
-                                        style="max-height: 320px; overflow-y: auto; overflow-x: hidden;">
+                                        style="max-height: 420px; overflow-y: auto; overflow-x: hidden;">
                                         <div class="chart-bar" id="horizontalBarChartContainer"
                                             style="height: 320px; position: relative; width: 100%;">
                                             <canvas id="myHorizontalBarChart"></canvas>
@@ -310,14 +298,13 @@ if (!defined('SPA_MODE')) {
                                         if (selectPeriod) {
                                             preselectPeriod(selectPeriod);
                                             loadDataForPeriod(selectPeriod);
-                                        } else if (result.data && result.data.length > 0) {
-                                            // Automatically select and load the latest available period from database
-                                            preselectPeriod(result.data[0]);
-                                            loadDataForPeriod(result.data[0]);
                                         } else {
                                             document.getElementById('selected-period-text').textContent = "PILIH PERIODE DATA";
                                             if (window.FormulaController) {
                                                 window.FormulaController.updateDashboardCards([], []);
+                                                if (window.FormulaController.resetRackUtilisasi) {
+                                                    window.FormulaController.resetRackUtilisasi();
+                                                }
                                             }
                                         }
                                     })
@@ -436,65 +423,95 @@ if (!defined('SPA_MODE')) {
                                 }
 
                                 var match = period.match(/^(\w+)\s+(\d{4})(?:-Batch(\d+))?$/);
+                                var month = match ? match[1] : '';
                                 var yr = match ? match[2] : '';
 
-                                var fetchDashboard = fetch('api/get_data.php?periode=' + encodeURIComponent(period))
-                                    .then(function (response) { return response.json(); });
+                                var controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+                                var timeoutTimer = controller ? setTimeout(function () { controller.abort(); }, 60000) : null;
+
+                                var fetchDashboard = fetch('api/get_data.php?periode=' + encodeURIComponent(period), { signal: controller ? controller.signal : undefined })
+                                    .then(function (response) {
+                                        if (!response.ok) throw new Error('HTTP ' + response.status + ' on get_data');
+                                        return response.json();
+                                    });
 
                                 var fetchYearly = yr
-                                    ? fetch('api/get_yearly_in_out.php?year=' + encodeURIComponent(yr)).then(function (response) { return response.json(); })
+                                    ? fetch('api/get_yearly_in_out.php?year=' + encodeURIComponent(yr), { signal: controller ? controller.signal : undefined }).then(function (response) {
+                                        if (!response.ok) throw new Error('HTTP ' + response.status + ' on get_yearly_in_out');
+                                        return response.json();
+                                    })
                                     : Promise.resolve(null);
 
-                                // Execute both requests in parallel for maximum speed
-                                Promise.all([fetchDashboard, fetchYearly])
+                                // Fetch all-period totals for Total Asset & Total NBV cards
+                                var fetchTotals = fetch('api/get_dashboard_totals.php', { signal: controller ? controller.signal : undefined })
+                                    .then(function (response) {
+                                        if (!response.ok) throw new Error('HTTP ' + response.status + ' on get_dashboard_totals');
+                                        return response.json();
+                                    })
+                                    .catch(function () { return null; }); // Non-critical — fallback to period data
+
+                                // Execute all requests in parallel for maximum speed
+                                Promise.all([fetchDashboard, fetchYearly, fetchTotals])
                                     .then(function (results) {
                                         var result = results[0];
                                         var resData = results[1];
+                                        var totalsResult = results[2];
+
+                                        // Extract all-period totals if available
+                                        var allPeriodTotals = null;
+                                        if (totalsResult && totalsResult.status === 'success' && totalsResult.data) {
+                                            allPeriodTotals = totalsResult.data;
+                                        }
 
                                         // 1. Synchronously update dashboard cards & main charts (Bar, Horizontal, Aging)
-                                        if (result && result.status === 'success' && result.data && result.data.length > 0) {
-                                            console.log("Loaded data from database:", result.data.length, "rows for", period);
-                                            var headers = Object.keys(result.data[0]);
-                                            window.currentDashboardData = result.data;
+                                        if (result && result.status === 'success' && (result.summary || (result.data && result.data.length > 0))) {
+                                            var rowCount = result.summary ? result.summary.total_qty : (result.data ? result.data.length : 0);
+                                            console.log("Loaded data from database:", rowCount, "rows for", period);
+                                            var headers = (result.data && result.data.length > 0) ? Object.keys(result.data[0]) : [];
+                                            window.currentDashboardData = result.data || [];
                                             window.currentDashboardHeaders = headers;
                                             if (window.FormulaController) {
-                                                window.FormulaController.updateDashboardCards(result.data, headers);
-                                                var cardUpdate = document.getElementById('card-last-update');
-                                                if (cardUpdate) {
-                                                    cardUpdate.textContent = period.toUpperCase();
-                                                }
+                                                window.FormulaController.updateDashboardCards(result.data || [], headers, allPeriodTotals, result.summary);
                                             }
                                         } else {
                                             if (window.FormulaController) {
-                                                window.FormulaController.updateDashboardCards([], []);
+                                                window.FormulaController.updateDashboardCards([], [], allPeriodTotals);
                                             }
-                                            if (typeof Swal !== 'undefined') {
-                                                Swal.fire('Empty', 'No data found for ' + period, 'info');
-                                            }
+                                        }
+
+                                        // 2. Load Rack Utilisasi (Kapasitas per rak, Utilisasi Space, Free Space)
+                                        if (window.FormulaController && window.FormulaController.loadRackUtilisasi && month && yr) {
+                                            window.FormulaController.loadRackUtilisasi(month, yr);
                                         }
 
                                         // 2. Synchronously update Yearly IN & OUT charts at the exact same moment
                                         if (resData && resData.status === 'success' && resData.data) {
                                             var mLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
                                             if (window.perangkatInChart && window.perangkatInChart.data) {
-                                                window.perangkatInChart.data.labels = mLabels;
-                                                window.perangkatInChart.data.datasets[0].data = resData.data.in;
-                                                window.perangkatInChart._recordsPerIndex = resData.data.in_details || [];
-                                                window.perangkatInChart._chartTitle = "Perangkat IN";
-                                                window.perangkatInChart.update(0);
-                                                if (window.FormulaController) {
-                                                    window.FormulaController.makeChartClickable(window.perangkatInChart, "Perangkat IN");
-                                                }
+                                                try {
+                                                    if (!window.perangkatInChart.$datalabels) window.perangkatInChart.$datalabels = { _listened: true };
+                                                    window.perangkatInChart.data.labels = mLabels;
+                                                    window.perangkatInChart.data.datasets[0].data = resData.data.in;
+                                                    window.perangkatInChart._recordsPerIndex = resData.data.in_details || [];
+                                                    window.perangkatInChart._chartTitle = "Perangkat IN";
+                                                    window.perangkatInChart.update(0);
+                                                    if (window.FormulaController) {
+                                                        window.FormulaController.makeChartClickable(window.perangkatInChart, "Perangkat IN");
+                                                    }
+                                                } catch (e) { console.warn('perangkatInChart error:', e); }
                                             }
                                             if (window.perangkatOutChart && window.perangkatOutChart.data) {
-                                                window.perangkatOutChart.data.labels = mLabels;
-                                                window.perangkatOutChart.data.datasets[0].data = resData.data.out;
-                                                window.perangkatOutChart._recordsPerIndex = resData.data.out_details || [];
-                                                window.perangkatOutChart._chartTitle = "Perangkat OUT";
-                                                window.perangkatOutChart.update(0);
-                                                if (window.FormulaController) {
-                                                    window.FormulaController.makeChartClickable(window.perangkatOutChart, "Perangkat OUT");
-                                                }
+                                                try {
+                                                    if (!window.perangkatOutChart.$datalabels) window.perangkatOutChart.$datalabels = { _listened: true };
+                                                    window.perangkatOutChart.data.labels = mLabels;
+                                                    window.perangkatOutChart.data.datasets[0].data = resData.data.out;
+                                                    window.perangkatOutChart._recordsPerIndex = resData.data.out_details || [];
+                                                    window.perangkatOutChart._chartTitle = "Perangkat OUT";
+                                                    window.perangkatOutChart.update(0);
+                                                    if (window.FormulaController) {
+                                                        window.FormulaController.makeChartClickable(window.perangkatOutChart, "Perangkat OUT");
+                                                    }
+                                                } catch (e) { console.warn('perangkatOutChart error:', e); }
                                             }
                                         }
 
@@ -503,8 +520,12 @@ if (!defined('SPA_MODE')) {
                                     .catch(function (error) {
                                         console.error('Error fetching data:', error);
                                         if (typeof Swal !== 'undefined') {
-                                            Swal.fire('Error', 'Failed to load data. Please try again.', 'error');
+                                            var msg = (error.name === 'AbortError') ? 'Waktu koneksi melebihi batas (Timeout 45 detik).' : ('Gagal memuat data: ' + (error.message || 'Silakan coba lagi.'));
+                                            Swal.fire('Error', msg, 'error');
                                         }
+                                    })
+                                    .finally(function () {
+                                        if (timeoutTimer) clearTimeout(timeoutTimer);
                                     });
                             }
 
@@ -608,6 +629,43 @@ if (!defined('SPA_MODE')) {
                             }
                         });
                     </script>
+
+<!-- Rack Detail Modal -->
+<div class="modal fade" id="rackDetailModal" tabindex="-1" role="dialog" aria-labelledby="rackDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header py-2 px-3">
+                <h6 class="modal-title font-weight-bold text-primary" id="rackDetailModalLabel">
+                    <i class="fas fa-warehouse mr-1"></i> Rack Detail
+                </h6>
+                <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" style="padding: 0.75rem;">
+                <div id="rackDetailSubtitle" class="mb-2"></div>
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped" id="rackDetailTable" width="100%" cellspacing="0" style="font-size: 0.78rem;">
+                        <thead class="bg-light">
+                            <tr>
+                                <th>NO</th>
+                                <th>BARCODE</th>
+                                <th>LABEL</th>
+                                <th>ACTIVE</th>
+                                <th>CATEGORY</th>
+                                <th>CAP (%)</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer py-2">
+                <button class="btn btn-secondary btn-sm" type="button" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 </body>
 

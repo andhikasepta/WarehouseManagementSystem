@@ -1,5 +1,7 @@
 <?php
 // api/save_outbound_master.php
+@ini_set('memory_limit', '512M');
+@set_time_limit(300);
 header('Content-Type: application/json');
 require_once __DIR__ . '/../backend/config/database.php';
 require_once __DIR__ . '/../backend/auth.php';
@@ -65,6 +67,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $action = $data['action'] ?? 'batch';
 
             if ($action === 'init') {
+                $month = trim((string) ($data['month'] ?? ''));
+                $year = trim((string) ($data['year'] ?? ''));
+                $batch = trim((string) ($data['batch'] ?? '1'));
+                $periodeGroup = !empty($data['periode_group']) ? trim((string) $data['periode_group']) : null;
+                if (!$periodeGroup && !empty($month) && !empty($year)) {
+                    $periodeGroup = $month . ' ' . $year . '-Batch' . intval($batch);
+                }
+
                 $clearAll = !empty($data['clear_all']);
                 if ($clearAll) {
                     if ($userRole !== 'superadmin' && $userRole !== 'head_warehouse_admin') {
@@ -72,6 +82,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         exit;
                     }
                     $pdo->exec("TRUNCATE TABLE outbound_master");
+                } elseif (!empty($periodeGroup)) {
+                    $delStmt = $pdo->prepare("DELETE FROM outbound_master WHERE periode_group = ?");
+                    $delStmt->execute([$periodeGroup]);
                 }
                 echo json_encode(['status' => 'success', 'message' => 'Outbound master batch initialized']);
                 exit;
@@ -94,105 +107,106 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $pdo->exec("TRUNCATE TABLE outbound_master");
                 }
 
+                $insertedCount = 0;
                 if (!empty($rows)) {
                     $pdo->beginTransaction();
 
-                    $stmt = $pdo->prepare("INSERT INTO outbound_master (
-                        mr_no, mr_type, mr_desc, mr_status,
-                        pck_no, pck_detail, pck_status,
-                        awb, dn_no, pr_no, po_no,
-                        origin_from, site_origin, site_origin_addr,
-                        destination_to, site_destination, site_destination_addr,
-                        pickup_type, via, lt, delivery_target,
-                        dn_status, last_log, periode_group, raw_data
-                    ) VALUES (
-                        ?, ?, ?, ?,
-                        ?, ?, ?,
-                        ?, ?, ?, ?,
-                        ?, ?, ?,
-                        ?, ?, ?,
-                        ?, ?, ?, ?,
-                        ?, ?, ?, ?
-                    )");
+                    $chunkSize = 200;
+                    $chunks = array_chunk($rows, $chunkSize);
 
-                    $insertedCount = 0;
-                    foreach ($rows as $row) {
-                        if (!is_array($row))
-                            continue;
+                    foreach ($chunks as $chunk) {
+                        $placeholders = [];
+                        $params = [];
 
-                        $mrNo = isset($row['mr_no']) ? trim((string) $row['mr_no']) : '';
-                        $mrType = isset($row['mr_type']) ? trim((string) $row['mr_type']) : '';
-                        $mrDesc = isset($row['mr_desc']) ? trim((string) $row['mr_desc']) : '';
-                        $mrStatus = isset($row['mr_status']) ? trim((string) $row['mr_status']) : '';
-                        $pckNo = isset($row['pck_no']) ? trim((string) $row['pck_no']) : '';
-                        $pckDetail = isset($row['pck_detail']) ? trim((string) $row['pck_detail']) : '';
-                        $pckStatus = isset($row['pck_status']) ? trim((string) $row['pck_status']) : '';
-                        $awb = isset($row['awb']) ? trim((string) $row['awb']) : '';
-                        $dnNo = isset($row['dn_no']) ? trim((string) $row['dn_no']) : '';
-                        $prNo = isset($row['pr_no']) ? trim((string) $row['pr_no']) : '';
-                        $poNo = isset($row['po_no']) ? trim((string) $row['po_no']) : '';
-                        $originFrom = isset($row['origin_from']) ? trim((string) $row['origin_from']) : (isset($row['from']) ? trim((string) $row['from']) : '');
-                        $siteOrigin = isset($row['site_origin']) ? trim((string) $row['site_origin']) : '';
-                        $siteOriginAddr = isset($row['site_origin_addr']) ? trim((string) $row['site_origin_addr']) : '';
-                        $destinationTo = isset($row['destination_to']) ? trim((string) $row['destination_to']) : (isset($row['to']) ? trim((string) $row['to']) : '');
-                        $siteDestination = isset($row['site_destination']) ? trim((string) $row['site_destination']) : '';
-                        $siteDestAddr = isset($row['site_destination_addr']) ? trim((string) $row['site_destination_addr']) : '';
-                        $pickupType = isset($row['pickup_type']) ? trim((string) $row['pickup_type']) : '';
-                        $via = isset($row['via']) ? trim((string) $row['via']) : '';
-                        $lt = isset($row['lt']) ? trim((string) $row['lt']) : '';
-                        $deliveryTarget = isset($row['delivery_target']) ? trim((string) $row['delivery_target']) : '';
-                        $dnStatus = isset($row['dn_status']) ? trim((string) $row['dn_status']) : '';
-                        $lastLog = isset($row['last_log']) ? trim((string) $row['last_log']) : '';
+                        foreach ($chunk as $row) {
+                            if (!is_array($row)) continue;
 
-                        $rawData = isset($row['_raw']) ? $row['_raw'] : $row;
-                        $rawJson = json_encode($rawData, JSON_UNESCAPED_UNICODE);
+                            $mrNo = isset($row['mr_no']) ? trim((string) $row['mr_no']) : '';
+                            $mrType = isset($row['mr_type']) ? trim((string) $row['mr_type']) : '';
+                            $mrDesc = isset($row['mr_desc']) ? trim((string) $row['mr_desc']) : '';
+                            $mrStatus = isset($row['mr_status']) ? trim((string) $row['mr_status']) : '';
+                            $pckNo = isset($row['pck_no']) ? trim((string) $row['pck_no']) : '';
+                            $pckDetail = isset($row['pck_detail']) ? trim((string) $row['pck_detail']) : '';
+                            $pckStatus = isset($row['pck_status']) ? trim((string) $row['pck_status']) : '';
+                            $awb = isset($row['awb']) ? trim((string) $row['awb']) : '';
+                            $dnNo = isset($row['dn_no']) ? trim((string) $row['dn_no']) : '';
+                            $prNo = isset($row['pr_no']) ? trim((string) $row['pr_no']) : '';
+                            $poNo = isset($row['po_no']) ? trim((string) $row['po_no']) : '';
+                            $originFrom = isset($row['origin_from']) ? trim((string) $row['origin_from']) : (isset($row['from']) ? trim((string) $row['from']) : '');
+                            $siteOrigin = isset($row['site_origin']) ? trim((string) $row['site_origin']) : '';
+                            $siteOriginAddr = isset($row['site_origin_addr']) ? trim((string) $row['site_origin_addr']) : '';
+                            $destinationTo = isset($row['destination_to']) ? trim((string) $row['destination_to']) : (isset($row['to']) ? trim((string) $row['to']) : '');
+                            $siteDestination = isset($row['site_destination']) ? trim((string) $row['site_destination']) : '';
+                            $siteDestAddr = isset($row['site_destination_addr']) ? trim((string) $row['site_destination_addr']) : '';
+                            $pickupType = isset($row['pickup_type']) ? trim((string) $row['pickup_type']) : '';
+                            $via = isset($row['via']) ? trim((string) $row['via']) : '';
+                            $lt = isset($row['lt']) ? trim((string) $row['lt']) : '';
+                            $deliveryTarget = isset($row['delivery_target']) ? trim((string) $row['delivery_target']) : '';
+                            $dnStatus = isset($row['dn_status']) ? trim((string) $row['dn_status']) : '';
+                            $lastLog = isset($row['last_log']) ? trim((string) $row['last_log']) : '';
 
-                        $allEmpty = empty($mrNo) && empty($pckNo) && empty($awb) && empty($dnNo) && empty($prNo) && empty($poNo) && empty($siteOrigin) && empty($siteDestination);
-                        if ($allEmpty)
-                            continue;
+                            $rawData = isset($row['_raw']) ? $row['_raw'] : $row;
+                            $rawJson = json_encode($rawData, JSON_UNESCAPED_UNICODE);
 
-                        $stmt->execute([
-                            $mrNo,
-                            $mrType,
-                            $mrDesc,
-                            $mrStatus,
-                            $pckNo,
-                            $pckDetail,
-                            $pckStatus,
-                            $awb,
-                            $dnNo,
-                            $prNo,
-                            $poNo,
-                            $originFrom,
-                            $siteOrigin,
-                            $siteOriginAddr,
-                            $destinationTo,
-                            $siteDestination,
-                            $siteDestAddr,
-                            $pickupType,
-                            $via,
-                            $lt,
-                            $deliveryTarget,
-                            $dnStatus,
-                            $lastLog,
-                            $periodeGroup,
-                            $rawJson
-                        ]);
-                        $insertedCount++;
+                            $allEmpty = empty($mrNo) && empty($pckNo) && empty($awb) && empty($dnNo) && empty($prNo) && empty($poNo) && empty($siteOrigin) && empty($siteDestination);
+                            if ($allEmpty) continue;
+
+                            $placeholders[] = "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                            $params[] = $mrNo;
+                            $params[] = $mrType;
+                            $params[] = $mrDesc;
+                            $params[] = $mrStatus;
+                            $params[] = $pckNo;
+                            $params[] = $pckDetail;
+                            $params[] = $pckStatus;
+                            $params[] = $awb;
+                            $params[] = $dnNo;
+                            $params[] = $prNo;
+                            $params[] = $poNo;
+                            $params[] = $originFrom;
+                            $params[] = $siteOrigin;
+                            $params[] = $siteOriginAddr;
+                            $params[] = $destinationTo;
+                            $params[] = $siteDestination;
+                            $params[] = $siteDestAddr;
+                            $params[] = $pickupType;
+                            $params[] = $via;
+                            $params[] = $lt;
+                            $params[] = $deliveryTarget;
+                            $params[] = $dnStatus;
+                            $params[] = $lastLog;
+                            $params[] = $periodeGroup;
+                            $params[] = $rawJson;
+                            $insertedCount++;
+                        }
+
+                        if (!empty($placeholders)) {
+                            $sql = "INSERT INTO outbound_master (
+                                mr_no, mr_type, mr_desc, mr_status,
+                                pck_no, pck_detail, pck_status,
+                                awb, dn_no, pr_no, po_no,
+                                origin_from, site_origin, site_origin_addr,
+                                destination_to, site_destination, site_destination_addr,
+                                pickup_type, via, lt, delivery_target,
+                                dn_status, last_log, periode_group, raw_data
+                            ) VALUES " . implode(', ', $placeholders);
+                            $stmt = $pdo->prepare($sql);
+                            $stmt->execute($params);
+                        }
                     }
 
                     $pdo->commit();
-
-                    echo json_encode([
-                        'status' => 'success',
-                        'message' => "Berhasil menyimpan $insertedCount baris data Outbound Master.",
-                        'inserted_count' => $insertedCount
-                    ]);
-                    exit;
-                } else {
-                    echo json_encode(['status' => 'success', 'message' => 'Tidak ada data untuk disimpan', 'inserted_count' => 0]);
-                    exit;
                 }
+
+                echo json_encode([
+                    'status' => 'success',
+                    'message' => "Berhasil menyimpan $insertedCount baris data Outbound Master.",
+                    'inserted_count' => $insertedCount
+                ]);
+                exit;
+            } elseif ($action === 'finalize') {
+                echo json_encode(['status' => 'success', 'message' => 'Outbound master batch finalized']);
+                exit;
             } else {
                 echo json_encode(['status' => 'error', 'message' => 'Action tidak dikenali']);
                 exit;

@@ -1,5 +1,6 @@
 <?php
 // api/get_rack_utilisasi.php
+if (!ob_start('ob_gzhandler')) ob_start();
 header('Content-Type: application/json');
 require_once __DIR__ . '/../backend/config/database.php';
 require_once __DIR__ . '/../backend/auth.php';
@@ -9,6 +10,7 @@ if (!isLoggedIn()) {
     echo json_encode(['status' => 'error', 'message' => 'Unauthorized']);
     exit;
 }
+session_write_close();
 
 try {
     $driver = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
@@ -243,6 +245,10 @@ try {
     $filteredResults = [];
     foreach ($allResults as $row) {
         $cap = (float) $row['capacity'];
+        if ($cap > 0 && $cap <= 1.0) {
+            $cap = $cap * 100.0;
+        }
+        $row['capacity'] = number_format($cap, 2, '.', '');
         $qty = (int) $row['qty'];
         $totalCapSum += $cap;
         $totalQtySum += $qty;

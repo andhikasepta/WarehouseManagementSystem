@@ -103,11 +103,14 @@ if (isset($data['rows']) && is_array($data['rows'])) {
             }
             $qty = (int)$qty;
 
-            // Validate capacity
-            if (!is_numeric($capacity) || (float)$capacity < 0 || (float)$capacity > 100) {
-                $capacity = 0;
+            // Validate & normalize capacity
+            $cleanCap = str_replace(['%', ' '], '', (string)$capacity);
+            $cleanCap = str_replace(',', '.', $cleanCap);
+            $capVal = is_numeric($cleanCap) ? (float)$cleanCap : 0.0;
+            if ($capVal > 0 && $capVal <= 1.0) {
+                $capVal = $capVal * 100;
             }
-            $capacity = round((float)$capacity, 2);
+            $capacity = max(0.0, min(100.0, round($capVal, 2)));
 
             $stmt->execute([$label, $month, $year, $qty, $capacity]);
             $savedCount++;
@@ -156,12 +159,14 @@ if (isset($data['rows']) && is_array($data['rows'])) {
     }
     $qty = (int)$qty;
 
-    if (!is_numeric($capacity) || (float)$capacity < 0 || (float)$capacity > 100) {
-        http_response_code(400);
-        echo json_encode(['status' => 'error', 'message' => 'Capacity must be between 0 and 100']);
-        exit;
+    // Validate & normalize capacity
+    $cleanCap = str_replace(['%', ' '], '', (string)$capacity);
+    $cleanCap = str_replace(',', '.', $cleanCap);
+    $capVal = is_numeric($cleanCap) ? (float)$cleanCap : 0.0;
+    if ($capVal > 0 && $capVal <= 1.0) {
+        $capVal = $capVal * 100;
     }
-    $capacity = round((float)$capacity, 2);
+    $capacity = max(0.0, min(100.0, round($capVal, 2)));
 
     try {
         $driver = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);

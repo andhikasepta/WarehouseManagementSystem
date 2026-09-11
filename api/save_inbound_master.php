@@ -121,6 +121,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $action = $data['action'] ?? 'single';
 
             if ($action === 'init') {
+                $month = trim((string) ($data['month'] ?? ''));
+                $year = trim((string) ($data['year'] ?? ''));
+                $batch = trim((string) ($data['batch'] ?? '1'));
+                $periodeGroup = !empty($data['periode_group']) ? trim((string) $data['periode_group']) : null;
+                if (!$periodeGroup && !empty($month) && !empty($year)) {
+                    $periodeGroup = $month . ' ' . $year . '-Batch' . intval($batch);
+                }
+
                 $clearAll = !empty($data['clear_all']);
                 if ($clearAll) {
                     $canDelete = canDelete('master_data_inbound') || canDelete('inbound') || canDelete('master_data');
@@ -129,6 +137,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         exit;
                     }
                     $pdo->exec("TRUNCATE TABLE inbound_master");
+                } elseif (!empty($periodeGroup)) {
+                    $delStmt = $pdo->prepare("DELETE FROM inbound_master WHERE periode_group = ?");
+                    $delStmt->execute([$periodeGroup]);
                 }
                 echo json_encode(['status' => 'success', 'message' => 'Inbound master batch initialized']);
                 exit;
@@ -148,99 +159,92 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $periodeGroup = $month . ' ' . $year . '-Batch' . intval($batch);
                 }
 
-                // Check if data for this period already exists in database
-                if (!empty($periodeGroup) && empty($data['clear_existing_period'])) {
-                    $chkStmt = $pdo->prepare("SELECT COUNT(*) FROM inbound_master WHERE periode_group = ?");
-                    $chkStmt->execute([$periodeGroup]);
-                    if ((int) $chkStmt->fetchColumn() > 0) {
-                        echo json_encode([
-                            'status' => 'error',
-                            'message' => "Data untuk Periode '$periodeGroup' sudah ada di database."
-                        ]);
-                        exit;
-                    }
-                }
-
+                $insertedCount = 0;
                 if (!empty($rows)) {
                     $pdo->beginTransaction();
 
-                    // Delete existing records for this period if requested
-                    if (!empty($periodeGroup) && !empty($data['clear_existing_period'])) {
-                        $delStmt = $pdo->prepare("DELETE FROM inbound_master WHERE periode_group = ?");
-                        $delStmt->execute([$periodeGroup]);
-                    }
+                    $chunkSize = 200;
+                    $chunks = array_chunk($rows, $chunkSize);
 
-                    $stmt = $pdo->prepare("INSERT INTO inbound_master (
-                        pr_nomor, pr_kode_site, pr_nama_site, pr_item_kategori, pr_pic_teknis_nama,
-                        pr_nama_bagian, pr_nama_divisi, pr_regional, pr_jenis_ma, po_nomor,
-                        po_deskripsi, po_vendor, po_tgl_generate, po_nama_item, po_qty_item,
-                        po_uom_item, po_target_delivery, project_id, periode_group, raw_data
-                    ) VALUES (
-                        ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
-                    )");
+                    foreach ($chunks as $chunk) {
+                        $placeholders = [];
+                        $params = [];
 
-                    $insertedCount = 0;
-                    foreach ($rows as $row) {
-                        if (!is_array($row))
-                            continue;
+                        foreach ($chunk as $row) {
+                            if (!is_array($row)) continue;
 
-                        $prNomor = getValCI($row, ['PR Nomor', 'pr_nomor', 'PR_Nomor']);
-                        $prKodeSite = getValCI($row, ['PR Kode Site', 'pr_kode_site', 'Kode Site']);
-                        $prNamaSite = getValCI($row, ['PR Nama Site', 'pr_nama_site', 'Nama Site']);
-                        $prItemKategori = getValCI($row, ['PR Item Kategori', 'pr_item_kategori', 'Item Kategori']);
-                        $prPicTeknis = getValCI($row, ['PR PIC Teknis Nama', 'pr_pic_teknis_nama', 'PIC Teknis', 'PIC Teknis Nama']);
-                        $prNamaBagian = getValCI($row, ['PR Nama Bagian', 'pr_nama_bagian', 'Nama Bagian', 'Bagian']);
-                        $prNamaDivisi = getValCI($row, ['PR Nama Divisi', 'pr_nama_divisi', 'Nama Divisi', 'Divisi']);
-                        $prRegional = getValCI($row, ['PR Regional', 'pr_regional', 'Regional']);
-                        $prJenisMa = getValCI($row, ['PR Jenis MA', 'pr_jenis_ma', 'Jenis MA']);
-                        $poNomor = getValCI($row, ['PO Nomor', 'po_nomor', 'PO_Nomor']);
-                        $poDeskripsi = getValCI($row, ['PO Deskripsi', 'po_deskripsi', 'Deskripsi']);
-                        $poVendor = getValCI($row, ['PO Vendor', 'po_vendor', 'Vendor']);
-                        $poTglGen = parseDateVal(getValCI($row, ['PO Tgl. Generate', 'PO Tgl Generate', 'po_tgl_generate', 'Tgl Generate']));
-                        $poNamaItem = getValCI($row, ['PO Nama Item', 'po_nama_item', 'Nama Item', 'Item']);
-                        $poQty = parseNumberVal(getValCI($row, ['PO Qty Item', 'po_qty_item', 'Qty Item', 'Qty']));
-                        $poUomItem = getValCI($row, ['PO UoM Item', 'po_uom_item', 'UoM Item', 'UoM', 'Satuan']);
-                        $poTargetDel = parseDateVal(getValCI($row, ['PO Target Delivery', 'po_target_delivery', 'Target Delivery']));
-                        $projectId = getValCI($row, ['Project ID', 'project_id', 'Project_ID', 'ProjectID']);
+                            $prNomor = getValCI($row, ['PR Nomor', 'pr_nomor', 'PR_Nomor']);
+                            $prKodeSite = getValCI($row, ['PR Kode Site', 'pr_kode_site', 'Kode Site']);
+                            $prNamaSite = getValCI($row, ['PR Nama Site', 'pr_nama_site', 'Nama Site']);
+                            $prItemKategori = getValCI($row, ['PR Item Kategori', 'pr_item_kategori', 'Item Kategori']);
+                            $prPicTeknis = getValCI($row, ['PR PIC Teknis Nama', 'pr_pic_teknis_nama', 'PIC Teknis', 'PIC Teknis Nama']);
+                            $prNamaBagian = getValCI($row, ['PR Nama Bagian', 'pr_nama_bagian', 'Nama Bagian', 'Bagian']);
+                            $prNamaDivisi = getValCI($row, ['PR Nama Divisi', 'pr_nama_divisi', 'Nama Divisi', 'Divisi']);
+                            $prRegional = getValCI($row, ['PR Regional', 'pr_regional', 'Regional']);
+                            $prJenisMa = getValCI($row, ['PR Jenis MA', 'pr_jenis_ma', 'Jenis MA']);
+                            $poNomor = getValCI($row, ['PO Nomor', 'po_nomor', 'PO_Nomor']);
+                            $poDeskripsi = getValCI($row, ['PO Deskripsi', 'po_deskripsi', 'Deskripsi']);
+                            $poVendor = getValCI($row, ['PO Vendor', 'po_vendor', 'Vendor']);
+                            $poTglGen = parseDateVal(getValCI($row, ['PO Tgl. Generate', 'PO Tgl Generate', 'po_tgl_generate', 'Tgl Generate']));
+                            $poNamaItem = getValCI($row, ['PO Nama Item', 'po_nama_item', 'Nama Item', 'Item']);
+                            $poQty = parseNumberVal(getValCI($row, ['PO Qty Item', 'po_qty_item', 'Qty Item', 'Qty']));
+                            $poUomItem = getValCI($row, ['PO UoM Item', 'po_uom_item', 'UoM Item', 'UoM', 'Satuan']);
+                            $poTargetDel = parseDateVal(getValCI($row, ['PO Target Delivery', 'po_target_delivery', 'Target Delivery']));
+                            $projectId = getValCI($row, ['Project ID', 'project_id', 'Project_ID', 'ProjectID']);
 
-                        // Skip entirely empty rows
-                        if (!$prNomor && !$poNomor && !$poNamaItem && !$prNamaSite) {
-                            continue;
+                            // Skip entirely empty rows
+                            if (!$prNomor && !$poNomor && !$poNamaItem && !$prNamaSite) {
+                                continue;
+                            }
+
+                            // Fallback row period if not explicitly set
+                            $rowPeriod = $periodeGroup;
+                            if (!$rowPeriod) {
+                                $rowPeriod = getValCI($row, ['Periode Group', 'periode_group', 'Periode', 'periode']);
+                            }
+
+                            $placeholders[] = "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                            $params[] = $prNomor;
+                            $params[] = $prKodeSite;
+                            $params[] = $prNamaSite;
+                            $params[] = $prItemKategori;
+                            $params[] = $prPicTeknis;
+                            $params[] = $prNamaBagian;
+                            $params[] = $prNamaDivisi;
+                            $params[] = $prRegional;
+                            $params[] = $prJenisMa;
+                            $params[] = $poNomor;
+                            $params[] = $poDeskripsi;
+                            $params[] = $poVendor;
+                            $params[] = $poTglGen;
+                            $params[] = $poNamaItem;
+                            $params[] = $poQty;
+                            $params[] = $poUomItem;
+                            $params[] = $poTargetDel;
+                            $params[] = $projectId;
+                            $params[] = $rowPeriod;
+                            $params[] = json_encode($row);
+                            $insertedCount++;
                         }
 
-                        // Fallback row period if not explicitly set
-                        $rowPeriod = $periodeGroup;
-                        if (!$rowPeriod) {
-                            $rowPeriod = getValCI($row, ['Periode Group', 'periode_group', 'Periode', 'periode']);
+                        if (!empty($placeholders)) {
+                            $sql = "INSERT INTO inbound_master (
+                                pr_nomor, pr_kode_site, pr_nama_site, pr_item_kategori, pr_pic_teknis_nama,
+                                pr_nama_bagian, pr_nama_divisi, pr_regional, pr_jenis_ma, po_nomor,
+                                po_deskripsi, po_vendor, po_tgl_generate, po_nama_item, po_qty_item,
+                                po_uom_item, po_target_delivery, project_id, periode_group, raw_data
+                            ) VALUES " . implode(', ', $placeholders);
+                            $stmt = $pdo->prepare($sql);
+                            $stmt->execute($params);
                         }
-
-                        $stmt->execute([
-                            $prNomor,
-                            $prKodeSite,
-                            $prNamaSite,
-                            $prItemKategori,
-                            $prPicTeknis,
-                            $prNamaBagian,
-                            $prNamaDivisi,
-                            $prRegional,
-                            $prJenisMa,
-                            $poNomor,
-                            $poDeskripsi,
-                            $poVendor,
-                            $poTglGen,
-                            $poNamaItem,
-                            $poQty,
-                            $poUomItem,
-                            $poTargetDel,
-                            $projectId,
-                            $rowPeriod,
-                            json_encode($row)
-                        ]);
-                        $insertedCount++;
                     }
+
                     $pdo->commit();
                 }
                 echo json_encode(['status' => 'success', 'message' => "$insertedCount data berhasil disimpan" . ($periodeGroup ? " untuk periode $periodeGroup" : "") . "!"]);
+                exit;
+            } elseif ($action === 'finalize') {
+                echo json_encode(['status' => 'success', 'message' => 'Inbound master batch finalized']);
                 exit;
             } elseif ($action === 'single_save') {
                 $id = isset($data['id']) && is_numeric($data['id']) ? (int) $data['id'] : null;

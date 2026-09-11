@@ -803,12 +803,38 @@
             }
         }
 
-        fetch(apiEndpoint, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(initPayload)
-        })
-            .then(function (r) { return r.json(); })
+        var csrfToken = (window.WMS_CSRF_TOKEN) || ($('meta[name="csrf-token"]').attr('content')) || '';
+        initPayload.csrf_token = csrfToken;
+
+        function safeUploadFetch(bodyPayload, timeoutMs) {
+            timeoutMs = timeoutMs || 120000;
+            bodyPayload.csrf_token = csrfToken;
+            var controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+            var timer = controller ? setTimeout(function () { controller.abort(); }, timeoutMs) : null;
+            return fetch(apiEndpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken
+                },
+                body: JSON.stringify(bodyPayload),
+                signal: controller ? controller.signal : undefined
+            })
+            .then(function (r) {
+                if (timer) clearTimeout(timer);
+                if (!r.ok) throw new Error('Server mengembalikan HTTP status ' + r.status + ' (' + r.statusText + ')');
+                return r.json();
+            })
+            .catch(function (err) {
+                if (timer) clearTimeout(timer);
+                if (err.name === 'AbortError') {
+                    throw new Error('Proses upload timeout (' + Math.round(timeoutMs / 1000) + ' detik). Silakan coba lagi.');
+                }
+                throw err;
+            });
+        }
+
+        safeUploadFetch(initPayload, 60000)
             .then(function (res) {
                 if (res.status !== 'success') {
                     throw new Error(res.message || 'Initialization failed');
@@ -840,12 +866,7 @@
                 appendPayload.batch = periodBatch;
             }
 
-            fetch(apiEndpoint, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(appendPayload)
-            })
-                .then(function (r) { return r.json(); })
+            safeUploadFetch(appendPayload, 120000)
                 .then(function (res) {
                     if (res.status !== 'success') {
                         throw new Error(res.message || 'Batch upload failed');
@@ -873,12 +894,7 @@
 
         function finalizeUpload() {
             var finalizePayload = { action: 'finalize' };
-            fetch(apiEndpoint, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(finalizePayload)
-            })
-                .then(function (r) { return r.json(); })
+            safeUploadFetch(finalizePayload, 60000)
                 .then(function (res) {
                     if (res.status !== 'success') {
                         throw new Error(res.message || 'Finalization failed');

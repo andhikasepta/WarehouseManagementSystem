@@ -1,5 +1,7 @@
 <?php
 // api/save_rack_data.php
+@ini_set('memory_limit', '512M');
+@set_time_limit(300);
 header('Content-Type: application/json');
 require_once __DIR__ . '/../backend/config/database.php';
 require_once __DIR__ . '/../backend/auth.php';
@@ -37,9 +39,10 @@ if (!$canManageRack) {
  * 4. Header rows inside data (automatically skipped)
  * 5. Optional monthly metrics (QTY JAN, CAP JAN, etc.)
  */
-function parseRackRowData($row) {
+function parseRackRowData($row, $defaultYear = null) {
     if (!is_array($row)) return null;
 
+    $curYear = $defaultYear ?: (string)date('Y');
     $barcode = null;
     $name = null;
     $label = null;
@@ -48,11 +51,18 @@ function parseRackRowData($row) {
     $monthlyData = [];
 
     $monthMap = [
-        'JAN' => 'January', 'FEB' => 'February', 'MAR' => 'March',
-        'APR' => 'April', 'MAY' => 'May', 'MEI' => 'May',
-        'JUN' => 'June', 'JUL' => 'July', 'AUG' => 'August', 'AGU' => 'August',
-        'SEP' => 'September', 'OCT' => 'October', 'OKT' => 'October',
-        'NOV' => 'November', 'DEC' => 'December', 'DES' => 'December'
+        'JAN' => 'January', 'JANUARI' => 'January', 'JANUARY' => 'January',
+        'FEB' => 'February', 'FEBRUARI' => 'February', 'FEBRUARY' => 'February',
+        'MAR' => 'March', 'MARET' => 'March', 'MARCH' => 'March',
+        'APR' => 'April', 'APRIL' => 'April',
+        'MAY' => 'May', 'MEI' => 'May',
+        'JUN' => 'June', 'JUNI' => 'June', 'JUNE' => 'June',
+        'JUL' => 'July', 'JULI' => 'July', 'JULY' => 'July',
+        'AUG' => 'August', 'AGU' => 'August', 'AGUSTUS' => 'August', 'AUGUST' => 'August',
+        'SEP' => 'September', 'SEPT' => 'September', 'SEPTEMBER' => 'September',
+        'OCT' => 'October', 'OKT' => 'October', 'OKTOBER' => 'October', 'OCTOBER' => 'October',
+        'NOV' => 'November', 'NOP' => 'November', 'NOVEMBER' => 'November',
+        'DEC' => 'December', 'DES' => 'December', 'DESEMBER' => 'December', 'DECEMBER' => 'December'
     ];
 
     // 1. Try named header matching
@@ -61,23 +71,81 @@ function parseRackRowData($row) {
         if ($val === '' || $val === null) continue;
 
         $rawKey = trim((string)$k);
-        $cleanKey = strtoupper(preg_replace('/[^a-zA-Z0-9]/', '', $rawKey));
-
-        // Check for monthly metrics like QTY JAN, CAP JAN, etc.
         $matchedMonthMetric = false;
-        foreach ($monthMap as $mCode => $mFull) {
-            if ($cleanKey === 'QTY' . $mCode) {
-                $monthlyData[$mFull]['qty'] = (int)$val;
+
+        // Check for monthly metrics like QTY JAN, CAP JAN, CAP MEI, CAP MEI 2026, etc.
+        if (preg_match('/^(QTY|CAP|CAPACITY)[_\s\-]*([A-Za-z]+)(?:[_\s\-]*(\d{2,4}))?$/i', $rawKey, $mMatches)) {
+            $prefix = strtoupper($mMatches[1]);
+            $monthCandidate = strtoupper($mMatches[2]);
+            $yearCandidate = !empty($mMatches[3]) ? $mMatches[3] : $curYear;
+            if (strlen($yearCandidate) === 2) {
+                $yearCandidate = '20' . $yearCandidate;
+            }
+
+            if (isset($monthMap[$monthCandidate])) {
+                $mFull = $monthMap[$monthCandidate];
+                $periodKey = $mFull . '_' . $yearCandidate;
+                if (!isset($monthlyData[$periodKey])) {
+                    $monthlyData[$periodKey] = [
+                        'month' => $mFull,
+                        'year' => (string)$yearCandidate
+                    ];
+                }
+
+                if ($prefix === 'QTY') {
+                    $monthlyData[$periodKey]['qty'] = (int)$val;
+                } else {
+                    $strVal = is_string($val) ? trim($val) : (string)$val;
+                    $cleanVal = str_replace(['%', ' '], '', $strVal);
+                    $cleanVal = str_replace(',', '.', $cleanVal);
+                    $numVal = is_numeric($cleanVal) ? (float)$cleanVal : 0.0;
+                    // Excel percentage cells store 100% as 1.0, 50% as 0.5, etc.
+                    // If between 0 and 1.0 (inclusive), convert to percentage scale (1.0 -> 100%, 0.85 -> 85%)
+                    if ($numVal > 0 && $numVal <= 1.0) {
+                        $numVal = $numVal * 100;
+                    }
+                    $numVal = max(0.0, min(100.0, round($numVal, 2)));
+                    $monthlyData[$periodKey]['capacity'] = $numVal;
+                }
                 $matchedMonthMetric = true;
-                break;
-            } elseif ($cleanKey === 'CAP' . $mCode || $cleanKey === 'CAPACITY' . $mCode) {
-                $monthlyData[$mFull]['capacity'] = (float)$val;
-                $matchedMonthMetric = true;
-                break;
             }
         }
+
+        // Fallback for tight keys like CAPMEI without separator
+        if (!$matchedMonthMetric) {
+            $cleanKey = strtoupper(preg_replace('/[^a-zA-Z0-9]/', '', $rawKey));
+            foreach ($monthMap as $mCode => $mFull) {
+                if ($cleanKey === 'QTY' . $mCode) {
+                    $periodKey = $mFull . '_' . $curYear;
+                    if (!isset($monthlyData[$periodKey])) {
+                        $monthlyData[$periodKey] = ['month' => $mFull, 'year' => $curYear];
+                    }
+                    $monthlyData[$periodKey]['qty'] = (int)$val;
+                    $matchedMonthMetric = true;
+                    break;
+                } elseif ($cleanKey === 'CAP' . $mCode || $cleanKey === 'CAPACITY' . $mCode) {
+                    $periodKey = $mFull . '_' . $curYear;
+                    if (!isset($monthlyData[$periodKey])) {
+                        $monthlyData[$periodKey] = ['month' => $mFull, 'year' => $curYear];
+                    }
+                    $strVal = is_string($val) ? trim($val) : (string)$val;
+                    $cleanVal = str_replace(['%', ' '], '', $strVal);
+                    $cleanVal = str_replace(',', '.', $cleanVal);
+                    $numVal = is_numeric($cleanVal) ? (float)$cleanVal : 0.0;
+                    if ($numVal > 0 && $numVal <= 1.0) {
+                        $numVal = $numVal * 100;
+                    }
+                    $numVal = max(0.0, min(100.0, round($numVal, 2)));
+                    $monthlyData[$periodKey]['capacity'] = $numVal;
+                    $matchedMonthMetric = true;
+                    break;
+                }
+            }
+        }
+
         if ($matchedMonthMetric) continue;
 
+        $cleanKey = strtoupper(preg_replace('/[^a-zA-Z0-9]/', '', $rawKey));
         if (in_array($cleanKey, ['BARCODE', 'BARCODECODE', 'KODE', 'CODE', 'ID', 'NOBARCODE', 'KODEBARANG'])) {
             $barcode = $val;
         } elseif (in_array($cleanKey, ['NAME', 'RACK', 'SHELF', 'RACKNAME', 'SHELFNAME', 'NAMARACK', 'NAMASHELF', 'RACKGROUP', 'NAMA', 'NAMARAK'])) {
@@ -136,6 +204,46 @@ function parseRackRowData($row) {
     ];
 }
 
+/**
+ * Helper to safely upsert monthly utilisasi records without wiping out existing qty
+ */
+function upsertMonthlyUtilisasi($pdo, $driver, $label, $monthlyData) {
+    if (empty($monthlyData) || empty($label)) return 0;
+    static $cachedStmt = null;
+    if (!$cachedStmt) {
+        if ($driver === 'pgsql') {
+            $cachedStmt = $pdo->prepare("INSERT INTO rack_utilisasi (label, month, year, qty, capacity)
+                                    VALUES (?, ?, ?, ?, ?)
+                                    ON CONFLICT (label, month, year) DO UPDATE SET 
+                                    capacity = EXCLUDED.capacity,
+                                    qty = CASE WHEN EXCLUDED.qty > 0 THEN EXCLUDED.qty ELSE rack_utilisasi.qty END,
+                                    updated_at = CURRENT_TIMESTAMP");
+        } else {
+            $cachedStmt = $pdo->prepare("INSERT INTO rack_utilisasi (`label`, `month`, `year`, `qty`, `capacity`)
+                                    VALUES (?, ?, ?, ?, ?)
+                                    ON DUPLICATE KEY UPDATE 
+                                    `capacity` = VALUES(`capacity`),
+                                    `qty` = CASE WHEN VALUES(`qty`) > 0 THEN VALUES(`qty`) ELSE `qty` END,
+                                    `updated_at` = CURRENT_TIMESTAMP");
+        }
+    }
+    $count = 0;
+    foreach ($monthlyData as $mMetrics) {
+        $mName = $mMetrics['month'] ?? '';
+        $mYear = $mMetrics['year'] ?? (string)date('Y');
+        if (empty($mName) || empty($mYear)) continue;
+
+        $hasQty = array_key_exists('qty', $mMetrics);
+        $hasCap = array_key_exists('capacity', $mMetrics);
+        $mQty = $hasQty ? (int)$mMetrics['qty'] : 0;
+        $mCap = $hasCap ? (float)$mMetrics['capacity'] : 0.0;
+
+        $cachedStmt->execute([$label, $mName, $mYear, $mQty, $mCap]);
+        $count++;
+    }
+    return $count;
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $input = file_get_contents('php://input');
     $data = json_decode($input, true);
@@ -145,6 +253,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $driver = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
             $truncateSql = ($driver === 'pgsql') ? "TRUNCATE TABLE rack_master RESTART IDENTITY" : "TRUNCATE TABLE rack_master";
             $action = isset($data['action']) ? $data['action'] : null;
+            $targetYear = (!empty($data['year']) && preg_match('/^\d{4}$/', trim((string)$data['year']))) ? trim((string)$data['year']) : (string)date('Y');
 
             if ($action) {
                 // Direct Single Batch Upload Protocol (used by dedicated modal)
@@ -160,10 +269,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                     $stmt = $pdo->prepare("INSERT INTO rack_master (barcode, name, label, active, category, rack) VALUES (?, ?, ?, ?, ?, ?)");
                     $insertedCount = 0;
-                    $curYear = (string)date('Y');
+                    $monthlyUpdatedCount = 0;
 
                     foreach ($rows as $row) {
-                        $parsed = parseRackRowData($row);
+                        $parsed = parseRackRowData($row, $targetYear);
                         if (!$parsed) continue;
 
                         $stmt->execute([
@@ -177,29 +286,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $insertedCount++;
 
                         if (!empty($parsed['monthly'])) {
-                            foreach ($parsed['monthly'] as $mName => $mMetrics) {
-                                $mQty = isset($mMetrics['qty']) ? (int)$mMetrics['qty'] : 0;
-                                $mCap = isset($mMetrics['capacity']) ? (float)$mMetrics['capacity'] : 0.0;
-                                if ($driver === 'pgsql') {
-                                    $uStmt = $pdo->prepare("INSERT INTO rack_utilisasi (label, month, year, qty, capacity)
-                                                            VALUES (?, ?, ?, ?, ?)
-                                                            ON CONFLICT (label, month, year) DO UPDATE SET 
-                                                            qty = EXCLUDED.qty, capacity = EXCLUDED.capacity, updated_at = CURRENT_TIMESTAMP");
-                                } else {
-                                    $uStmt = $pdo->prepare("INSERT INTO rack_utilisasi (`label`, `month`, `year`, `qty`, `capacity`)
-                                                            VALUES (?, ?, ?, ?, ?)
-                                                            ON DUPLICATE KEY UPDATE `qty` = VALUES(`qty`), `capacity` = VALUES(`capacity`), `updated_at` = CURRENT_TIMESTAMP");
-                                }
-                                $uStmt->execute([$parsed['label'], $mName, $curYear, $mQty, $mCap]);
-                            }
+                            $monthlyUpdatedCount += upsertMonthlyUtilisasi($pdo, $driver, $parsed['label'], $parsed['monthly']);
                         }
                     }
 
                     $pdo->commit();
 
+                    $respMsg = "Master Data Utilisasi Rack berhasil disimpan ($insertedCount rak)";
+                    if ($monthlyUpdatedCount > 0) {
+                        $respMsg .= ", termasuk data utilisasi bulanan yang otomatis diperbarui";
+                    }
+                    $respMsg .= ".";
+
                     echo json_encode([
                         'status' => 'success',
-                        'message' => "Master Data Utilisasi Rack berhasil disimpan ($insertedCount rak).",
+                        'message' => $respMsg,
                         'total' => $insertedCount
                     ]);
                     exit;
@@ -216,42 +317,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $insertedCount = 0;
                     if (!empty($rows)) {
                         $pdo->beginTransaction();
-                        $stmt = $pdo->prepare("INSERT INTO rack_master (barcode, name, label, active, category, rack) VALUES (?, ?, ?, ?, ?, ?)");
-                        $curYear = (string)date('Y');
-
+                        
+                        $parsedList = [];
                         foreach ($rows as $row) {
-                            $parsed = parseRackRowData($row);
-                            if (!$parsed) continue;
-
-                            $stmt->execute([
-                                $parsed['barcode'],
-                                $parsed['name'],
-                                $parsed['label'],
-                                $parsed['active'],
-                                $parsed['category'],
-                                $parsed['name']
-                            ]);
-                            $insertedCount++;
-
-                            // If row has monthly metrics (QTY JAN, CAP JAN, etc.), also upsert into rack_utilisasi
-                            if (!empty($parsed['monthly'])) {
-                                foreach ($parsed['monthly'] as $mName => $mMetrics) {
-                                    $mQty = isset($mMetrics['qty']) ? (int)$mMetrics['qty'] : 0;
-                                    $mCap = isset($mMetrics['capacity']) ? (float)$mMetrics['capacity'] : 0.0;
-                                    if ($driver === 'pgsql') {
-                                        $uStmt = $pdo->prepare("INSERT INTO rack_utilisasi (label, month, year, qty, capacity)
-                                                                VALUES (?, ?, ?, ?, ?)
-                                                                ON CONFLICT (label, month, year) DO UPDATE SET 
-                                                                qty = EXCLUDED.qty, capacity = EXCLUDED.capacity, updated_at = CURRENT_TIMESTAMP");
-                                    } else {
-                                        $uStmt = $pdo->prepare("INSERT INTO rack_utilisasi (`label`, `month`, `year`, `qty`, `capacity`)
-                                                                VALUES (?, ?, ?, ?, ?)
-                                                                ON DUPLICATE KEY UPDATE `qty` = VALUES(`qty`), `capacity` = VALUES(`capacity`), `updated_at` = CURRENT_TIMESTAMP");
-                                    }
-                                    $uStmt->execute([$parsed['label'], $mName, $curYear, $mQty, $mCap]);
-                                }
+                            $parsed = parseRackRowData($row, $targetYear);
+                            if ($parsed) {
+                                $parsedList[] = $parsed;
                             }
                         }
+
+                        $chunkSize = 250;
+                        $chunks = array_chunk($parsedList, $chunkSize);
+                        foreach ($chunks as $chunk) {
+                            $rowPlaceholders = [];
+                            $params = [];
+                            foreach ($chunk as $p) {
+                                $rowPlaceholders[] = "(?, ?, ?, ?, ?, ?)";
+                                $params[] = $p['barcode'];
+                                $params[] = $p['name'];
+                                $params[] = $p['label'];
+                                $params[] = $p['active'];
+                                $params[] = $p['category'];
+                                $params[] = $p['name'];
+                                $insertedCount++;
+                            }
+                            if (!empty($rowPlaceholders)) {
+                                $sql = "INSERT INTO rack_master (barcode, name, label, active, category, rack) VALUES " . implode(', ', $rowPlaceholders);
+                                $stmt = $pdo->prepare($sql);
+                                $stmt->execute($params);
+                            }
+                        }
+
+                        // Upsert monthly utilisasi using cached prepared statement
+                        foreach ($parsedList as $p) {
+                            if (!empty($p['monthly'])) {
+                                upsertMonthlyUtilisasi($pdo, $driver, $p['label'], $p['monthly']);
+                            }
+                        }
+
                         $pdo->commit();
                     }
                     echo json_encode([
@@ -276,10 +379,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 $stmt = $pdo->prepare("INSERT INTO rack_master (barcode, name, label, active, category, rack) VALUES (?, ?, ?, ?, ?, ?)");
                 $insertedCount = 0;
-                $curYear = (string)date('Y');
 
                 foreach ($data as $row) {
-                    $parsed = parseRackRowData($row);
+                    $parsed = parseRackRowData($row, $targetYear);
                     if (!$parsed) continue;
 
                     $stmt->execute([
@@ -293,21 +395,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $insertedCount++;
 
                     if (!empty($parsed['monthly'])) {
-                        foreach ($parsed['monthly'] as $mName => $mMetrics) {
-                            $mQty = isset($mMetrics['qty']) ? (int)$mMetrics['qty'] : 0;
-                            $mCap = isset($mMetrics['capacity']) ? (float)$mMetrics['capacity'] : 0.0;
-                            if ($driver === 'pgsql') {
-                                $uStmt = $pdo->prepare("INSERT INTO rack_utilisasi (label, month, year, qty, capacity)
-                                                        VALUES (?, ?, ?, ?, ?)
-                                                        ON CONFLICT (label, month, year) DO UPDATE SET 
-                                                        qty = EXCLUDED.qty, capacity = EXCLUDED.capacity, updated_at = CURRENT_TIMESTAMP");
-                            } else {
-                                $uStmt = $pdo->prepare("INSERT INTO rack_utilisasi (`label`, `month`, `year`, `qty`, `capacity`)
-                                                        VALUES (?, ?, ?, ?, ?)
-                                                        ON DUPLICATE KEY UPDATE `qty` = VALUES(`qty`), `capacity` = VALUES(`capacity`), `updated_at` = CURRENT_TIMESTAMP");
-                            }
-                            $uStmt->execute([$parsed['label'], $mName, $curYear, $mQty, $mCap]);
-                        }
+                        upsertMonthlyUtilisasi($pdo, $driver, $parsed['label'], $parsed['monthly']);
                     }
                 }
                 

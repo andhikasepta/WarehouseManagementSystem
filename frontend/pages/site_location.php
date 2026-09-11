@@ -390,6 +390,7 @@ if (!defined('SPA_MODE')) {
                                 type: 'GET',
                                 error: function (xhr, error, thrown) {
                                     if (typeof Swal !== 'undefined') Swal.close();
+                                    $('.dataTables_processing').hide();
                                 }
                             },
                             columns: [

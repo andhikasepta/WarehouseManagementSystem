@@ -1,5 +1,7 @@
 <?php
 // api/save_data.php
+@ini_set('memory_limit', '512M');
+@set_time_limit(300);
 header('Content-Type: application/json');
 require_once __DIR__ . '/../backend/config/database.php';
 require_once __DIR__ . '/../backend/auth.php';
@@ -105,44 +107,55 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                     if (!empty($rows)) {
                         $pdo->beginTransaction();
-                        $stmt = $pdo->prepare("INSERT INTO assets 
-                            (spec_code, spec_name, reg_no, asset_planner_organization, nbv, so_result, so_location, {$q}range{$q}, sub_location, category, periode, periode_group, raw_data) 
-                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
                         
                         // Get batch period info from the request
                         $batchMonth = isset($data['month']) ? trim((string) $data['month']) : '';
                         $batchYear = isset($data['year']) ? trim((string) $data['year']) : '';
                         $batchNum = isset($data['batch']) ? trim((string) $data['batch']) : '1';
 
-                        foreach ($rows as $row) {
-                            $periodeRaw = getValCI($row, 'periode');
-                            // Use explicit month/year/batch if provided, else fallback to legacy parsing
-                            if (!empty($batchMonth) && !empty($batchYear) && !empty($batchNum)) {
-                                $periodeGroup = buildPeriodeGroup($batchMonth, $batchYear, $batchNum);
-                            } else {
-                                $periodeGroup = formatPeriode($periodeRaw);
+                        $chunkSize = 250;
+                        $chunks = array_chunk($rows, $chunkSize);
+
+                        foreach ($chunks as $chunk) {
+                            $rowPlaceholders = [];
+                            $params = [];
+
+                            foreach ($chunk as $row) {
+                                $periodeRaw = getValCI($row, 'periode');
+                                if (!empty($batchMonth) && !empty($batchYear) && !empty($batchNum)) {
+                                    $periodeGroup = buildPeriodeGroup($batchMonth, $batchYear, $batchNum);
+                                } else {
+                                    $periodeGroup = formatPeriode($periodeRaw);
+                                }
+                                $rawData = json_encode($row);
+                                $nbv = getValCI($row, 'nbv');
+                                $nbv = is_numeric($nbv) ? (float)$nbv : 0;
+
+                                $rowPlaceholders[] = "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                                $params[] = getValCI($row, ['spec_code', 'spec code', 'spek_code']);
+                                $params[] = getValCI($row, ['spec_name', 'spec name', 'nama perangkat', 'boq_name']);
+                                $params[] = getValCI($row, ['reg_no', 'reg no', 'no_reg']);
+                                $params[] = getValCI($row, ['asset_planner_organization', 'organization', 'dept']);
+                                $params[] = $nbv;
+                                $params[] = getValCI($row, ['so_result', 'so result']);
+                                $params[] = getValCI($row, ['so_location', 'so location', 'loc_name']);
+                                $params[] = getValCI($row, ['range', 'aging']);
+                                $params[] = getValCI($row, ['sub_location', 'sub location']);
+                                $params[] = getValCI($row, ['category', 'flag', 'kategori']);
+                                $params[] = $periodeRaw;
+                                $params[] = $periodeGroup;
+                                $params[] = $rawData;
                             }
-                            $rawData = json_encode($row);
 
-                            $nbv = getValCI($row, 'nbv');
-                            $nbv = is_numeric($nbv) ? (float)$nbv : 0;
-
-                            $stmt->execute([
-                                getValCI($row, ['spec_code', 'spec code', 'spek_code']),
-                                getValCI($row, ['spec_name', 'spec name', 'nama perangkat', 'boq_name']),
-                                getValCI($row, ['reg_no', 'reg no', 'no_reg']),
-                                getValCI($row, ['asset_planner_organization', 'organization', 'dept']),
-                                $nbv,
-                                getValCI($row, ['so_result', 'so result']),
-                                getValCI($row, ['so_location', 'so location', 'loc_name']),
-                                getValCI($row, ['range', 'aging']),
-                                getValCI($row, ['sub_location', 'sub location']),
-                                getValCI($row, ['category', 'flag', 'kategori']),
-                                $periodeRaw,
-                                $periodeGroup,
-                                $rawData
-                            ]);
+                            if (!empty($rowPlaceholders)) {
+                                $sql = "INSERT INTO assets 
+                                    (spec_code, spec_name, reg_no, asset_planner_organization, nbv, so_result, so_location, {$q}range{$q}, sub_location, category, periode, periode_group, raw_data) 
+                                    VALUES " . implode(', ', $rowPlaceholders);
+                                $stmt = $pdo->prepare($sql);
+                                $stmt->execute($params);
+                            }
                         }
+
                         $pdo->commit();
                     }
                     echo json_encode(['status' => 'success', 'message' => 'Batch appended successfully']);

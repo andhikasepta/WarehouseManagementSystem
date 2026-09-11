@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../../backend/auth.php';
-if (!defined('SPA_MODE')) checkModuleAccess('master_data');
+if (!defined('SPA_MODE'))
+    checkModuleAccess('master_data');
 
 $currentUser = getCurrentUser();
 $userRole = $currentUser['role'] ?? 'admin';
@@ -78,6 +79,9 @@ if (!defined('SPA_MODE')) {
 
 <!-- Select2 CSS -->
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
+<!-- Excel Upload & Process Checklist CSS -->
+<link href="frontend/css/excel-upload.css?v=<?= time() ?>" rel="stylesheet">
 <style>
     /* Basic Select2 Bootstrap 4 overrides */
     .select2-container .select2-selection--single {
@@ -129,21 +133,21 @@ if (!defined('SPA_MODE')) {
     }
 </style>
 <?php if (!defined('SPA_MODE')) { ?>
-</head>
+    </head>
 
-<body id="page-top">
-    <div id="wrapper">
-        <div id="content-wrapper" class="d-flex flex-column min-vh-100">
-            <div id="content" class="flex-grow-1">
+    <body id="page-top">
+        <div id="wrapper">
+            <div id="content-wrapper" class="d-flex flex-column min-vh-100">
+                <div id="content" class="flex-grow-1">
 
-                <!-- Topbar -->
-                <?php
-                $activePage = 'master_data';
-                $hidePeriodSelector = true;
-                include FRONTEND_PATH . 'components/navbar.php';
-                ?>
-                <!-- End of Topbar -->
-<?php } ?>
+                    <!-- Topbar -->
+                    <?php
+                    $activePage = 'master_data';
+                    $hidePeriodSelector = true;
+                    include FRONTEND_PATH . 'components/navbar.php';
+                    ?>
+                    <!-- End of Topbar -->
+                <?php } ?>
 
                 <!-- Begin Page Content -->
                 <div class="container-fluid" style="padding-top: 100px;">
@@ -217,8 +221,7 @@ if (!defined('SPA_MODE')) {
                         <li class="nav-item" role="presentation">
                             <?php if ($canAccessKpiMaster): ?>
                                 <a class="nav-link font-weight-bold text-uppercase py-2 <?php echo ($defaultMasterSegment === 'kpi') ? 'active' : ''; ?>"
-                                    id="seg-kpi-tab" data-toggle="pill" href="#seg-kpi" role="tab"
-                                    aria-controls="seg-kpi"
+                                    id="seg-kpi-tab" data-toggle="pill" href="#seg-kpi" role="tab" aria-controls="seg-kpi"
                                     aria-selected="<?php echo ($defaultMasterSegment === 'kpi') ? 'true' : 'false'; ?>">
                                     <i class="fas fa-tachometer-alt mr-2"></i> KPI Master Data
                                 </a>
@@ -384,24 +387,43 @@ if (!defined('SPA_MODE')) {
 
                                 <!-- Storage Action Buttons Header Bar -->
                                 <?php if ($canAddStorage || $canDeleteStorage): ?>
-                                    <div
-                                        class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between mb-3 bg-white p-3 rounded shadow-sm border" id="storage-action-buttons">
-                                        <h6 class="m-0 font-weight-bold text-primary">
-                                            <i class="fas fa-warehouse mr-2"></i>Menu Master Data Storage
+                                    <div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between mb-3 bg-white p-3 rounded shadow-sm border"
+                                        id="storage-action-buttons">
+                                        <h6 class="m-0 font-weight-bold text-primary" id="storage-menu-title">
+                                            <i class="fas fa-boxes mr-2"></i>Menu Master Data Storage (Data Asset)
                                         </h6>
                                         <div class="mt-2 mt-sm-0">
-                                            <?php if ($canAddStorage): ?>
-                                                <button class="btn btn-success btn-sm shadow-sm font-weight-bold mr-2"
-                                                    data-toggle="modal" data-target="#uploadExcelModal">
-                                                    <i class="fas fa-file-import mr-1"></i> Import Excel Storage
-                                                </button>
-                                            <?php endif; ?>
-                                            <?php if ($canDeleteStorage): ?>
-                                                <button class="btn btn-danger btn-sm shadow-sm font-weight-bold" data-toggle="modal"
-                                                    data-target="#deleteDataModal">
-                                                    <i class="fas fa-trash-alt mr-1"></i> Hapus Data Storage
-                                                </button>
-                                            <?php endif; ?>
+                                            <!-- Action Buttons for Data Asset -->
+                                            <span id="btn-group-asset-actions">
+                                                <?php if ($canAddStorage): ?>
+                                                    <button class="btn btn-success btn-sm shadow-sm font-weight-bold mr-2"
+                                                        data-toggle="modal" data-target="#uploadExcelModal">
+                                                        <i class="fas fa-file-import mr-1"></i> Import Excel Asset
+                                                    </button>
+                                                <?php endif; ?>
+                                                <?php if ($canDeleteStorage): ?>
+                                                    <button class="btn btn-danger btn-sm shadow-sm font-weight-bold"
+                                                        data-toggle="modal" data-target="#deleteDataModal">
+                                                        <i class="fas fa-trash-alt mr-1"></i> Hapus Data Asset
+                                                    </button>
+                                                <?php endif; ?>
+                                            </span>
+
+                                            <!-- Action Buttons for Data Utilisasi Rack -->
+                                            <span id="btn-group-rack-actions" style="display: none;">
+                                                <?php if ($canAddStorage): ?>
+                                                    <button class="btn btn-success btn-sm shadow-sm font-weight-bold mr-2"
+                                                        data-toggle="modal" data-target="#uploadExcelModalRack">
+                                                        <i class="fas fa-file-import mr-1"></i> Import Excel Rack
+                                                    </button>
+                                                <?php endif; ?>
+                                                <?php if ($canDeleteStorage): ?>
+                                                    <button class="btn btn-danger btn-sm shadow-sm font-weight-bold"
+                                                        data-toggle="modal" data-target="#deleteDataModalRack">
+                                                        <i class="fas fa-trash-alt mr-1"></i> Hapus Data Rack
+                                                    </button>
+                                                <?php endif; ?>
+                                            </span>
                                         </div>
                                     </div>
                                 <?php endif; ?>
@@ -418,12 +440,6 @@ if (!defined('SPA_MODE')) {
                                         <a class="nav-link" id="rack-tab" data-toggle="tab" href="#rack-data" role="tab"
                                             aria-controls="rack-data" aria-selected="false">
                                             <i class="fas fa-th mr-1"></i> Data Utilisasi Rack
-                                        </a>
-                                    </li>
-                                    <li class="nav-item" role="presentation">
-                                        <a class="nav-link" id="utilisasi-tab" data-toggle="tab" href="#utilisasi-data"
-                                            role="tab" aria-controls="utilisasi-data" aria-selected="false">
-                                            <i class="fas fa-chart-pie mr-1"></i> Utilisasi Area/Rack
                                         </a>
                                     </li>
                                 </ul>
@@ -492,19 +508,22 @@ if (!defined('SPA_MODE')) {
                                     <!-- Rack Data Tab -->
                                     <div class="tab-pane fade" id="rack-data" role="tabpanel" aria-labelledby="rack-tab">
                                         <div class="card shadow mb-4" style="min-height: calc(100vh - 380px);">
-                                            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                                                <h6 class="m-0 font-weight-bold text-primary">Tabel Master Utilisasi Rack
+                                            <div
+                                                class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                                                <h6 class="m-0 font-weight-bold text-primary">
+                                                    <i class="fas fa-th mr-2"></i>Tabel Master Utilisasi Rack
                                                 </h6>
-                                                <?php if ($canAddStorage): ?>
-                                                    <button class="btn btn-success btn-sm shadow-sm font-weight-bold" id="btn-import-rack-direct" type="button" data-toggle="modal" data-target="#uploadExcelModalRack">
-                                                        <i class="fas fa-file-import mr-1"></i> Import Excel Rack
-                                                    </button>
-                                                <?php endif; ?>
                                             </div>
                                             <div class="card-body">
 
                                                 <!-- Custom Filters for Rack -->
                                                 <div class="row mb-3">
+                                                    <div class="col-md-2">
+                                                        <label>Tahun:</label>
+                                                        <select id="filterRackYear"
+                                                            class="form-control form-control-sm font-weight-bold">
+                                                        </select>
+                                                    </div>
                                                     <div class="col-md-3">
                                                         <label>Category:</label>
                                                         <select id="filterRackCategory"
@@ -518,122 +537,59 @@ if (!defined('SPA_MODE')) {
                                                             <option value="">All Racks</option>
                                                         </select>
                                                     </div>
-                                                    <div class="col-md-6 d-flex align-items-end justify-content-end"
+                                                    <div class="col-md-4 d-flex align-items-end justify-content-end"
                                                         id="rackSearchContainer">
                                                     </div>
                                                 </div>
 
-                                                <div class="table-responsive">
-                                                    <table class="table table-bordered table-sm" id="dataTableRack"
-                                                        width="100%" cellspacing="0">
-                                                        <thead>
-                                                            <tr>
-                                                                <th>BARCODE</th>
-                                                                <th>NAME</th>
-                                                                <th>LABEL</th>
-                                                                <th>ACTIVE</th>
-                                                                <th>CATEGORY</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            <!-- Populated by JS -->
-                                                        </tbody>
-                                                    </table>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- Utilisasi Area/Rack Tab -->
-                                    <div class="tab-pane fade" id="utilisasi-data" role="tabpanel"
-                                        aria-labelledby="utilisasi-tab">
-                                        <div class="card shadow mb-4" style="min-height: calc(100vh - 380px);">
-                                            <div
-                                                class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                                                <h6 class="m-0 font-weight-bold text-primary">Data Utilisasi Area / Rack
-                                                </h6>
-                                                <?php if ($canAddStorage): ?>
-                                                    <button class="btn btn-success btn-sm" type="button"
-                                                        id="btn-save-utilisasi-all" disabled>
-                                                        <i class="fas fa-save mr-1"></i> Simpan Semua
-                                                    </button>
-                                                <?php endif; ?>
-                                            </div>
-                                            <div class="card-body">
-
-                                                <!-- Period Selector -->
-                                                <div class="row mb-3">
-                                                    <div class="col-md-3">
-                                                        <label class="small font-weight-bold text-gray-600">Bulan <span
-                                                                class="text-danger">*</span></label>
-                                                        <select id="utilisasi-month-select"
-                                                            class="form-control form-control-sm">
-                                                            <option value="">-- Pilih Bulan --</option>
-                                                            <option value="January">January</option>
-                                                            <option value="February">February</option>
-                                                            <option value="March">March</option>
-                                                            <option value="April">April</option>
-                                                            <option value="May">May</option>
-                                                            <option value="June">June</option>
-                                                            <option value="July">July</option>
-                                                            <option value="August">August</option>
-                                                            <option value="September">September</option>
-                                                            <option value="October">October</option>
-                                                            <option value="November">November</option>
-                                                            <option value="December">December</option>
-                                                        </select>
-                                                    </div>
-                                                    <div class="col-md-3">
-                                                        <label class="small font-weight-bold text-gray-600">Tahun <span
-                                                                class="text-danger">*</span></label>
-                                                        <select id="utilisasi-year-select"
-                                                            class="form-control form-control-sm">
-                                                            <option value="">-- Pilih Tahun --</option>
-                                                        </select>
-                                                    </div>
-                                                    <div class="col-md-3 d-flex align-items-end">
-                                                        <button class="btn btn-primary btn-sm btn-block"
-                                                            id="btn-load-utilisasi" disabled>
-                                                            <i class="fas fa-search mr-1"></i> Tampilkan Data
-                                                        </button>
-                                                    </div>
-                                                    <div class="col-md-3 d-flex align-items-end justify-content-end"
-                                                        id="utilisasiSearchContainer">
-                                                    </div>
-                                                </div>
-
-                                                <div id="utilisasi-table-info" class="text-center text-gray-500 py-4"
-                                                    style="display:block;">
-                                                    <i class="fas fa-info-circle fa-2x mb-2 text-gray-300"></i>
-                                                    <p class="mb-0">Pilih <strong>Bulan</strong> dan <strong>Tahun</strong>
-                                                        lalu klik <strong>Tampilkan Data</strong> untuk memuat data
-                                                        utilisasi.</p>
-                                                </div>
-
-                                                <div class="table-responsive" id="utilisasi-table-wrapper"
-                                                    style="display:none; max-height: 500px; overflow-y: auto;">
-                                                    <table class="table table-bordered table-sm table-hover"
-                                                        id="dataTableUtilisasi" width="100%" cellspacing="0">
+                                                <div class="table-responsive"
+                                                    style="max-height: 550px; overflow-x: auto; overflow-y: auto;">
+                                                    <table class="table table-bordered table-sm table-hover text-nowrap"
+                                                        id="dataTableRack" width="100%" cellspacing="0">
                                                         <thead class="thead-light">
                                                             <tr>
                                                                 <th
-                                                                    style="position: sticky; top: 0; background-color: #f8f9fc; z-index: 1;">
-                                                                    Label (Sub Location)</th>
+                                                                    style="position: sticky; top: 0; background-color: #f8f9fc; z-index: 2;">
+                                                                    BARCODE</th>
                                                                 <th
-                                                                    style="position: sticky; top: 0; background-color: #f8f9fc; z-index: 1;">
-                                                                    Rack Group</th>
+                                                                    style="position: sticky; top: 0; background-color: #f8f9fc; z-index: 2;">
+                                                                    NAME</th>
                                                                 <th
-                                                                    style="position: sticky; top: 0; background-color: #f8f9fc; z-index: 1;">
-                                                                    Category</th>
+                                                                    style="position: sticky; top: 0; background-color: #f8f9fc; z-index: 2;">
+                                                                    LABEL</th>
                                                                 <th
-                                                                    style="position: sticky; top: 0; background-color: #f8f9fc; z-index: 1; width: 120px;">
-                                                                    Qty (Unit)</th>
+                                                                    style="position: sticky; top: 0; background-color: #f8f9fc; z-index: 2;">
+                                                                    ACTIVE</th>
                                                                 <th
-                                                                    style="position: sticky; top: 0; background-color: #f8f9fc; z-index: 1; width: 140px;">
-                                                                    Capacity (%)</th>
+                                                                    style="position: sticky; top: 0; background-color: #f8f9fc; z-index: 2;">
+                                                                    CATEGORY</th>
+                                                                <th style="position: sticky; top: 0; background-color: #f8f9fc; z-index: 2;"
+                                                                    class="text-center">CAP JAN</th>
+                                                                <th style="position: sticky; top: 0; background-color: #f8f9fc; z-index: 2;"
+                                                                    class="text-center">CAP FEB</th>
+                                                                <th style="position: sticky; top: 0; background-color: #f8f9fc; z-index: 2;"
+                                                                    class="text-center">CAP MAR</th>
+                                                                <th style="position: sticky; top: 0; background-color: #f8f9fc; z-index: 2;"
+                                                                    class="text-center">CAP APR</th>
+                                                                <th style="position: sticky; top: 0; background-color: #f8f9fc; z-index: 2;"
+                                                                    class="text-center">CAP MEI</th>
+                                                                <th style="position: sticky; top: 0; background-color: #f8f9fc; z-index: 2;"
+                                                                    class="text-center">CAP JUN</th>
+                                                                <th style="position: sticky; top: 0; background-color: #f8f9fc; z-index: 2;"
+                                                                    class="text-center">CAP JUL</th>
+                                                                <th style="position: sticky; top: 0; background-color: #f8f9fc; z-index: 2;"
+                                                                    class="text-center">CAP AGU</th>
+                                                                <th style="position: sticky; top: 0; background-color: #f8f9fc; z-index: 2;"
+                                                                    class="text-center">CAP SEP</th>
+                                                                <th style="position: sticky; top: 0; background-color: #f8f9fc; z-index: 2;"
+                                                                    class="text-center">CAP OKT</th>
+                                                                <th style="position: sticky; top: 0; background-color: #f8f9fc; z-index: 2;"
+                                                                    class="text-center">CAP NOV</th>
+                                                                <th style="position: sticky; top: 0; background-color: #f8f9fc; z-index: 2;"
+                                                                    class="text-center">CAP DES</th>
                                                             </tr>
                                                         </thead>
-                                                        <tbody id="utilisasi-table-body">
+                                                        <tbody>
                                                             <!-- Populated by JS -->
                                                         </tbody>
                                                     </table>
@@ -651,8 +607,8 @@ if (!defined('SPA_MODE')) {
                             <div class="tab-pane fade <?php echo ($defaultMasterSegment === 'outbound') ? 'show active' : ''; ?>"
                                 id="seg-outbound" role="tabpanel" aria-labelledby="seg-outbound-tab">
                                 <?php if ($canAddOutbound || $canDeleteOutbound): ?>
-                                    <div
-                                        class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between mb-3 bg-white p-3 rounded shadow-sm border" id="outbound-action-buttons">
+                                    <div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between mb-3 bg-white p-3 rounded shadow-sm border"
+                                        id="outbound-action-buttons">
                                         <h6 class="m-0 font-weight-bold text-primary" id="outbound-menu-title">
                                             <i class="fas fa-truck-loading mr-2"></i>Menu Master Data Outbound
                                         </h6>
@@ -666,8 +622,8 @@ if (!defined('SPA_MODE')) {
                                                     </button>
                                                 <?php endif; ?>
                                                 <?php if ($canDeleteOutbound): ?>
-                                                    <button class="btn btn-danger btn-sm shadow-sm font-weight-bold" data-toggle="modal"
-                                                        data-target="#deleteDataModalOutbound">
+                                                    <button class="btn btn-danger btn-sm shadow-sm font-weight-bold"
+                                                        data-toggle="modal" data-target="#deleteDataModalOutbound">
                                                         <i class="fas fa-trash-alt mr-1"></i> Hapus Data Pending List
                                                     </button>
                                                 <?php endif; ?>
@@ -682,8 +638,8 @@ if (!defined('SPA_MODE')) {
                                                     </button>
                                                 <?php endif; ?>
                                                 <?php if ($canDeleteOutbound): ?>
-                                                    <button class="btn btn-danger btn-sm shadow-sm font-weight-bold" data-toggle="modal"
-                                                        data-target="#deleteDataModalForwarder">
+                                                    <button class="btn btn-danger btn-sm shadow-sm font-weight-bold"
+                                                        data-toggle="modal" data-target="#deleteDataModalForwarder">
                                                         <i class="fas fa-trash-alt mr-1"></i> Hapus Data PR Forwarder
                                                     </button>
                                                 <?php endif; ?>
@@ -695,14 +651,16 @@ if (!defined('SPA_MODE')) {
                                 <!-- Sub Master Data Tabs for Outbound (Just like Storage Master Data) -->
                                 <ul class="nav nav-tabs mb-4" id="outboundSubTabs" role="tablist">
                                     <li class="nav-item" role="presentation">
-                                        <a class="nav-link active" id="tab-outbound-pending" data-toggle="tab" href="#pane-outbound-pending"
-                                            role="tab" aria-controls="pane-outbound-pending" aria-selected="true">
+                                        <a class="nav-link active" id="tab-outbound-pending" data-toggle="tab"
+                                            href="#pane-outbound-pending" role="tab" aria-controls="pane-outbound-pending"
+                                            aria-selected="true">
                                             <i class="fas fa-list-alt mr-1"></i> Data Pending List
                                         </a>
                                     </li>
                                     <li class="nav-item" role="presentation">
-                                        <a class="nav-link" id="tab-outbound-forwarder" data-toggle="tab" href="#pane-outbound-forwarder"
-                                            role="tab" aria-controls="pane-outbound-forwarder" aria-selected="false">
+                                        <a class="nav-link" id="tab-outbound-forwarder" data-toggle="tab"
+                                            href="#pane-outbound-forwarder" role="tab"
+                                            aria-controls="pane-outbound-forwarder" aria-selected="false">
                                             <i class="fas fa-shipping-fast mr-1"></i> Data PR Forwarder
                                         </a>
                                     </li>
@@ -710,10 +668,13 @@ if (!defined('SPA_MODE')) {
 
                                 <div class="tab-content" id="outboundSubTabContent">
                                     <!-- PANE 1: PENDING LIST -->
-                                    <div class="tab-pane fade show active" id="pane-outbound-pending" role="tabpanel" aria-labelledby="tab-outbound-pending">
+                                    <div class="tab-pane fade show active" id="pane-outbound-pending" role="tabpanel"
+                                        aria-labelledby="tab-outbound-pending">
                                         <div class="card shadow mb-4" style="min-height: calc(100vh - 380px);">
-                                            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                                                <h6 class="m-0 font-weight-bold text-primary">Tabel Master Data Outbound (Pending List)</h6>
+                                            <div
+                                                class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                                                <h6 class="m-0 font-weight-bold text-primary">Tabel Master Data Outbound
+                                                    (Pending List)</h6>
                                             </div>
                                             <div class="card-body">
                                                 <!-- Filter Control Bar (Dropdowns & Reset) -->
@@ -772,8 +733,7 @@ if (!defined('SPA_MODE')) {
                                                                 <label for="filter-outbound-mr"
                                                                     class="small font-weight-bold text-gray-700 mb-1">Search</label>
                                                                 <input type="text" class="form-control form-control-sm"
-                                                                    id="filter-outbound-mr"
-                                                                    placeholder="Search...">
+                                                                    id="filter-outbound-mr" placeholder="Search...">
                                                             </div>
 
                                                             <!-- Reset Filter Button -->
@@ -789,8 +749,8 @@ if (!defined('SPA_MODE')) {
                                                 </div>
 
                                                 <div class="table-responsive">
-                                                    <table class="table table-bordered table-sm text-nowrap" id="dataTableOutbound"
-                                                        width="100%" cellspacing="0">
+                                                    <table class="table table-bordered table-sm text-nowrap"
+                                                        id="dataTableOutbound" width="100%" cellspacing="0">
                                                         <thead>
                                                             <tr>
                                                                 <th>MR NO</th>
@@ -829,10 +789,13 @@ if (!defined('SPA_MODE')) {
                                     </div>
 
                                     <!-- PANE 2: PR FORWARDER -->
-                                    <div class="tab-pane fade" id="pane-outbound-forwarder" role="tabpanel" aria-labelledby="tab-outbound-forwarder">
+                                    <div class="tab-pane fade" id="pane-outbound-forwarder" role="tabpanel"
+                                        aria-labelledby="tab-outbound-forwarder">
                                         <div class="card shadow mb-4" style="min-height: calc(100vh - 380px);">
-                                            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                                                <h6 class="m-0 font-weight-bold text-primary">Tabel Master Data Outbound (PR Forwarder)</h6>
+                                            <div
+                                                class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                                                <h6 class="m-0 font-weight-bold text-primary">Tabel Master Data Outbound (PR
+                                                    Forwarder)</h6>
                                             </div>
                                             <div class="card-body">
                                                 <!-- Filter Control Bar PR Forwarder (Matching KPI Master Data Style) -->
@@ -864,40 +827,51 @@ if (!defined('SPA_MODE')) {
 
                                                 <!-- PR Forwarder Table with 3-Row Nested Headers -->
                                                 <div class="table-responsive">
-                                                    <table class="table table-bordered table-sm text-nowrap" id="dataTablePrForwarder"
-                                                        width="100%" cellspacing="0">
+                                                    <table class="table table-bordered table-sm text-nowrap"
+                                                        id="dataTablePrForwarder" width="100%" cellspacing="0">
                                                         <thead>
                                                             <!-- Row 1: Super Headers -->
                                                             <tr>
                                                                 <th rowspan="3" class="text-center align-middle">NO DN</th>
                                                                 <th rowspan="3" class="text-center align-middle">PRINT</th>
-                                                                <th rowspan="3" class="text-center align-middle">DN STATUS</th>
+                                                                <th rowspan="3" class="text-center align-middle">DN STATUS
+                                                                </th>
                                                                 <th colspan="4" class="text-center align-middle">ASAL</th>
                                                                 <th colspan="4" class="text-center align-middle">TUJUAN</th>
-                                                                <th colspan="17" class="text-center align-middle">PROCUREMENT</th>
+                                                                <th colspan="17" class="text-center align-middle">
+                                                                    PROCUREMENT</th>
                                                                 <th rowspan="3" class="text-center align-middle">DOC</th>
                                                                 <th rowspan="3" class="text-center align-middle">NOTE</th>
-                                                                <th colspan="7" class="text-center align-middle">DELIVERY</th>
-                                                                <th colspan="3" class="text-center align-middle">APPROVAL</th>
-                                                                <th rowspan="3" class="text-center align-middle">PERIODE GROUP</th>
+                                                                <th colspan="7" class="text-center align-middle">DELIVERY
+                                                                </th>
+                                                                <th colspan="3" class="text-center align-middle">APPROVAL
+                                                                </th>
+                                                                <th rowspan="3" class="text-center align-middle">PERIODE
+                                                                    GROUP</th>
                                                             </tr>
                                                             <!-- Row 2: Sub Headers -->
                                                             <tr>
                                                                 <!-- Under ASAL -->
-                                                                <th rowspan="2" class="text-center align-middle">PENGIRIM</th>
+                                                                <th rowspan="2" class="text-center align-middle">PENGIRIM
+                                                                </th>
                                                                 <th colspan="3" class="text-center align-middle">SITE</th>
                                                                 <!-- Under TUJUAN -->
-                                                                <th rowspan="2" class="text-center align-middle">PENERIMA</th>
+                                                                <th rowspan="2" class="text-center align-middle">PENERIMA
+                                                                </th>
                                                                 <th colspan="3" class="text-center align-middle">SITE</th>
                                                                 <!-- Under PROCUREMENT -->
                                                                 <th colspan="2" class="text-center align-middle">VENDOR</th>
                                                                 <th rowspan="2" class="text-center align-middle">KOLI</th>
-                                                                <th rowspan="2" class="text-center align-middle">MATA ANGGARAN</th>
+                                                                <th rowspan="2" class="text-center align-middle">MATA
+                                                                    ANGGARAN</th>
                                                                 <th colspan="2" class="text-center align-middle">SR</th>
                                                                 <th colspan="2" class="text-center align-middle">PR</th>
-                                                                <th rowspan="2" class="text-center align-middle">VALUATION PRICE</th>
-                                                                <th rowspan="2" class="text-center align-middle">SUGGESTION</th>
-                                                                <th rowspan="2" class="text-center align-middle">PURPOSE</th>
+                                                                <th rowspan="2" class="text-center align-middle">VALUATION
+                                                                    PRICE</th>
+                                                                <th rowspan="2" class="text-center align-middle">SUGGESTION
+                                                                </th>
+                                                                <th rowspan="2" class="text-center align-middle">PURPOSE
+                                                                </th>
                                                                 <th colspan="6" class="text-center align-middle">PO</th>
                                                                 <!-- Under DELIVERY -->
                                                                 <th rowspan="2" class="text-center align-middle">TYPE</th>
@@ -905,11 +879,14 @@ if (!defined('SPA_MODE')) {
                                                                 <th rowspan="2" class="text-center align-middle">NAMA</th>
                                                                 <th rowspan="2" class="text-center align-middle">AWB</th>
                                                                 <th rowspan="2" class="text-center align-middle">PICKUP</th>
-                                                                <th rowspan="2" class="text-center align-middle">LEAD TIME</th>
-                                                                <th rowspan="2" class="text-center align-middle">TARGET DLV</th>
+                                                                <th rowspan="2" class="text-center align-middle">LEAD TIME
+                                                                </th>
+                                                                <th rowspan="2" class="text-center align-middle">TARGET DLV
+                                                                </th>
                                                                 <!-- Under APPROVAL -->
                                                                 <th rowspan="2" class="text-center align-middle">STATUS</th>
-                                                                <th rowspan="2" class="text-center align-middle">APPROVER</th>
+                                                                <th rowspan="2" class="text-center align-middle">APPROVER
+                                                                </th>
                                                                 <th rowspan="2" class="text-center align-middle">DATE</th>
                                                             </tr>
                                                             <!-- Row 3: Sub-Sub Headers (Leaf Columns) -->
@@ -957,8 +934,8 @@ if (!defined('SPA_MODE')) {
                             <div class="tab-pane fade <?php echo ($defaultMasterSegment === 'kpi') ? 'show active' : ''; ?>"
                                 id="seg-kpi" role="tabpanel" aria-labelledby="seg-kpi-tab">
                                 <?php if ($canAddKpi || $canDeleteKpi): ?>
-                                    <div
-                                        class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between mb-3 bg-white p-3 rounded shadow-sm border" id="kpi-action-buttons">
+                                    <div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between mb-3 bg-white p-3 rounded shadow-sm border"
+                                        id="kpi-action-buttons">
                                         <h6 class="m-0 font-weight-bold text-primary">
                                             <i class="fas fa-tachometer-alt mr-2"></i>Menu KPI Master Data
                                         </h6>
@@ -991,7 +968,8 @@ if (!defined('SPA_MODE')) {
                                                 <div class="form-row align-items-end">
                                                     <div class="col-md-3 col-sm-6 mb-2 mb-md-0">
                                                         <label for="filter-kpi-year"
-                                                            class="small font-weight-bold text-gray-700 mb-1">Periode Tahun</label>
+                                                            class="small font-weight-bold text-gray-700 mb-1">Periode
+                                                            Tahun</label>
                                                         <select
                                                             class="form-control form-control-sm custom-select custom-select-sm"
                                                             id="filter-kpi-year">
@@ -1016,16 +994,18 @@ if (!defined('SPA_MODE')) {
                                         </div>
 
                                         <div class="table-responsive">
-                                            <table class="table table-bordered table-sm text-nowrap" id="dataTableKpi" width="100%"
-                                                cellspacing="0">
+                                            <table class="table table-bordered table-sm text-nowrap" id="dataTableKpi"
+                                                width="100%" cellspacing="0">
                                                 <thead>
                                                     <tr>
-                                                        <th rowspan="2" class="align-middle text-center" style="min-width:110px;">Bulan</th>
+                                                        <th rowspan="2" class="align-middle text-center"
+                                                            style="min-width:110px;">Bulan</th>
                                                         <th colspan="2" class="text-center">GR</th>
                                                         <th colspan="2" class="text-center">Registrasi</th>
                                                         <th colspan="2" class="text-center">Slow Moving</th>
                                                         <th colspan="2" class="text-center">Utilisasi Space</th>
-                                                        <th colspan="2" class="text-center">Stok Opname Hub &amp; Outlet Warehouse</th>
+                                                        <th colspan="2" class="text-center">Stok Opname Hub &amp; Outlet
+                                                            Warehouse</th>
                                                         <th colspan="2" class="text-center">Delivery Effectiveness</th>
                                                         <th colspan="2" class="text-center">MR Closing (Akumulatif)</th>
                                                         <th colspan="2" class="text-center">Efisiensi Delivery</th>
@@ -1066,8 +1046,6 @@ if (!defined('SPA_MODE')) {
             </div>
             <!-- End of Main Content -->
 
-            <?php if (!defined('SPA_MODE')) { include FRONTEND_PATH . 'components/footer.php'; } ?>
-
             <!-- Delete Data Modal-->
             <div class="modal fade" id="deleteDataModal" tabindex="-1" role="dialog"
                 aria-labelledby="deleteDataModalLabel" aria-hidden="true">
@@ -1088,8 +1066,8 @@ if (!defined('SPA_MODE')) {
                                 <div class="text-center text-gray-600 mb-4">
                                     <h3 class="text-danger font-weight-bold mb-3"><i
                                             class="fas fa-exclamation-triangle mr-2"></i>Peringatan</h3>
-                                    <p class="mb-0" style="font-size: 1.1rem;">Data yang Anda pilih akan dihapus secara
-                                        permanen dari sistem dan tidak dapat dikembalikan.</p>
+                                    <p class="mb-0" style="font-size: 1.1rem;">Data yang Anda pilih akan dihapus
+                                        permanen</p>
                                 </div>
                                 <div class="form-group mb-3">
                                     <label for="deleteMonthSelect"
@@ -1115,7 +1093,9 @@ if (!defined('SPA_MODE')) {
                                         <?php
                                         $curY = (int) date('Y');
                                         for ($y = 2024; $y <= $curY + 5; $y++): ?>
-                                            <option value="<?php echo $y; ?>" <?php echo ($y === $curY) ? 'selected' : ''; ?>><?php echo $y; ?></option>
+                                            <option value="<?php echo $y; ?>" <?php echo ($y === $curY) ? 'selected' : ''; ?>>
+                                                <?php echo $y; ?>
+                                            </option>
                                         <?php endfor; ?>
                                     </select>
                                 </div>
@@ -1133,19 +1113,81 @@ if (!defined('SPA_MODE')) {
                 </div>
             </div>
 
+            <!-- Delete Data Modal Rack -->
+            <div class="modal fade" id="deleteDataModalRack" tabindex="-1" role="dialog"
+                aria-labelledby="deleteDataModalRackLabel" aria-hidden="true">
+                <div class="modal-dialog modal-md modal-dialog-centered" role="document">
+                    <div class="modal-content upload-modal-content">
+                        <div class="modal-header upload-modal-header"
+                            style="background: linear-gradient(135deg, #e74a3b 0%, #be2617 100%);">
+                            <h5 class="modal-title text-white font-weight-bold" id="deleteDataModalRackLabel">
+                                <i class="fas fa-trash-alt mr-2 text-white"></i>Hapus Data Utilisasi Rack
+                            </h5>
+                            <button class="close text-white" type="button" data-dismiss="modal" aria-label="Close"
+                                style="opacity: 0.8;">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body upload-modal-body">
+                            <div class="p-3">
+                                <div class="text-center text-gray-600 mb-4">
+                                    <h4 class="text-danger font-weight-bold mb-2"><i
+                                            class="fas fa-exclamation-triangle mr-2"></i>Peringatan Hapus</h4>
+                                    <p class="mb-0 text-muted small">Pilih opsi penghapusan data master dan utilisasi
+                                        rack di bawah ini.</p>
+                                </div>
+                                <div class="form-group mb-3">
+                                    <label for="deleteRackScopeSelect"
+                                        class="small font-weight-bold text-gray-700">Jenis Penghapusan</label>
+                                    <select class="form-control form-control-sm" id="deleteRackScopeSelect">
+                                        <option value="year">Hapus Utilisasi Berdasarkan Tahun</option>
+                                        <option value="all">Hapus Semua Data (Master Rak & Utilisasi)</option>
+                                    </select>
+                                </div>
+                                <div class="form-group mb-4" id="deleteRackYearContainer">
+                                    <label for="deleteRackYearSelect" class="small font-weight-bold text-gray-700">Pilih
+                                        Tahun</label>
+                                    <select class="form-control form-control-sm font-weight-bold"
+                                        id="deleteRackYearSelect">
+                                        <option value="">-- Pilih Tahun --</option>
+                                        <?php
+                                        $curY = (int) date('Y');
+                                        for ($y = 2024; $y <= $curY + 5; $y++): ?>
+                                            <option value="<?php echo $y; ?>" <?php echo ($y === $curY) ? 'selected' : ''; ?>>
+                                                <?php echo $y; ?>
+                                            </option>
+                                        <?php endfor; ?>
+                                    </select>
+                                </div>
+                                <div class="d-flex justify-content-end mt-4">
+                                    <button class="btn btn-light px-4 mr-2" type="button" data-dismiss="modal"
+                                        style="border-radius: 6px; font-weight: 600;">Cancel</button>
+                                    <button class="btn btn-danger px-4" type="button" id="btn-confirm-delete-rack"
+                                        style="border-radius: 6px; font-weight: 600; box-shadow: 0 4px 10px rgba(231,74,59,0.3);">
+                                        <i class="fas fa-trash mr-1"></i> Delete Data Rack
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Import Excel Storage Data Asset Modal -->
             <div class="modal fade" id="uploadExcelModal" tabindex="-1" role="dialog"
                 aria-labelledby="uploadExcelModalLabel" aria-hidden="true">
-                <div class="modal-dialog modal-md modal-dialog-centered" role="document" id="uploadExcelModalDialog">
+                <div class="modal-dialog upload-modal-dialog modal-dialog-centered" role="document"
+                    id="uploadExcelModalDialog">
                     <div class="modal-content upload-modal-content">
                         <div class="modal-header upload-modal-header">
                             <h5 class="modal-title font-weight-bold" id="uploadExcelModalLabel">
-                                <i class="fas fa-file-excel mr-2"></i>Import Excel Data
+                                <i class="fas fa-file-excel mr-2"></i>Import Master Data Asset (Storage)
                             </h5>
                             <button class="close text-white" type="button" data-dismiss="modal" aria-label="Close">
                                 <span aria-hidden="true">&times;</span>
                             </button>
                         </div>
-                        <div class="modal-body upload-modal-body">
+                        <div class="modal-body upload-modal-body p-4">
                             <!-- Download Template Section -->
                             <div
                                 class="alert alert-light border mb-3 p-2 d-flex align-items-center justify-content-between">
@@ -1153,33 +1195,22 @@ if (!defined('SPA_MODE')) {
                                     <i class="fas fa-download mr-1 text-success"></i> Download Template:
                                 </span>
                                 <div>
-                                    <button type="button" class="btn btn-sm btn-outline-success font-weight-bold mr-1"
+                                    <button type="button" class="btn btn-sm btn-outline-success font-weight-bold"
                                         id="btn-template-asset">
                                         <i class="fas fa-file-excel mr-1"></i> Template Asset
-                                    </button>
-                                    <button type="button" class="btn btn-sm btn-outline-info font-weight-bold"
-                                        id="btn-template-rack">
-                                        <i class="fas fa-file-excel mr-1"></i> Template Rack
                                     </button>
                                 </div>
                             </div>
 
                             <div class="row">
-                                <div class="col-lg-12" id="uploadModalLeftCol">
-                                    <div class="form-group mb-3">
-                                        <label for="upload-data-type" class="small font-weight-bold text-gray-600">Tipe
-                                            Data</label>
-                                        <select class="form-control form-control-sm" id="upload-data-type">
-                                            <option value="asset">Data Asset</option>
-                                            <option value="rack">Data Utilisasi Rack</option>
-                                        </select>
-                                    </div>
-                                    <div class="alert alert-info py-2 px-3 mb-3 small" id="upload-rack-info" style="display: none;">
-                                        <i class="fas fa-info-circle mr-1"></i> Data Utilisasi Rack bersifat statis (master layout gudang), tidak memerlukan pemilihan Bulan dan Batch.
-                                    </div>
+                                <!-- Left Column: Periode, Dropzone & Process Steps -->
+                                <div class="col-12" id="asset-col-left">
+                                    <!-- Periode Group Selectors (Month, Batch & Year) -->
                                     <div class="form-row mb-3" id="upload-period-selectors">
                                         <div class="col-4">
-                                            <label for="upload-bulan-select" class="small font-weight-bold text-gray-600">Bulan <span class="text-danger">*</span></label>
+                                            <label for="upload-bulan-select"
+                                                class="small font-weight-bold text-gray-700 mb-1">Bulan Periode <span
+                                                    class="text-danger">*</span></label>
                                             <select class="form-control form-control-sm" id="upload-bulan-select">
                                                 <option value="">-- Pilih Bulan --</option>
                                                 <option value="January">January</option>
@@ -1197,7 +1228,9 @@ if (!defined('SPA_MODE')) {
                                             </select>
                                         </div>
                                         <div class="col-4">
-                                            <label for="upload-batch-select" class="small font-weight-bold text-gray-600">Batch <span class="text-danger">*</span></label>
+                                            <label for="upload-batch-select"
+                                                class="small font-weight-bold text-gray-700 mb-1">Batch <span
+                                                    class="text-danger">*</span></label>
                                             <select class="form-control form-control-sm" id="upload-batch-select">
                                                 <option value="">-- Pilih Batch --</option>
                                                 <option value="1">Batch 1</option>
@@ -1205,26 +1238,33 @@ if (!defined('SPA_MODE')) {
                                             </select>
                                         </div>
                                         <div class="col-4">
-                                            <label for="upload-tahun-select" class="small font-weight-bold text-gray-600">Tahun <span class="text-danger">*</span></label>
+                                            <label for="upload-tahun-select"
+                                                class="small font-weight-bold text-gray-700 mb-1">Tahun Periode <span
+                                                    class="text-danger">*</span></label>
                                             <select class="form-control form-control-sm" id="upload-tahun-select">
                                                 <option value="">-- Pilih Tahun --</option>
                                                 <?php
                                                 $curY = (int) date('Y');
                                                 for ($y = 2024; $y <= $curY + 5; $y++): ?>
-                                                    <option value="<?php echo $y; ?>" <?php echo ($y === $curY) ? 'selected' : ''; ?>><?php echo $y; ?></option>
+                                                    <option value="<?php echo $y; ?>" <?php echo ($y === $curY) ? 'selected' : ''; ?>>
+                                                        <?php echo $y; ?>
+                                                    </option>
                                                 <?php endfor; ?>
                                             </select>
                                         </div>
                                     </div>
+
+                                    <!-- Drop Zone -->
                                     <div class="upload-drop-zone" id="upload-drop-zone">
                                         <input type="file" id="excel-file-input" accept=".xlsx,.xls,.csv"
                                             class="d-none" />
                                         <div class="upload-icon">
                                             <i class="fas fa-cloud-upload-alt"></i>
                                         </div>
-                                        <h5>Drag &amp; Drop Excel File</h5>
+                                        <h5>Drag &amp; Drop Excel File Asset</h5>
                                         <p>atau klik untuk memilih file dari komputer Anda</p>
-                                        <button class="btn-browse" id="btn-browse-file" type="button">
+                                        <button class="btn-browse" id="btn-browse-file" type="button"
+                                            onclick="document.getElementById('excel-file-input').click();">
                                             <i class="fas fa-folder-open mr-1"></i> Browse File
                                         </button>
                                         <div class="file-types">
@@ -1232,36 +1272,109 @@ if (!defined('SPA_MODE')) {
                                         </div>
                                     </div>
 
-                                    <div class="upload-progress-container" id="upload-progress">
-                                        <div class="upload-progress-bar">
-                                            <div class="progress-fill" id="upload-progress-fill"></div>
+                                    <!-- Process Steps Container -->
+                                    <div id="asset-process-container" style="display: none;">
+                                        <div class="upload-file-card mb-3">
+                                            <div class="file-details">
+                                                <div class="file-icon"><i class="fas fa-file-excel"></i></div>
+                                                <div class="file-text">
+                                                    <div class="file-name" id="asset-file-name">-</div>
+                                                    <div class="file-size" id="asset-file-size">-</div>
+                                                </div>
+                                            </div>
+                                            <button type="button" class="btn btn-outline-secondary btn-sm"
+                                                id="asset-btn-change-file" title="Ganti File">
+                                                <i class="fas fa-redo-alt mr-1"></i> Ganti
+                                            </button>
                                         </div>
-                                        <div class="upload-file-info">
-                                            <span class="file-name" id="upload-file-name"></span>
-                                            <span class="file-size" id="upload-file-size"></span>
+
+                                        <div class="upload-steps-list">
+                                            <div class="upload-step-item" id="asset-step-read">
+                                                <div class="step-icon-container"><i class="fas fa-file"></i></div>
+                                                <div class="step-label-container"><span class="step-label">1. Upload
+                                                        File...</span></div>
+                                            </div>
+                                            <div class="upload-step-item" id="asset-step-parse">
+                                                <div class="step-icon-container"><i class="fas fa-table"></i></div>
+                                                <div class="step-label-container"><span class="step-label">2. Validasi
+                                                        File...</span></div>
+                                            </div>
+                                            <div class="upload-step-item" id="asset-step-upload">
+                                                <div class="step-icon-container"><i class="fas fa-database"></i></div>
+                                                <div class="step-label-container" style="flex-grow: 1;">
+                                                    <span class="step-label">3. Uploading Database...</span>
+                                                    <div class="batch-progress-wrapper" id="asset-batch-progress"
+                                                        style="display: none;">
+                                                        <div class="batch-progress-details">
+                                                            <span id="asset-progress-text">0 / 0 baris</span>
+                                                            <span id="asset-progress-percent">0%</span>
+                                                        </div>
+                                                        <div class="batch-progress-bar-bg">
+                                                            <div class="batch-progress-bar-fill"
+                                                                id="asset-progress-fill"></div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="upload-step-item" id="asset-step-finalize">
+                                                <div class="step-icon-container"><i class="fas fa-sync-alt"></i></div>
+                                                <div class="step-label-container"><span class="step-label">4. Finalisasi
+                                                        Data...</span></div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-lg-6" id="uploadModalRightCol" style="display: none;">
-                                    <div class="upload-controls" id="upload-controls">
-                                        <div class="form-group">
-                                            <label for="sheet-select">Pilih Sheet</label>
-                                            <select class="form-control" id="sheet-select"></select>
+
+                                <!-- Right Column: Sheet Selection & Action -->
+                                <div class="col-lg-6" id="asset-col-right" style="display: none;">
+                                    <div class="card border h-100 shadow-none bg-white">
+                                        <div class="card-body p-3 d-flex flex-column justify-content-between">
+                                            <div>
+                                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                                    <label for="asset-sheet-select"
+                                                        class="small font-weight-bold text-gray-800 mb-0">
+                                                        <i class="fas fa-layer-group text-primary mr-1"></i> Pilih Sheet
+                                                        Excel
+                                                    </label>
+                                                    <span class="badge badge-primary px-2 py-1" id="asset-sheet-badge">0
+                                                        Sheet</span>
+                                                </div>
+                                                <p class="small text-muted mb-2">Pilih lembar kerja (sheet) yang berisi
+                                                    data asset:</p>
+                                                <select class="form-control form-control-sm font-weight-bold mb-3"
+                                                    id="asset-sheet-select"></select>
+
+                                                <div class="alert alert-light border py-2 px-3 small mb-3"
+                                                    id="asset-sheet-info">
+                                                    <i class="fas fa-info-circle text-info mr-1"></i> <span
+                                                        id="asset-sheet-info-text">Silakan pilih sheet di atas.</span>
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <button type="button"
+                                                    class="btn btn-primary btn-block font-weight-bold py-2 shadow-sm"
+                                                    id="asset-btn-submit">
+                                                    <i class="fas fa-file-import mr-1"></i> Mulai Import Sheet Ini
+                                                </button>
+                                            </div>
                                         </div>
-                                        <button class="btn-generate" id="btn-generate-charts" type="button" disabled>
-                                            <i class="fas fa-check"></i> Submit Upload
-                                        </button>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
+
             <!-- Import Excel Rack Modal -->
             <div class="modal fade" id="uploadExcelModalRack" tabindex="-1" role="dialog"
                 aria-labelledby="uploadExcelModalRackLabel" aria-hidden="true">
-                <div class="modal-dialog modal-md modal-dialog-centered" role="document">
+                <div class="modal-dialog upload-modal-dialog modal-dialog-centered" role="document"
+                    id="uploadExcelModalRackDialog">
                     <div class="modal-content upload-modal-content">
-                        <div class="modal-header upload-modal-header" style="background: linear-gradient(135deg, #1cc88a 0%, #13855c 100%);">
+                        <div class="modal-header upload-modal-header"
+                            style="background: linear-gradient(135deg, #1cc88a 0%, #13855c 100%);">
                             <h5 class="modal-title font-weight-bold text-white" id="uploadExcelModalRackLabel">
                                 <i class="fas fa-file-excel mr-2"></i>Import Data Utilisasi Rack
                             </h5>
@@ -1269,45 +1382,146 @@ if (!defined('SPA_MODE')) {
                                 <span aria-hidden="true">&times;</span>
                             </button>
                         </div>
-                        <div class="modal-body upload-modal-body">
+                        <div class="modal-body upload-modal-body p-4">
                             <!-- Download Template Section -->
-                            <div class="alert alert-light border mb-3 p-2 d-flex align-items-center justify-content-between">
+                            <div
+                                class="alert alert-light border mb-3 p-2 d-flex align-items-center justify-content-between">
                                 <span class="small font-weight-bold text-gray-700">
                                     <i class="fas fa-download mr-1 text-success"></i> Download Template:
                                 </span>
-                                <button type="button" class="btn btn-sm btn-outline-success font-weight-bold" id="btn-template-rack-modal">
+                                <button type="button" class="btn btn-sm btn-outline-success font-weight-bold"
+                                    id="btn-template-rack-modal">
                                     <i class="fas fa-file-excel mr-1"></i> Template Rack
                                 </button>
                             </div>
 
-                            <div class="alert alert-info py-2 px-3 mb-3 small">
-                                <i class="fas fa-info-circle mr-1"></i> Kolom yang didukung:
-                                <strong>BARCODE | NAME | LABEL | ACTIVE | CATEGORY</strong>.
-                                <br><span class="text-muted">Data rak bersifat master layout gudang (statis). Mengunggah file akan memperbarui daftar rak.</span>
-                            </div>
+                            <div class="row">
+                                <!-- Left Column: Periode, Dropzone & Process Steps -->
+                                <div class="col-12" id="rack-col-left">
+                                    <div class="form-group mb-3">
+                                        <label class="small font-weight-bold text-gray-700 mb-1" for="upload-rack-year">
+                                            <i class="fas fa-calendar-alt mr-1 text-success"></i> Pilih Tahun Target
+                                            Utilisasi
+                                            <span class="text-danger">*</span>
+                                        </label>
+                                        <select id="upload-rack-year"
+                                            class="form-control form-control-sm font-weight-bold">
+                                            <?php
+                                            $curY = (int) date('Y');
+                                            for ($y = 2024; $y <= $curY + 5; $y++): ?>
+                                                <option value="<?php echo $y; ?>" <?php echo ($y === $curY) ? 'selected' : ''; ?>>
+                                                    <?php echo $y; ?>
+                                                </option>
+                                            <?php endfor; ?>
+                                        </select>
+                                    </div>
 
-                            <div class="upload-drop-zone" id="upload-rack-drop-zone" style="cursor: pointer; border: 2px dashed #1cc88a; border-radius: 8px; padding: 25px 15px; text-align: center; background: #f8fbf9; transition: background 0.2s ease;">
-                                <input type="file" id="excel-rack-file-input" accept=".xlsx,.xls,.csv" class="d-none" />
-                                <div class="upload-icon mb-2">
-                                    <i class="fas fa-cloud-upload-alt fa-3x text-success"></i>
-                                </div>
-                                <h6 class="font-weight-bold text-gray-800 mb-1">Drag &amp; Drop File Excel Rack</h6>
-                                <p class="text-muted small mb-3">atau klik tombol di bawah untuk memilih file</p>
-                                <button class="btn btn-success btn-sm px-3 font-weight-bold shadow-sm" id="btn-browse-rack-file" type="button">
-                                    <i class="fas fa-folder-open mr-1"></i> Browse File
-                                </button>
-                                <div class="file-types mt-2 text-muted small">
-                                    Format didukung: .xlsx, .xls, .csv
-                                </div>
-                            </div>
+                                    <div class="upload-drop-zone" id="upload-rack-drop-zone">
+                                        <input type="file" id="excel-rack-file-input" accept=".xlsx,.xls,.csv"
+                                            class="d-none" />
+                                        <div class="upload-icon">
+                                            <i class="fas fa-cloud-upload-alt text-success"></i>
+                                        </div>
+                                        <h5>Drag &amp; Drop File Excel Rack</h5>
+                                        <p>atau klik untuk memilih file dari komputer Anda</p>
+                                        <button class="btn-browse" id="btn-browse-rack-file" type="button"
+                                            onclick="document.getElementById('excel-rack-file-input').click();">
+                                            <i class="fas fa-folder-open mr-1"></i> Browse File
+                                        </button>
+                                        <div class="file-types">
+                                            Supported: .xlsx, .xls, .csv &bull; Max 200MB
+                                        </div>
+                                    </div>
 
-                            <div class="upload-progress-container mt-3" id="upload-rack-progress" style="display: none;">
-                                <div class="upload-file-info d-flex justify-content-between small text-muted mb-1">
-                                    <span class="file-name font-weight-bold text-gray-800" id="upload-rack-file-name"></span>
-                                    <span class="file-size" id="upload-rack-file-size"></span>
+                                    <!-- Process Steps Container -->
+                                    <div id="rack-process-container" style="display: none;">
+                                        <div class="upload-file-card mb-3">
+                                            <div class="file-details">
+                                                <div class="file-icon text-success"><i class="fas fa-file-excel"></i>
+                                                </div>
+                                                <div class="file-text">
+                                                    <div class="file-name" id="rack-file-name">-</div>
+                                                    <div class="file-size" id="rack-file-size">-</div>
+                                                </div>
+                                            </div>
+                                            <button type="button" class="btn btn-outline-secondary btn-sm"
+                                                id="rack-btn-change-file" title="Ganti File">
+                                                <i class="fas fa-redo-alt mr-1"></i> Ganti
+                                            </button>
+                                        </div>
+
+                                        <div class="upload-steps-list">
+                                            <div class="upload-step-item" id="rack-step-read">
+                                                <div class="step-icon-container"><i class="fas fa-file"></i></div>
+                                                <div class="step-label-container"><span class="step-label">1. Upload
+                                                        File...</span></div>
+                                            </div>
+                                            <div class="upload-step-item" id="rack-step-parse">
+                                                <div class="step-icon-container"><i class="fas fa-table"></i></div>
+                                                <div class="step-label-container"><span class="step-label">2. Validasi
+                                                        File...</span></div>
+                                            </div>
+                                            <div class="upload-step-item" id="rack-step-upload">
+                                                <div class="step-icon-container"><i class="fas fa-database"></i></div>
+                                                <div class="step-label-container" style="flex-grow: 1;">
+                                                    <span class="step-label">3. Uploading Database...</span>
+                                                    <div class="batch-progress-wrapper" id="rack-batch-progress"
+                                                        style="display: none;">
+                                                        <div class="batch-progress-details">
+                                                            <span id="rack-progress-text">0 / 0 baris</span>
+                                                            <span id="rack-progress-percent">0%</span>
+                                                        </div>
+                                                        <div class="batch-progress-bar-bg">
+                                                            <div class="batch-progress-bar-fill"
+                                                                id="rack-progress-fill"></div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="upload-step-item" id="rack-step-finalize">
+                                                <div class="step-icon-container"><i class="fas fa-sync-alt"></i></div>
+                                                <div class="step-label-container"><span class="step-label">4. Finalisasi
+                                                        Data...</span></div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="progress" style="height: 6px;">
-                                    <div class="progress-bar bg-success progress-bar-striped progress-bar-animated" id="upload-rack-progress-fill" style="width: 0%;"></div>
+
+                                <!-- Right Column: Sheet Selection & Action -->
+                                <div class="col-lg-6" id="rack-col-right" style="display: none;">
+                                    <div class="card border h-100 shadow-none bg-white">
+                                        <div class="card-body p-3 d-flex flex-column justify-content-between">
+                                            <div>
+                                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                                    <label for="rack-sheet-select"
+                                                        class="small font-weight-bold text-gray-800 mb-0">
+                                                        <i class="fas fa-layer-group text-success mr-1"></i> Pilih Sheet
+                                                        Excel
+                                                    </label>
+                                                    <span class="badge badge-success px-2 py-1" id="rack-sheet-badge">0
+                                                        Sheet</span>
+                                                </div>
+                                                <p class="small text-muted mb-2">Pilih lembar kerja (sheet) yang berisi
+                                                    Data Utilisasi Rack:</p>
+                                                <select class="form-control form-control-sm font-weight-bold mb-3"
+                                                    id="rack-sheet-select"></select>
+
+                                                <div class="alert alert-light border py-2 px-3 small mb-3"
+                                                    id="rack-sheet-info">
+                                                    <i class="fas fa-info-circle text-info mr-1"></i> <span
+                                                        id="rack-sheet-info-text">Silakan pilih sheet di atas.</span>
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <button type="button"
+                                                    class="btn btn-success btn-block font-weight-bold py-2 shadow-sm"
+                                                    id="rack-btn-submit">
+                                                    <i class="fas fa-file-import mr-1"></i> Mulai Import Sheet Ini
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -1318,7 +1532,8 @@ if (!defined('SPA_MODE')) {
             <!-- Import Excel Inbound Modal -->
             <div class="modal fade" id="uploadExcelModalInbound" tabindex="-1" role="dialog"
                 aria-labelledby="uploadExcelModalInboundLabel" aria-hidden="true">
-                <div class="modal-dialog modal-md modal-dialog-centered" role="document">
+                <div class="modal-dialog upload-modal-dialog modal-dialog-centered" role="document"
+                    id="uploadExcelModalInboundDialog">
                     <div class="modal-content upload-modal-content">
                         <div class="modal-header upload-modal-header">
                             <h5 class="modal-title font-weight-bold" id="uploadExcelModalInboundLabel">
@@ -1342,70 +1557,166 @@ if (!defined('SPA_MODE')) {
                                 </div>
                             </div>
 
-                            <!-- Periode Group Selectors (Month, Batch & Year) -->
-                            <div class="form-row mb-2">
-                                <div class="col-4">
-                                    <label for="uploadInboundMonthSelect"
-                                        class="small font-weight-bold text-gray-700 mb-1">Bulan Periode <span
-                                            class="text-danger">*</span></label>
-                                    <select class="form-control form-control-sm" id="uploadInboundMonthSelect">
-                                        <option value="">-- Pilih Bulan --</option>
-                                        <option value="January">January</option>
-                                        <option value="February">February</option>
-                                        <option value="March">March</option>
-                                        <option value="April">April</option>
-                                        <option value="May">May</option>
-                                        <option value="June">June</option>
-                                        <option value="July">July</option>
-                                        <option value="August">August</option>
-                                        <option value="September">September</option>
-                                        <option value="October">October</option>
-                                        <option value="November">November</option>
-                                        <option value="December">December</option>
-                                    </select>
-                                </div>
-                                <div class="col-4">
-                                    <label for="uploadInboundBatchSelect"
-                                        class="small font-weight-bold text-gray-700 mb-1">Batch <span
-                                            class="text-danger">*</span></label>
-                                    <select class="form-control form-control-sm" id="uploadInboundBatchSelect">
-                                        <option value="">-- Pilih Batch --</option>
-                                        <option value="1">Batch 1</option>
-                                        <option value="2">Batch 2</option>
-                                    </select>
-                                </div>
-                                <div class="col-4">
-                                    <label for="uploadInboundYearSelect"
-                                        class="small font-weight-bold text-gray-700 mb-1">Tahun Periode <span
-                                            class="text-danger">*</span></label>
-                                    <select class="form-control form-control-sm" id="uploadInboundYearSelect">
-                                        <option value="">-- Pilih Tahun --</option>
-                                        <?php
-                                        $curY = (int) date('Y');
-                                        for ($y = 2024; $y <= $curY + 5; $y++): ?>
-                                            <option value="<?php echo $y; ?>" <?php echo ($y === $curY) ? 'selected' : ''; ?>><?php echo $y; ?></option>
-                                        <?php endfor; ?>
-                                    </select>
-                                </div>
-                            </div>
+                            <div class="row">
+                                <!-- Left Column: Periode, Dropzone & Process Steps -->
+                                <div class="col-12" id="inbound-col-left">
+                                    <!-- Periode Group Selectors (Month, Batch & Year) -->
+                                    <div class="form-row mb-2">
+                                        <div class="col-4">
+                                            <label for="uploadInboundMonthSelect"
+                                                class="small font-weight-bold text-gray-700 mb-1">Bulan Periode <span
+                                                    class="text-danger">*</span></label>
+                                            <select class="form-control form-control-sm" id="uploadInboundMonthSelect">
+                                                <option value="">-- Pilih Bulan --</option>
+                                                <option value="January">January</option>
+                                                <option value="February">February</option>
+                                                <option value="March">March</option>
+                                                <option value="April">April</option>
+                                                <option value="May">May</option>
+                                                <option value="June">June</option>
+                                                <option value="July">July</option>
+                                                <option value="August">August</option>
+                                                <option value="September">September</option>
+                                                <option value="October">October</option>
+                                                <option value="November">November</option>
+                                                <option value="December">December</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-4">
+                                            <label for="uploadInboundBatchSelect"
+                                                class="small font-weight-bold text-gray-700 mb-1">Batch <span
+                                                    class="text-danger">*</span></label>
+                                            <select class="form-control form-control-sm" id="uploadInboundBatchSelect">
+                                                <option value="">-- Pilih Batch --</option>
+                                                <option value="1">Batch 1</option>
+                                                <option value="2">Batch 2</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-4">
+                                            <label for="uploadInboundYearSelect"
+                                                class="small font-weight-bold text-gray-700 mb-1">Tahun Periode <span
+                                                    class="text-danger">*</span></label>
+                                            <select class="form-control form-control-sm" id="uploadInboundYearSelect">
+                                                <option value="">-- Pilih Tahun --</option>
+                                                <?php
+                                                $curY = (int) date('Y');
+                                                for ($y = 2024; $y <= $curY + 5; $y++): ?>
+                                                    <option value="<?php echo $y; ?>" <?php echo ($y === $curY) ? 'selected' : ''; ?>>
+                                                        <?php echo $y; ?>
+                                                    </option>
+                                                <?php endfor; ?>
+                                            </select>
+                                        </div>
+                                    </div>
 
-                            <!-- Period Availability Status Indicator -->
-                            <div id="inbound-period-status" class="mb-3" style="display: none;"></div>
+                                    <!-- Period Availability Status Indicator -->
+                                    <div id="inbound-period-status" class="mb-3" style="display: none;"></div>
 
-                            <div class="upload-drop-zone" id="inbound-upload-drop-zone">
-                                <input type="file" id="excel-file-inbound-input" accept=".xlsx,.xls,.csv"
-                                    class="d-none" />
-                                <div class="upload-icon">
-                                    <i class="fas fa-cloud-upload-alt"></i>
+                                    <div class="upload-drop-zone" id="inbound-upload-drop-zone">
+                                        <input type="file" id="excel-file-inbound-input" accept=".xlsx,.xls,.csv"
+                                            class="d-none" />
+                                        <div class="upload-icon">
+                                            <i class="fas fa-cloud-upload-alt"></i>
+                                        </div>
+                                        <h5>Drag &amp; Drop Excel File Inbound</h5>
+                                        <p>atau klik untuk memilih file dari komputer Anda</p>
+                                        <button class="btn-browse" type="button" id="btn-browse-inbound"
+                                            onclick="document.getElementById('excel-file-inbound-input').click();">
+                                            <i class="fas fa-folder-open mr-1"></i> Browse File
+                                        </button>
+                                        <div class="file-types">
+                                            Supported: .xlsx, .xls, .csv &bull; Max 200MB
+                                        </div>
+                                    </div>
+
+                                    <!-- Process Steps Container -->
+                                    <div id="inbound-process-container" style="display: none;">
+                                        <div class="upload-file-card mb-3">
+                                            <div class="file-details">
+                                                <div class="file-icon"><i class="fas fa-file-excel"></i></div>
+                                                <div class="file-text">
+                                                    <div class="file-name" id="inbound-file-name">-</div>
+                                                    <div class="file-size" id="inbound-file-size">-</div>
+                                                </div>
+                                            </div>
+                                            <button type="button" class="btn btn-outline-secondary btn-sm"
+                                                id="inbound-btn-change-file" title="Ganti File">
+                                                <i class="fas fa-redo-alt mr-1"></i> Ganti
+                                            </button>
+                                        </div>
+
+                                        <div class="upload-steps-list">
+                                            <div class="upload-step-item" id="inbound-step-read">
+                                                <div class="step-icon-container"><i class="fas fa-file"></i></div>
+                                                <div class="step-label-container"><span class="step-label">1. Upload
+                                                        File...</span></div>
+                                            </div>
+                                            <div class="upload-step-item" id="inbound-step-parse">
+                                                <div class="step-icon-container"><i class="fas fa-table"></i></div>
+                                                <div class="step-label-container"><span class="step-label">2. Validasi
+                                                        File...</span></div>
+                                            </div>
+                                            <div class="upload-step-item" id="inbound-step-upload">
+                                                <div class="step-icon-container"><i class="fas fa-database"></i></div>
+                                                <div class="step-label-container" style="flex-grow: 1;">
+                                                    <span class="step-label">3. Uploading Database...</span>
+                                                    <div class="batch-progress-wrapper" id="inbound-batch-progress"
+                                                        style="display: none;">
+                                                        <div class="batch-progress-details">
+                                                            <span id="inbound-progress-text">0 / 0 baris</span>
+                                                            <span id="inbound-progress-percent">0%</span>
+                                                        </div>
+                                                        <div class="batch-progress-bar-bg">
+                                                            <div class="batch-progress-bar-fill"
+                                                                id="inbound-progress-fill"></div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="upload-step-item" id="inbound-step-finalize">
+                                                <div class="step-icon-container"><i class="fas fa-sync-alt"></i></div>
+                                                <div class="step-label-container"><span class="step-label">4. Finalisasi
+                                                        Data...</span></div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <h5>Drag &amp; Drop Excel File Inbound</h5>
-                                <p>atau klik untuk memilih file dari komputer Anda</p>
-                                <button class="btn-browse" type="button" id="btn-browse-inbound"
-                                    onclick="document.getElementById('excel-file-inbound-input').click();">
-                                    <i class="fas fa-folder-open mr-1"></i> Browse File
-                                </button>
-                                <div class="file-types">
-                                    Supported: .xlsx, .xls, .csv &bull; Max 200MB
+
+                                <!-- Right Column: Sheet Selection & Action -->
+                                <div class="col-lg-6" id="inbound-col-right" style="display: none;">
+                                    <div class="card border h-100 shadow-none bg-white">
+                                        <div class="card-body p-3 d-flex flex-column justify-content-between">
+                                            <div>
+                                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                                    <label for="inbound-sheet-select"
+                                                        class="small font-weight-bold text-gray-800 mb-0">
+                                                        <i class="fas fa-layer-group text-primary mr-1"></i> Pilih Sheet
+                                                        Excel
+                                                    </label>
+                                                    <span class="badge badge-primary px-2 py-1"
+                                                        id="inbound-sheet-badge">0 Sheet</span>
+                                                </div>
+                                                <p class="small text-muted mb-2">Pilih lembar kerja (sheet) yang berisi
+                                                    data Inbound:</p>
+                                                <select class="form-control form-control-sm font-weight-bold mb-3"
+                                                    id="inbound-sheet-select"></select>
+
+                                                <div class="alert alert-light border py-2 px-3 small mb-3"
+                                                    id="inbound-sheet-info">
+                                                    <i class="fas fa-info-circle text-info mr-1"></i> <span
+                                                        id="inbound-sheet-info-text">Silakan pilih sheet di atas.</span>
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <button type="button"
+                                                    class="btn btn-primary btn-block font-weight-bold py-2 shadow-sm"
+                                                    id="inbound-btn-submit">
+                                                    <i class="fas fa-file-import mr-1"></i> Mulai Import Sheet Ini
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -1416,7 +1727,8 @@ if (!defined('SPA_MODE')) {
             <!-- Import Excel Outbound Modal -->
             <div class="modal fade" id="uploadExcelModalOutbound" tabindex="-1" role="dialog"
                 aria-labelledby="uploadExcelModalOutboundLabel" aria-hidden="true">
-                <div class="modal-dialog modal-md modal-dialog-centered" role="document">
+                <div class="modal-dialog upload-modal-dialog modal-dialog-centered" role="document"
+                    id="uploadExcelModalOutboundDialog">
                     <div class="modal-content upload-modal-content">
                         <div class="modal-header upload-modal-header">
                             <h5 class="modal-title font-weight-bold" id="uploadExcelModalOutboundLabel">
@@ -1440,67 +1752,164 @@ if (!defined('SPA_MODE')) {
                                 </div>
                             </div>
 
-                            <!-- Periode Group Selectors (Month, Batch & Year) -->
-                            <div class="form-row mb-2">
-                                <div class="col-4">
-                                    <label for="uploadOutboundMonthSelect"
-                                        class="small font-weight-bold text-gray-700 mb-1">Bulan Periode <span
-                                            class="text-danger">*</span></label>
-                                    <select class="form-control form-control-sm" id="uploadOutboundMonthSelect">
-                                        <option value="">-- Pilih Bulan --</option>
-                                        <option value="January">January</option>
-                                        <option value="February">February</option>
-                                        <option value="March">March</option>
-                                        <option value="April">April</option>
-                                        <option value="May">May</option>
-                                        <option value="June">June</option>
-                                        <option value="July">July</option>
-                                        <option value="August">August</option>
-                                        <option value="September">September</option>
-                                        <option value="October">October</option>
-                                        <option value="November">November</option>
-                                        <option value="December">December</option>
-                                    </select>
-                                </div>
-                                <div class="col-4">
-                                    <label for="uploadOutboundBatchSelect"
-                                        class="small font-weight-bold text-gray-700 mb-1">Batch <span
-                                            class="text-danger">*</span></label>
-                                    <select class="form-control form-control-sm" id="uploadOutboundBatchSelect">
-                                        <option value="">-- Pilih Batch --</option>
-                                        <option value="1">Batch 1</option>
-                                        <option value="2">Batch 2</option>
-                                    </select>
-                                </div>
-                                <div class="col-4">
-                                    <label for="uploadOutboundYearSelect"
-                                        class="small font-weight-bold text-gray-700 mb-1">Tahun Periode <span
-                                            class="text-danger">*</span></label>
-                                    <select class="form-control form-control-sm" id="uploadOutboundYearSelect">
-                                        <option value="">-- Pilih Tahun --</option>
-                                        <?php
-                                        $curY = (int) date('Y');
-                                        for ($y = 2024; $y <= $curY + 5; $y++): ?>
-                                            <option value="<?php echo $y; ?>" <?php echo ($y === $curY) ? 'selected' : ''; ?>><?php echo $y; ?></option>
-                                        <?php endfor; ?>
-                                    </select>
-                                </div>
-                            </div>
+                            <div class="row">
+                                <!-- Left Column: Periode, Dropzone & Process Steps -->
+                                <div class="col-12" id="outbound-col-left">
+                                    <!-- Periode Group Selectors (Month, Batch & Year) -->
+                                    <div class="form-row mb-2">
+                                        <div class="col-4">
+                                            <label for="uploadOutboundMonthSelect"
+                                                class="small font-weight-bold text-gray-700 mb-1">Bulan Periode <span
+                                                    class="text-danger">*</span></label>
+                                            <select class="form-control form-control-sm" id="uploadOutboundMonthSelect">
+                                                <option value="">-- Pilih Bulan --</option>
+                                                <option value="January">January</option>
+                                                <option value="February">February</option>
+                                                <option value="March">March</option>
+                                                <option value="April">April</option>
+                                                <option value="May">May</option>
+                                                <option value="June">June</option>
+                                                <option value="July">July</option>
+                                                <option value="August">August</option>
+                                                <option value="September">September</option>
+                                                <option value="October">October</option>
+                                                <option value="November">November</option>
+                                                <option value="December">December</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-4">
+                                            <label for="uploadOutboundBatchSelect"
+                                                class="small font-weight-bold text-gray-700 mb-1">Batch <span
+                                                    class="text-danger">*</span></label>
+                                            <select class="form-control form-control-sm" id="uploadOutboundBatchSelect">
+                                                <option value="">-- Pilih Batch --</option>
+                                                <option value="1">Batch 1</option>
+                                                <option value="2">Batch 2</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-4">
+                                            <label for="uploadOutboundYearSelect"
+                                                class="small font-weight-bold text-gray-700 mb-1">Tahun Periode <span
+                                                    class="text-danger">*</span></label>
+                                            <select class="form-control form-control-sm" id="uploadOutboundYearSelect">
+                                                <option value="">-- Pilih Tahun --</option>
+                                                <?php
+                                                $curY = (int) date('Y');
+                                                for ($y = 2024; $y <= $curY + 5; $y++): ?>
+                                                    <option value="<?php echo $y; ?>" <?php echo ($y === $curY) ? 'selected' : ''; ?>>
+                                                        <?php echo $y; ?>
+                                                    </option>
+                                                <?php endfor; ?>
+                                            </select>
+                                        </div>
+                                    </div>
 
-                            <div class="upload-drop-zone" id="outbound-upload-drop-zone">
-                                <input type="file" id="excel-file-outbound-input" accept=".xlsx,.xls,.csv"
-                                    class="d-none" />
-                                <div class="upload-icon">
-                                    <i class="fas fa-cloud-upload-alt"></i>
+                                    <div class="upload-drop-zone" id="outbound-upload-drop-zone">
+                                        <input type="file" id="excel-file-outbound-input" accept=".xlsx,.xls,.csv"
+                                            class="d-none" />
+                                        <div class="upload-icon">
+                                            <i class="fas fa-cloud-upload-alt"></i>
+                                        </div>
+                                        <h5>Drag &amp; Drop Excel File Outbound</h5>
+                                        <p>atau klik untuk memilih file dari komputer Anda</p>
+                                        <button class="btn-browse" type="button" id="btn-browse-outbound"
+                                            onclick="document.getElementById('excel-file-outbound-input').click();">
+                                            <i class="fas fa-folder-open mr-1"></i> Browse File
+                                        </button>
+                                        <div class="file-types">
+                                            Supported: .xlsx, .xls, .csv &bull; Max 200MB
+                                        </div>
+                                    </div>
+
+                                    <!-- Process Steps Container -->
+                                    <div id="outbound-process-container" style="display: none;">
+                                        <div class="upload-file-card mb-3">
+                                            <div class="file-details">
+                                                <div class="file-icon"><i class="fas fa-file-excel"></i></div>
+                                                <div class="file-text">
+                                                    <div class="file-name" id="outbound-file-name">-</div>
+                                                    <div class="file-size" id="outbound-file-size">-</div>
+                                                </div>
+                                            </div>
+                                            <button type="button" class="btn btn-outline-secondary btn-sm"
+                                                id="outbound-btn-change-file" title="Ganti File">
+                                                <i class="fas fa-redo-alt mr-1"></i> Ganti
+                                            </button>
+                                        </div>
+
+                                        <div class="upload-steps-list">
+                                            <div class="upload-step-item" id="outbound-step-read">
+                                                <div class="step-icon-container"><i class="fas fa-file"></i></div>
+                                                <div class="step-label-container"><span class="step-label">1. Upload
+                                                        File...</span></div>
+                                            </div>
+                                            <div class="upload-step-item" id="outbound-step-parse">
+                                                <div class="step-icon-container"><i class="fas fa-table"></i></div>
+                                                <div class="step-label-container"><span class="step-label">2. Validasi
+                                                        File...</span></div>
+                                            </div>
+                                            <div class="upload-step-item" id="outbound-step-upload">
+                                                <div class="step-icon-container"><i class="fas fa-database"></i></div>
+                                                <div class="step-label-container" style="flex-grow: 1;">
+                                                    <span class="step-label">3. Uploading Database...</span>
+                                                    <div class="batch-progress-wrapper" id="outbound-batch-progress"
+                                                        style="display: none;">
+                                                        <div class="batch-progress-details">
+                                                            <span id="outbound-progress-text">0 / 0 baris</span>
+                                                            <span id="outbound-progress-percent">0%</span>
+                                                        </div>
+                                                        <div class="batch-progress-bar-bg">
+                                                            <div class="batch-progress-bar-fill"
+                                                                id="outbound-progress-fill"></div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="upload-step-item" id="outbound-step-finalize">
+                                                <div class="step-icon-container"><i class="fas fa-sync-alt"></i></div>
+                                                <div class="step-label-container"><span class="step-label">4. Finalisasi
+                                                        Data...</span></div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <h5>Drag &amp; Drop Excel File Outbound</h5>
-                                <p>atau klik untuk memilih file dari komputer Anda</p>
-                                <button class="btn-browse" type="button" id="btn-browse-outbound"
-                                    onclick="document.getElementById('excel-file-outbound-input').click();">
-                                    <i class="fas fa-folder-open mr-1"></i> Browse File
-                                </button>
-                                <div class="file-types">
-                                    Supported: .xlsx, .xls, .csv &bull; Max 200MB
+
+                                <!-- Right Column: Sheet Selection & Action -->
+                                <div class="col-lg-6" id="outbound-col-right" style="display: none;">
+                                    <div class="card border h-100 shadow-none bg-white">
+                                        <div class="card-body p-3 d-flex flex-column justify-content-between">
+                                            <div>
+                                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                                    <label for="outbound-sheet-select"
+                                                        class="small font-weight-bold text-gray-800 mb-0">
+                                                        <i class="fas fa-layer-group text-primary mr-1"></i> Pilih Sheet
+                                                        Excel
+                                                    </label>
+                                                    <span class="badge badge-primary px-2 py-1"
+                                                        id="outbound-sheet-badge">0 Sheet</span>
+                                                </div>
+                                                <p class="small text-muted mb-2">Pilih lembar kerja (sheet) yang berisi
+                                                    data Outbound:</p>
+                                                <select class="form-control form-control-sm font-weight-bold mb-3"
+                                                    id="outbound-sheet-select"></select>
+
+                                                <div class="alert alert-light border py-2 px-3 small mb-3"
+                                                    id="outbound-sheet-info">
+                                                    <i class="fas fa-info-circle text-info mr-1"></i> <span
+                                                        id="outbound-sheet-info-text">Silakan pilih sheet di
+                                                        atas.</span>
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <button type="button"
+                                                    class="btn btn-primary btn-block font-weight-bold py-2 shadow-sm"
+                                                    id="outbound-btn-submit">
+                                                    <i class="fas fa-file-import mr-1"></i> Mulai Import Sheet Ini
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -1511,7 +1920,8 @@ if (!defined('SPA_MODE')) {
             <!-- Import Excel PR Forwarder Modal -->
             <div class="modal fade" id="uploadExcelModalForwarder" tabindex="-1" role="dialog"
                 aria-labelledby="uploadExcelModalForwarderLabel" aria-hidden="true">
-                <div class="modal-dialog modal-md modal-dialog-centered" role="document">
+                <div class="modal-dialog upload-modal-dialog modal-dialog-centered" role="document"
+                    id="uploadExcelModalForwarderDialog">
                     <div class="modal-content upload-modal-content">
                         <div class="modal-header upload-modal-header">
                             <h5 class="modal-title font-weight-bold" id="uploadExcelModalForwarderLabel">
@@ -1535,67 +1945,166 @@ if (!defined('SPA_MODE')) {
                                 </div>
                             </div>
 
-                            <!-- Periode Group Selectors (Month, Batch & Year) -->
-                            <div class="form-row mb-2">
-                                <div class="col-4">
-                                    <label for="uploadForwarderMonthSelect"
-                                        class="small font-weight-bold text-gray-700 mb-1">Bulan Periode <span
-                                            class="text-danger">*</span></label>
-                                    <select class="form-control form-control-sm" id="uploadForwarderMonthSelect">
-                                        <option value="">-- Pilih Bulan --</option>
-                                        <option value="January">January</option>
-                                        <option value="February">February</option>
-                                        <option value="March">March</option>
-                                        <option value="April">April</option>
-                                        <option value="May">May</option>
-                                        <option value="June">June</option>
-                                        <option value="July">July</option>
-                                        <option value="August">August</option>
-                                        <option value="September">September</option>
-                                        <option value="October">October</option>
-                                        <option value="November">November</option>
-                                        <option value="December">December</option>
-                                    </select>
-                                </div>
-                                <div class="col-4">
-                                    <label for="uploadForwarderBatchSelect"
-                                        class="small font-weight-bold text-gray-700 mb-1">Batch <span
-                                            class="text-danger">*</span></label>
-                                    <select class="form-control form-control-sm" id="uploadForwarderBatchSelect">
-                                        <option value="">-- Pilih Batch --</option>
-                                        <option value="1">Batch 1</option>
-                                        <option value="2">Batch 2</option>
-                                    </select>
-                                </div>
-                                <div class="col-4">
-                                    <label for="uploadForwarderYearSelect"
-                                        class="small font-weight-bold text-gray-700 mb-1">Tahun Periode <span
-                                            class="text-danger">*</span></label>
-                                    <select class="form-control form-control-sm" id="uploadForwarderYearSelect">
-                                        <option value="">-- Pilih Tahun --</option>
-                                        <?php
-                                        $curY = (int) date('Y');
-                                        for ($y = 2024; $y <= $curY + 5; $y++): ?>
-                                            <option value="<?php echo $y; ?>" <?php echo ($y === $curY) ? 'selected' : ''; ?>><?php echo $y; ?></option>
-                                        <?php endfor; ?>
-                                    </select>
-                                </div>
-                            </div>
+                            <div class="row">
+                                <!-- Left Column: Periode, Dropzone & Process Steps -->
+                                <div class="col-12" id="forwarder-col-left">
+                                    <!-- Periode Group Selectors (Month, Batch & Year) -->
+                                    <div class="form-row mb-2">
+                                        <div class="col-4">
+                                            <label for="uploadForwarderMonthSelect"
+                                                class="small font-weight-bold text-gray-700 mb-1">Bulan Periode <span
+                                                    class="text-danger">*</span></label>
+                                            <select class="form-control form-control-sm"
+                                                id="uploadForwarderMonthSelect">
+                                                <option value="">-- Pilih Bulan --</option>
+                                                <option value="January">January</option>
+                                                <option value="February">February</option>
+                                                <option value="March">March</option>
+                                                <option value="April">April</option>
+                                                <option value="May">May</option>
+                                                <option value="June">June</option>
+                                                <option value="July">July</option>
+                                                <option value="August">August</option>
+                                                <option value="September">September</option>
+                                                <option value="October">October</option>
+                                                <option value="November">November</option>
+                                                <option value="December">December</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-4">
+                                            <label for="uploadForwarderBatchSelect"
+                                                class="small font-weight-bold text-gray-700 mb-1">Batch <span
+                                                    class="text-danger">*</span></label>
+                                            <select class="form-control form-control-sm"
+                                                id="uploadForwarderBatchSelect">
+                                                <option value="">-- Pilih Batch --</option>
+                                                <option value="1">Batch 1</option>
+                                                <option value="2">Batch 2</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-4">
+                                            <label for="uploadForwarderYearSelect"
+                                                class="small font-weight-bold text-gray-700 mb-1">Tahun Periode <span
+                                                    class="text-danger">*</span></label>
+                                            <select class="form-control form-control-sm" id="uploadForwarderYearSelect">
+                                                <option value="">-- Pilih Tahun --</option>
+                                                <?php
+                                                $curY = (int) date('Y');
+                                                for ($y = 2024; $y <= $curY + 5; $y++): ?>
+                                                    <option value="<?php echo $y; ?>" <?php echo ($y === $curY) ? 'selected' : ''; ?>>
+                                                        <?php echo $y; ?>
+                                                    </option>
+                                                <?php endfor; ?>
+                                            </select>
+                                        </div>
+                                    </div>
 
-                            <div class="upload-drop-zone" id="forwarder-upload-drop-zone">
-                                <input type="file" id="excel-file-forwarder-input" accept=".xlsx,.xls,.csv"
-                                    class="d-none" />
-                                <div class="upload-icon">
-                                    <i class="fas fa-cloud-upload-alt"></i>
+                                    <div class="upload-drop-zone" id="forwarder-upload-drop-zone">
+                                        <input type="file" id="excel-file-forwarder-input" accept=".xlsx,.xls,.csv"
+                                            class="d-none" />
+                                        <div class="upload-icon">
+                                            <i class="fas fa-cloud-upload-alt"></i>
+                                        </div>
+                                        <h5>Drag &amp; Drop Excel File PR Forwarder</h5>
+                                        <p>atau klik untuk memilih file dari komputer Anda</p>
+                                        <button class="btn-browse" type="button" id="btn-browse-forwarder"
+                                            onclick="document.getElementById('excel-file-forwarder-input').click();">
+                                            <i class="fas fa-folder-open mr-1"></i> Browse File
+                                        </button>
+                                        <div class="file-types">
+                                            Supported: .xlsx, .xls, .csv &bull; Max 200MB
+                                        </div>
+                                    </div>
+
+                                    <!-- Process Steps Container -->
+                                    <div id="forwarder-process-container" style="display: none;">
+                                        <div class="upload-file-card mb-3">
+                                            <div class="file-details">
+                                                <div class="file-icon"><i class="fas fa-file-excel"></i></div>
+                                                <div class="file-text">
+                                                    <div class="file-name" id="forwarder-file-name">-</div>
+                                                    <div class="file-size" id="forwarder-file-size">-</div>
+                                                </div>
+                                            </div>
+                                            <button type="button" class="btn btn-outline-secondary btn-sm"
+                                                id="forwarder-btn-change-file" title="Ganti File">
+                                                <i class="fas fa-redo-alt mr-1"></i> Ganti
+                                            </button>
+                                        </div>
+
+                                        <div class="upload-steps-list">
+                                            <div class="upload-step-item" id="forwarder-step-read">
+                                                <div class="step-icon-container"><i class="fas fa-file"></i></div>
+                                                <div class="step-label-container"><span class="step-label">1. Upload
+                                                        File...</span></div>
+                                            </div>
+                                            <div class="upload-step-item" id="forwarder-step-parse">
+                                                <div class="step-icon-container"><i class="fas fa-table"></i></div>
+                                                <div class="step-label-container"><span class="step-label">2. Validasi
+                                                        File...</span></div>
+                                            </div>
+                                            <div class="upload-step-item" id="forwarder-step-upload">
+                                                <div class="step-icon-container"><i class="fas fa-database"></i></div>
+                                                <div class="step-label-container" style="flex-grow: 1;">
+                                                    <span class="step-label">3. Uploading Database...</span>
+                                                    <div class="batch-progress-wrapper" id="forwarder-batch-progress"
+                                                        style="display: none;">
+                                                        <div class="batch-progress-details">
+                                                            <span id="forwarder-progress-text">0 / 0 baris</span>
+                                                            <span id="forwarder-progress-percent">0%</span>
+                                                        </div>
+                                                        <div class="batch-progress-bar-bg">
+                                                            <div class="batch-progress-bar-fill"
+                                                                id="forwarder-progress-fill"></div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="upload-step-item" id="forwarder-step-finalize">
+                                                <div class="step-icon-container"><i class="fas fa-sync-alt"></i></div>
+                                                <div class="step-label-container"><span class="step-label">4. Finalisasi
+                                                        Data...</span></div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <h5>Drag &amp; Drop Excel File PR Forwarder</h5>
-                                <p>atau klik untuk memilih file dari komputer Anda</p>
-                                <button class="btn-browse" type="button" id="btn-browse-forwarder"
-                                    onclick="document.getElementById('excel-file-forwarder-input').click();">
-                                    <i class="fas fa-folder-open mr-1"></i> Browse File
-                                </button>
-                                <div class="file-types">
-                                    Supported: .xlsx, .xls, .csv &bull; Max 200MB
+
+                                <!-- Right Column: Sheet Selection & Action -->
+                                <div class="col-lg-6" id="forwarder-col-right" style="display: none;">
+                                    <div class="card border h-100 shadow-none bg-white">
+                                        <div class="card-body p-3 d-flex flex-column justify-content-between">
+                                            <div>
+                                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                                    <label for="forwarder-sheet-select"
+                                                        class="small font-weight-bold text-gray-800 mb-0">
+                                                        <i class="fas fa-layer-group text-primary mr-1"></i> Pilih Sheet
+                                                        Excel
+                                                    </label>
+                                                    <span class="badge badge-primary px-2 py-1"
+                                                        id="forwarder-sheet-badge">0 Sheet</span>
+                                                </div>
+                                                <p class="small text-muted mb-2">Pilih lembar kerja (sheet) yang berisi
+                                                    data PR Forwarder:</p>
+                                                <select class="form-control form-control-sm font-weight-bold mb-3"
+                                                    id="forwarder-sheet-select"></select>
+
+                                                <div class="alert alert-light border py-2 px-3 small mb-3"
+                                                    id="forwarder-sheet-info">
+                                                    <i class="fas fa-info-circle text-info mr-1"></i> <span
+                                                        id="forwarder-sheet-info-text">Silakan pilih sheet di
+                                                        atas.</span>
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <button type="button"
+                                                    class="btn btn-primary btn-block font-weight-bold py-2 shadow-sm"
+                                                    id="forwarder-btn-submit">
+                                                    <i class="fas fa-file-import mr-1"></i> Mulai Import Sheet Ini
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -1623,14 +2132,16 @@ if (!defined('SPA_MODE')) {
                                 <div class="text-center text-gray-600 mb-4">
                                     <h3 class="text-danger font-weight-bold mb-3"><i
                                             class="fas fa-exclamation-triangle mr-2"></i>Peringatan</h3>
-                                    <p class="mb-0" style="font-size: 1.1rem;">Data Inbound untuk periode yang Anda
+                                    <p class="mb-0" style="font-size: 1.1rem;">Data Inbound untuk periode yang
+                                        Anda
                                         pilih akan dihapus secara permanen dari sistem.</p>
                                 </div>
                                 <div class="form-group mb-3">
                                     <label for="deleteInboundMonthSelect"
                                         class="small font-weight-bold text-gray-600">Bulan</label>
                                     <select class="form-control form-control-sm" id="deleteInboundMonthSelect">
-                                        <option value="">-- Pilih Bulan (Kosongkan untuk Hapus Semua) --</option>
+                                        <option value="">-- Pilih Bulan (Kosongkan untuk Hapus Semua) --
+                                        </option>
                                         <option value="January">January</option>
                                         <option value="February">February</option>
                                         <option value="March">March</option>
@@ -1662,7 +2173,9 @@ if (!defined('SPA_MODE')) {
                                         <?php
                                         $curY = (int) date('Y');
                                         for ($y = 2024; $y <= $curY + 5; $y++): ?>
-                                            <option value="<?php echo $y; ?>" <?php echo ($y === $curY) ? 'selected' : ''; ?>><?php echo $y; ?></option>
+                                            <option value="<?php echo $y; ?>" <?php echo ($y === $curY) ? 'selected' : ''; ?>>
+                                                <?php echo $y; ?>
+                                            </option>
                                         <?php endfor; ?>
                                     </select>
                                 </div>
@@ -1700,7 +2213,8 @@ if (!defined('SPA_MODE')) {
                                 <div class="text-center text-gray-600 mb-4">
                                     <h3 class="text-danger font-weight-bold mb-3"><i
                                             class="fas fa-exclamation-triangle mr-2"></i>Peringatan</h3>
-                                    <p class="mb-0" style="font-size: 1.1rem;">Apakah Anda yakin ingin menghapus semua
+                                    <p class="mb-0" style="font-size: 1.1rem;">Apakah Anda yakin ingin menghapus
+                                        semua
                                         data dari sistem?</p>
                                 </div>
                                 <div class="d-flex justify-content-end mt-4">
@@ -1737,14 +2251,17 @@ if (!defined('SPA_MODE')) {
                                 <div class="text-center text-gray-600 mb-4">
                                     <h3 class="text-danger font-weight-bold mb-3"><i
                                             class="fas fa-exclamation-triangle mr-2"></i>Peringatan</h3>
-                                    <p class="mb-0" style="font-size: 1.1rem;">Data PR Forwarder untuk periode yang Anda
-                                        pilih akan dihapus dari sistem (atau kosongkan periode untuk menghapus semua).</p>
+                                    <p class="mb-0" style="font-size: 1.1rem;">Data PR Forwarder untuk periode
+                                        yang Anda
+                                        pilih akan dihapus dari sistem (atau kosongkan periode untuk menghapus
+                                        semua).</p>
                                 </div>
                                 <div class="form-group mb-3">
                                     <label for="deleteForwarderMonthSelect"
                                         class="small font-weight-bold text-gray-600">Bulan</label>
                                     <select class="form-control form-control-sm" id="deleteForwarderMonthSelect">
-                                        <option value="">-- Pilih Bulan (Kosongkan untuk Hapus Semua) --</option>
+                                        <option value="">-- Pilih Bulan (Kosongkan untuk Hapus Semua) --
+                                        </option>
                                         <option value="January">January</option>
                                         <option value="February">February</option>
                                         <option value="March">March</option>
@@ -1776,7 +2293,9 @@ if (!defined('SPA_MODE')) {
                                         <?php
                                         $curY = (int) date('Y');
                                         for ($y = 2024; $y <= $curY + 5; $y++): ?>
-                                            <option value="<?php echo $y; ?>" <?php echo ($y === $curY) ? 'selected' : ''; ?>><?php echo $y; ?></option>
+                                            <option value="<?php echo $y; ?>" <?php echo ($y === $curY) ? 'selected' : ''; ?>>
+                                                <?php echo $y; ?>
+                                            </option>
                                         <?php endfor; ?>
                                     </select>
                                 </div>
@@ -1797,7 +2316,8 @@ if (!defined('SPA_MODE')) {
             <!-- Import Excel KPI Modal -->
             <div class="modal fade" id="uploadExcelModalKpi" tabindex="-1" role="dialog"
                 aria-labelledby="uploadExcelModalKpiLabel" aria-hidden="true">
-                <div class="modal-dialog modal-md modal-dialog-centered" role="document">
+                <div class="modal-dialog upload-modal-dialog modal-dialog-centered" role="document"
+                    id="uploadExcelModalKpiDialog">
                     <div class="modal-content upload-modal-content">
                         <div class="modal-header upload-modal-header">
                             <h5 class="modal-title font-weight-bold" id="uploadExcelModalKpiLabel">
@@ -1821,38 +2341,134 @@ if (!defined('SPA_MODE')) {
                                 </div>
                             </div>
 
-                            <!-- Tahun Periode Selector Only (No Bulan/Batch) -->
-                            <div class="form-row mb-3">
-                                <div class="col-12">
-                                    <label for="uploadKpiYearSelect"
-                                        class="small font-weight-bold text-gray-700 mb-1">Tahun Periode <span
-                                            class="text-danger">*</span></label>
-                                    <select class="form-control form-control-sm" id="uploadKpiYearSelect">
-                                        <option value="">-- Pilih Tahun --</option>
-                                        <?php
-                                        $curY = (int) date('Y');
-                                        $minKpiY = 2026;
-                                        for ($y = $minKpiY; $y <= $curY + 5; $y++): ?>
-                                            <option value="<?php echo $y; ?>" <?php echo ($y === $curY) ? 'selected' : ''; ?>><?php echo $y; ?></option>
-                                        <?php endfor; ?>
-                                    </select>
-                                </div>
-                            </div>
+                            <div class="row">
+                                <!-- Left Column: Periode, Dropzone & Process Steps -->
+                                <div class="col-12" id="kpi-col-left">
+                                    <!-- Tahun Periode Selector Only (No Bulan/Batch) -->
+                                    <div class="form-row mb-3">
+                                        <div class="col-12">
+                                            <label for="uploadKpiYearSelect"
+                                                class="small font-weight-bold text-gray-700 mb-1">Tahun Periode <span
+                                                    class="text-danger">*</span></label>
+                                            <select class="form-control form-control-sm" id="uploadKpiYearSelect">
+                                                <option value="">-- Pilih Tahun --</option>
+                                                <?php
+                                                $curY = (int) date('Y');
+                                                $minKpiY = 2026;
+                                                for ($y = $minKpiY; $y <= $curY + 5; $y++): ?>
+                                                    <option value="<?php echo $y; ?>" <?php echo ($y === $curY) ? 'selected' : ''; ?>>
+                                                        <?php echo $y; ?>
+                                                    </option>
+                                                <?php endfor; ?>
+                                            </select>
+                                        </div>
+                                    </div>
 
-                            <div class="upload-drop-zone" id="kpi-upload-drop-zone">
-                                <input type="file" id="excel-file-kpi-input" accept=".xlsx,.xls,.csv"
-                                    class="d-none" />
-                                <div class="upload-icon">
-                                    <i class="fas fa-cloud-upload-alt"></i>
+                                    <div class="upload-drop-zone" id="kpi-upload-drop-zone">
+                                        <input type="file" id="excel-file-kpi-input" accept=".xlsx,.xls,.csv"
+                                            class="d-none" />
+                                        <div class="upload-icon">
+                                            <i class="fas fa-cloud-upload-alt"></i>
+                                        </div>
+                                        <h5>Drag &amp; Drop Excel File KPI</h5>
+                                        <p>atau klik untuk memilih file dari komputer Anda</p>
+                                        <button class="btn-browse" type="button" id="btn-browse-kpi"
+                                            onclick="document.getElementById('excel-file-kpi-input').click();">
+                                            <i class="fas fa-folder-open mr-1"></i> Browse File
+                                        </button>
+                                        <div class="file-types">
+                                            Supported: .xlsx, .xls, .csv &bull; Max 200MB
+                                        </div>
+                                    </div>
+
+                                    <!-- Process Steps Container -->
+                                    <div id="kpi-process-container" style="display: none;">
+                                        <div class="upload-file-card mb-3">
+                                            <div class="file-details">
+                                                <div class="file-icon"><i class="fas fa-file-excel"></i></div>
+                                                <div class="file-text">
+                                                    <div class="file-name" id="kpi-file-name">-</div>
+                                                    <div class="file-size" id="kpi-file-size">-</div>
+                                                </div>
+                                            </div>
+                                            <button type="button" class="btn btn-outline-secondary btn-sm"
+                                                id="kpi-btn-change-file" title="Ganti File">
+                                                <i class="fas fa-redo-alt mr-1"></i> Ganti
+                                            </button>
+                                        </div>
+
+                                        <div class="upload-steps-list">
+                                            <div class="upload-step-item" id="kpi-step-read">
+                                                <div class="step-icon-container"><i class="fas fa-file"></i></div>
+                                                <div class="step-label-container"><span class="step-label">1. Upload
+                                                        File...</span></div>
+                                            </div>
+                                            <div class="upload-step-item" id="kpi-step-parse">
+                                                <div class="step-icon-container"><i class="fas fa-table"></i></div>
+                                                <div class="step-label-container"><span class="step-label">2. Validasi
+                                                        File...</span></div>
+                                            </div>
+                                            <div class="upload-step-item" id="kpi-step-upload">
+                                                <div class="step-icon-container"><i class="fas fa-database"></i></div>
+                                                <div class="step-label-container" style="flex-grow: 1;">
+                                                    <span class="step-label">3. Uploading Database...</span>
+                                                    <div class="batch-progress-wrapper" id="kpi-batch-progress"
+                                                        style="display: none;">
+                                                        <div class="batch-progress-details">
+                                                            <span id="kpi-progress-text">0 / 0 baris</span>
+                                                            <span id="kpi-progress-percent">0%</span>
+                                                        </div>
+                                                        <div class="batch-progress-bar-bg">
+                                                            <div class="batch-progress-bar-fill" id="kpi-progress-fill">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="upload-step-item" id="kpi-step-finalize">
+                                                <div class="step-icon-container"><i class="fas fa-sync-alt"></i></div>
+                                                <div class="step-label-container"><span class="step-label">4. Finalisasi
+                                                        Data...</span></div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <h5>Drag &amp; Drop Excel File KPI</h5>
-                                <p>atau klik untuk memilih file dari komputer Anda</p>
-                                <button class="btn-browse" type="button" id="btn-browse-kpi"
-                                    onclick="document.getElementById('excel-file-kpi-input').click();">
-                                    <i class="fas fa-folder-open mr-1"></i> Browse File
-                                </button>
-                                <div class="file-types">
-                                    Supported: .xlsx, .xls, .csv &bull; Max 200MB
+
+                                <!-- Right Column: Sheet Selection & Action -->
+                                <div class="col-lg-6" id="kpi-col-right" style="display: none;">
+                                    <div class="card border h-100 shadow-none bg-white">
+                                        <div class="card-body p-3 d-flex flex-column justify-content-between">
+                                            <div>
+                                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                                    <label for="kpi-sheet-select"
+                                                        class="small font-weight-bold text-gray-800 mb-0">
+                                                        <i class="fas fa-layer-group text-primary mr-1"></i> Pilih Sheet
+                                                        Excel
+                                                    </label>
+                                                    <span class="badge badge-primary px-2 py-1" id="kpi-sheet-badge">0
+                                                        Sheet</span>
+                                                </div>
+                                                <p class="small text-muted mb-2">Pilih lembar kerja (sheet) yang berisi
+                                                    data KPI:</p>
+                                                <select class="form-control form-control-sm font-weight-bold mb-3"
+                                                    id="kpi-sheet-select"></select>
+
+                                                <div class="alert alert-light border py-2 px-3 small mb-3"
+                                                    id="kpi-sheet-info">
+                                                    <i class="fas fa-info-circle text-info mr-1"></i> <span
+                                                        id="kpi-sheet-info-text">Silakan pilih sheet di atas.</span>
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <button type="button"
+                                                    class="btn btn-primary btn-block font-weight-bold py-2 shadow-sm"
+                                                    id="kpi-btn-submit">
+                                                    <i class="fas fa-file-import mr-1"></i> Mulai Import Sheet Ini
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -1884,14 +2500,16 @@ if (!defined('SPA_MODE')) {
                                         pilih akan dihapus secara permanen dari sistem.</p>
                                 </div>
                                 <div class="form-group mb-4">
-                                    <label for="deleteKpiYearSelect"
-                                        class="small font-weight-bold text-gray-600">Tahun Periode</label>
+                                    <label for="deleteKpiYearSelect" class="small font-weight-bold text-gray-600">Tahun
+                                        Periode</label>
                                     <select class="form-control form-control-sm" id="deleteKpiYearSelect">
                                         <option value="">-- Pilih Tahun --</option>
                                         <?php
                                         $curY = (int) date('Y');
                                         for ($y = 2026; $y <= $curY + 5; $y++): ?>
-                                            <option value="<?php echo $y; ?>" <?php echo ($y === $curY) ? 'selected' : ''; ?>><?php echo $y; ?></option>
+                                            <option value="<?php echo $y; ?>" <?php echo ($y === $curY) ? 'selected' : ''; ?>>
+                                                <?php echo $y; ?>
+                                            </option>
                                         <?php endfor; ?>
                                     </select>
                                 </div>
@@ -1909,15 +2527,17 @@ if (!defined('SPA_MODE')) {
                 </div>
             </div>
 
+            <?php if (!defined('SPA_MODE')) {
+                include FRONTEND_PATH . 'components/footer.php';
+            } ?>
+
             <!-- DataTables JS -->
             <script src="frontend/vendor/datatables/jquery.dataTables.min.js"></script>
             <script src="frontend/vendor/datatables/dataTables.bootstrap4.min.js"></script>
 
-            <!-- SheetJS (xlsx) for Excel import/export -->
             <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
             <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
             <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-            <script src="frontend/js/excel-upload.js?v=<?= time() ?>"></script>
             <script src="frontend/js/formula-controller.js?v=<?= time() ?>"></script>
             <script src="frontend/js/master-data.js?v=<?= time() ?>"></script>
 
@@ -2027,7 +2647,7 @@ if (!defined('SPA_MODE')) {
                 }
 
                 // Load periods for all delete dropdowns (Storage, Inbound, Outbound)
-                fetch('api/get_periods.php')
+                fetch('api/get_periods.php?all=1')
                     .then(response => response.json())
                     .then(result => {
                         if (result.status === 'success' && result.data) {
@@ -2346,7 +2966,8 @@ if (!defined('SPA_MODE')) {
                     });
                 }
             </script>
-<?php if (!defined('SPA_MODE')): ?>
+            <?php if (!defined('SPA_MODE')): ?>
+    </body>
 
-            </html>
+    </html>
 <?php endif; ?>

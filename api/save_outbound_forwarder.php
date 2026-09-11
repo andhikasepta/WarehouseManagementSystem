@@ -1,5 +1,7 @@
 <?php
 // api/save_outbound_forwarder.php
+@ini_set('memory_limit', '512M');
+@set_time_limit(300);
 header('Content-Type: application/json');
 require_once __DIR__ . '/../backend/config/database.php';
 require_once __DIR__ . '/../backend/auth.php';
@@ -82,6 +84,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $action = $data['action'] ?? 'batch';
 
             if ($action === 'init') {
+                $month = trim((string) ($data['month'] ?? ''));
+                $year = trim((string) ($data['year'] ?? ''));
+                $batch = trim((string) ($data['batch'] ?? '1'));
+                $periodeGroup = !empty($data['periode_group']) ? trim((string) $data['periode_group']) : null;
+                if (!$periodeGroup && !empty($month) && !empty($year)) {
+                    $periodeGroup = $month . ' ' . $year . '-Batch' . intval($batch);
+                }
+
                 $clearAll = !empty($data['clear_all']);
                 if ($clearAll) {
                     $currentUser = getCurrentUser();
@@ -91,6 +101,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         exit;
                     }
                     $pdo->exec("TRUNCATE TABLE outbound_forwarder");
+                } elseif (!empty($periodeGroup)) {
+                    $delStmt = $pdo->prepare("DELETE FROM outbound_forwarder WHERE periode_group = ?");
+                    $delStmt->execute([$periodeGroup]);
                 }
                 echo json_encode(['status' => 'success', 'message' => 'PR Forwarder master batch initialized']);
                 exit;
@@ -113,84 +126,85 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $pdo->exec("TRUNCATE TABLE outbound_forwarder");
                 }
 
+                $insertedCount = 0;
                 if (!empty($rows)) {
                     $pdo->beginTransaction();
 
-                    $stmt = $pdo->prepare("INSERT INTO outbound_forwarder (
-                        no_dn, print_status, dn_status,
-                        asal_pengirim, asal_code, asal_site, asal_alamat,
-                        tujuan_penerima, tujuan_code, tujuan_site, tujuan_alamat,
-                        proc_vendor_mode, proc_vendor_name, koli, mata_anggaran,
-                        sr_no, sr_tgl, pr_no, pr_tgl,
-                        valuation_price, suggestion, purpose,
-                        po_no, po_tgl, po_price, po_vendor, po_target_dlv, po_buyer,
-                        doc, note,
-                        delivery_type, delivery_via, delivery_nama, delivery_awb,
-                        delivery_pickup, delivery_lead_time, delivery_target_dlv,
-                        approval_status, approval_approver, approval_date,
-                        periode_group, raw_data
-                    ) VALUES (
-                        ?, ?, ?,
-                        ?, ?, ?, ?,
-                        ?, ?, ?, ?,
-                        ?, ?, ?, ?,
-                        ?, ?, ?, ?,
-                        ?, ?, ?,
-                        ?, ?, ?, ?, ?, ?,
-                        ?, ?,
-                        ?, ?, ?, ?,
-                        ?, ?, ?,
-                        ?, ?, ?,
-                        ?, ?
-                    )");
+                    $chunkSize = 150;
+                    $chunks = array_chunk($rows, $chunkSize);
 
-                    foreach ($rows as $r) {
-                        $pGroup = !empty($r['periode_group']) ? $r['periode_group'] : $periodeGroup;
+                    foreach ($chunks as $chunk) {
+                        $placeholders = [];
+                        $params = [];
 
-                        $stmt->execute([
-                            $r['no_dn'] ?? null,
-                            $r['print_status'] ?? null,
-                            $r['dn_status'] ?? null,
-                            $r['asal_pengirim'] ?? null,
-                            $r['asal_code'] ?? null,
-                            $r['asal_site'] ?? null,
-                            $r['asal_alamat'] ?? null,
-                            $r['tujuan_penerima'] ?? null,
-                            $r['tujuan_code'] ?? null,
-                            $r['tujuan_site'] ?? null,
-                            $r['tujuan_alamat'] ?? null,
-                            $r['proc_vendor_mode'] ?? null,
-                            $r['proc_vendor_name'] ?? null,
-                            $r['koli'] ?? null,
-                            $r['mata_anggaran'] ?? null,
-                            $r['sr_no'] ?? null,
-                            $r['sr_tgl'] ?? null,
-                            $r['pr_no'] ?? null,
-                            $r['pr_tgl'] ?? null,
-                            $r['valuation_price'] ?? null,
-                            $r['suggestion'] ?? null,
-                            $r['purpose'] ?? null,
-                            $r['po_no'] ?? null,
-                            $r['po_tgl'] ?? null,
-                            $r['po_price'] ?? null,
-                            $r['po_vendor'] ?? null,
-                            $r['po_target_dlv'] ?? null,
-                            $r['po_buyer'] ?? null,
-                            $r['doc'] ?? null,
-                            $r['note'] ?? null,
-                            $r['delivery_type'] ?? null,
-                            $r['delivery_via'] ?? null,
-                            $r['delivery_nama'] ?? null,
-                            $r['delivery_awb'] ?? null,
-                            $r['delivery_pickup'] ?? null,
-                            $r['delivery_lead_time'] ?? null,
-                            $r['delivery_target_dlv'] ?? null,
-                            $r['approval_status'] ?? null,
-                            $r['approval_approver'] ?? null,
-                            $r['approval_date'] ?? null,
-                            $pGroup,
-                            json_encode($r)
-                        ]);
+                        foreach ($chunk as $r) {
+                            if (!is_array($r)) continue;
+                            $pGroup = !empty($r['periode_group']) ? $r['periode_group'] : $periodeGroup;
+
+                            $placeholders[] = "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                            $params[] = $r['no_dn'] ?? null;
+                            $params[] = $r['print_status'] ?? null;
+                            $params[] = $r['dn_status'] ?? null;
+                            $params[] = $r['asal_pengirim'] ?? null;
+                            $params[] = $r['asal_code'] ?? null;
+                            $params[] = $r['asal_site'] ?? null;
+                            $params[] = $r['asal_alamat'] ?? null;
+                            $params[] = $r['tujuan_penerima'] ?? null;
+                            $params[] = $r['tujuan_code'] ?? null;
+                            $params[] = $r['tujuan_site'] ?? null;
+                            $params[] = $r['tujuan_alamat'] ?? null;
+                            $params[] = $r['proc_vendor_mode'] ?? null;
+                            $params[] = $r['proc_vendor_name'] ?? null;
+                            $params[] = $r['koli'] ?? null;
+                            $params[] = $r['mata_anggaran'] ?? null;
+                            $params[] = $r['sr_no'] ?? null;
+                            $params[] = $r['sr_tgl'] ?? null;
+                            $params[] = $r['pr_no'] ?? null;
+                            $params[] = $r['pr_tgl'] ?? null;
+                            $params[] = $r['valuation_price'] ?? null;
+                            $params[] = $r['suggestion'] ?? null;
+                            $params[] = $r['purpose'] ?? null;
+                            $params[] = $r['po_no'] ?? null;
+                            $params[] = $r['po_tgl'] ?? null;
+                            $params[] = $r['po_price'] ?? null;
+                            $params[] = $r['po_vendor'] ?? null;
+                            $params[] = $r['po_target_dlv'] ?? null;
+                            $params[] = $r['po_buyer'] ?? null;
+                            $params[] = $r['doc'] ?? null;
+                            $params[] = $r['note'] ?? null;
+                            $params[] = $r['delivery_type'] ?? null;
+                            $params[] = $r['delivery_via'] ?? null;
+                            $params[] = $r['delivery_nama'] ?? null;
+                            $params[] = $r['delivery_awb'] ?? null;
+                            $params[] = $r['delivery_pickup'] ?? null;
+                            $params[] = $r['delivery_lead_time'] ?? null;
+                            $params[] = $r['delivery_target_dlv'] ?? null;
+                            $params[] = $r['approval_status'] ?? null;
+                            $params[] = $r['approval_approver'] ?? null;
+                            $params[] = $r['approval_date'] ?? null;
+                            $params[] = $pGroup;
+                            $params[] = json_encode($r);
+                            $insertedCount++;
+                        }
+
+                        if (!empty($placeholders)) {
+                            $sql = "INSERT INTO outbound_forwarder (
+                                no_dn, print_status, dn_status,
+                                asal_pengirim, asal_code, asal_site, asal_alamat,
+                                tujuan_penerima, tujuan_code, tujuan_site, tujuan_alamat,
+                                proc_vendor_mode, proc_vendor_name, koli, mata_anggaran,
+                                sr_no, sr_tgl, pr_no, pr_tgl,
+                                valuation_price, suggestion, purpose,
+                                po_no, po_tgl, po_price, po_vendor, po_target_dlv, po_buyer,
+                                doc, note,
+                                delivery_type, delivery_via, delivery_nama, delivery_awb,
+                                delivery_pickup, delivery_lead_time, delivery_target_dlv,
+                                approval_status, approval_approver, approval_date,
+                                periode_group, raw_data
+                            ) VALUES " . implode(', ', $placeholders);
+                            $stmt = $pdo->prepare($sql);
+                            $stmt->execute($params);
+                        }
                     }
 
                     $pdo->commit();
@@ -198,8 +212,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 echo json_encode([
                     'status' => 'success',
-                    'message' => 'Berhasil menyimpan ' . count($rows) . ' data PR Forwarder.'
+                    'message' => "Berhasil menyimpan $insertedCount data PR Forwarder."
                 ]);
+                exit;
+            } elseif ($action === 'finalize') {
+                echo json_encode(['status' => 'success', 'message' => 'PR Forwarder master batch finalized']);
                 exit;
             }
         } catch (Exception $e) {

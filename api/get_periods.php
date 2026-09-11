@@ -13,36 +13,35 @@ if (!isLoggedIn()) {
  * Parse a periode_group string like "January 2026-Batch1" into components.
  * Returns ['month' => 'January', 'year' => '2026', 'batch' => '1'] or null on failure.
  */
-function parsePeriodeGroup($pg) {
-    if (!$pg || $pg === 'Unknown Period') return null;
-    // Expected format: "Month Year-BatchN"
-    if (preg_match('/^(\w+)\s+(\d{4})-Batch(\d+)$/i', $pg, $m)) {
-        return ['month' => $m[1], 'year' => $m[2], 'batch' => $m[3]];
+if (!function_exists('parsePeriodeGroup')) {
+    function parsePeriodeGroup($pg) {
+        if (!$pg || $pg === 'Unknown Period') return null;
+        // Expected format: "Month Year-BatchN"
+        if (preg_match('/^(\w+)\s+(\d{4})-Batch(\d+)$/i', $pg, $m)) {
+            return ['month' => $m[1], 'year' => $m[2], 'batch' => $m[3]];
+        }
+        // Legacy format: "Month Year" (no batch)
+        if (preg_match('/^(\w+)\s+(\d{4})$/', $pg, $m)) {
+            return ['month' => $m[1], 'year' => $m[2], 'batch' => '1'];
+        }
+        return null;
     }
-    // Legacy format: "Month Year" (no batch)
-    if (preg_match('/^(\w+)\s+(\d{4})$/', $pg, $m)) {
-        return ['month' => $m[1], 'year' => $m[2], 'batch' => '1'];
-    }
-    return null;
 }
 
-/**
- * Sort periode_group strings chronologically.
- * Format: "Month Year-BatchN" — sorted by year, month order, then batch number.
- */
-function sortPeriodeGroups($periods) {
-    $monthOrder = [
-        'january' => 1, 'february' => 2, 'march' => 3, 'april' => 4,
-        'may' => 5, 'june' => 6, 'july' => 7, 'august' => 8,
-        'september' => 9, 'october' => 10, 'november' => 11, 'december' => 12
-    ];
+if (!function_exists('sortPeriodeGroups')) {
+    function sortPeriodeGroups($periods) {
+        $monthOrder = [
+            'january' => 1, 'february' => 2, 'march' => 3, 'april' => 4,
+            'may' => 5, 'june' => 6, 'july' => 7, 'august' => 8,
+            'september' => 9, 'october' => 10, 'november' => 11, 'december' => 12
+        ];
 
-    usort($periods, function($a, $b) use ($monthOrder) {
-        $pa = parsePeriodeGroup($a);
-        $pb = parsePeriodeGroup($b);
-        if (!$pa && !$pb) return 0;
-        if (!$pa) return 1;
-        if (!$pb) return -1;
+        usort($periods, function($a, $b) use ($monthOrder) {
+            $pa = parsePeriodeGroup($a);
+            $pb = parsePeriodeGroup($b);
+            if (!$pa && !$pb) return 0;
+            if (!$pa) return 1;
+            if (!$pb) return -1;
 
         // Sort by year descending, then month descending, then batch descending
         $yearCmp = intval($pb['year']) - intval($pa['year']);
@@ -57,6 +56,7 @@ function sortPeriodeGroups($periods) {
     });
 
     return $periods;
+    }
 }
 
 try {
@@ -79,6 +79,18 @@ try {
     
     // Sort periods chronologically (newest first)
     $results = sortPeriodeGroups($results);
+
+    // Filter out baseline/reference periods (e.g. December 2025) from the public period selector
+    // unless explicitly requested with ?all=1 or ?include_reference=1 (e.g. in Master Data management)
+    $includeAll = !empty($_GET['all']) || !empty($_GET['include_reference']);
+    if (!$includeAll) {
+        $results = array_values(array_filter($results, function($pg) {
+            if (preg_match('/^December\s+2025(?:-Batch\d+)?$/i', trim((string)$pg))) {
+                return false;
+            }
+            return true;
+        }));
+    }
 
     // Query distinct sites from so_location or sub_location
     $sites = [];

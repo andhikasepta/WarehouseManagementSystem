@@ -130,7 +130,7 @@ if (!defined('SPA_MODE')) {
                                 </div>
                                 <div class="card-body" style="padding: 0.5rem;">
                                     <div id="horizontalBarScrollWrapper"
-                                        style="max-height: 320px; overflow-y: auto; overflow-x: hidden;">
+                                        style="max-height: 420px; overflow-y: auto; overflow-x: hidden;">
                                         <div class="chart-bar" id="horizontalBarChartContainer"
                                             style="height: 320px; position: relative; width: 100%;">
                                             <canvas id="myHorizontalBarChart"></canvas>
@@ -299,9 +299,6 @@ if (!defined('SPA_MODE')) {
                                         if (selectPeriod) {
                                             preselectPeriod(selectPeriod);
                                             loadDataForPeriod(selectPeriod);
-                                        } else if (result.data && result.data.length > 0) {
-                                            preselectPeriod(result.data[0]);
-                                            loadDataForPeriod(result.data[0]);
                                         } else {
                                             document.getElementById('selected-period-text').textContent = "PILIH PERIODE DATA";
                                             if (window.FormulaController) {
@@ -448,11 +445,20 @@ if (!defined('SPA_MODE')) {
                                 var match = period.match(/^(\w+)\s+(\d{4})(?:-Batch(\d+))?$/);
                                 var yr = match ? match[2] : '';
 
-                                var fetchDashboard = fetch('api/get_data.php?periode=' + encodeURIComponent(period))
-                                    .then(function (response) { return response.json(); });
+                                var controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+                                var timeoutTimer = controller ? setTimeout(function () { controller.abort(); }, 60000) : null;
+
+                                var fetchDashboard = fetch('api/get_data.php?periode=' + encodeURIComponent(period), { signal: controller ? controller.signal : undefined })
+                                    .then(function (response) {
+                                        if (!response.ok) throw new Error('HTTP ' + response.status + ' on get_data');
+                                        return response.json();
+                                    });
 
                                 var fetchYearly = yr
-                                    ? fetch('api/get_yearly_in_out.php?year=' + encodeURIComponent(yr)).then(function (response) { return response.json(); })
+                                    ? fetch('api/get_yearly_in_out.php?year=' + encodeURIComponent(yr), { signal: controller ? controller.signal : undefined }).then(function (response) {
+                                        if (!response.ok) throw new Error('HTTP ' + response.status + ' on get_yearly_in_out');
+                                        return response.json();
+                                    })
                                     : Promise.resolve(null);
 
                                 Promise.all([fetchDashboard, fetchYearly])
@@ -460,12 +466,12 @@ if (!defined('SPA_MODE')) {
                                         var result = results[0];
                                         var resData = results[1];
 
-                                        if (result && result.status === 'success' && result.data && result.data.length > 0) {
-                                            var headers = Object.keys(result.data[0]);
-                                            window.currentDashboardData = result.data;
+                                        if (result && result.status === 'success' && (result.summary || (result.data && result.data.length > 0))) {
+                                            var headers = (result.data && result.data.length > 0) ? Object.keys(result.data[0]) : [];
+                                            window.currentDashboardData = result.data || [];
                                             window.currentDashboardHeaders = headers;
                                             if (window.FormulaController) {
-                                                window.FormulaController.updateDashboardCards(result.data, headers);
+                                                window.FormulaController.updateDashboardCards(result.data || [], headers, null, result.summary);
                                                 var cardUpdate = document.getElementById('card-last-update');
                                                 if (cardUpdate) {
                                                     cardUpdate.textContent = period.toUpperCase();
@@ -483,24 +489,30 @@ if (!defined('SPA_MODE')) {
                                         if (resData && resData.status === 'success' && resData.data) {
                                             var mLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
                                             if (window.perangkatInChart && window.perangkatInChart.data) {
-                                                window.perangkatInChart.data.labels = mLabels;
-                                                window.perangkatInChart.data.datasets[0].data = resData.data.in;
-                                                window.perangkatInChart._recordsPerIndex = resData.data.in_details || [];
-                                                window.perangkatInChart._chartTitle = "Perangkat IN";
-                                                window.perangkatInChart.update(0);
-                                                if (window.FormulaController) {
-                                                    window.FormulaController.makeChartClickable(window.perangkatInChart, "Perangkat IN");
-                                                }
+                                                try {
+                                                    if (!window.perangkatInChart.$datalabels) window.perangkatInChart.$datalabels = { _listened: true };
+                                                    window.perangkatInChart.data.labels = mLabels;
+                                                    window.perangkatInChart.data.datasets[0].data = resData.data.in;
+                                                    window.perangkatInChart._recordsPerIndex = resData.data.in_details || [];
+                                                    window.perangkatInChart._chartTitle = "Perangkat IN";
+                                                    window.perangkatInChart.update(0);
+                                                    if (window.FormulaController) {
+                                                        window.FormulaController.makeChartClickable(window.perangkatInChart, "Perangkat IN");
+                                                    }
+                                                } catch (e) { console.warn('perangkatInChart error:', e); }
                                             }
                                             if (window.perangkatOutChart && window.perangkatOutChart.data) {
-                                                window.perangkatOutChart.data.labels = mLabels;
-                                                window.perangkatOutChart.data.datasets[0].data = resData.data.out;
-                                                window.perangkatOutChart._recordsPerIndex = resData.data.out_details || [];
-                                                window.perangkatOutChart._chartTitle = "Perangkat OUT";
-                                                window.perangkatOutChart.update(0);
-                                                if (window.FormulaController) {
-                                                    window.FormulaController.makeChartClickable(window.perangkatOutChart, "Perangkat OUT");
-                                                }
+                                                try {
+                                                    if (!window.perangkatOutChart.$datalabels) window.perangkatOutChart.$datalabels = { _listened: true };
+                                                    window.perangkatOutChart.data.labels = mLabels;
+                                                    window.perangkatOutChart.data.datasets[0].data = resData.data.out;
+                                                    window.perangkatOutChart._recordsPerIndex = resData.data.out_details || [];
+                                                    window.perangkatOutChart._chartTitle = "Perangkat OUT";
+                                                    window.perangkatOutChart.update(0);
+                                                    if (window.FormulaController) {
+                                                        window.FormulaController.makeChartClickable(window.perangkatOutChart, "Perangkat OUT");
+                                                    }
+                                                } catch (e) { console.warn('perangkatOutChart error:', e); }
                                             }
                                         }
 
@@ -509,8 +521,12 @@ if (!defined('SPA_MODE')) {
                                     .catch(function (error) {
                                         console.error('Error fetching data:', error);
                                         if (typeof Swal !== 'undefined') {
-                                            Swal.fire('Error', 'Failed to load data. Please try again.', 'error');
+                                            var msg = (error.name === 'AbortError') ? 'Waktu koneksi melebihi batas (Timeout 60 detik).' : ('Gagal memuat data: ' + (error.message || 'Silakan coba lagi.'));
+                                            Swal.fire('Error', msg, 'error');
                                         }
+                                    })
+                                    .finally(function () {
+                                        if (timeoutTimer) clearTimeout(timeoutTimer);
                                     });
                             }
 
