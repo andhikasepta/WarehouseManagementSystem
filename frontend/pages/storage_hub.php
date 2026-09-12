@@ -246,7 +246,7 @@ if (!defined('SPA_MODE')) {
                     <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 
                     <!-- Page level custom scripts -->
-                    <script src="frontend/js/formula-controller.js?v=23"></script>
+                    <script src="frontend/js/formula-controller.js?v=<?= time() ?>"></script>
                     <script src="frontend/js/demo/chart-bar-demo.js?v=8"></script>
                     <script src="frontend/js/demo/chart-horizontal-bar-demo.js?v=5"></script>
 
@@ -442,8 +442,10 @@ if (!defined('SPA_MODE')) {
                                     });
                                 }
 
-                                var match = period.match(/^(\w+)\s+(\d{4})(?:-Batch(\d+))?$/);
-                                var yr = match ? match[2] : '';
+                                var mMatch = period.match(/\b(Januari|January|Jan|Februari|February|Feb|Maret|March|Mar|April|Apr|Mei|May|Juni|June|Jun|Juli|July|Jul|Agustus|August|Agu|Aug|September|Sep|Oktober|October|Okt|Oct|November|Nov|Nop|Desember|December|Des|Dec)\b/i);
+                                var yMatch = period.match(/\b(20\d{2})\b/);
+                                var month = mMatch ? mMatch[1] : '';
+                                var yr = yMatch ? yMatch[1] : '';
 
                                 var controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
                                 var timeoutTimer = controller ? setTimeout(function () { controller.abort(); }, 60000) : null;
@@ -484,6 +486,11 @@ if (!defined('SPA_MODE')) {
                                             if (typeof Swal !== 'undefined') {
                                                 Swal.fire('Empty', 'No data found for ' + period, 'info');
                                             }
+                                        }
+
+                                        // Load Rack Utilisasi (Kapasitas per rak, Utilisasi Space, Free Space)
+                                        if (window.FormulaController && window.FormulaController.loadRackUtilisasi && month && yr) {
+                                            window.FormulaController.loadRackUtilisasi(month, yr);
                                         }
 
                                         if (resData && resData.status === 'success' && resData.data) {

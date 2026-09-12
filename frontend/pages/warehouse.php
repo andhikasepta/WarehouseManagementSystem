@@ -241,7 +241,7 @@ if (!defined('SPA_MODE')) {
                     <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 
                     <!-- Page level custom scripts -->
-                    <script src="frontend/js/formula-controller.js?v=24"></script>
+                    <script src="frontend/js/formula-controller.js?v=<?= time() ?>"></script>
                     <script src="frontend/js/demo/chart-bar-demo.js?v=8"></script>
                     <script src="frontend/js/demo/chart-horizontal-bar-demo.js?v=5"></script>
 
@@ -422,9 +422,10 @@ if (!defined('SPA_MODE')) {
                                     });
                                 }
 
-                                var match = period.match(/^(\w+)\s+(\d{4})(?:-Batch(\d+))?$/);
-                                var month = match ? match[1] : '';
-                                var yr = match ? match[2] : '';
+                                var mMatch = period.match(/\b(Januari|January|Jan|Februari|February|Feb|Maret|March|Mar|April|Apr|Mei|May|Juni|June|Jun|Juli|July|Jul|Agustus|August|Agu|Aug|September|Sep|Oktober|October|Okt|Oct|November|Nov|Nop|Desember|December|Des|Dec)\b/i);
+                                var yMatch = period.match(/\b(20\d{2})\b/);
+                                var month = mMatch ? mMatch[1] : '';
+                                var yr = yMatch ? yMatch[1] : '';
 
                                 var controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
                                 var timeoutTimer = controller ? setTimeout(function () { controller.abort(); }, 60000) : null;
@@ -442,26 +443,11 @@ if (!defined('SPA_MODE')) {
                                     })
                                     : Promise.resolve(null);
 
-                                // Fetch all-period totals for Total Asset & Total NBV cards
-                                var fetchTotals = fetch('api/get_dashboard_totals.php', { signal: controller ? controller.signal : undefined })
-                                    .then(function (response) {
-                                        if (!response.ok) throw new Error('HTTP ' + response.status + ' on get_dashboard_totals');
-                                        return response.json();
-                                    })
-                                    .catch(function () { return null; }); // Non-critical — fallback to period data
-
                                 // Execute all requests in parallel for maximum speed
-                                Promise.all([fetchDashboard, fetchYearly, fetchTotals])
+                                Promise.all([fetchDashboard, fetchYearly])
                                     .then(function (results) {
                                         var result = results[0];
                                         var resData = results[1];
-                                        var totalsResult = results[2];
-
-                                        // Extract all-period totals if available
-                                        var allPeriodTotals = null;
-                                        if (totalsResult && totalsResult.status === 'success' && totalsResult.data) {
-                                            allPeriodTotals = totalsResult.data;
-                                        }
 
                                         // 1. Synchronously update dashboard cards & main charts (Bar, Horizontal, Aging)
                                         if (result && result.status === 'success' && (result.summary || (result.data && result.data.length > 0))) {
@@ -471,11 +457,11 @@ if (!defined('SPA_MODE')) {
                                             window.currentDashboardData = result.data || [];
                                             window.currentDashboardHeaders = headers;
                                             if (window.FormulaController) {
-                                                window.FormulaController.updateDashboardCards(result.data || [], headers, allPeriodTotals, result.summary);
+                                                window.FormulaController.updateDashboardCards(result.data || [], headers, null, result.summary);
                                             }
                                         } else {
                                             if (window.FormulaController) {
-                                                window.FormulaController.updateDashboardCards([], [], allPeriodTotals);
+                                                window.FormulaController.updateDashboardCards([], []);
                                             }
                                         }
 

@@ -38,6 +38,26 @@ try {
     $filter = isset($_GET['filter']) ? strtolower(trim($_GET['filter'])) : 'all'; // all, used, available
     $action = isset($_GET['action']) ? strtolower(trim($_GET['action'])) : 'data';
 
+    // Comprehensive Month Mapping (English, Indonesian, and standard 3-letter abbreviations)
+    $monthMap = [
+        'JAN' => 'January', 'JANUARI' => 'January', 'JANUARY' => 'January',
+        'FEB' => 'February', 'FEBRUARI' => 'February', 'FEBRUARY' => 'February',
+        'MAR' => 'March', 'MARET' => 'March', 'MARCH' => 'March',
+        'APR' => 'April', 'APRIL' => 'April',
+        'MAY' => 'May', 'MEI' => 'May',
+        'JUN' => 'June', 'JUNI' => 'June', 'JUNE' => 'June',
+        'JUL' => 'July', 'JULI' => 'July', 'JULY' => 'July',
+        'AUG' => 'August', 'AGU' => 'August', 'AGUSTUS' => 'August', 'AUGUST' => 'August',
+        'SEP' => 'September', 'SEPTEMBER' => 'September',
+        'OCT' => 'October', 'OKT' => 'October', 'OKTOBER' => 'October', 'OCTOBER' => 'October',
+        'NOV' => 'November', 'NOP' => 'November', 'NOVEMBER' => 'November',
+        'DEC' => 'December', 'DES' => 'December', 'DESEMBER' => 'December', 'DECEMBER' => 'December'
+    ];
+    $cleanMonthKey = strtoupper($month);
+    if (isset($monthMap[$cleanMonthKey])) {
+        $month = $monthMap[$cleanMonthKey];
+    }
+
     // Validate month against allow-list if provided
     $validMonths = [
         'January', 'February', 'March', 'April', 'May', 'June',
@@ -69,19 +89,25 @@ try {
     if ($rackMasterCount > 0) {
         // ── Use rack_master as the source ──
         if ($month !== '' && $year !== '' && in_array($month, $validMonths, true) && preg_match('/^\d{4}$/', $year)) {
+            $safeMonth = $pdo->quote($month);
+            $safeYear = $pdo->quote($year);
             // Return ALL labels from rack_master, left-joined with rack_utilisasi for this period.
             $stmt = $pdo->prepare(
                 "SELECT rm.label, COALESCE(rm.name, rm.rack, rm.label) AS rack_group, 
                         rm.name, rm.barcode, rm.active, rm.category,
-                        ? AS month, ? AS year,
+                        $safeMonth AS month, $safeYear AS year,
                         COALESCE(ru.qty, 0) AS qty,
                         COALESCE(ru.capacity, 0.00) AS capacity,
                         ru.id AS id
                  FROM rack_master rm
-                 LEFT JOIN rack_utilisasi ru ON rm.label = ru.label AND ru.month = ? AND ru.year = ?
+                 LEFT JOIN rack_utilisasi ru ON rm.label = ru.label 
+                      AND (LOWER(ru.month) = LOWER(?) OR LOWER(ru.month) = LOWER(?))
+                      AND ru.year = ?
                  ORDER BY rm.category, COALESCE(rm.name, rm.rack), rm.label"
             );
-            $stmt->execute([$month, $year, $month, $year]);
+            // Pass full month name and 3-letter abbreviation to be 100% robust against DB variations
+            $shortMonth = substr($month, 0, 3);
+            $stmt->execute([$month, $shortMonth, $year]);
             $allResults = $stmt->fetchAll(PDO::FETCH_ASSOC);
         } else {
             // Return from rack_master with latest rack_utilisasi
@@ -241,6 +267,8 @@ try {
     $availableLocations = 0;
     $totalCapSum = 0;
     $totalQtySum = 0;
+    $measuredStorageSum = 0;
+    $measuredStorageCount = 0;
 
     $filteredResults = [];
     foreach ($allResults as $row) {
@@ -260,6 +288,11 @@ try {
             $availableLocations++;
         }
 
+        $cat = strtoupper(trim($row['category'] ?? ''));
+        if ($cat !== 'QUARTERLY' && $cat !== 'KABEL') {
+            $measuredStorageCount++;
+        }
+
         if ($filter === 'used') {
             if ($isUsed) $filteredResults[] = $row;
         } elseif ($filter === 'available') {
@@ -269,7 +302,13 @@ try {
         }
     }
 
-    $avgUtilization = $totalLocations > 0 ? round($totalCapSum / $totalLocations, 1) : 0;
+    // Excel behavior: 36,440 / 444 = 82.07% (~82%)
+    // Excel sums all capacity values (36,440%) across the 444 storage rack locations
+    $storageDenom = $measuredStorageCount > 0 ? $measuredStorageCount : $totalLocations;
+    $avgUtilization = $storageDenom > 0 ? round($totalCapSum / $storageDenom, 1) : 0;
+    if ($avgUtilization > 100.0) {
+        $avgUtilization = 100.0;
+    }
 
     echo json_encode([
         'status' => 'success',

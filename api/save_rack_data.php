@@ -96,9 +96,16 @@ function parseRackRowData($row, $defaultYear = null) {
                     $monthlyData[$periodKey]['qty'] = (int)$val;
                 } else {
                     $strVal = is_string($val) ? trim($val) : (string)$val;
+                    if ($strVal === '' || $strVal === '-' || strcasecmp($strVal, 'n/a') === 0 || strcasecmp($strVal, 'null') === 0) {
+                        // Excel behavior: blank or '-' is unmeasured, NOT 0%
+                        continue;
+                    }
                     $cleanVal = str_replace(['%', ' '], '', $strVal);
                     $cleanVal = str_replace(',', '.', $cleanVal);
-                    $numVal = is_numeric($cleanVal) ? (float)$cleanVal : 0.0;
+                    if (!is_numeric($cleanVal)) {
+                        continue;
+                    }
+                    $numVal = (float)$cleanVal;
                     // Excel percentage cells store 100% as 1.0, 50% as 0.5, etc.
                     // If between 0 and 1.0 (inclusive), convert to percentage scale (1.0 -> 100%, 0.85 -> 85%)
                     if ($numVal > 0 && $numVal <= 1.0) {
@@ -124,14 +131,21 @@ function parseRackRowData($row, $defaultYear = null) {
                     $matchedMonthMetric = true;
                     break;
                 } elseif ($cleanKey === 'CAP' . $mCode || $cleanKey === 'CAPACITY' . $mCode) {
-                    $periodKey = $mFull . '_' . $curYear;
+                    $strVal = is_string($val) ? trim($val) : (string)$val;
+                    if ($strVal === '' || $strVal === '-' || strcasecmp($strVal, 'n/a') === 0 || strcasecmp($strVal, 'null') === 0) {
+                        $matchedMonthMetric = true;
+                        break;
+                    }
+                    $cleanVal = str_replace(['%', ' '], '', $strVal);
+                    $cleanVal = str_replace(',', '.', $cleanVal);
+                    if (!is_numeric($cleanVal)) {
+                        $matchedMonthMetric = true;
+                        break;
+                    }
                     if (!isset($monthlyData[$periodKey])) {
                         $monthlyData[$periodKey] = ['month' => $mFull, 'year' => $curYear];
                     }
-                    $strVal = is_string($val) ? trim($val) : (string)$val;
-                    $cleanVal = str_replace(['%', ' '], '', $strVal);
-                    $cleanVal = str_replace(',', '.', $cleanVal);
-                    $numVal = is_numeric($cleanVal) ? (float)$cleanVal : 0.0;
+                    $numVal = (float)$cleanVal;
                     if ($numVal > 0 && $numVal <= 1.0) {
                         $numVal = $numVal * 100;
                     }

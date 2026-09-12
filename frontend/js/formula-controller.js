@@ -22,65 +22,231 @@
         return 'Rp ' + formatNumber(num);
     }
 
-    // Fast numeric parser with Indonesian and English currency/thousand-separator support
+    // Excel =ISNUMBER() behavior
+    FormulaController.isNumeric = function (raw) {
+        if (raw === undefined || raw === null) return false;
+        if (typeof raw === 'number') return !isNaN(raw);
+        var str = String(raw).trim();
+        if (!str || str === '-' || str.toLowerCase() === 'n/a' || str.toLowerCase() === 'null') return false;
+        // Clean currency, spaces, and percentage signs
+        var cleaned = str.replace(/[RrpP\s%]/g, '');
+        if (!cleaned) return false;
+        // If there are still alphabetic characters, it's text (e.g. "Quarterly", "Kabel"), not numeric
+        if (/[a-zA-Z]/.test(cleaned)) return false;
+        // Check standard decimal / integer or normalize Indonesian format
+        var lastDot = cleaned.lastIndexOf('.');
+        var lastComma = cleaned.lastIndexOf(',');
+        if (lastComma > lastDot && lastDot !== -1) {
+            cleaned = cleaned.replace(/\./g, '').replace(/,/g, '.');
+        } else if (lastDot > lastComma && lastComma !== -1) {
+            cleaned = cleaned.replace(/,/g, '');
+        } else if (lastDot !== -1 && lastComma === -1) {
+            if (cleaned.split('.').length > 2 || cleaned.split('.')[1].length === 3) {
+                cleaned = cleaned.replace(/\./g, '');
+            }
+        } else if (lastComma !== -1 && lastDot === -1) {
+            if (cleaned.split(',').length > 2 || cleaned.split(',')[1].length === 3) {
+                cleaned = cleaned.replace(/,/g, '');
+            } else {
+                cleaned = cleaned.replace(/,/g, '.');
+            }
+        }
+        var val = parseFloat(cleaned);
+        return !isNaN(val) && isFinite(val);
+    };
+
+    // Fast numeric parser with Indonesian and English currency/thousand-separator/percentage support
     FormulaController.parseNumeric = function (raw) {
         if (raw === undefined || raw === null || raw === '') return 0;
         if (typeof raw === 'number') return isNaN(raw) ? 0 : raw;
         var str = String(raw).trim();
-        if (!str) return 0;
+        if (!str || str === '-' || str.toLowerCase() === 'n/a' || str.toLowerCase() === 'null') return 0;
         // Fast path for clean integers or standard decimals (e.g. from SQL)
         if (/^-?\d+(\.\d+)?$/.test(str)) {
             var n = parseFloat(str);
             return isNaN(n) ? 0 : n;
         }
-        str = str.replace(/[RrpP\s]/g, '');
-        var lastDot = str.lastIndexOf('.');
-        var lastComma = str.lastIndexOf(',');
+        var isPercent = str.indexOf('%') !== -1;
+        var cleaned = str.replace(/[RrpP\s%]/g, '');
+        if (/[a-zA-Z]/.test(cleaned)) return 0; // Pure text cell
+
+        var lastDot = cleaned.lastIndexOf('.');
+        var lastComma = cleaned.lastIndexOf(',');
         if (lastComma > lastDot && lastDot !== -1) {
-            str = str.replace(/\./g, '').replace(/,/g, '.');
+            cleaned = cleaned.replace(/\./g, '').replace(/,/g, '.');
         } else if (lastDot > lastComma && lastComma !== -1) {
-            str = str.replace(/,/g, '');
+            cleaned = cleaned.replace(/,/g, '');
         } else if (lastDot !== -1 && lastComma === -1) {
-            if (str.split('.').length > 2 || str.split('.')[1].length === 3) {
-                str = str.replace(/\./g, '');
+            if (cleaned.split('.').length > 2 || cleaned.split('.')[1].length === 3) {
+                cleaned = cleaned.replace(/\./g, '');
             }
         } else if (lastComma !== -1 && lastDot === -1) {
-            if (str.split(',').length > 2 || str.split(',')[1].length === 3) {
-                str = str.replace(/,/g, '');
+            if (cleaned.split(',').length > 2 || cleaned.split(',')[1].length === 3) {
+                cleaned = cleaned.replace(/,/g, '');
             } else {
-                str = str.replace(/,/g, '.');
+                cleaned = cleaned.replace(/,/g, '.');
             }
         }
-        var val = parseFloat(str);
+        var val = parseFloat(cleaned);
         return isNaN(val) ? 0 : val;
     };
 
-    // Mathematical operations
+    // ── Excel Formula Implementations ─────────────────────────────
+
+    // Excel =SUM(range): Sums numbers, ignoring text, dashes, and empty cells
     FormulaController.computeSum = function (data, columnName) {
         if (!data || !columnName) return 0;
         var sum = 0;
         for (var i = 0; i < data.length; i++) {
-            sum += FormulaController.parseNumeric(data[i][columnName]);
+            var raw = data[i][columnName];
+            if (FormulaController.isNumeric(raw)) {
+                sum += FormulaController.parseNumeric(raw);
+            }
         }
         return sum;
     };
 
+    // Excel =COUNT(range): Counts ONLY cells containing numbers (ignores text, dashes, blanks)
     FormulaController.computeCount = function (data, columnName) {
         if (!data) return 0;
         if (!columnName) return data.length;
         var count = 0;
         for (var i = 0; i < data.length; i++) {
-            if (data[i][columnName] !== undefined && data[i][columnName] !== '') {
+            if (FormulaController.isNumeric(data[i][columnName])) {
                 count++;
             }
         }
         return count;
     };
 
+    // Excel =COUNTA(range): Counts non-empty cells (includes numbers and text, excludes empty / '-')
+    FormulaController.computeCountA = function (data, columnName) {
+        if (!data) return 0;
+        if (!columnName) return data.length;
+        var count = 0;
+        for (var i = 0; i < data.length; i++) {
+            var raw = data[i][columnName];
+            if (raw !== undefined && raw !== null) {
+                var str = String(raw).trim();
+                if (str !== '' && str !== '-' && str.toLowerCase() !== 'n/a' && str.toLowerCase() !== 'null') {
+                    count++;
+                }
+            }
+        }
+        return count;
+    };
+
+    // Excel =AVERAGE(range): Sum of numeric cells divided by count of numeric cells
+    // Completely ignores blank, text, '-', and 'N/A' cells. Does not divide by total rows.
     FormulaController.computeAverage = function (data, columnName) {
         if (!data || data.length === 0 || !columnName) return 0;
-        var sum = FormulaController.computeSum(data, columnName);
-        return sum / data.length;
+        var sum = 0;
+        var count = 0;
+        for (var i = 0; i < data.length; i++) {
+            var raw = data[i][columnName];
+            if (FormulaController.isNumeric(raw)) {
+                sum += FormulaController.parseNumeric(raw);
+                count++;
+            }
+        }
+        return count > 0 ? (sum / count) : 0;
+    };
+
+    // Excel =MAX(range): Maximum numeric value in range, ignoring text and blanks
+    FormulaController.computeMax = function (data, columnName) {
+        if (!data || data.length === 0 || !columnName) return 0;
+        var max = null;
+        for (var i = 0; i < data.length; i++) {
+            var raw = data[i][columnName];
+            if (FormulaController.isNumeric(raw)) {
+                var val = FormulaController.parseNumeric(raw);
+                if (max === null || val > max) max = val;
+            }
+        }
+        return max !== null ? max : 0;
+    };
+
+    // Excel =MIN(range): Minimum numeric value in range, ignoring text and blanks
+    FormulaController.computeMin = function (data, columnName) {
+        if (!data || data.length === 0 || !columnName) return 0;
+        var min = null;
+        for (var i = 0; i < data.length; i++) {
+            var raw = data[i][columnName];
+            if (FormulaController.isNumeric(raw)) {
+                var val = FormulaController.parseNumeric(raw);
+                if (min === null || val < min) min = val;
+            }
+        }
+        return min !== null ? min : 0;
+    };
+
+    // Excel =MEDIAN(range): Median value in range, ignoring text and blanks
+    FormulaController.computeMedian = function (data, columnName) {
+        if (!data || data.length === 0 || !columnName) return 0;
+        var values = [];
+        for (var i = 0; i < data.length; i++) {
+            var raw = data[i][columnName];
+            if (FormulaController.isNumeric(raw)) {
+                values.push(FormulaController.parseNumeric(raw));
+            }
+        }
+        if (values.length === 0) return 0;
+        values.sort(function (a, b) { return a - b; });
+        var half = Math.floor(values.length / 2);
+        if (values.length % 2 !== 0) {
+            return values[half];
+        }
+        return (values[half - 1] + values[half]) / 2.0;
+    };
+
+    // Excel =COUNTIF(range, criteria)
+    FormulaController.computeCountIf = function (data, columnName, criteria) {
+        if (!data || !columnName) return 0;
+        var count = 0;
+        var isFunc = typeof criteria === 'function';
+        for (var i = 0; i < data.length; i++) {
+            var val = data[i][columnName];
+            if (isFunc) {
+                if (criteria(val)) count++;
+            } else if (String(val).trim().toLowerCase() === String(criteria).trim().toLowerCase()) {
+                count++;
+            }
+        }
+        return count;
+    };
+
+    // Excel =SUMIF(range, criteria, [sum_range])
+    FormulaController.computeSumIf = function (data, criteriaCol, criteria, sumCol) {
+        if (!data || !criteriaCol) return 0;
+        var targetCol = sumCol || criteriaCol;
+        var sum = 0;
+        var isFunc = typeof criteria === 'function';
+        for (var i = 0; i < data.length; i++) {
+            var cVal = data[i][criteriaCol];
+            var match = isFunc ? criteria(cVal) : (String(cVal).trim().toLowerCase() === String(criteria).trim().toLowerCase());
+            if (match && FormulaController.isNumeric(data[i][targetCol])) {
+                sum += FormulaController.parseNumeric(data[i][targetCol]);
+            }
+        }
+        return sum;
+    };
+
+    // Excel =AVERAGEIF(range, criteria, [average_range])
+    FormulaController.computeAverageIf = function (data, criteriaCol, criteria, avgCol) {
+        if (!data || !criteriaCol) return 0;
+        var targetCol = avgCol || criteriaCol;
+        var sum = 0;
+        var count = 0;
+        var isFunc = typeof criteria === 'function';
+        for (var i = 0; i < data.length; i++) {
+            var cVal = data[i][criteriaCol];
+            var match = isFunc ? criteria(cVal) : (String(cVal).trim().toLowerCase() === String(criteria).trim().toLowerCase());
+            if (match && FormulaController.isNumeric(data[i][targetCol])) {
+                sum += FormulaController.parseNumeric(data[i][targetCol]);
+                count++;
+            }
+        }
+        return count > 0 ? (sum / count) : 0;
     };
 
     // Auto-detect columns based on keywords (prioritizes keywords in order)
@@ -481,11 +647,11 @@
 
         if ((!sheetData || sheetData.length === 0) && !summary) {
             console.log("Formula Controller: Clearing dashboard...");
-            // Reset cards — use all-period totals if available, otherwise 0
+            // Reset cards to 0
             var cardAsset = document.getElementById('card-total-asset');
-            if (cardAsset) cardAsset.textContent = (allPeriodTotals && allPeriodTotals.total_asset) ? formatNumber(allPeriodTotals.total_asset) : '0';
+            if (cardAsset) cardAsset.textContent = '0';
             var cardNbv = document.getElementById('card-total-nbv');
-            if (cardNbv) cardNbv.textContent = (allPeriodTotals && allPeriodTotals.total_nbv) ? formatCurrency(allPeriodTotals.total_nbv) : 'Rp 0';
+            if (cardNbv) cardNbv.textContent = 'Rp 0';
             var cardUtilText = document.getElementById('card-utilisasi-space-text');
             if (cardUtilText) cardUtilText.textContent = '0%';
             var cardUtilBar = document.getElementById('card-utilisasi-space-bar');
@@ -535,11 +701,11 @@
             return;
         }
 
-        // ── High-speed path using server SQL aggregate summary ──
+        // ── High-speed path using server SQL aggregate summary (per selected period) ──
         if (summary) {
             console.log("Formula Controller: Updating cards and charts from server SQL summary...");
-            var totalAsset = (allPeriodTotals && allPeriodTotals.total_asset) ? allPeriodTotals.total_asset : (summary.total_qty || 0);
-            var totalNbv = (allPeriodTotals && allPeriodTotals.total_nbv) ? allPeriodTotals.total_nbv : (summary.total_nbv || 0);
+            var totalAsset = (summary.total_asset !== undefined) ? summary.total_asset : (summary.total_qty || 0);
+            var totalNbv = (summary.total_nbv !== undefined) ? summary.total_nbv : 0;
 
             var cardAsset = document.getElementById('card-total-asset');
             if (cardAsset) cardAsset.textContent = formatNumber(totalAsset);
@@ -650,23 +816,26 @@
                 } catch (e) { console.warn('agingBarChart update error:', e); }
             }
 
-            // 4. Header / Title Periods
-            var periodText = document.getElementById('selected-period-text') ? document.getElementById('selected-period-text').textContent : "Bulan X";
+            var periodText = document.getElementById('selected-period-text') ? document.getElementById('selected-period-text').textContent.trim() : "Bulan X";
+            var mName = '';
+            var yr = '';
+            if (periodText) {
+                var mMatch = periodText.match(/\b(Januari|January|Jan|Februari|February|Feb|Maret|March|Mar|April|Apr|Mei|May|Juni|June|Jun|Juli|July|Jul|Agustus|August|Agu|Aug|September|Sep|Oktober|October|Okt|Oct|November|Nov|Nop|Desember|December|Des|Dec)\b/i);
+                var yMatch = periodText.match(/\b(20\d{2})\b/);
+                if (mMatch) mName = mMatch[1];
+                if (yMatch) yr = yMatch[1];
+            }
             var pinTitle = document.getElementById('perangkat-in-title-period');
-            if (pinTitle && periodText) {
-                var match = periodText.match(/^(\w+)\s+(\d{4})(?:-Batch(\d+))?$/);
-                var yr = match ? match[2] : periodText;
+            if (pinTitle && yr) {
                 pinTitle.textContent = "Tahun " + yr;
             }
             var poutTitle = document.getElementById('perangkat-out-title-period');
-            if (poutTitle && periodText) {
-                var match = periodText.match(/^(\w+)\s+(\d{4})(?:-Batch(\d+))?$/);
-                var yr = match ? match[2] : periodText;
+            if (poutTitle && yr) {
                 poutTitle.textContent = "Tahun " + yr;
             }
 
             // 5. Rack utilisasi
-            FormulaController.loadRackUtilisasi();
+            FormulaController.loadRackUtilisasi(mName, yr);
             return;
         }
 
@@ -743,13 +912,13 @@
             }
         }
 
-        // 1. TOTAL ASSET
-        var totalAsset = (allPeriodTotals && allPeriodTotals.total_asset) ? allPeriodTotals.total_asset : totalAssetCalculated;
+        // 1. TOTAL ASSET (all rows in chosen period)
+        var totalAsset = (summary && summary.total_asset !== undefined) ? summary.total_asset : totalAssetCalculated;
         var cardAsset = document.getElementById('card-total-asset');
         if (cardAsset) cardAsset.textContent = formatNumber(totalAsset);
 
-        // 2. TOTAL NBV
-        var totalNbv = (allPeriodTotals && allPeriodTotals.total_nbv) ? allPeriodTotals.total_nbv : totalNbvCalculated;
+        // 2. TOTAL NBV (sum of nbv in chosen period)
+        var totalNbv = (summary && summary.total_nbv !== undefined) ? summary.total_nbv : totalNbvCalculated;
         var cardNbv = document.getElementById('card-total-nbv');
         if (cardNbv) cardNbv.textContent = formatCurrency(totalNbv);
 
@@ -940,14 +1109,14 @@
         var tbody = document.getElementById('table-utilisasi-area-body');
         if (!tbody && !document.getElementById('card-utilisasi-space-text')) return;
 
-        // Helper for Utilisasi progress bar colors
+        // Helper for Utilisasi progress bar colors: Green <= 50%, Warning <= 75%, Danger > 75%
         function getUtilClass(percent) {
             if (percent <= 50) return 'bg-success';
             if (percent <= 75) return 'bg-warning';
             return 'bg-danger';
         }
 
-        // Helper for Free Space progress bar colors
+        // Helper for Free Space progress bar colors: Danger <= 24%, Warning <= 49%, Success >= 50%
         function getFreeClass(percent) {
             if (percent <= 24) return 'bg-danger';
             if (percent <= 49) return 'bg-warning';
@@ -956,19 +1125,48 @@
 
         // Determine current period if not passed
         if (!periodMonth || !periodYear) {
+            // Priority 1: Check the active period displayed on the navbar/header
             var currentPeriodEl = document.getElementById('selected-period-text');
             var currentPeriodStr = currentPeriodEl ? currentPeriodEl.textContent.trim() : '';
             if (currentPeriodStr && currentPeriodStr !== 'PILIH DATA' && currentPeriodStr !== 'PILIH PERIODE DATA' && currentPeriodStr !== '-') {
-                var mMatch = currentPeriodStr.match(/^[A-Za-z]+/);
+                var mMatch = currentPeriodStr.match(/\b(Januari|January|Jan|Februari|February|Feb|Maret|March|Mar|April|Apr|Mei|May|Juni|June|Jun|Juli|July|Jul|Agustus|August|Agu|Aug|September|Sep|Oktober|October|Okt|Oct|November|Nov|Nop|Desember|December|Des|Dec)\b/i);
                 var yMatch = currentPeriodStr.match(/\b(20\d{2})\b/);
                 if (mMatch) {
-                    var rawMonth = mMatch[0];
-                    periodMonth = rawMonth.charAt(0).toUpperCase() + rawMonth.slice(1).toLowerCase();
+                    periodMonth = mMatch[1];
                 }
                 if (yMatch) {
                     periodYear = yMatch[1];
                 }
             }
+            // Priority 2: Fallback to dropdown elements
+            if (!periodMonth || !periodYear) {
+                var mSel = document.getElementById('period-month-select');
+                var ySel = document.getElementById('period-year-select');
+                if (mSel && mSel.value && ySel && ySel.value) {
+                    periodMonth = mSel.value;
+                    periodYear = ySel.value;
+                }
+            }
+        }
+
+        // Normalize month name (English, Indonesian, 3-letter abbreviation)
+        var monthNamesMap = {
+            'JAN': 'January', 'JANUARI': 'January', 'JANUARY': 'January',
+            'FEB': 'February', 'FEBRUARI': 'February', 'FEBRUARY': 'February',
+            'MAR': 'March', 'MARET': 'March', 'MARCH': 'March',
+            'APR': 'April', 'APRIL': 'April',
+            'MAY': 'May', 'MEI': 'May',
+            'JUN': 'June', 'JUNI': 'June', 'JUNE': 'June',
+            'JUL': 'July', 'JULI': 'July', 'JULY': 'July',
+            'AUG': 'August', 'AGU': 'August', 'AGUSTUS': 'August', 'AUGUST': 'August',
+            'SEP': 'September', 'SEPTEMBER': 'September',
+            'OCT': 'October', 'OKT': 'October', 'OKTOBER': 'October', 'OCTOBER': 'October',
+            'NOV': 'November', 'NOP': 'November', 'NOVEMBER': 'November',
+            'DEC': 'December', 'DES': 'December', 'DESEMBER': 'December', 'DECEMBER': 'December'
+        };
+        var upM = String(periodMonth || '').trim().toUpperCase();
+        if (monthNamesMap[upM]) {
+            periodMonth = monthNamesMap[upM];
         }
 
         if (!periodMonth || !periodYear) {
@@ -983,20 +1181,32 @@
                 var utilData = (utilResult.status === 'success' && utilResult.data) ? utilResult.data : [];
                 if (tbody) tbody.replaceChildren();
 
-                // 1. Calculate overall average capacity across all rows (User: sum average percentage of CAP column)
+                // 1. Calculate overall average capacity across measured storage rows (Excel behavior: 36,440 / 444 = 82%)
                 var totalCapSum = 0;
-                var totalCapCount = 0;
+                var storageCount = 0;
                 for (var i = 0; i < utilData.length; i++) {
+                    var cat = String(utilData[i].category || '').trim().toUpperCase();
+                    if (cat !== 'QUARTERLY' && cat !== 'KABEL') {
+                        storageCount++;
+                    }
                     var cNum = parseFloat(utilData[i].capacity);
                     if (!isNaN(cNum)) {
                         totalCapSum += cNum;
-                        totalCapCount++;
                     }
                 }
-                var overallAvgCap = totalCapCount > 0 ? Math.round(totalCapSum / totalCapCount) : 0;
-                if (overallAvgCap > 100) overallAvgCap = 100;
-                var utilPercent = overallAvgCap;
-                var freePercent = Math.max(0, 100 - utilPercent);
+                var denom = storageCount > 0 ? storageCount : utilData.length;
+                var avgNum = (utilResult.summary && typeof utilResult.summary.avg_utilization !== 'undefined')
+                    ? parseFloat(utilResult.summary.avg_utilization)
+                    : (denom > 0 ? (totalCapSum / denom) : 0);
+                avgNum = Math.max(0, Math.min(100, avgNum));
+
+                var roundedInt = Math.round(avgNum);
+                var utilDisplay = (Math.abs(avgNum - roundedInt) < 0.15) ? roundedInt.toString() : avgNum.toFixed(1);
+                var freeNum = Math.max(0, 100 - avgNum);
+                var freeRoundedInt = Math.round(freeNum);
+                var freeDisplay = (Math.abs(freeNum - freeRoundedInt) < 0.15) ? freeRoundedInt.toString() : freeNum.toFixed(1);
+                var utilPercent = Math.round(avgNum);
+                var freePercent = Math.round(freeNum);
 
                 // Update UTILISASI SPACE & FREE SPACE cards
                 var cardUtilText = document.getElementById('card-utilisasi-space-text');
@@ -1004,18 +1214,18 @@
                 var cardFreeText = document.getElementById('card-free-space-text');
                 var cardFreeBar = document.getElementById('card-free-space-bar');
 
-                if (cardUtilText) cardUtilText.textContent = utilPercent + '%';
+                if (cardUtilText) cardUtilText.textContent = utilDisplay + '%';
                 if (cardUtilBar) {
-                    cardUtilBar.style.width = utilPercent + '%';
-                    cardUtilBar.setAttribute('aria-valuenow', utilPercent);
-                    cardUtilBar.className = 'progress-bar ' + getUtilClass(utilPercent);
+                    cardUtilBar.style.width = avgNum + '%';
+                    cardUtilBar.setAttribute('aria-valuenow', Math.round(avgNum));
+                    cardUtilBar.className = 'progress-bar ' + getUtilClass(Math.round(avgNum));
                 }
 
-                if (cardFreeText) cardFreeText.textContent = freePercent + '%';
+                if (cardFreeText) cardFreeText.textContent = freeDisplay + '%';
                 if (cardFreeBar) {
-                    cardFreeBar.style.width = freePercent + '%';
-                    cardFreeBar.setAttribute('aria-valuenow', freePercent);
-                    cardFreeBar.className = 'progress-bar ' + getFreeClass(freePercent);
+                    cardFreeBar.style.width = freeNum + '%';
+                    cardFreeBar.setAttribute('aria-valuenow', Math.round(freeNum));
+                    cardFreeBar.className = 'progress-bar ' + getFreeClass(Math.round(freeNum));
                 }
 
                 // 2. Group by rack_group for table display
