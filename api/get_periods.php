@@ -60,7 +60,7 @@ if (!function_exists('sortPeriodeGroups')) {
 }
 
 try {
-    $periodTables = ['assets', 'inbound_master', 'outbound_master', 'outbound_forwarder'];
+    $periodTables = ['assets', 'inbound_master', 'inbound_gr', 'outbound_master', 'outbound_forwarder'];
     $periodQueries = [];
     foreach ($periodTables as $t) {
         try {

@@ -245,135 +245,281 @@ if (!defined('SPA_MODE')) {
                                 id="seg-inbound" role="tabpanel" aria-labelledby="seg-inbound-tab">
                                 <?php if ($canAddInbound || $canDeleteInbound): ?>
                                     <div
-                                        class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between mb-3 bg-white p-3 rounded shadow-sm border">
-                                        <h6 class="m-0 font-weight-bold text-primary">
-                                            <i class="fas fa-box-open mr-2"></i>Menu Master Data Inbound
+                                        class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between mb-3 bg-white p-3 rounded shadow-sm border"
+                                        id="inbound-action-buttons">
+                                        <h6 class="m-0 font-weight-bold text-primary" id="inbound-menu-title">
+                                            <i class="fas fa-box-open mr-2"></i>Menu Master Data Inbound (Data PR to PO And Delivery Plan)
                                         </h6>
                                         <div class="mt-2 mt-sm-0">
-                                            <?php if ($canAddInbound): ?>
-                                                <button class="btn btn-success btn-sm shadow-sm font-weight-bold mr-2"
-                                                    data-toggle="modal" data-target="#uploadExcelModalInbound">
-                                                    <i class="fas fa-file-import mr-1"></i> Import Excel Inbound
-                                                </button>
-                                            <?php endif; ?>
-                                            <?php if ($canDeleteInbound): ?>
-                                                <button class="btn btn-danger btn-sm shadow-sm font-weight-bold" data-toggle="modal"
-                                                    data-target="#deleteDataModalInbound">
-                                                    <i class="fas fa-trash-alt mr-1"></i> Hapus Data Inbound
-                                                </button>
-                                            <?php endif; ?>
+                                            <!-- Action Buttons for Data PR to PO And Delivery Plan -->
+                                            <span id="btn-group-inbound-prpo-actions">
+                                                <?php if ($canAddInbound): ?>
+                                                    <button class="btn btn-success btn-sm shadow-sm font-weight-bold mr-2"
+                                                        data-toggle="modal" data-target="#uploadExcelModalInbound">
+                                                        <i class="fas fa-file-import mr-1"></i> Import Excel PR to PO And Delivery Plan
+                                                    </button>
+                                                <?php endif; ?>
+                                                <?php if ($canDeleteInbound): ?>
+                                                    <button class="btn btn-danger btn-sm shadow-sm font-weight-bold" data-toggle="modal"
+                                                        data-target="#deleteDataModalInbound">
+                                                        <i class="fas fa-trash-alt mr-1"></i> Hapus Data PR to PO And Delivery Plan
+                                                    </button>
+                                                <?php endif; ?>
+                                            </span>
+
+                                            <!-- Action Buttons for Data GR -->
+                                            <span id="btn-group-inbound-gr-actions" style="display: none;">
+                                                <?php if ($canAddInbound): ?>
+                                                    <button class="btn btn-success btn-sm shadow-sm font-weight-bold mr-2"
+                                                        data-toggle="modal" data-target="#uploadExcelModalInboundGr">
+                                                        <i class="fas fa-file-import mr-1"></i> Import Excel Data GR
+                                                    </button>
+                                                <?php endif; ?>
+                                                <?php if ($canDeleteInbound): ?>
+                                                    <button class="btn btn-danger btn-sm shadow-sm font-weight-bold" data-toggle="modal"
+                                                        data-target="#deleteDataModalInboundGr">
+                                                        <i class="fas fa-trash-alt mr-1"></i> Hapus Data GR
+                                                    </button>
+                                                <?php endif; ?>
+                                            </span>
                                         </div>
                                     </div>
                                 <?php endif; ?>
 
-                                <div class="card shadow mb-4" style="min-height: calc(100vh - 380px);">
-                                    <div
-                                        class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                                        <h6 class="m-0 font-weight-bold text-primary">Tabel Master Data Inbound</h6>
-                                    </div>
-                                    <div class="card-body">
-                                        <!-- Filter Control Bar (Dropdowns & Reset) -->
-                                        <div class="card shadow-sm border mb-4" style="border-radius: 8px;">
-                                            <div class="card-body py-3 px-4">
-                                                <div class="form-row align-items-end">
-                                                    <!-- Periode Group Dropdown -->
-                                                    <div class="col-md-2 col-sm-6 mb-2 mb-md-0">
-                                                        <label for="filter-inbound-periode"
-                                                            class="small font-weight-bold text-gray-700 mb-1">Periode
-                                                            Group</label>
-                                                        <select
-                                                            class="form-control form-control-sm custom-select custom-select-sm"
-                                                            id="filter-inbound-periode">
-                                                            <option value="">Semua Periode</option>
-                                                        </select>
-                                                    </div>
+                                <!-- Sub Master Data Tabs for Inbound -->
+                                <ul class="nav nav-tabs mb-4" id="inboundSubTabs" role="tablist">
+                                    <li class="nav-item" role="presentation">
+                                        <a class="nav-link active" id="tab-inbound-prpo" data-toggle="tab"
+                                            href="#pane-inbound-prpo" role="tab" aria-controls="pane-inbound-prpo"
+                                            aria-selected="true">
+                                            <i class="fas fa-file-invoice mr-1"></i> Data PR to PO And Delivery Plan
+                                        </a>
+                                    </li>
+                                    <li class="nav-item" role="presentation">
+                                        <a class="nav-link" id="tab-inbound-gr" data-toggle="tab"
+                                            href="#pane-inbound-gr" role="tab" aria-controls="pane-inbound-gr"
+                                            aria-selected="false">
+                                            <i class="fas fa-clipboard-check mr-1"></i> Data GR
+                                        </a>
+                                    </li>
+                                </ul>
 
-                                                    <!-- Bagian Dropdown -->
-                                                    <div class="col-md-2 col-sm-6 mb-2 mb-md-0">
-                                                        <label for="filter-inbound-bagian"
-                                                            class="small font-weight-bold text-gray-700 mb-1">Bagian</label>
-                                                        <select
-                                                            class="form-control form-control-sm custom-select custom-select-sm"
-                                                            id="filter-inbound-bagian">
-                                                            <option value="">Semua Bagian</option>
-                                                        </select>
-                                                    </div>
+                                <div class="tab-content" id="inboundSubTabsContent">
+                                    <!-- 1.1 Pane PR to PO And Delivery Plan -->
+                                    <div class="tab-pane fade show active" id="pane-inbound-prpo" role="tabpanel" aria-labelledby="tab-inbound-prpo">
+                                        <div class="card shadow mb-4" style="min-height: calc(100vh - 380px);">
+                                            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                                                <h6 class="m-0 font-weight-bold text-primary">Tabel Master Data PR to PO And Delivery Plan</h6>
+                                            </div>
+                                            <div class="card-body">
+                                                <!-- Filter Control Bar (Dropdowns & Reset) -->
+                                                <div class="card shadow-sm border mb-4" style="border-radius: 8px;">
+                                                    <div class="card-body py-3 px-4">
+                                                        <div class="form-row align-items-end">
+                                                            <!-- Periode Group Dropdown -->
+                                                            <div class="col-md-2 col-sm-6 mb-2 mb-md-0">
+                                                                <label for="filter-inbound-periode"
+                                                                    class="small font-weight-bold text-gray-700 mb-1">Periode Group</label>
+                                                                <select class="form-control form-control-sm custom-select custom-select-sm"
+                                                                    id="filter-inbound-periode">
+                                                                    <option value="">Semua Periode</option>
+                                                                </select>
+                                                            </div>
 
-                                                    <!-- PIC Teknis Dropdown -->
-                                                    <div class="col-md-2 col-sm-6 mb-2 mb-md-0">
-                                                        <label for="filter-inbound-pic"
-                                                            class="small font-weight-bold text-gray-700 mb-1">PIC
-                                                            Teknis</label>
-                                                        <select
-                                                            class="form-control form-control-sm custom-select custom-select-sm"
-                                                            id="filter-inbound-pic">
-                                                            <option value="">Semua PIC Teknis</option>
-                                                        </select>
-                                                    </div>
+                                                            <!-- Bagian Dropdown -->
+                                                            <div class="col-md-2 col-sm-6 mb-2 mb-md-0">
+                                                                <label for="filter-inbound-bagian"
+                                                                    class="small font-weight-bold text-gray-700 mb-1">Bagian</label>
+                                                                <select class="form-control form-control-sm custom-select custom-select-sm"
+                                                                    id="filter-inbound-bagian">
+                                                                    <option value="">Semua Bagian</option>
+                                                                </select>
+                                                            </div>
 
-                                                    <!-- Item Kategori Dropdown -->
-                                                    <div class="col-md-2 col-sm-6 mb-2 mb-md-0">
-                                                        <label for="filter-inbound-kategori"
-                                                            class="small font-weight-bold text-gray-700 mb-1">Item
-                                                            Kategori</label>
-                                                        <select
-                                                            class="form-control form-control-sm custom-select custom-select-sm"
-                                                            id="filter-inbound-kategori">
-                                                            <option value="">Semua Kategori</option>
-                                                        </select>
-                                                    </div>
+                                                            <!-- PIC Teknis Dropdown -->
+                                                            <div class="col-md-2 col-sm-6 mb-2 mb-md-0">
+                                                                <label for="filter-inbound-pic"
+                                                                    class="small font-weight-bold text-gray-700 mb-1">PIC Teknis</label>
+                                                                <select class="form-control form-control-sm custom-select custom-select-sm"
+                                                                    id="filter-inbound-pic">
+                                                                    <option value="">Semua PIC Teknis</option>
+                                                                </select>
+                                                            </div>
 
-                                                    <!-- No. PR / PO Search Input -->
-                                                    <div class="col-md-2 col-sm-6 mb-2 mb-md-0">
-                                                        <label for="filter-inbound-po"
-                                                            class="small font-weight-bold text-gray-700 mb-1">No. PR /
-                                                            PO</label>
-                                                        <input type="text" class="form-control form-control-sm"
-                                                            id="filter-inbound-po" placeholder="Search...">
-                                                    </div>
+                                                            <!-- Item Kategori Dropdown -->
+                                                            <div class="col-md-2 col-sm-6 mb-2 mb-md-0">
+                                                                <label for="filter-inbound-kategori"
+                                                                    class="small font-weight-bold text-gray-700 mb-1">Item Kategori</label>
+                                                                <select class="form-control form-control-sm custom-select custom-select-sm"
+                                                                    id="filter-inbound-kategori">
+                                                                    <option value="">Semua Kategori</option>
+                                                                </select>
+                                                            </div>
 
-                                                    <!-- Reset Filter Button -->
-                                                    <div class="col-md-2 col-sm-6 mb-2 mb-md-0">
-                                                        <button
-                                                            class="btn btn-outline-secondary btn-sm font-weight-bold btn-block"
-                                                            type="button" id="btn-reset-filter-inbound">
-                                                            <i class="fas fa-undo mr-1"></i> Reset Filter
-                                                        </button>
+                                                            <!-- No. PR / PO Search Input -->
+                                                            <div class="col-md-2 col-sm-6 mb-2 mb-md-0">
+                                                                <label for="filter-inbound-po"
+                                                                    class="small font-weight-bold text-gray-700 mb-1">No. PR / PO</label>
+                                                                <input type="text" class="form-control form-control-sm"
+                                                                    id="filter-inbound-po" placeholder="Search...">
+                                                            </div>
+
+                                                            <!-- Reset Filter Button -->
+                                                            <div class="col-md-2 col-sm-6 mb-2 mb-md-0">
+                                                                <button class="btn btn-outline-secondary btn-sm font-weight-bold btn-block"
+                                                                    type="button" id="btn-reset-filter-inbound">
+                                                                    <i class="fas fa-undo mr-1"></i> Reset Filter
+                                                                </button>
+                                                            </div>
+                                                        </div>
                                                     </div>
+                                                </div>
+
+                                                <div class="table-responsive">
+                                                    <table class="table table-bordered table-sm" id="dataTableInbound" width="100%" cellspacing="0">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>PR Nomor</th>
+                                                                <th>PR Kode Site</th>
+                                                                <th>PR Nama Site</th>
+                                                                <th>PR Item Kategori</th>
+                                                                <th>PR PIC Teknis Nama</th>
+                                                                <th>PR Nama Bagian</th>
+                                                                <th>PR Nama Divisi</th>
+                                                                <th>PR Regional</th>
+                                                                <th>PR Jenis MA</th>
+                                                                <th>PO Nomor</th>
+                                                                <th>PO Deskripsi</th>
+                                                                <th>PO Vendor</th>
+                                                                <th>PO Tgl. Generate</th>
+                                                                <th>PO Nama Item</th>
+                                                                <th>PO Qty Item</th>
+                                                                <th>PO UoM Item</th>
+                                                                <th>PO Target Delivery</th>
+                                                                <th>Project ID</th>
+                                                                <th>Periode Group</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <!-- Populated dynamically via DataTables -->
+                                                        </tbody>
+                                                    </table>
                                                 </div>
                                             </div>
                                         </div>
+                                    </div>
 
-                                        <div class="table-responsive">
-                                            <table class="table table-bordered table-sm" id="dataTableInbound" width="100%"
-                                                cellspacing="0">
-                                                <thead>
-                                                    <tr>
-                                                        <th>PR Nomor</th>
-                                                        <th>PR Kode Site</th>
-                                                        <th>PR Nama Site</th>
-                                                        <th>PR Item Kategori</th>
-                                                        <th>PR PIC Teknis Nama</th>
-                                                        <th>PR Nama Bagian</th>
-                                                        <th>PR Nama Divisi</th>
-                                                        <th>PR Regional</th>
-                                                        <th>PR Jenis MA</th>
-                                                        <th>PO Nomor</th>
-                                                        <th>PO Deskripsi</th>
-                                                        <th>PO Vendor</th>
-                                                        <th>PO Tgl. Generate</th>
-                                                        <th>PO Nama Item</th>
-                                                        <th>PO Qty Item</th>
-                                                        <th>PO UoM Item</th>
-                                                        <th>PO Target Delivery</th>
-                                                        <th>Project ID</th>
-                                                        <th>Periode Group</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <!-- Populated dynamically via DataTables -->
-                                                </tbody>
-                                            </table>
+                                    <!-- 1.2 Pane Data GR -->
+                                    <div class="tab-pane fade" id="pane-inbound-gr" role="tabpanel" aria-labelledby="tab-inbound-gr">
+                                        <div class="card shadow mb-4" style="min-height: calc(100vh - 380px);">
+                                            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                                                <h6 class="m-0 font-weight-bold text-primary">Tabel Master Data GR</h6>
+                                            </div>
+                                            <div class="card-body">
+                                                <!-- Filter Control Bar for Data GR -->
+                                                <div class="card shadow-sm border mb-4" style="border-radius: 8px;">
+                                                    <div class="card-body py-3 px-4">
+                                                        <div class="form-row align-items-end">
+                                                            <!-- Periode Group Dropdown -->
+                                                            <div class="col-md-3 col-sm-6 mb-2 mb-md-0">
+                                                                <label for="filter-inbound-gr-periode"
+                                                                    class="small font-weight-bold text-gray-700 mb-1">Periode Group</label>
+                                                                <select class="form-control form-control-sm custom-select custom-select-sm"
+                                                                    id="filter-inbound-gr-periode">
+                                                                    <option value="">Semua Periode</option>
+                                                                </select>
+                                                            </div>
+
+                                                            <!-- Vendor Name Dropdown -->
+                                                            <div class="col-md-3 col-sm-6 mb-2 mb-md-0">
+                                                                <label for="filter-inbound-gr-vendor"
+                                                                    class="small font-weight-bold text-gray-700 mb-1">Vendor Name</label>
+                                                                <select class="form-control form-control-sm custom-select custom-select-sm"
+                                                                    id="filter-inbound-gr-vendor">
+                                                                    <option value="">Semua Vendor</option>
+                                                                </select>
+                                                            </div>
+
+                                                            <!-- Project Dropdown -->
+                                                            <div class="col-md-2 col-sm-6 mb-2 mb-md-0">
+                                                                <label for="filter-inbound-gr-project"
+                                                                    class="small font-weight-bold text-gray-700 mb-1">Nama Project</label>
+                                                                <select class="form-control form-control-sm custom-select custom-select-sm"
+                                                                    id="filter-inbound-gr-project">
+                                                                    <option value="">Semua Project</option>
+                                                                </select>
+                                                            </div>
+
+                                                            <!-- Search Input -->
+                                                            <div class="col-md-2 col-sm-6 mb-2 mb-md-0">
+                                                                <label for="filter-inbound-gr-search"
+                                                                    class="small font-weight-bold text-gray-700 mb-1">Cari Data</label>
+                                                                <input type="text" class="form-control form-control-sm"
+                                                                    id="filter-inbound-gr-search" placeholder="Search...">
+                                                            </div>
+
+                                                            <!-- Reset Filter Button -->
+                                                            <div class="col-md-2 col-sm-6 mb-2 mb-md-0">
+                                                                <button class="btn btn-outline-secondary btn-sm font-weight-bold btn-block"
+                                                                    type="button" id="btn-reset-filter-inbound-gr">
+                                                                    <i class="fas fa-undo mr-1"></i> Reset Filter
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div class="table-responsive">
+                                                    <table class="table table-bordered table-sm" id="dataTableInboundGr" width="100%" cellspacing="0">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>No Reg</th>
+                                                                <th>KD Spec</th>
+                                                                <th>SN</th>
+                                                                <th>PN</th>
+                                                                <th>Product Name</th>
+                                                                <th>Price</th>
+                                                                <th>PR No</th>
+                                                                <th>PR Date</th>
+                                                                <th>PO No</th>
+                                                                <th>PO Date</th>
+                                                                <th>DO No</th>
+                                                                <th>DO Date</th>
+                                                                <th>GR No</th>
+                                                                <th>GR Date</th>
+                                                                <th>PO Value</th>
+                                                                <th>Nama Project</th>
+                                                                <th>Term of Payment</th>
+                                                                <th>Kode Site Penerimaan</th>
+                                                                <th>Qty</th>
+                                                                <th>UoM</th>
+                                                                <th>Is Unique Item</th>
+                                                                <th>Warranty</th>
+                                                                <th>Warranty Unit</th>
+                                                                <th>Manufacturer</th>
+                                                                <th>Vendor Name</th>
+                                                                <th>Vendor Address</th>
+                                                                <th>Jenis Kepemilikan</th>
+                                                                <th>Pemilik</th>
+                                                                <th>Capex Opex</th>
+                                                                <th>LOI No</th>
+                                                                <th>IsSentToARTISCode</th>
+                                                                <th>ARTIS Date</th>
+                                                                <th>ARTIS Message</th>
+                                                                <th>IsSentToIIPSCode</th>
+                                                                <th>IIPS Date</th>
+                                                                <th>IIPS Message</th>
+                                                                <th>PIC Submit GR</th>
+                                                                <th>PIC Registration</th>
+                                                                <th>Periode Group</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <!-- Populated dynamically via DataTables -->
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -1101,7 +1247,7 @@ if (!defined('SPA_MODE')) {
                                 </div>
                                 <div class="d-flex justify-content-end mt-4">
                                     <button class="btn btn-light px-4 mr-2" type="button" data-dismiss="modal"
-                                        style="border-radius: 6px; font-weight: 600;">Cancel</button>
+                                        style="border-radius: 6px; font-weight: 600;">Batal</button>
                                     <button class="btn btn-danger px-4" type="button" id="btn-confirm-delete"
                                         style="border-radius: 6px; font-weight: 600; box-shadow: 0 4px 10px rgba(231,74,59,0.3);">
                                         <i class="fas fa-trash mr-1"></i> Delete Data
@@ -1131,10 +1277,10 @@ if (!defined('SPA_MODE')) {
                         <div class="modal-body upload-modal-body">
                             <div class="p-3">
                                 <div class="text-center text-gray-600 mb-4">
-                                    <h4 class="text-danger font-weight-bold mb-2"><i
-                                            class="fas fa-exclamation-triangle mr-2"></i>Peringatan Hapus</h4>
-                                    <p class="mb-0 text-muted small">Pilih opsi penghapusan data master dan utilisasi
-                                        rack di bawah ini.</p>
+                                    <h3 class="text-danger font-weight-bold mb-3"><i
+                                            class="fas fa-exclamation-triangle mr-2"></i>Peringatan</h3>
+                                    <p class="mb-0" style="font-size: 1.1rem;">Data yang Anda pilih akan dihapus
+                                        permanen</p>
                                 </div>
                                 <div class="form-group mb-3">
                                     <label for="deleteRackScopeSelect"
@@ -1161,7 +1307,7 @@ if (!defined('SPA_MODE')) {
                                 </div>
                                 <div class="d-flex justify-content-end mt-4">
                                     <button class="btn btn-light px-4 mr-2" type="button" data-dismiss="modal"
-                                        style="border-radius: 6px; font-weight: 600;">Cancel</button>
+                                        style="border-radius: 6px; font-weight: 600;">Batal</button>
                                     <button class="btn btn-danger px-4" type="button" id="btn-confirm-delete-rack"
                                         style="border-radius: 6px; font-weight: 600; box-shadow: 0 4px 10px rgba(231,74,59,0.3);">
                                         <i class="fas fa-trash mr-1"></i> Delete Data Rack
@@ -1537,7 +1683,7 @@ if (!defined('SPA_MODE')) {
                     <div class="modal-content upload-modal-content">
                         <div class="modal-header upload-modal-header">
                             <h5 class="modal-title font-weight-bold" id="uploadExcelModalInboundLabel">
-                                <i class="fas fa-file-excel mr-2"></i>Import Master Data Inbound
+                                <i class="fas fa-file-excel mr-2"></i>Import Master Data PR to PO And Delivery Plan
                             </h5>
                             <button class="close text-white" type="button" data-dismiss="modal" aria-label="Close">
                                 <span aria-hidden="true">&times;</span>
@@ -1552,7 +1698,7 @@ if (!defined('SPA_MODE')) {
                                 <div>
                                     <button type="button" class="btn btn-sm btn-outline-success font-weight-bold"
                                         id="btn-template-inbound">
-                                        <i class="fas fa-file-excel mr-1"></i> Template Inbound
+                                        <i class="fas fa-file-excel mr-1"></i> Template PR to PO And Delivery Plan
                                     </button>
                                 </div>
                             </div>
@@ -1712,6 +1858,201 @@ if (!defined('SPA_MODE')) {
                                                 <button type="button"
                                                     class="btn btn-primary btn-block font-weight-bold py-2 shadow-sm"
                                                     id="inbound-btn-submit">
+                                                    <i class="fas fa-file-import mr-1"></i> Mulai Import Sheet Ini
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Import Excel Data GR Modal -->
+            <div class="modal fade" id="uploadExcelModalInboundGr" tabindex="-1" role="dialog"
+                aria-labelledby="uploadExcelModalInboundGrLabel" aria-hidden="true">
+                <div class="modal-dialog upload-modal-dialog modal-dialog-centered" role="document"
+                    id="uploadExcelModalInboundGrDialog">
+                    <div class="modal-content upload-modal-content">
+                        <div class="modal-header upload-modal-header">
+                            <h5 class="modal-title font-weight-bold" id="uploadExcelModalInboundGrLabel">
+                                <i class="fas fa-file-excel mr-2"></i>Import Master Data GR
+                            </h5>
+                            <button class="close text-white" type="button" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body upload-modal-body p-4">
+                            <div
+                                class="alert alert-light border mb-3 p-2 d-flex align-items-center justify-content-between">
+                                <span class="small font-weight-bold text-gray-700">
+                                    <i class="fas fa-download mr-1 text-success"></i> Download Template:
+                                </span>
+                                <div>
+                                    <button type="button" class="btn btn-sm btn-outline-success font-weight-bold"
+                                        id="btn-template-inbound-gr">
+                                        <i class="fas fa-file-excel mr-1"></i> Template Data GR
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <!-- Left Column: Periode, Dropzone & Process Steps -->
+                                <div class="col-12" id="inbound-gr-col-left">
+                                    <!-- Periode Group Selectors (Month, Batch & Year) -->
+                                    <div class="form-row mb-2">
+                                        <div class="col-4">
+                                            <label for="uploadInboundGrMonthSelect"
+                                                class="small font-weight-bold text-gray-700 mb-1">Bulan Periode <span
+                                                    class="text-danger">*</span></label>
+                                            <select class="form-control form-control-sm" id="uploadInboundGrMonthSelect">
+                                                <option value="">-- Pilih Bulan --</option>
+                                                <option value="January">January</option>
+                                                <option value="February">February</option>
+                                                <option value="March">March</option>
+                                                <option value="April">April</option>
+                                                <option value="May">May</option>
+                                                <option value="June">June</option>
+                                                <option value="July">July</option>
+                                                <option value="August">August</option>
+                                                <option value="September">September</option>
+                                                <option value="October">October</option>
+                                                <option value="November">November</option>
+                                                <option value="December">December</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-4">
+                                            <label for="uploadInboundGrBatchSelect"
+                                                class="small font-weight-bold text-gray-700 mb-1">Batch <span
+                                                    class="text-danger">*</span></label>
+                                            <select class="form-control form-control-sm" id="uploadInboundGrBatchSelect">
+                                                <option value="">-- Pilih Batch --</option>
+                                                <option value="1">Batch 1</option>
+                                                <option value="2">Batch 2</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-4">
+                                            <label for="uploadInboundGrYearSelect"
+                                                class="small font-weight-bold text-gray-700 mb-1">Tahun Periode <span
+                                                    class="text-danger">*</span></label>
+                                            <select class="form-control form-control-sm" id="uploadInboundGrYearSelect">
+                                                <option value="">-- Pilih Tahun --</option>
+                                                <?php
+                                                $curY = (int) date('Y');
+                                                for ($y = 2024; $y <= $curY + 5; $y++): ?>
+                                                    <option value="<?php echo $y; ?>" <?php echo ($y === $curY) ? 'selected' : ''; ?>>
+                                                        <?php echo $y; ?>
+                                                    </option>
+                                                <?php endfor; ?>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <!-- Period Availability Status Indicator -->
+                                    <div id="inbound-gr-period-status" class="mb-3" style="display: none;"></div>
+
+                                    <div class="upload-drop-zone" id="inbound-gr-upload-drop-zone">
+                                        <input type="file" id="excel-file-inbound-gr-input" accept=".xlsx,.xls,.csv"
+                                            class="d-none" />
+                                        <div class="upload-icon">
+                                            <i class="fas fa-cloud-upload-alt"></i>
+                                        </div>
+                                        <h5>Drag &amp; Drop Excel File Data GR</h5>
+                                        <p>atau klik untuk memilih file dari komputer Anda</p>
+                                        <button class="btn-browse" type="button" id="btn-browse-inbound-gr"
+                                            onclick="document.getElementById('excel-file-inbound-gr-input').click();">
+                                            <i class="fas fa-folder-open mr-1"></i> Browse File
+                                        </button>
+                                        <div class="file-types">
+                                            Supported: .xlsx, .xls, .csv &bull; Max 200MB
+                                        </div>
+                                    </div>
+
+                                    <!-- Process Steps Container -->
+                                    <div id="inbound-gr-process-container" style="display: none;">
+                                        <div class="upload-file-card mb-3">
+                                            <div class="file-details">
+                                                <div class="file-icon"><i class="fas fa-file-excel"></i></div>
+                                                <div class="file-text">
+                                                    <div class="file-name" id="inbound-gr-file-name">-</div>
+                                                    <div class="file-size" id="inbound-gr-file-size">-</div>
+                                                </div>
+                                            </div>
+                                            <button type="button" class="btn btn-outline-secondary btn-sm"
+                                                id="inbound-gr-btn-change-file" title="Ganti File">
+                                                <i class="fas fa-redo-alt mr-1"></i> Ganti
+                                            </button>
+                                        </div>
+
+                                        <div class="upload-steps-list">
+                                            <div class="upload-step-item" id="inbound-gr-step-read">
+                                                <div class="step-icon-container"><i class="fas fa-file"></i></div>
+                                                <div class="step-label-container"><span class="step-label">1. Upload
+                                                        File...</span></div>
+                                            </div>
+                                            <div class="upload-step-item" id="inbound-gr-step-parse">
+                                                <div class="step-icon-container"><i class="fas fa-table"></i></div>
+                                                <div class="step-label-container"><span class="step-label">2. Validasi
+                                                        File...</span></div>
+                                            </div>
+                                            <div class="upload-step-item" id="inbound-gr-step-upload">
+                                                <div class="step-icon-container"><i class="fas fa-database"></i></div>
+                                                <div class="step-label-container" style="flex-grow: 1;">
+                                                    <span class="step-label">3. Uploading Database...</span>
+                                                    <div class="batch-progress-wrapper" id="inbound-gr-batch-progress"
+                                                        style="display: none;">
+                                                        <div class="batch-progress-details">
+                                                            <span id="inbound-gr-progress-text">0 / 0 baris</span>
+                                                            <span id="inbound-gr-progress-percent">0%</span>
+                                                        </div>
+                                                        <div class="batch-progress-bar-bg">
+                                                            <div class="batch-progress-bar-fill"
+                                                                id="inbound-gr-progress-fill"></div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="upload-step-item" id="inbound-gr-step-finalize">
+                                                <div class="step-icon-container"><i class="fas fa-sync-alt"></i></div>
+                                                <div class="step-label-container"><span class="step-label">4. Finalisasi
+                                                        Data...</span></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Right Column: Sheet Selection & Action -->
+                                <div class="col-lg-6" id="inbound-gr-col-right" style="display: none;">
+                                    <div class="card border h-100 shadow-none bg-white">
+                                        <div class="card-body p-3 d-flex flex-column justify-content-between">
+                                            <div>
+                                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                                    <label for="inbound-gr-sheet-select"
+                                                        class="small font-weight-bold text-gray-800 mb-0">
+                                                        <i class="fas fa-layer-group text-primary mr-1"></i> Pilih Sheet
+                                                        Excel
+                                                    </label>
+                                                    <span class="badge badge-primary px-2 py-1"
+                                                        id="inbound-gr-sheet-badge">0 Sheet</span>
+                                                </div>
+                                                <p class="small text-muted mb-2">Pilih lembar kerja (sheet) yang berisi
+                                                    data Data GR:</p>
+                                                <select class="form-control form-control-sm font-weight-bold mb-3"
+                                                    id="inbound-gr-sheet-select"></select>
+
+                                                <div class="alert alert-light border py-2 px-3 small mb-3"
+                                                    id="inbound-gr-sheet-info">
+                                                    <i class="fas fa-info-circle text-info mr-1"></i> <span
+                                                        id="inbound-gr-sheet-info-text">Silakan pilih sheet di atas.</span>
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <button type="button"
+                                                    class="btn btn-primary btn-block font-weight-bold py-2 shadow-sm"
+                                                    id="inbound-gr-btn-submit">
                                                     <i class="fas fa-file-import mr-1"></i> Mulai Import Sheet Ini
                                                 </button>
                                             </div>
@@ -2112,7 +2453,7 @@ if (!defined('SPA_MODE')) {
                 </div>
             </div>
 
-            <!-- Delete Data Inbound Modal -->
+            <!-- Delete Data Inbound PR to PO And Delivery Plan Modal -->
             <div class="modal fade" id="deleteDataModalInbound" tabindex="-1" role="dialog"
                 aria-labelledby="deleteDataModalInboundLabel" aria-hidden="true">
                 <div class="modal-dialog modal-md modal-dialog-centered" role="document">
@@ -2120,7 +2461,7 @@ if (!defined('SPA_MODE')) {
                         <div class="modal-header upload-modal-header"
                             style="background: linear-gradient(135deg, #e74a3b 0%, #be2617 100%);">
                             <h5 class="modal-title text-white" id="deleteDataModalInboundLabel">
-                                <i class="fas fa-trash-alt mr-2 text-white"></i>Hapus Master Data Inbound
+                                <i class="fas fa-trash-alt mr-2 text-white"></i>Hapus Master Data PR to PO And Delivery Plan
                             </h5>
                             <button class="close text-white" type="button" data-dismiss="modal" aria-label="Close"
                                 style="opacity: 0.8;">
@@ -2132,9 +2473,8 @@ if (!defined('SPA_MODE')) {
                                 <div class="text-center text-gray-600 mb-4">
                                     <h3 class="text-danger font-weight-bold mb-3"><i
                                             class="fas fa-exclamation-triangle mr-2"></i>Peringatan</h3>
-                                    <p class="mb-0" style="font-size: 1.1rem;">Data Inbound untuk periode yang
-                                        Anda
-                                        pilih akan dihapus secara permanen dari sistem.</p>
+                                    <p class="mb-0" style="font-size: 1.1rem;">Data yang Anda pilih akan dihapus
+                                        permanen</p>
                                 </div>
                                 <div class="form-group mb-3">
                                     <label for="deleteInboundMonthSelect"
@@ -2184,7 +2524,86 @@ if (!defined('SPA_MODE')) {
                                         style="border-radius: 6px; font-weight: 600;">Batal</button>
                                     <button class="btn btn-danger px-4" type="button" id="btn-confirm-delete-inbound"
                                         style="border-radius: 6px; font-weight: 600; box-shadow: 0 4px 10px rgba(231,74,59,0.3);">
-                                        <i class="fas fa-trash mr-1"></i> Hapus Data Inbound
+                                        <i class="fas fa-trash mr-1"></i> Hapus Data PR to PO And Delivery Plan
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Delete Data GR Modal -->
+            <div class="modal fade" id="deleteDataModalInboundGr" tabindex="-1" role="dialog"
+                aria-labelledby="deleteDataModalInboundGrLabel" aria-hidden="true">
+                <div class="modal-dialog modal-md modal-dialog-centered" role="document">
+                    <div class="modal-content upload-modal-content">
+                        <div class="modal-header upload-modal-header"
+                            style="background: linear-gradient(135deg, #e74a3b 0%, #be2617 100%);">
+                            <h5 class="modal-title text-white" id="deleteDataModalInboundGrLabel">
+                                <i class="fas fa-trash-alt mr-2 text-white"></i>Hapus Master Data GR
+                            </h5>
+                            <button class="close text-white" type="button" data-dismiss="modal" aria-label="Close"
+                                style="opacity: 0.8;">
+                                <span aria-hidden="true">×</span>
+                            </button>
+                        </div>
+                        <div class="modal-body upload-modal-body">
+                            <div class="p-3">
+                                <div class="text-center text-gray-600 mb-4">
+                                    <h3 class="text-danger font-weight-bold mb-3"><i
+                                            class="fas fa-exclamation-triangle mr-2"></i>Peringatan</h3>
+                                    <p class="mb-0" style="font-size: 1.1rem;">Data yang Anda pilih akan dihapus
+                                        permanen</p>
+                                </div>
+                                <div class="form-group mb-3">
+                                    <label for="deleteInboundGrMonthSelect"
+                                        class="small font-weight-bold text-gray-600">Bulan</label>
+                                    <select class="form-control form-control-sm" id="deleteInboundGrMonthSelect">
+                                        <option value="">-- Pilih Bulan (Kosongkan untuk Hapus Semua) --</option>
+                                        <option value="January">January</option>
+                                        <option value="February">February</option>
+                                        <option value="March">March</option>
+                                        <option value="April">April</option>
+                                        <option value="May">May</option>
+                                        <option value="June">June</option>
+                                        <option value="July">July</option>
+                                        <option value="August">August</option>
+                                        <option value="September">September</option>
+                                        <option value="October">October</option>
+                                        <option value="November">November</option>
+                                        <option value="December">December</option>
+                                    </select>
+                                </div>
+                                <div class="form-group mb-3">
+                                    <label for="deleteInboundGrBatchSelect"
+                                        class="small font-weight-bold text-gray-600">Batch</label>
+                                    <select class="form-control form-control-sm" id="deleteInboundGrBatchSelect">
+                                        <option value="">-- Pilih Batch --</option>
+                                        <option value="1">Batch 1</option>
+                                        <option value="2">Batch 2</option>
+                                    </select>
+                                </div>
+                                <div class="form-group mb-4">
+                                    <label for="deleteInboundGrYearSelect"
+                                        class="small font-weight-bold text-gray-600">Tahun</label>
+                                    <select class="form-control form-control-sm" id="deleteInboundGrYearSelect">
+                                        <option value="">-- Pilih Tahun --</option>
+                                        <?php
+                                        $curY = (int) date('Y');
+                                        for ($y = 2024; $y <= $curY + 5; $y++): ?>
+                                            <option value="<?php echo $y; ?>" <?php echo ($y === $curY) ? 'selected' : ''; ?>>
+                                                <?php echo $y; ?>
+                                            </option>
+                                        <?php endfor; ?>
+                                    </select>
+                                </div>
+                                <div class="d-flex justify-content-end mt-4">
+                                    <button class="btn btn-light px-4 mr-2" type="button" data-dismiss="modal"
+                                        style="border-radius: 6px; font-weight: 600;">Batal</button>
+                                    <button class="btn btn-danger px-4" type="button" id="btn-confirm-delete-inbound-gr"
+                                        style="border-radius: 6px; font-weight: 600; box-shadow: 0 4px 10px rgba(231,74,59,0.3);">
+                                        <i class="fas fa-trash mr-1"></i> Hapus Data GR
                                     </button>
                                 </div>
                             </div>
@@ -2213,9 +2632,8 @@ if (!defined('SPA_MODE')) {
                                 <div class="text-center text-gray-600 mb-4">
                                     <h3 class="text-danger font-weight-bold mb-3"><i
                                             class="fas fa-exclamation-triangle mr-2"></i>Peringatan</h3>
-                                    <p class="mb-0" style="font-size: 1.1rem;">Apakah Anda yakin ingin menghapus
-                                        semua
-                                        data dari sistem?</p>
+                                    <p class="mb-0" style="font-size: 1.1rem;">Data yang Anda pilih akan dihapus
+                                        permanen</p>
                                 </div>
                                 <div class="d-flex justify-content-end mt-4">
                                     <button class="btn btn-light px-4 mr-2" type="button" data-dismiss="modal"
@@ -2251,10 +2669,8 @@ if (!defined('SPA_MODE')) {
                                 <div class="text-center text-gray-600 mb-4">
                                     <h3 class="text-danger font-weight-bold mb-3"><i
                                             class="fas fa-exclamation-triangle mr-2"></i>Peringatan</h3>
-                                    <p class="mb-0" style="font-size: 1.1rem;">Data PR Forwarder untuk periode
-                                        yang Anda
-                                        pilih akan dihapus dari sistem (atau kosongkan periode untuk menghapus
-                                        semua).</p>
+                                    <p class="mb-0" style="font-size: 1.1rem;">Data yang Anda pilih akan dihapus
+                                        permanen</p>
                                 </div>
                                 <div class="form-group mb-3">
                                     <label for="deleteForwarderMonthSelect"
@@ -2496,8 +2912,8 @@ if (!defined('SPA_MODE')) {
                                 <div class="text-center text-gray-600 mb-4">
                                     <h3 class="text-danger font-weight-bold mb-3"><i
                                             class="fas fa-exclamation-triangle mr-2"></i>Peringatan</h3>
-                                    <p class="mb-0" style="font-size: 1.1rem;">Data KPI untuk tahun yang Anda
-                                        pilih akan dihapus secara permanen dari sistem.</p>
+                                    <p class="mb-0" style="font-size: 1.1rem;">Data yang Anda pilih akan dihapus
+                                        permanen</p>
                                 </div>
                                 <div class="form-group mb-4">
                                     <label for="deleteKpiYearSelect" class="small font-weight-bold text-gray-600">Tahun
@@ -2816,6 +3232,80 @@ if (!defined('SPA_MODE')) {
                         } else {
                             if (confirm("Apakah Anda YAKIN " + msg)) {
                                 executeInboundDelete();
+                            }
+                        }
+                    });
+                }
+
+                // 2b. Confirm Delete Data GR
+                var btnConfirmDeleteInboundGr = document.getElementById('btn-confirm-delete-inbound-gr');
+                if (btnConfirmDeleteInboundGr) {
+                    btnConfirmDeleteInboundGr.addEventListener('click', function () {
+                        var m = document.getElementById('deleteInboundGrMonthSelect') ? document.getElementById('deleteInboundGrMonthSelect').value : '';
+                        var b = document.getElementById('deleteInboundGrBatchSelect') ? document.getElementById('deleteInboundGrBatchSelect').value : '';
+                        var y = document.getElementById('deleteInboundGrYearSelect') ? document.getElementById('deleteInboundGrYearSelect').value : '';
+                        var period = (m && y) ? (m + ' ' + y + (b ? '-Batch' + b : '')) : null;
+
+                        var msg = period
+                            ? "Ingin menghapus Data GR untuk periode " + period.toUpperCase() + "?"
+                            : "Ingin menghapus SEMUA Data GR dari database?";
+
+                        var executeInboundGrDelete = function () {
+                            showProcessingModal();
+                            var csrfToken = (window.WMS_CSRF_TOKEN) || ($('meta[name="csrf-token"]').attr('content')) || '';
+                            fetch('api/delete_inbound_gr.php', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
+                                body: JSON.stringify({ action: 'delete_period', periode: period, month: m, year: y, batch: b, csrf_token: csrfToken })
+                            })
+                                .then(r => r.json())
+                                .then(res => {
+                                    if (res.status === 'success') {
+                                        if (typeof Swal !== 'undefined') {
+                                            Swal.fire('Berhasil!', res.message || 'Data GR berhasil dihapus.', 'success');
+                                        } else {
+                                            alert(res.message || 'Data GR berhasil dihapus.');
+                                        }
+                                        $('#deleteDataModalInboundGr').modal('hide');
+                                        if ($.fn.DataTable && $('#dataTableInboundGr').length) {
+                                            $('#dataTableInboundGr').DataTable().ajax.reload();
+                                        } else {
+                                            location.reload();
+                                        }
+                                    } else {
+                                        if (typeof Swal !== 'undefined') {
+                                            Swal.fire('Error', 'Gagal menghapus data: ' + res.message, 'error');
+                                        } else {
+                                            alert('Gagal menghapus data: ' + res.message);
+                                        }
+                                    }
+                                })
+                                .catch(err => {
+                                    if (typeof Swal !== 'undefined') {
+                                        Swal.fire('Error', 'Terjadi kesalahan saat menghubungi server.', 'error');
+                                    } else {
+                                        alert('Terjadi kesalahan saat menghubungi server.');
+                                    }
+                                });
+                        };
+
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                title: 'Apakah Anda YAKIN?',
+                                text: msg,
+                                icon: 'warning',
+                                showCancelButton: true,
+                                confirmButtonColor: '#e74a3b',
+                                cancelButtonColor: '#858796',
+                                confirmButtonText: 'Ya, Hapus!'
+                            }).then((result) => {
+                                if (result.isConfirmed) {
+                                    executeInboundGrDelete();
+                                }
+                            });
+                        } else {
+                            if (confirm("Apakah Anda YAKIN " + msg)) {
+                                executeInboundGrDelete();
                             }
                         }
                     });

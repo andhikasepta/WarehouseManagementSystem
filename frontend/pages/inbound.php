@@ -620,15 +620,15 @@ $(document).ready(function() {
     }
 
     function loadStatusCardCounts(period) {
-        if (!period) {
-            resetInboundCards();
-            return;
+        var queryData = { action: 'counts' };
+        if (period) {
+            queryData.periode = period;
         }
 
         $.ajax({
             url: 'api/get_inbound_status_detail.php',
             type: 'GET',
-            data: { action: 'counts', periode: period },
+            data: queryData,
             dataType: 'json',
             success: function (res) {
                 if (res.status === 'success' && res.counts) {
@@ -688,10 +688,11 @@ $(document).ready(function() {
                 var pText = document.getElementById('selected-period-text');
                 if (pText) pText.textContent = "PILIH PERIODE DATA";
                 currentPeriod = '';
-                resetInboundCards();
+                loadStatusCardCounts('');
             })
             .catch(function (err) {
                 console.error('Error fetching periods:', err);
+                loadStatusCardCounts('');
             });
     }
 
@@ -731,7 +732,7 @@ $(document).ready(function() {
             currentPeriod = '';
             var pText = document.getElementById('selected-period-text');
             if (pText) pText.textContent = "PILIH PERIODE DATA";
-            resetInboundCards();
+            loadStatusCardCounts('');
         });
     }
 

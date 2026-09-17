@@ -74,33 +74,7 @@ try {
     }
 
     if ($action === 'counts') {
-        // If no period is specified and user requested empty default, return 0s
-        if (empty($periode) || $periode === 'PILIH PERIODE DATA' || $periode === '-') {
-            echo json_encode([
-                'status' => 'success',
-                'counts' => [
-                    'total_po_inbound' => 0,
-                    'po_ontime_delivery' => 0,
-                    'po_terlambat_delivery' => 0,
-                    'po_sudah_gr' => 0,
-                    'po_sudah_registrasi' => 0,
-                    'gr_non_po' => 0,
-                    'total_gr' => 0,
-                    'total_registrasi' => 0,
-                    'dept_chart' => [
-                        'labels' => [],
-                        'sudah_gr' => [],
-                        'belum_gr' => []
-                    ],
-                    'trend_chart' => [
-                        'ontime' => array_fill(0, 12, 0),
-                        'terlambat' => array_fill(0, 12, 0)
-                    ]
-                ]
-            ]);
-            exit;
-        }
-
+        // If period is specified, use it; otherwise compute across all rows in inbound_master
         // 1. Total PO Inbound (distinct PO numbers)
         $stmtPo = $pdo->prepare("SELECT COUNT(DISTINCT po_nomor) FROM inbound_master WHERE $periodWhere AND po_nomor IS NOT NULL AND TRIM(po_nomor) != ''");
         $stmtPo->execute($periodParams);
@@ -203,16 +177,6 @@ try {
     }
 
     // Detail Action: fetch rows for the selected status
-    if (empty($periode) || $periode === 'PILIH PERIODE DATA' || $periode === '-') {
-        echo json_encode([
-            'status' => 'success',
-            'requested_status' => $status,
-            'count' => 0,
-            'data' => []
-        ]);
-        exit;
-    }
-
     $where = $periodWhere;
     $params = $periodParams;
 

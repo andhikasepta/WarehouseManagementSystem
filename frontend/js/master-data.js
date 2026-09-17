@@ -74,12 +74,14 @@ function safeFetchJson(url, options, timeoutMs) {
         });
 }
 var inboundTable = null;
+var inboundGrTable = null;
 var assetTable = null;
 var rackTable = null;
 var outboundTable = null;
 var forwarderTable = null;
 var kpiMasterTable = null;
 var existingInboundPeriods = [];
+var existingInboundGrPeriods = [];
 
 // Refresh outbound filter dropdowns from server
 function refreshOutboundFilters() {
@@ -430,6 +432,78 @@ function checkInboundPeriodStatus() {
     }
 }
 
+// Refresh Data GR filter dropdowns from server (called after upload/delete)
+function refreshInboundGrFilters() {
+    $.getJSON('api/get_inbound_gr_filters.php', function (json) {
+        if (json.status === 'success' && json.filters) {
+            if (json.filters.periode) {
+                existingInboundGrPeriods = json.filters.periode || [];
+                var $periodeSel = $('#filter-inbound-gr-periode');
+                $periodeSel.find('option:not(:first)').remove();
+                json.filters.periode.forEach(function (p) {
+                    $periodeSel.append('<option value="' + p + '">' + p + '</option>');
+                });
+                checkInboundGrPeriodStatus();
+            }
+            if (json.filters.vendor) {
+                var $vendorSel = $('#filter-inbound-gr-vendor');
+                $vendorSel.find('option:not(:first)').remove();
+                json.filters.vendor.forEach(function (v) {
+                    $vendorSel.append('<option value="' + v + '">' + v + '</option>');
+                });
+            }
+            if (json.filters.project) {
+                var $projSel = $('#filter-inbound-gr-project');
+                $projSel.find('option:not(:first)').remove();
+                json.filters.project.forEach(function (pr) {
+                    $projSel.append('<option value="' + pr + '">' + pr + '</option>');
+                });
+            }
+        }
+    });
+}
+
+function checkInboundGrPeriodStatus() {
+    var month = $('#uploadInboundGrMonthSelect').val();
+    var batch = $('#uploadInboundGrBatchSelect').val();
+    var year = $('#uploadInboundGrYearSelect').val();
+    var $statusDiv = $('#inbound-gr-period-status');
+    var $browseBtn = $('#btn-browse-inbound-gr');
+
+    if (!month || !year) {
+        $statusDiv.hide().empty();
+        $browseBtn.prop('disabled', false).removeClass('btn-secondary').addClass('btn-primary');
+        return;
+    }
+
+    var selectedPeriod = month.trim() + ' ' + year.trim() + (batch ? '-Batch' + batch : '');
+    var exists = existingInboundGrPeriods.some(function (p) {
+        if (!p) return false;
+        var pLower = p.trim().toLowerCase();
+        var selLower = selectedPeriod.toLowerCase();
+        return pLower === selLower || (!batch && pLower.indexOf((month.trim() + ' ' + year.trim()).toLowerCase()) === 0);
+    });
+
+    if (exists) {
+        $statusDiv.html(
+            '<div class="alert alert-danger py-2 px-3 mb-0 small font-weight-bold d-flex align-items-center" style="border-radius: 6px;">' +
+            '<i class="fas fa-exclamation-triangle text-danger mr-2 fa-lg"></i>' +
+            '<div>Periode <span class="badge badge-danger px-2 py-1 ml-1">' + selectedPeriod + '</span> Sudah Ada di System!</div>' +
+            '</div>'
+        ).show();
+        $browseBtn.prop('disabled', true).removeClass('btn-primary').addClass('btn-secondary');
+    } else {
+        $statusDiv.html(
+            '<div class="alert alert-success py-2 px-3 mb-0 small font-weight-bold d-flex align-items-center" style="border-radius: 6px;">' +
+            '<i class="fas fa-check-circle text-success mr-2 fa-lg"></i>' +
+            '<div>Periode <span class="badge badge-success px-2 py-1 ml-1">' + selectedPeriod + '</span> Tersedia' +
+            '<span class="font-weight-normal text-muted ml-1">- Silakan pilih file Excel.</span></div>' +
+            '</div>'
+        ).show();
+        $browseBtn.prop('disabled', false).removeClass('btn-secondary').addClass('btn-primary');
+    }
+}
+
 function initInboundTable() {
     if (inboundTable || $('#dataTableInbound').length === 0) return;
 
@@ -550,9 +624,11 @@ function initInboundTable() {
         var yearSelectIds = [
             'upload-tahun-select',
             'uploadInboundYearSelect',
+            'uploadInboundGrYearSelect',
             'uploadOutboundYearSelect',
             'deleteYearSelect',
             'deleteInboundYearSelect',
+            'deleteInboundGrYearSelect',
             'deleteOutboundYearSelect'
         ];
         yearSelectIds.forEach(function (id) {
@@ -575,7 +651,7 @@ function initInboundTable() {
     }
     populateAllYearDropdowns();
 
-    $('#uploadExcelModal, #uploadExcelModalRack, #uploadExcelModalInbound, #uploadExcelModalOutbound, #uploadExcelModalForwarder, #uploadExcelModalKpi, #deleteDataModal, #deleteDataModalInbound, #deleteDataModalOutbound, #deleteDataModalForwarder, #deleteDataModalKpi').on('show.bs.modal', function () {
+    $('#uploadExcelModal, #uploadExcelModalRack, #uploadExcelModalInbound, #uploadExcelModalInboundGr, #uploadExcelModalOutbound, #uploadExcelModalForwarder, #uploadExcelModalKpi, #deleteDataModal, #deleteDataModalInbound, #deleteDataModalInboundGr, #deleteDataModalOutbound, #deleteDataModalForwarder, #deleteDataModalKpi').on('show.bs.modal', function () {
         populateAllYearDropdowns();
     });
 
@@ -621,6 +697,167 @@ function initInboundTable() {
         $('#filter-inbound-po').val('');
         if (inboundTable) {
             inboundTable.search('').columns().search('').draw();
+        }
+    });
+}
+
+function initInboundGrTable() {
+    if (inboundGrTable || $('#dataTableInboundGr').length === 0) return;
+
+    // Load filter options from lightweight endpoint (once)
+    $.getJSON('api/get_inbound_gr_filters.php', function (json) {
+        if (json.status === 'success' && json.filters) {
+            var $periodeSel = $('#filter-inbound-gr-periode');
+            var $vendorSel = $('#filter-inbound-gr-vendor');
+            var $projSel = $('#filter-inbound-gr-project');
+
+            if (json.filters.periode) {
+                existingInboundGrPeriods = json.filters.periode || [];
+                $periodeSel.find('option:not(:first)').remove();
+                json.filters.periode.forEach(function (p) {
+                    $periodeSel.append('<option value="' + p + '">' + p + '</option>');
+                });
+                checkInboundGrPeriodStatus();
+            }
+            if (json.filters.vendor) {
+                $vendorSel.find('option:not(:first)').remove();
+                json.filters.vendor.forEach(function (v) {
+                    $vendorSel.append('<option value="' + v + '">' + v + '</option>');
+                });
+            }
+            if (json.filters.project) {
+                $projSel.find('option:not(:first)').remove();
+                json.filters.project.forEach(function (pr) {
+                    $projSel.append('<option value="' + pr + '">' + pr + '</option>');
+                });
+            }
+        }
+    });
+
+    // Server-side DataTables for Data GR
+    inboundGrTable = $('#dataTableInboundGr').DataTable({
+        processing: true,
+        serverSide: true,
+        deferRender: true,
+        scrollX: true,
+        autoWidth: false,
+        ajax: {
+            url: 'api/get_inbound_gr.php',
+            type: 'GET'
+        },
+        columns: [
+            { data: 'no_reg', defaultContent: '-' },
+            { data: 'kd_spec', defaultContent: '-' },
+            { data: 'sn', defaultContent: '-' },
+            { data: 'pn', defaultContent: '-' },
+            { data: 'product_name', defaultContent: '-' },
+            { data: 'price', defaultContent: '-' },
+            { data: 'pr_no', defaultContent: '-' },
+            { data: 'pr_date', defaultContent: '-' },
+            { data: 'po_no', defaultContent: '-' },
+            { data: 'po_date', defaultContent: '-' },
+            { data: 'do_no', defaultContent: '-' },
+            { data: 'do_date', defaultContent: '-' },
+            { data: 'gr_no', defaultContent: '-' },
+            { data: 'gr_date', defaultContent: '-' },
+            { data: 'po_value', defaultContent: '-' },
+            { data: 'nama_project', defaultContent: '-' },
+            { data: 'term_of_payment', defaultContent: '-' },
+            { data: 'kode_site_penerimaan', defaultContent: '-' },
+            { data: 'qty', defaultContent: '-' },
+            { data: 'uom', defaultContent: '-' },
+            { data: 'is_unique_item', defaultContent: '-' },
+            { data: 'warranty', defaultContent: '-' },
+            { data: 'warranty_unit', defaultContent: '-' },
+            { data: 'manufacturer', defaultContent: '-' },
+            { data: 'vendor_name', defaultContent: '-' },
+            { data: 'vendor_address', defaultContent: '-' },
+            { data: 'jenis_kepemilikan', defaultContent: '-' },
+            { data: 'pemilik', defaultContent: '-' },
+            { data: 'capex_opex', defaultContent: '-' },
+            { data: 'loi_no', defaultContent: '-' },
+            { data: 'is_sent_to_artis_code', defaultContent: '-' },
+            { data: 'artis_date', defaultContent: '-' },
+            { data: 'artis_message', defaultContent: '-' },
+            { data: 'is_sent_to_iips_code', defaultContent: '-' },
+            { data: 'iips_date', defaultContent: '-' },
+            { data: 'iips_message', defaultContent: '-' },
+            { data: 'pic_submit_gr', defaultContent: '-' },
+            { data: 'pic_registration', defaultContent: '-' },
+            { data: 'periode_group', defaultContent: '-' }
+        ],
+        pageLength: 25,
+        lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
+        order: [[0, 'desc']],
+        language: {
+            processing: '<div class="spinner-border spinner-border-sm text-primary" role="status"></div> Memuat data...',
+            search: "Search:",
+            searchPlaceholder: "Search...",
+            lengthMenu: "Tampilkan _MENU_ data",
+            info: "Menampilkan _START_ s/d _END_ dari _TOTAL_ data",
+            infoEmpty: "Menampilkan 0 s/d 0 dari 0 data",
+            infoFiltered: "(disaring dari _MAX_ total data)",
+            zeroRecords: "Tidak ada data yang cocok",
+            emptyTable: "Belum ada data Master GR.",
+            paginate: {
+                first: "Awal",
+                last: "Akhir",
+                next: "Selanjutnya",
+                previous: "Sebelumnya"
+            }
+        },
+        initComplete: function () {
+            var api = this.api();
+            var $input = $('#dataTableInboundGr_filter input');
+            if ($input.length) {
+                $input.attr('placeholder', 'Search...');
+                $input.unbind();
+                $input.on('keydown', function (e) {
+                    if (e.key === 'Enter' || e.keyCode === 13) {
+                        e.preventDefault();
+                        api.search(this.value).draw();
+                    }
+                });
+            }
+        }
+    });
+
+    $('#uploadInboundGrMonthSelect, #uploadInboundGrBatchSelect, #uploadInboundGrYearSelect').off('change.inbound_gr').on('change.inbound_gr', checkInboundGrPeriodStatus);
+
+    // Per-column filters for Data GR
+    $('#filter-inbound-gr-periode').off('change.inbound_gr').on('change.inbound_gr', function () {
+        var val = $(this).val();
+        inboundGrTable.column(38).search(val ? '^' + val + '$' : '', true, false).draw();
+    });
+
+    $('#filter-inbound-gr-vendor').off('change.inbound_gr').on('change.inbound_gr', function () {
+        var val = $(this).val();
+        inboundGrTable.column(24).search(val ? '^' + val + '$' : '', true, false).draw();
+    });
+
+    $('#filter-inbound-gr-project').off('change.inbound_gr').on('change.inbound_gr', function () {
+        var val = $(this).val();
+        inboundGrTable.column(15).search(val ? '^' + val + '$' : '', true, false).draw();
+    });
+
+    // Custom search on enter key press
+    $('#filter-inbound-gr-search').off('keyup input change keydown').on('keydown', function (e) {
+        if (e.key === 'Enter' || e.keyCode === 13) {
+            e.preventDefault();
+            var val = $(this).val();
+            if (inboundGrTable) {
+                inboundGrTable.search(val).draw();
+            }
+        }
+    });
+
+    $('#btn-reset-filter-inbound-gr').off('click.inbound_gr').on('click.inbound_gr', function () {
+        $('#filter-inbound-gr-periode').val('');
+        $('#filter-inbound-gr-vendor').val('');
+        $('#filter-inbound-gr-project').val('');
+        $('#filter-inbound-gr-search').val('');
+        if (inboundGrTable) {
+            inboundGrTable.search('').columns().search('').draw();
         }
     });
 }
@@ -855,9 +1092,17 @@ function initRackTable() {
 function loadActiveMasterTabTable() {
     var activeSeg = $('#masterSegmentTabs a.active').attr('href');
     if (activeSeg === '#seg-inbound') {
-        initInboundTable();
-        if (inboundTable) {
-            setTimeout(function () { inboundTable.columns.adjust(); }, 150);
+        var activeInSub = $('#inboundSubTabs a.active').attr('href');
+        if (activeInSub === '#pane-inbound-gr') {
+            initInboundGrTable();
+            if (inboundGrTable) {
+                setTimeout(function () { inboundGrTable.columns.adjust(); }, 150);
+            }
+        } else {
+            initInboundTable();
+            if (inboundTable) {
+                setTimeout(function () { inboundTable.columns.adjust(); }, 150);
+            }
         }
     } else if (activeSeg === '#seg-storage') {
         var activeSubTab = $('#masterDataTabs a.active').attr('href');
@@ -907,6 +1152,11 @@ $(document).ready(function () {
         if (savedSub && $('#masterDataTabs a[href="' + savedSub + '"]').length) {
             $('#masterDataTabs a[href="' + savedSub + '"]').tab('show');
         }
+
+        var savedInboundSub = localStorage.getItem('activeInboundSubTab');
+        if (savedInboundSub && $('#inboundSubTabs a[href="' + savedInboundSub + '"]').length) {
+            $('#inboundSubTabs a[href="' + savedInboundSub + '"]').tab('show');
+        }
     } catch (e) {
         console.warn('Could not restore active tabs from localStorage:', e);
     }
@@ -921,6 +1171,30 @@ $(document).ready(function () {
             if (href) localStorage.setItem('activeMasterSegment', href);
         } catch (e) { }
         loadActiveMasterTabTable();
+    });
+
+    $('#inboundSubTabs a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+        var targetPane = $(e.target).attr('href');
+        try {
+            if (targetPane) localStorage.setItem('activeInboundSubTab', targetPane);
+        } catch (e) { }
+        if (targetPane === '#pane-inbound-gr') {
+            $('#btn-group-inbound-prpo-actions').hide();
+            $('#btn-group-inbound-gr-actions').show();
+            $('#inbound-menu-title').html('<i class="fas fa-box-open mr-2"></i>Menu Master Data Inbound (Data GR)');
+            initInboundGrTable();
+            if (inboundGrTable) {
+                setTimeout(function () { inboundGrTable.columns.adjust(); }, 100);
+            }
+        } else {
+            $('#btn-group-inbound-gr-actions').hide();
+            $('#btn-group-inbound-prpo-actions').show();
+            $('#inbound-menu-title').html('<i class="fas fa-box-open mr-2"></i>Menu Master Data Inbound (Data PR to PO And Delivery Plan)');
+            initInboundTable();
+            if (inboundTable) {
+                setTimeout(function () { inboundTable.columns.adjust(); }, 100);
+            }
+        }
     });
 
     $('#masterDataTabs a[data-toggle="tab"]').on('shown.bs.tab', function () {
@@ -1563,6 +1837,66 @@ $(document).ready(function () {
         XLSX.writeFile(wb, "Template_Import_Master_Data_Inbound.xlsx");
     });
 
+    $('#btn-template-inbound-gr').on('click', function () {
+        if (typeof XLSX === 'undefined') return;
+        var wb = XLSX.utils.book_new();
+        var sampleData = [
+            {
+                'no_reg': 'REG-001',
+                'kd_spec': 'SPEC-001',
+                'sn': 'SN12345678',
+                'pn': 'PN-8877',
+                'product_name': 'ROUTER CISCO 2911',
+                'price': '15000000',
+                'pr_no': 'PR-2026/001',
+                'pr_date': '2026-01-10',
+                'po_no': 'PO-2026/001',
+                'po_date': '2026-01-15',
+                'do_no': 'DO-2026/001',
+                'do_date': '2026-01-20',
+                'gr_no': 'GR-2026/001',
+                'gr_date': '2026-01-22',
+                'po_value': '15000000',
+                'nama_project': 'PROJECT NETWORK EXPANSION',
+                'term_of_payment': '30 Days',
+                'kode_site_penerimaan': 'SITE-JKT-01',
+                'qty': '1',
+                'uom': 'Unit',
+                'is_unique_item': 'Yes',
+                'warranty': '12',
+                'warranty_Unit': 'Month',
+                'manufacturer': 'Cisco',
+                'vendor_name': 'PT. VENDOR TEKNOLOGI',
+                'vendor_address': 'Jl. Sudirman No. 10 Jakarta',
+                'jenis_kepemilikan': 'Sewa Beli',
+                'pemilik': 'PT TELEKOMUNIKASI',
+                'capex_opex': 'CAPEX',
+                'loi_no': 'LOI-001',
+                'IsSentToARTISCode': '200',
+                'ARTIS_Date': '2026-01-22',
+                'ARTIS_Message': 'SUCCESS',
+                'IsSentToIIPSCode': '200',
+                'IIPS_Date': '2026-01-22',
+                'IIPS_Message': 'SUCCESS',
+                'PIC Submit GR': 'JOHN DOE',
+                'PIC Registration': 'JANE DOE'
+            }
+        ];
+        var ws = XLSX.utils.json_to_sheet(sampleData);
+        ws['!cols'] = [
+            { wch: 14 }, { wch: 14 }, { wch: 16 }, { wch: 14 }, { wch: 28 },
+            { wch: 14 }, { wch: 16 }, { wch: 14 }, { wch: 16 }, { wch: 14 },
+            { wch: 16 }, { wch: 14 }, { wch: 16 }, { wch: 14 }, { wch: 14 },
+            { wch: 30 }, { wch: 16 }, { wch: 20 }, { wch: 8 }, { wch: 8 },
+            { wch: 14 }, { wch: 10 }, { wch: 14 }, { wch: 16 }, { wch: 26 },
+            { wch: 32 }, { wch: 16 }, { wch: 20 }, { wch: 12 }, { wch: 14 },
+            { wch: 18 }, { wch: 14 }, { wch: 16 }, { wch: 18 }, { wch: 14 },
+            { wch: 16 }, { wch: 18 }, { wch: 18 }
+        ];
+        XLSX.utils.book_append_sheet(wb, ws, "Master GR");
+        XLSX.writeFile(wb, "Template_Import_Master_Data_GR.xlsx");
+    });
+
     // Reusable Drag & Drop zone binder for Excel upload modals
     function setupExcelDropZone(zoneId, inputId) {
         var zone = document.getElementById(zoneId);
@@ -1612,6 +1946,7 @@ $(document).ready(function () {
         setupExcelDropZone('upload-drop-zone', 'excel-file-input');
         setupExcelDropZone('upload-rack-drop-zone', 'excel-rack-file-input');
         setupExcelDropZone('inbound-upload-drop-zone', 'excel-file-inbound-input');
+        setupExcelDropZone('inbound-gr-upload-drop-zone', 'excel-file-inbound-gr-input');
         setupExcelDropZone('outbound-upload-drop-zone', 'excel-file-outbound-input');
         setupExcelDropZone('forwarder-upload-drop-zone', 'excel-file-forwarder-input');
         setupExcelDropZone('kpi-upload-drop-zone', 'excel-file-kpi-input');
@@ -1620,7 +1955,7 @@ $(document).ready(function () {
     // Initialize drag & drop immediately and on modal open
     initAllDropZones();
     $(document).ready(initAllDropZones);
-    $('#uploadExcelModal, #uploadExcelModalRack, #uploadExcelModalInbound, #uploadExcelModalOutbound, #uploadExcelModalForwarder, #uploadExcelModalKpi').on('show.bs.modal shown.bs.modal', function () {
+    $('#uploadExcelModal, #uploadExcelModalRack, #uploadExcelModalInbound, #uploadExcelModalInboundGr, #uploadExcelModalOutbound, #uploadExcelModalForwarder, #uploadExcelModalKpi').on('show.bs.modal shown.bs.modal', function () {
         initAllDropZones();
     });
 
@@ -2036,6 +2371,105 @@ $(document).ready(function () {
                 refreshInboundFilters();
             } else {
                 location.reload();
+            }
+        }
+    });
+
+    // Handle Inbound Data GR Excel File Upload with Universal Importer
+    setupUniversalMasterImporter({
+        prefix: 'inbound-gr',
+        modalId: '#uploadExcelModalInboundGr',
+        dialogId: '#uploadExcelModalInboundGrDialog',
+        dropZoneId: 'inbound-gr-upload-drop-zone',
+        fileInputId: 'excel-file-inbound-gr-input',
+        periodType: 'full',
+        periodSelectors: {
+            month: '#uploadInboundGrMonthSelect',
+            batch: '#uploadInboundGrBatchSelect',
+            year: '#uploadInboundGrYearSelect'
+        },
+        parseRows: function (workbook, sheetName) {
+            var worksheet = workbook.Sheets[sheetName];
+            if (!worksheet) return [];
+            return XLSX.utils.sheet_to_json(worksheet, { defval: '' });
+        },
+        processUpload: function (ctx) {
+            var rows = ctx.rows;
+            var monthVal = ctx.month;
+            var batchVal = ctx.batch;
+            var yearVal = ctx.year;
+            var periodGroup = monthVal + ' ' + yearVal + '-Batch' + batchVal;
+            var csrfToken = (window.WMS_CSRF_TOKEN) || ($('meta[name="csrf-token"]').attr('content')) || '';
+            var totalRows = rows.length;
+            var BATCH_SIZE = 1500;
+
+            return safeFetchJson('api/save_inbound_gr.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
+                body: JSON.stringify({
+                    action: 'init',
+                    csrf_token: csrfToken,
+                    month: monthVal,
+                    year: yearVal,
+                    batch: batchVal,
+                    periode_group: periodGroup
+                })
+            }, 60000)
+                .then(function (initRes) {
+                    if (initRes.status !== 'success') {
+                        throw new Error(initRes.message || 'Gagal inisialisasi periode Data GR.');
+                    }
+                    return sendInboundGrBatches(0);
+                })
+                .then(function () {
+                    return safeFetchJson('api/save_inbound_gr.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
+                        body: JSON.stringify({ action: 'finalize', csrf_token: csrfToken })
+                    }, 60000);
+                })
+                .then(function () {
+                    return {
+                        success: true,
+                        message: 'Berhasil mengimport ' + totalRows.toLocaleString('id-ID') + ' data GR (' + periodGroup + ').'
+                    };
+                });
+
+            function sendInboundGrBatches(startIndex) {
+                if (startIndex >= totalRows) {
+                    return Promise.resolve();
+                }
+                var endIndex = Math.min(startIndex + BATCH_SIZE, totalRows);
+                var batchRows = rows.slice(startIndex, endIndex);
+
+                return safeFetchJson('api/save_inbound_gr.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
+                    body: JSON.stringify({
+                        action: 'append',
+                        csrf_token: csrfToken,
+                        month: monthVal,
+                        year: yearVal,
+                        batch: batchVal,
+                        periode_group: periodGroup,
+                        data: batchRows
+                    })
+                }, 120000)
+                    .then(function (appendRes) {
+                        if (appendRes.status !== 'success') {
+                            throw new Error(appendRes.message || 'Gagal menyimpan batch Data GR.');
+                        }
+                        ctx.updateProgress(endIndex, totalRows);
+                        return sendInboundGrBatches(endIndex);
+                    });
+            }
+        },
+        onSuccess: function (res, period) {
+            if (inboundGrTable) {
+                inboundGrTable.ajax.reload();
+                refreshInboundGrFilters();
+            } else {
+                initInboundGrTable();
             }
         }
     });
