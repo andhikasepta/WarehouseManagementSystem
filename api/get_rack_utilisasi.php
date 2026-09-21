@@ -30,13 +30,13 @@ try {
         CONSTRAINT unique_label_period UNIQUE (label, month, year)
     )");
 
-    $month = isset($_GET['month']) ? trim($_GET['month']) : '';
-    $year = isset($_GET['year']) ? trim($_GET['year']) : '';
+    $month = isset($_REQUEST['month']) ? trim($_REQUEST['month']) : '';
+    $year = isset($_REQUEST['year']) ? trim($_REQUEST['year']) : '';
     if (preg_match('/\b(20\d{2})\b/', $year, $ym)) {
         $year = $ym[1];
     }
-    $filter = isset($_GET['filter']) ? strtolower(trim($_GET['filter'])) : 'all'; // all, used, available
-    $action = isset($_GET['action']) ? strtolower(trim($_GET['action'])) : 'data';
+    $filter = isset($_REQUEST['filter']) ? strtolower(trim($_REQUEST['filter'])) : 'all'; // all, used, available
+    $action = isset($_REQUEST['action']) ? strtolower(trim($_REQUEST['action'])) : 'data';
 
     // Comprehensive Month Mapping (English, Indonesian, and standard 3-letter abbreviations)
     $monthMap = [
@@ -103,7 +103,7 @@ try {
                  LEFT JOIN rack_utilisasi ru ON rm.label = ru.label 
                       AND (LOWER(ru.month) = LOWER(?) OR LOWER(ru.month) = LOWER(?))
                       AND ru.year = ?
-                 ORDER BY rm.category, COALESCE(rm.name, rm.rack), rm.label"
+                 ORDER BY rm.id ASC"
             );
             // Pass full month name and 3-letter abbreviation to be 100% robust against DB variations
             $shortMonth = substr($month, 0, 3);
@@ -123,7 +123,7 @@ try {
                             SELECT DISTINCT ON (label) label, month, year, qty, capacity, id
                             FROM rack_utilisasi ORDER BY label, id DESC
                         ) ru ON rm.label = ru.label
-                        ORDER BY rm.category, COALESCE(rm.name, rm.rack), rm.label";
+                        ORDER BY rm.id ASC";
             } else {
                 $sql = "SELECT rm.label, COALESCE(rm.name, rm.rack, rm.label) AS rack_group, 
                                rm.name, rm.barcode, rm.active, rm.category,
@@ -135,8 +135,8 @@ try {
                         LEFT JOIN (
                             SELECT * FROM rack_utilisasi ORDER BY id DESC
                         ) ru ON rm.label = ru.label
-                        GROUP BY rm.label, rm.name, rm.category, rm.barcode, rm.active, rm.rack
-                        ORDER BY rm.category, COALESCE(rm.name, rm.rack), rm.label";
+                        GROUP BY rm.id, rm.label, rm.name, rm.category, rm.barcode, rm.active, rm.rack
+                        ORDER BY rm.id ASC";
             }
             $stmt = $pdo->prepare($sql);
             $stmt->execute();

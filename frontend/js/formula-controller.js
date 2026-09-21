@@ -264,7 +264,7 @@
     }
 
     // Helper to find exact column or fallback
-    FormulaController.findBestColumn = function(headers, exactNames, keywords) {
+    FormulaController.findBestColumn = function (headers, exactNames, keywords) {
         for (var i = 0; i < headers.length; i++) {
             var h = String(headers[i]).trim();
             for (var j = 0; j < exactNames.length; j++) {
@@ -274,7 +274,7 @@
         return findColumnByKeyword(headers, keywords);
     };
 
-    FormulaController.getFieldValue = function(item, keys) {
+    FormulaController.getFieldValue = function (item, keys) {
         if (!item) return '-';
         for (var i = 0; i < keys.length; i++) {
             var k = keys[i];
@@ -302,7 +302,7 @@
         return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
     }
 
-    FormulaController.populateDetailTable = function(chartTitle, label, dataRows, isCategoryMode, totalQty, totalNbv) {
+    FormulaController.populateDetailTable = function (chartTitle, label, dataRows, isCategoryMode, totalQty, totalNbv) {
         var modalEl = document.getElementById('chartDetailModal');
         if (!modalEl) return;
 
@@ -333,39 +333,41 @@
                 $('#chartDetailTable').DataTable().clear().destroy();
             }
 
+            $('#chartDetailTable thead th').eq(4).text(col5Title);
+
             $('#chartDetailTable').DataTable({
                 data: dataRows,
                 columns: [
                     { data: "no", title: "NO", className: "text-center", width: "50px" },
-                    { 
+                    {
                         data: "spec_code",
-                        title: "SPEC CODE", 
+                        title: "SPEC CODE",
                         className: "text-left",
-                        render: function(data) {
+                        render: function (data) {
                             return escapeHtml(data);
                         }
                     },
-                    { 
-                        data: "reg_no", 
-                        title: "REG NO", 
+                    {
+                        data: "reg_no",
+                        title: "REG NO",
                         className: "text-left",
-                        render: function(data) {
+                        render: function (data) {
                             return escapeHtml(data);
                         }
                     },
-                    { 
-                        data: "spec_name", 
-                        title: "SPEC NAME", 
+                    {
+                        data: "spec_name",
+                        title: "SPEC NAME",
                         className: "text-left",
-                        render: function(data) {
+                        render: function (data) {
                             return escapeHtml(data);
                         }
                     },
-                    { 
-                        data: isCategoryMode ? "category" : "nbv_num", 
-                        title: col5Title, 
+                    {
+                        data: isCategoryMode ? "category" : "nbv_num",
+                        title: col5Title,
                         className: isCategoryMode ? "text-left" : "text-right",
-                        render: function(data, type, row) {
+                        render: function (data, type, row) {
                             if (isCategoryMode) {
                                 return escapeHtml(data);
                             }
@@ -403,7 +405,7 @@
         }
     };
 
-    FormulaController.openDetailModal = function(chartTitle, label, records, chartType) {
+    FormulaController.openDetailModal = function (chartTitle, label, records, chartType) {
         var modalEl = document.getElementById('chartDetailModal');
         if (!modalEl) return;
 
@@ -422,19 +424,20 @@
 
             var currentPeriodEl = document.getElementById('selected-period-text');
             var currentPeriodStr = currentPeriodEl ? currentPeriodEl.textContent.trim() : '';
+            currentPeriodStr = currentPeriodStr.replace(/\s*\(ALL BATCH\)/i, '').trim();
             var fetchUrl = 'api/get_chart_detail.php?type=' + encodeURIComponent(detailType) + '&label=' + encodeURIComponent(label) + '&periode=' + encodeURIComponent(currentPeriodStr);
 
             fetch(fetchUrl)
-                .then(function(res) { return res.json(); })
-                .then(function(resData) {
+                .then(function (res) { return res.json(); })
+                .then(function (resData) {
                     var items = (resData && resData.status === 'success' && resData.data) ? resData.data : [];
                     var dataRows = [];
-                    items.forEach(function(item, idx) {
-                        var specCode = FormulaController.getFieldValue(item, ['spec_code', 'SPEC_CODE', 'spec code', 'spek']);
-                        var regNo = FormulaController.getFieldValue(item, ['reg_no', 'REG_NO', 'reg no', 'register']);
-                        var specName = FormulaController.getFieldValue(item, ['spec_name', 'SPEC_NAME', 'spec name', 'nama', 'perangkat', 'item']);
-                        var categoryVal = FormulaController.getFieldValue(item, ['category', 'CATEGORY', 'kategori', 'range', 'status', 'STATUS']);
-                        var rawNbv = FormulaController.getFieldValue(item, ['nbv', 'NBV', 'value', 'harga', 'price']);
+                    items.forEach(function (item, idx) {
+                        var specCode = FormulaController.getFieldValue(item, ['spec_code', 'SPEC_CODE', 'spec code', 'spek', 'kd_spec', 'kd spec', 'kode_spec', 'kode spec', 'item_code', 'part_number', 'pn']);
+                        var regNo = FormulaController.getFieldValue(item, ['reg_no', 'REG_NO', 'reg no', 'register', 'no_reg', 'no reg', 'serial_number', 'serial number', 'sn', 'no_seri', 'serial']);
+                        var specName = FormulaController.getFieldValue(item, ['spec_name', 'SPEC_NAME', 'spec name', 'nama', 'perangkat', 'item', 'item_description', 'deskripsi', 'deskripsi_item', 'boq_name', 'product_name']);
+                        var categoryVal = FormulaController.getFieldValue(item, ['category', 'CATEGORY', 'kategori', 'range', 'aging', 'status', 'STATUS']);
+                        var rawNbv = FormulaController.getFieldValue(item, ['nbv', 'NBV', 'value', 'harga', 'price', 'nilai_buku', 'book_value']);
 
                         var numNbv = parseFloat(String(rawNbv).replace(/[^0-9.-]+/g, '')) || 0;
 
@@ -450,7 +453,7 @@
                     });
                     FormulaController.populateDetailTable(chartTitle, label, dataRows, isCategoryMode, lazyTotalQty, lazyTotalNbv);
                 })
-                .catch(function(err) {
+                .catch(function (err) {
                     console.error('Failed to load chart detail rows:', err);
                 });
             return;
@@ -461,12 +464,12 @@
         var dataRows = [];
 
         if (records && records.length > 0) {
-            records.forEach(function(item, idx) {
-                var specCode = FormulaController.getFieldValue(item, ['spec_code', 'SPEC_CODE', 'spec code', 'spek']);
-                var regNo = FormulaController.getFieldValue(item, ['reg_no', 'REG_NO', 'reg no', 'register']);
-                var specName = FormulaController.getFieldValue(item, ['spec_name', 'SPEC_NAME', 'spec name', 'nama', 'perangkat', 'item']);
-                var categoryVal = FormulaController.getFieldValue(item, ['category', 'CATEGORY', 'kategori', 'range', 'status', 'STATUS']);
-                var rawNbv = FormulaController.getFieldValue(item, ['nbv', 'NBV', 'value', 'harga', 'price']);
+            records.forEach(function (item, idx) {
+                var specCode = FormulaController.getFieldValue(item, ['spec_code', 'SPEC_CODE', 'spec code', 'spek', 'kd_spec', 'kd spec', 'kode_spec', 'kode spec', 'item_code', 'part_number', 'pn']);
+                var regNo = FormulaController.getFieldValue(item, ['reg_no', 'REG_NO', 'reg no', 'register', 'no_reg', 'no reg', 'serial_number', 'serial number', 'sn', 'no_seri', 'serial']);
+                var specName = FormulaController.getFieldValue(item, ['spec_name', 'SPEC_NAME', 'spec name', 'nama', 'perangkat', 'item', 'item_description', 'deskripsi', 'deskripsi_item', 'boq_name', 'product_name']);
+                var categoryVal = FormulaController.getFieldValue(item, ['category', 'CATEGORY', 'kategori', 'range', 'aging', 'status', 'STATUS']);
+                var rawNbv = FormulaController.getFieldValue(item, ['nbv', 'NBV', 'value', 'harga', 'price', 'nilai_buku', 'book_value']);
 
                 var numNbv = parseFloat(String(rawNbv).replace(/[^0-9.-]+/g, '')) || 0;
                 totalNbv += numNbv;
@@ -489,8 +492,18 @@
         }
     };
 
-    FormulaController.getClickedChartIndex = function(chartInstance, e) {
+    FormulaController.getClickedChartIndex = function (chartInstance, e) {
         if (!chartInstance || !chartInstance.canvas || !chartInstance.scales) return -1;
+
+        // Method 1: Direct click on bars via Chart.js getElementsAtEvent
+        try {
+            if (typeof chartInstance.getElementsAtEvent === 'function') {
+                var elements = chartInstance.getElementsAtEvent(e);
+                if (elements && elements.length > 0 && elements[0]._index !== undefined && elements[0]._index >= 0) {
+                    return elements[0]._index;
+                }
+            }
+        } catch (err) {}
 
         var rect = chartInstance.canvas.getBoundingClientRect();
         var x = e.clientX - rect.left;
@@ -498,25 +511,6 @@
 
         var isHorizontalBar = (chartInstance.config && chartInstance.config.type === 'horizontalBar');
         var chartArea = chartInstance.chartArea;
-
-        // Restrict modal triggering exclusively to label text area (outside bar graphics)
-        var isClickOnLabelArea = false;
-        if (chartArea) {
-            if (isHorizontalBar) {
-                // Horizontal bar chart (Asset Organization): Y-axis labels are on left (x <= chartArea.left + 5)
-                isClickOnLabelArea = (x <= chartArea.left + 5);
-            } else {
-                // Vertical bar chart (Storage / Aging): X-axis labels are on bottom (y >= chartArea.bottom - 5)
-                isClickOnLabelArea = (y >= chartArea.bottom - 5);
-            }
-        } else {
-            isClickOnLabelArea = true;
-        }
-
-        // Ignore clicks on colored bar graphics
-        if (!isClickOnLabelArea) {
-            return -1;
-        }
 
         // 2. Locate the Category Scale (Y-axis for horizontalBar, X-axis for vertical bar)
         var categoryScale = null;
@@ -596,19 +590,19 @@
         return -1;
     };
 
-    FormulaController.makeChartClickable = function(chartInstance, defaultTitle) {
+    FormulaController.makeChartClickable = function (chartInstance, defaultTitle) {
         if (!chartInstance || !chartInstance.canvas) return;
         if (!chartInstance.$datalabels) {
             chartInstance.$datalabels = { _listened: true };
         }
         var canvas = chartInstance.canvas;
-        
+
         if (canvas._hasClickListener) return;
         canvas._hasClickListener = true;
 
         canvas.style.cursor = 'pointer';
 
-        canvas.addEventListener('mousemove', function(e) {
+        canvas.addEventListener('mousemove', function (e) {
             try {
                 if (!chartInstance.$datalabels) chartInstance.$datalabels = { _listened: true };
                 var index = FormulaController.getClickedChartIndex(chartInstance, e);
@@ -618,7 +612,7 @@
             }
         });
 
-        canvas.addEventListener('click', function(e) {
+        canvas.addEventListener('click', function (e) {
             try {
                 if (!chartInstance.$datalabels) chartInstance.$datalabels = { _listened: true };
                 var index = FormulaController.getClickedChartIndex(chartInstance, e);
@@ -660,24 +654,24 @@
             if (cardFreeText) cardFreeText.textContent = '0%';
             var cardFreeBar = document.getElementById('card-free-space-bar');
             if (cardFreeBar) { cardFreeBar.style.width = '0%'; cardFreeBar.className = 'progress-bar bg-danger'; }
-            
+
             // Clear charts
             try {
-                if (window.myBarChart && window.myBarChart.data) { if (!window.myBarChart.$datalabels) window.myBarChart.$datalabels = { _listened: true }; window.myBarChart.data.labels = []; window.myBarChart.data.datasets.forEach(function(d) { d.data = []; }); window.myBarChart.update(); }
+                if (window.myBarChart && window.myBarChart.data) { if (!window.myBarChart.$datalabels) window.myBarChart.$datalabels = { _listened: true }; window.myBarChart.data.labels = []; window.myBarChart.data.datasets.forEach(function (d) { d.data = []; }); window.myBarChart.update(); }
             } catch (e) { }
             try {
-                if (window.myHorizontalBarChart && window.myHorizontalBarChart.data) { if (!window.myHorizontalBarChart.$datalabels) window.myHorizontalBarChart.$datalabels = { _listened: true }; window.myHorizontalBarChart.data.labels = []; window.myHorizontalBarChart.data.datasets.forEach(function(d) { d.data = []; }); window.myHorizontalBarChart.update(); }
+                if (window.myHorizontalBarChart && window.myHorizontalBarChart.data) { if (!window.myHorizontalBarChart.$datalabels) window.myHorizontalBarChart.$datalabels = { _listened: true }; window.myHorizontalBarChart.data.labels = []; window.myHorizontalBarChart.data.datasets.forEach(function (d) { d.data = []; }); window.myHorizontalBarChart.update(); }
             } catch (e) { }
             try {
-                if (window.agingBarChart && window.agingBarChart.data) { if (!window.agingBarChart.$datalabels) window.agingBarChart.$datalabels = { _listened: true }; window.agingBarChart.data.labels = []; window.agingBarChart.data.datasets.forEach(function(d) { d.data = []; }); window.agingBarChart.update(); }
+                if (window.agingBarChart && window.agingBarChart.data) { if (!window.agingBarChart.$datalabels) window.agingBarChart.$datalabels = { _listened: true }; window.agingBarChart.data.labels = []; window.agingBarChart.data.datasets.forEach(function (d) { d.data = []; }); window.agingBarChart.update(); }
             } catch (e) { }
             try {
-                if (window.perangkatInChart && window.perangkatInChart.data) { if (!window.perangkatInChart.$datalabels) window.perangkatInChart.$datalabels = { _listened: true }; window.perangkatInChart.data.labels = []; window.perangkatInChart.data.datasets.forEach(function(d) { d.data = []; }); window.perangkatInChart.update(); }
+                if (window.perangkatInChart && window.perangkatInChart.data) { if (!window.perangkatInChart.$datalabels) window.perangkatInChart.$datalabels = { _listened: true }; window.perangkatInChart.data.labels = []; window.perangkatInChart.data.datasets.forEach(function (d) { d.data = []; }); window.perangkatInChart.update(); }
             } catch (e) { }
             try {
-                if (window.perangkatOutChart && window.perangkatOutChart.data) { if (!window.perangkatOutChart.$datalabels) window.perangkatOutChart.$datalabels = { _listened: true }; window.perangkatOutChart.data.labels = []; window.perangkatOutChart.data.datasets.forEach(function(d) { d.data = []; }); window.perangkatOutChart.update(); }
+                if (window.perangkatOutChart && window.perangkatOutChart.data) { if (!window.perangkatOutChart.$datalabels) window.perangkatOutChart.$datalabels = { _listened: true }; window.perangkatOutChart.data.labels = []; window.perangkatOutChart.data.datasets.forEach(function (d) { d.data = []; }); window.perangkatOutChart.update(); }
             } catch (e) { }
-            
+
             // Clear table
             var tbody = document.getElementById('table-utilisasi-area-body');
             if (tbody) tbody.replaceChildren();
@@ -686,7 +680,7 @@
 
             // Clear Inbound Summary
             if (window.updateInboundFlowPieChart) {
-                try { window.updateInboundFlowPieChart([0, 0, 0]); } catch (e) {}
+                try { window.updateInboundFlowPieChart([0, 0, 0]); } catch (e) { }
             }
             var flowTotalGr = document.getElementById('flow-total-gr');
             if (flowTotalGr) flowTotalGr.textContent = '0 GR';
@@ -695,7 +689,7 @@
 
             // Clear Storage Summary
             if (window.updateInventorySummaryPieChart) {
-                try { window.updateInventorySummaryPieChart(0, 0); } catch (e) {}
+                try { window.updateInventorySummaryPieChart(0, 0); } catch (e) { }
             }
 
             return;
@@ -737,14 +731,14 @@
 
             // 1. Storage Berdasarkan Aging (myBarChart)
             if (window.myBarChart && window.myBarChart.data && summary.aging_chart) {
-                var agingLabels = summary.aging_chart.map(function(item) { return item.range; });
-                var agingQtyData = summary.aging_chart.map(function(item) { return item.qty; });
-                var agingNbvData = summary.aging_chart.map(function(item) { return item.nbv; });
+                var agingLabels = summary.aging_chart.map(function (item) { return item.range; });
+                var agingQtyData = summary.aging_chart.map(function (item) { return item.qty; });
+                var agingNbvData = summary.aging_chart.map(function (item) { return item.nbv; });
 
                 window.myBarChart.data.labels = agingLabels;
                 window.myBarChart.data.datasets[0].data = agingQtyData;
                 window.myBarChart.data.datasets[1].data = agingNbvData;
-                window.myBarChart._recordsPerIndex = summary.aging_chart.map(function(item) {
+                window.myBarChart._recordsPerIndex = summary.aging_chart.map(function (item) {
                     return { _lazy: true, type: 'aging', label: item.range, qty: item.qty, nbv: item.nbv };
                 });
                 window.myBarChart._chartTitle = "STORAGE - Berdasarkan Aging";
@@ -758,18 +752,18 @@
 
             // 2. Berdasarkan Asset Organization (myHorizontalBarChart)
             if (window.myHorizontalBarChart && window.myHorizontalBarChart.data && summary.org_chart) {
-                var orgLabels = summary.org_chart.map(function(item) {
+                var orgLabels = summary.org_chart.map(function (item) {
                     var name = item.org || item.label;
                     if (!name || String(name).trim() === '') return 'Tanpa Organization';
                     return String(name).trim();
                 });
-                var orgQtyData = summary.org_chart.map(function(item) { return parseInt(item.qty, 10) || 0; });
-                var orgNbvData = summary.org_chart.map(function(item) { return parseFloat(item.nbv) || 0; });
+                var orgQtyData = summary.org_chart.map(function (item) { return parseInt(item.qty, 10) || 0; });
+                var orgNbvData = summary.org_chart.map(function (item) { return parseFloat(item.nbv) || 0; });
 
                 window.myHorizontalBarChart.data.labels = orgLabels;
                 window.myHorizontalBarChart.data.datasets[0].data = orgQtyData;
                 window.myHorizontalBarChart.data.datasets[1].data = orgNbvData;
-                window.myHorizontalBarChart._recordsPerIndex = summary.org_chart.map(function(item) {
+                window.myHorizontalBarChart._recordsPerIndex = summary.org_chart.map(function (item) {
                     var name = item.org || item.label;
                     if (!name || String(name).trim() === '') name = 'Tanpa Organization';
                     return { _lazy: true, type: 'org', label: name, qty: item.qty, nbv: item.nbv };
@@ -794,16 +788,16 @@
 
             // 3. Aging Perangkat (agingBarChart)
             if (window.agingBarChart && window.agingBarChart.data && summary.aging_chart) {
-                var agBarLabels = summary.aging_chart.map(function(item) {
+                var agBarLabels = summary.aging_chart.map(function (item) {
                     var name = item.range || item.label;
                     if (!name || String(name).trim() === '') return 'Unassigned';
                     return String(name).trim();
                 });
-                var agBarQty = summary.aging_chart.map(function(item) { return parseInt(item.qty, 10) || 0; });
+                var agBarQty = summary.aging_chart.map(function (item) { return parseInt(item.qty, 10) || 0; });
 
                 window.agingBarChart.data.labels = agBarLabels;
                 window.agingBarChart.data.datasets[0].data = agBarQty;
-                window.agingBarChart._recordsPerIndex = summary.aging_chart.map(function(item) {
+                window.agingBarChart._recordsPerIndex = summary.aging_chart.map(function (item) {
                     var name = item.range || item.label || 'Unassigned';
                     return { _lazy: true, type: 'aging', label: name, qty: item.qty, nbv: item.nbv };
                 });
@@ -1052,7 +1046,7 @@
         if (!periodText || periodText === '-' || periodText === 'PILIH DATA' || periodText === 'PILIH PERIODE DATA' || periodText === 'Bulan X') {
             periodText = sheetData.length > 0 ? (sheetData[0]['periode_group'] || 'Unknown') : 'Unknown';
         }
-        
+
         var pinTitle = document.getElementById('perangkat-in-title-period');
         if (pinTitle) {
             var match = periodText.match(/^(\w+)\s+(\d{4})(?:-Batch(\d+))?$/);
@@ -1176,8 +1170,8 @@
 
         var utilisasiUrl = 'api/get_rack_utilisasi.php?month=' + encodeURIComponent(periodMonth) + '&year=' + encodeURIComponent(periodYear);
         fetch(utilisasiUrl)
-            .then(function(response) { return response.json(); })
-            .then(function(utilResult) {
+            .then(function (response) { return response.json(); })
+            .then(function (utilResult) {
                 var utilData = (utilResult.status === 'success' && utilResult.data) ? utilResult.data : [];
                 if (tbody) tbody.replaceChildren();
 
@@ -1241,8 +1235,8 @@
                     rackGroups[rackName].count++;
                 }
 
+                // Preserve insertion order from API (matches rack_master / Excel order)
                 var rackNames = Object.keys(rackGroups);
-                rackNames.sort();
 
                 var greenCount = 0;
                 var yellowCount = 0;
@@ -1283,8 +1277,8 @@
                         tr.setAttribute('data-toggle', 'tooltip');
                         tr.setAttribute('data-placement', 'top');
 
-                        (function(clickRackName) {
-                            tr.addEventListener('click', function() {
+                        (function (clickRackName) {
+                            tr.addEventListener('click', function () {
                                 FormulaController.openRackDetailModal(clickRackName, periodMonth, periodYear);
                             });
                         })(rName);
@@ -1349,14 +1343,14 @@
                 var storageAvailable = document.getElementById('storage-available');
                 if (storageAvailable) storageAvailable.textContent = freePercent + '%';
             })
-            .catch(function(err) { console.error('Error fetching utilisasi data:', err); });
+            .catch(function (err) { console.error('Error fetching utilisasi data:', err); });
     };
 
     /**
      * Open rack detail modal — shows all individual labels for a given rack name
      * with their CAP percentage for the specified period.
      */
-    FormulaController.openRackDetailModal = function(rackName, month, year) {
+    FormulaController.openRackDetailModal = function (rackName, month, year) {
         var modalEl = document.getElementById('rackDetailModal');
         if (!modalEl) return;
 
@@ -1377,11 +1371,11 @@
         if (year) url += '&year=' + encodeURIComponent(year);
 
         fetch(url)
-            .then(function(response) { return response.json(); })
-            .then(function(result) {
+            .then(function (response) { return response.json(); })
+            .then(function (result) {
                 var dataRows = [];
                 if (result.status === 'success' && result.data && result.data.length > 0) {
-                    result.data.forEach(function(item, idx) {
+                    result.data.forEach(function (item, idx) {
                         dataRows.push({
                             no: idx + 1,
                             barcode: item.barcode || '-',
@@ -1409,24 +1403,33 @@
                         data: dataRows,
                         columns: [
                             { data: 'no', title: 'NO', className: 'text-center', width: '50px' },
-                            { data: 'barcode', title: 'BARCODE', className: 'text-left',
-                              render: function(d) { return escapeHtml(d); } },
-                            { data: 'label', title: 'LABEL', className: 'text-left',
-                              render: function(d) { return escapeHtml(d); } },
-                            { data: 'active', title: 'ACTIVE', className: 'text-center',
-                              render: function(d) { return escapeHtml(d); } },
-                            { data: 'category', title: 'CATEGORY', className: 'text-left',
-                              render: function(d) { return escapeHtml(d); } },
-                            { data: 'capacity', title: 'CAP (%)', className: 'text-center',
-                              render: function(d, type) {
-                                  if (type === 'display') {
-                                      var pct = parseFloat(d) || 0;
-                                      var colorClass = pct <= 50 ? 'bg-success' : (pct <= 75 ? 'bg-warning' : 'bg-danger');
-                                      return '<div class="d-flex align-items-center"><span class="mr-2 font-weight-bold" style="min-width:35px;">' + pct + '%</span>' +
-                                             '<div class="progress progress-sm flex-grow-1" style="height:8px;border-radius:4px;"><div class="progress-bar ' + colorClass + '" style="width:' + pct + '%;border-radius:4px;"></div></div></div>';
-                                  }
-                                  return d;
-                              }
+                            {
+                                data: 'barcode', title: 'BARCODE', className: 'text-left',
+                                render: function (d) { return escapeHtml(d); }
+                            },
+                            {
+                                data: 'label', title: 'LABEL', className: 'text-left',
+                                render: function (d) { return escapeHtml(d); }
+                            },
+                            {
+                                data: 'active', title: 'ACTIVE', className: 'text-center',
+                                render: function (d) { return escapeHtml(d); }
+                            },
+                            {
+                                data: 'category', title: 'CATEGORY', className: 'text-left',
+                                render: function (d) { return escapeHtml(d); }
+                            },
+                            {
+                                data: 'capacity', title: 'CAP (%)', className: 'text-center',
+                                render: function (d, type) {
+                                    if (type === 'display') {
+                                        var pct = parseFloat(d) || 0;
+                                        var colorClass = pct <= 50 ? 'bg-success' : (pct <= 75 ? 'bg-warning' : 'bg-danger');
+                                        return '<div class="d-flex align-items-center"><span class="mr-2 font-weight-bold" style="min-width:35px;">' + pct + '%</span>' +
+                                            '<div class="progress progress-sm flex-grow-1" style="height:8px;border-radius:4px;"><div class="progress-bar ' + colorClass + '" style="width:' + pct + '%;border-radius:4px;"></div></div></div>';
+                                    }
+                                    return d;
+                                }
                             }
                         ],
                         pageLength: 25,
@@ -1451,7 +1454,7 @@
                     $('#rackDetailModal').modal('show');
                 }
             })
-            .catch(function(err) {
+            .catch(function (err) {
                 console.error('Error fetching rack detail:', err);
                 if (typeof Swal !== 'undefined') {
                     Swal.fire('Error', 'Failed to load rack detail data.', 'error');

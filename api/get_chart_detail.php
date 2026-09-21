@@ -18,39 +18,46 @@ try {
     $driver = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
     $q = ($driver === 'pgsql') ? '"' : '`';
 
-    $type = trim($_GET['type'] ?? 'aging'); // 'aging', 'org', 'status', 'all'
-    $label = trim($_GET['label'] ?? '');
-    $periode = trim($_GET['periode'] ?? '');
-    $limit = isset($_GET['limit']) ? min(1000, max(10, intval($_GET['limit']))) : 500;
+    $type = trim($_REQUEST['type'] ?? 'aging'); // 'aging', 'org', 'status', 'all'
+    $label = trim($_REQUEST['label'] ?? '');
+    $periode = trim($_REQUEST['periode'] ?? '');
+    $limit = isset($_REQUEST['limit']) ? min(1000, max(10, intval($_REQUEST['limit']))) : 500;
 
     $where = [];
     $params = [];
 
-    if ($periode && $periode !== 'PILIH DATA' && $periode !== 'PILIH PERIODE DATA') {
-        $isBatchSpecific = (bool)preg_match('/-Batch\d+$/i', $periode);
+    // Clean period string: remove "(ALL BATCH)", "(ALL)", etc.
+    $cleanPeriod = trim(preg_replace('/\s*\((ALL BATCH|ALL)\)/i', '', $periode));
+
+    if ($cleanPeriod && $cleanPeriod !== 'PILIH DATA' && $cleanPeriod !== 'PILIH PERIODE DATA' && $cleanPeriod !== '-') {
+        $isBatchSpecific = (bool)preg_match('/-Batch\d+$/i', $cleanPeriod);
         if ($isBatchSpecific) {
             $where[] = "periode_group = ?";
-            $params[] = $periode;
+            $params[] = $cleanPeriod;
         } else {
             $where[] = "(periode_group = ? OR periode_group LIKE ?)";
-            $params[] = $periode;
-            $params[] = $periode . '%';
+            $params[] = $cleanPeriod;
+            $params[] = $cleanPeriod . '%';
         }
     }
 
     if ($type === 'aging') {
-        if ($label && $label !== 'Unknown') {
-            $where[] = "{$q}range{$q} = ?";
+        if ($label === 'Unassigned' || $label === 'Unknown') {
+            $where[] = "({$q}range{$q} IS NULL OR TRIM({$q}range{$q}) = '' OR {$q}range{$q} = 'Unassigned' OR {$q}range{$q} = 'Unknown')";
+        } elseif ($label) {
+            $where[] = "TRIM({$q}range{$q}) = ?";
             $params[] = $label;
         }
     } elseif ($type === 'org') {
-        if ($label && $label !== 'Unknown') {
-            $where[] = "asset_planner_organization = ?";
+        if ($label === 'Tanpa Organization' || $label === 'Unknown') {
+            $where[] = "(asset_planner_organization IS NULL OR TRIM(asset_planner_organization) = '' OR asset_planner_organization = 'Tanpa Organization' OR asset_planner_organization = 'Unknown')";
+        } elseif ($label) {
+            $where[] = "TRIM(asset_planner_organization) = ?";
             $params[] = $label;
         }
     } elseif ($type === 'category') {
         if ($label) {
-            $where[] = "category = ?";
+            $where[] = "TRIM(category) = ?";
             $params[] = $label;
         }
     }

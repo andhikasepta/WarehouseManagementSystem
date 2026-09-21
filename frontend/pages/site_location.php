@@ -387,7 +387,7 @@ if (!defined('SPA_MODE')) {
                             deferRender: true,
                             ajax: {
                                 url: 'api/get_site_location.php',
-                                type: 'GET',
+                                type: 'POST',
                                 error: function (xhr, error, thrown) {
                                     if (typeof Swal !== 'undefined') Swal.close();
                                     $('.dataTables_processing').hide();

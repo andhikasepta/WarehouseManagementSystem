@@ -199,8 +199,6 @@ if (!defined('SPA_MODE')) {
                                         <h6 class="m-0 font-weight-bold text-primary">
                                             <i class="fas fa-chart-line mr-2"></i>Tren Evaluasi KPI Bulanan
                                         </h6>
-                                        <span class="text-xs text-muted">Grafik menampilkan data achievement setiap
-                                            bulan vs Target</span>
                                     </div>
                                     <div class="d-flex align-items-center mt-2 mt-sm-0">
                                         <div class="d-flex align-items-center mr-3">
@@ -836,7 +834,7 @@ if (!defined('SPA_MODE')) {
                                         caretPadding: 6,
                                         callbacks: {
                                             title: function (tooltipItems) {
-                                                return cfg.name + ' • ' + tooltipItems[0].xLabel + ' (Data Bulanan — Klik titik untuk detail)';
+                                                return cfg.name + ' • ' + tooltipItems[0].xLabel;
                                             },
                                             label: function (tooltipItem, data) {
                                                 var dsLabel = data.datasets[tooltipItem.datasetIndex].label || '';
@@ -877,7 +875,7 @@ if (!defined('SPA_MODE')) {
                         }
 
                         if (achLblEl) {
-                            achLblEl.textContent = isSpecificMonth ? ('Realisasi (' + monthName + ')') : ('Summary Realisasi (' + currentYear + ')');
+                            achLblEl.textContent = isSpecificMonth ? ('Achievement (' + monthName + ')') : ('Summary Achievement (' + currentYear + ')');
                         }
 
                         var targetVal = meta.target;

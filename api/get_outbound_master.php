@@ -60,14 +60,14 @@ try {
     $pdo->exec($sql);
 
     // ─── DataTables Server-Side Parameters ───
-    $draw    = isset($_GET['draw']) ? intval($_GET['draw']) : 0;
-    $start   = isset($_GET['start']) ? intval($_GET['start']) : 0;
-    $length  = isset($_GET['length']) ? intval($_GET['length']) : 25;
-    $searchValue = isset($_GET['search']['value']) ? trim($_GET['search']['value']) : '';
+    $draw    = isset($_REQUEST['draw']) ? intval($_REQUEST['draw']) : 0;
+    $start   = isset($_REQUEST['start']) ? intval($_REQUEST['start']) : 0;
+    $length  = isset($_REQUEST['length']) ? intval($_REQUEST['length']) : 25;
+    $searchValue = isset($_REQUEST['search']['value']) ? trim($_REQUEST['search']['value']) : '';
 
     // Order parameters
-    $orderColIdx = isset($_GET['order'][0]['column']) ? intval($_GET['order'][0]['column']) : 0;
-    $orderDir    = (isset($_GET['order'][0]['dir']) && strtolower($_GET['order'][0]['dir']) === 'asc') ? 'ASC' : 'DESC';
+    $orderColIdx = isset($_REQUEST['order'][0]['column']) ? intval($_REQUEST['order'][0]['column']) : 0;
+    $orderDir    = (isset($_REQUEST['order'][0]['dir']) && strtolower($_REQUEST['order'][0]['dir']) === 'asc') ? 'ASC' : 'DESC';
 
     // 24 Column mapping (must match DataTables column order)
     $columns = [
@@ -103,11 +103,11 @@ try {
     }
 
     // ─── External filter parameters (from dropdown filters) ───
-    $siteDestFilter  = $_GET['site_destination'] ?? null;
-    $mrStatusFilter  = $_GET['mr_status'] ?? null;
-    $dnStatusFilter  = $_GET['dn_status'] ?? null;
-    $mrNoFilter      = $_GET['mr_no'] ?? null;
-    $periodeFilter   = $_GET['periode'] ?? $_GET['periode_group'] ?? null;
+    $siteDestFilter  = $_REQUEST['site_destination'] ?? null;
+    $mrStatusFilter  = $_REQUEST['mr_status'] ?? null;
+    $dnStatusFilter  = $_REQUEST['dn_status'] ?? null;
+    $mrNoFilter      = $_REQUEST['mr_no'] ?? null;
+    $periodeFilter   = $_REQUEST['periode'] ?? $_REQUEST['periode_group'] ?? null;
 
     // ─── Build WHERE clause ───
     $whereConditions = [];
@@ -212,7 +212,7 @@ try {
 } catch (Exception $e) {
     error_log("Database error in get_outbound_master.php: " . $e->getMessage());
     echo json_encode([
-        'draw'            => intval($_GET['draw'] ?? 0),
+        'draw'            => intval($_REQUEST['draw'] ?? 0),
         'recordsTotal'    => 0,
         'recordsFiltered' => 0,
         'data'            => [],

@@ -58,18 +58,18 @@ $columns = [
 
 try {
     // DataTables parameters
-    $draw = isset($_GET['draw']) ? (int)$_GET['draw'] : 1;
-    $start = isset($_GET['start']) ? (int)$_GET['start'] : 0;
-    $length = isset($_GET['length']) ? (int)$_GET['length'] : 25;
-    $searchValue = isset($_GET['search']['value']) ? trim($_GET['search']['value']) : '';
+    $draw = isset($_REQUEST['draw']) ? (int)$_REQUEST['draw'] : 1;
+    $start = isset($_REQUEST['start']) ? (int)$_REQUEST['start'] : 0;
+    $length = isset($_REQUEST['length']) ? (int)$_REQUEST['length'] : 25;
+    $searchValue = isset($_REQUEST['search']['value']) ? trim($_REQUEST['search']['value']) : '';
 
     // Order
     $orderCol = 0;
     $orderDir = 'ASC';
-    if (isset($_GET['order'][0]['column'])) {
-        $orderCol = (int)$_GET['order'][0]['column'];
+    if (isset($_REQUEST['order'][0]['column'])) {
+        $orderCol = (int)$_REQUEST['order'][0]['column'];
     }
-    if (isset($_GET['order'][0]['dir']) && strtolower($_GET['order'][0]['dir']) === 'desc') {
+    if (isset($_REQUEST['order'][0]['dir']) && strtolower($_REQUEST['order'][0]['dir']) === 'desc') {
         $orderDir = 'DESC';
     }
     $orderColumn = isset($columns[$orderCol]) ? $columns[$orderCol] : 'id';

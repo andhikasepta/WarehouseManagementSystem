@@ -62,7 +62,7 @@ try {
     rsort($availableYears, SORT_STRING);
 
     // Determine selected year
-    $selectedYear = isset($_GET['year']) ? trim((string)$_GET['year']) : '';
+    $selectedYear = isset($_REQUEST['year']) ? trim((string)$_REQUEST['year']) : '';
     if (!preg_match('/^\d{4}$/', $selectedYear)) {
         $selectedYear = !empty($dbYears) ? (string)$dbYears[0] : $curYear;
     }

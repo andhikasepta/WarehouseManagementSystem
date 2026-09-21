@@ -131,7 +131,7 @@ function initOutboundTable() {
         scrollX: true,
         ajax: {
             url: 'api/get_outbound_master.php',
-            type: 'GET',
+            type: 'POST',
             data: function (d) {
                 d.periode = $('#filter-outbound-periode').val();
                 d.site_destination = $('#filter-tujuan-site-outbound').val();
@@ -258,7 +258,7 @@ function initForwarderTable() {
         lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
         ajax: {
             url: 'api/get_outbound_forwarder.php',
-            type: 'GET',
+            type: 'POST',
             data: function (d) {
                 d.periode = $('#filter-forwarder-periode').val();
             }
@@ -551,7 +551,7 @@ function initInboundTable() {
         deferRender: true,
         ajax: {
             url: 'api/get_inbound_master.php',
-            type: 'GET'
+            type: 'POST'
         },
         columns: [
             { data: 'pr_nomor', defaultContent: '-' },
@@ -743,7 +743,7 @@ function initInboundGrTable() {
         autoWidth: false,
         ajax: {
             url: 'api/get_inbound_gr.php',
-            type: 'GET'
+            type: 'POST'
         },
         columns: [
             { data: 'no_reg', defaultContent: '-' },
@@ -873,7 +873,7 @@ function initAssetTable() {
         deferRender: true,
         ajax: {
             url: 'api/get_master_assets.php',
-            type: 'GET',
+            type: 'POST',
             dataSrc: function (json) {
                 // Populate filter dropdowns from server response (once)
                 if (!assetFiltersLoaded && json.filters) {
@@ -2914,7 +2914,7 @@ $(document).ready(function () {
             scrollX: true,
             ajax: {
                 url: 'api/get_kpi_master.php',
-                type: 'GET',
+                type: 'POST',
                 data: function (d) {
                     d.year = $('#filter-kpi-year').val();
                 }

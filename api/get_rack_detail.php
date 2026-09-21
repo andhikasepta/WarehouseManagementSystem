@@ -19,9 +19,9 @@ if (!isLoggedIn()) {
 }
 
 try {
-    $name = isset($_GET['name']) ? trim($_GET['name']) : '';
-    $month = isset($_GET['month']) ? trim($_GET['month']) : '';
-    $year = isset($_GET['year']) ? trim($_GET['year']) : '';
+    $name = isset($_REQUEST['name']) ? trim($_REQUEST['name']) : '';
+    $month = isset($_REQUEST['month']) ? trim($_REQUEST['month']) : '';
+    $year = isset($_REQUEST['year']) ? trim($_REQUEST['year']) : '';
 
     if ($name === '') {
         echo json_encode(['status' => 'error', 'message' => 'Missing rack name parameter.']);

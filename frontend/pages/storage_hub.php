@@ -151,7 +151,7 @@ if (!defined('SPA_MODE')) {
                                     <h6 class="m-0 font-weight-bold text-primary" style="font-size: 0.8rem;">PERANGKAT
                                         IN<br>
                                         <span id="perangkat-in-title-period" class="text-muted font-weight-normal"
-                                            style="font-size: 0.7rem;">Bulan X</span>
+                                            style="font-size: 0.7rem;">Tahun</span>
                                     </h6>
                                 </div>
                                 <div class="card-body">
@@ -172,7 +172,7 @@ if (!defined('SPA_MODE')) {
                                     <h6 class="m-0 font-weight-bold text-primary" style="font-size: 0.8rem;">PERANGKAT
                                         OUT<br>
                                         <span id="perangkat-out-title-period" class="text-muted font-weight-normal"
-                                            style="font-size: 0.7rem;">Bulan X</span>
+                                            style="font-size: 0.7rem;">Tahun</span>
                                     </h6>
                                 </div>
                                 <div class="card-body">

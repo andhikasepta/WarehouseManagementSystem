@@ -19,7 +19,7 @@ try {
     } catch (PDOException $e) {
         // Table does not exist, return empty
         echo json_encode([
-            'draw' => isset($_GET['draw']) ? (int)$_GET['draw'] : 1,
+            'draw' => isset($_REQUEST['draw']) ? (int)$_REQUEST['draw'] : 1,
             'recordsTotal' => 0,
             'recordsFiltered' => 0,
             'data' => []
@@ -28,11 +28,11 @@ try {
     }
 
     // DataTables server-side parameters
-    $draw = isset($_GET['draw']) ? (int)$_GET['draw'] : 1;
-    $start = isset($_GET['start']) ? (int)$_GET['start'] : 0;
-    $length = isset($_GET['length']) ? (int)$_GET['length'] : 25;
-    $searchValue = isset($_GET['search']['value']) ? trim($_GET['search']['value']) : '';
-    $year = isset($_GET['year']) ? trim($_GET['year']) : '';
+    $draw = isset($_REQUEST['draw']) ? (int)$_REQUEST['draw'] : 1;
+    $start = isset($_REQUEST['start']) ? (int)$_REQUEST['start'] : 0;
+    $length = isset($_REQUEST['length']) ? (int)$_REQUEST['length'] : 25;
+    $searchValue = isset($_REQUEST['search']['value']) ? trim($_REQUEST['search']['value']) : '';
+    $year = isset($_REQUEST['year']) ? trim($_REQUEST['year']) : '';
 
     // Build WHERE clause
     $where = [];
@@ -128,7 +128,7 @@ try {
 } catch (PDOException $e) {
     error_log("Database error in get_kpi_master.php: " . $e->getMessage());
     echo json_encode([
-        'draw' => isset($_GET['draw']) ? (int)$_GET['draw'] : 1,
+        'draw' => isset($_REQUEST['draw']) ? (int)$_REQUEST['draw'] : 1,
         'recordsTotal' => 0,
         'recordsFiltered' => 0,
         'data' => [],

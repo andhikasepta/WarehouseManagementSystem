@@ -5,7 +5,7 @@ header('Content-Type: application/json');
 require_once __DIR__ . '/../backend/config/database.php';
 require_once __DIR__ . '/../backend/auth.php';
 
-$draw = isset($_GET['draw']) ? intval($_GET['draw']) : 0;
+$draw = isset($_REQUEST['draw']) ? intval($_REQUEST['draw']) : 0;
 
 if (!isLoggedIn()) {
     echo json_encode([
@@ -53,13 +53,13 @@ try {
     $q = ($driver === 'pgsql') ? '"' : '`';
 
     // DataTables Server-Side Parameters
-    $start       = isset($_GET['start']) ? max(0, intval($_GET['start'])) : 0;
-    $length      = isset($_GET['length']) ? intval($_GET['length']) : 25;
-    $searchValue = isset($_GET['search']['value']) ? trim($_GET['search']['value']) : '';
+    $start       = isset($_REQUEST['start']) ? max(0, intval($_REQUEST['start'])) : 0;
+    $length      = isset($_REQUEST['length']) ? intval($_REQUEST['length']) : 25;
+    $searchValue = isset($_REQUEST['search']['value']) ? trim($_REQUEST['search']['value']) : '';
 
     // Order parameters
-    $orderColIdx = isset($_GET['order'][0]['column']) ? intval($_GET['order'][0]['column']) : 0;
-    $orderDir    = (isset($_GET['order'][0]['dir']) && strtolower($_GET['order'][0]['dir']) === 'asc') ? 'ASC' : 'DESC';
+    $orderColIdx = isset($_REQUEST['order'][0]['column']) ? intval($_REQUEST['order'][0]['column']) : 0;
+    $orderDir    = (isset($_REQUEST['order'][0]['dir']) && strtolower($_REQUEST['order'][0]['dir']) === 'asc') ? 'ASC' : 'DESC';
 
     // 39 Column mapping matching DataTables columns
     $columns = [
@@ -123,8 +123,8 @@ try {
     }
 
     // Per-column search
-    if (isset($_GET['columns']) && is_array($_GET['columns'])) {
-        foreach ($_GET['columns'] as $colIdx => $colData) {
+    if (isset($_REQUEST['columns']) && is_array($_REQUEST['columns'])) {
+        foreach ($_REQUEST['columns'] as $colIdx => $colData) {
             if (!empty($colData['search']['value']) && isset($columns[$colIdx])) {
                 $colName = $columns[$colIdx];
                 $colSearchVal = $colData['search']['value'];

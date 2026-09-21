@@ -18,14 +18,14 @@ try {
     $q = ($driver === 'pgsql') ? '"' : '`';
 
     // ─── DataTables Server-Side Parameters ───
-    $draw    = isset($_GET['draw']) ? intval($_GET['draw']) : 0;
-    $start   = isset($_GET['start']) ? intval($_GET['start']) : 0;
-    $length  = isset($_GET['length']) ? intval($_GET['length']) : 25;
-    $searchValue = isset($_GET['search']['value']) ? trim($_GET['search']['value']) : '';
+    $draw    = isset($_REQUEST['draw']) ? intval($_REQUEST['draw']) : 0;
+    $start   = isset($_REQUEST['start']) ? intval($_REQUEST['start']) : 0;
+    $length  = isset($_REQUEST['length']) ? intval($_REQUEST['length']) : 25;
+    $searchValue = isset($_REQUEST['search']['value']) ? trim($_REQUEST['search']['value']) : '';
 
     // Order parameters
-    $orderColIdx = isset($_GET['order'][0]['column']) ? intval($_GET['order'][0]['column']) : 0;
-    $orderDir    = (isset($_GET['order'][0]['dir']) && strtolower($_GET['order'][0]['dir']) === 'asc') ? 'ASC' : 'DESC';
+    $orderColIdx = isset($_REQUEST['order'][0]['column']) ? intval($_REQUEST['order'][0]['column']) : 0;
+    $orderDir    = (isset($_REQUEST['order'][0]['dir']) && strtolower($_REQUEST['order'][0]['dir']) === 'asc') ? 'ASC' : 'DESC';
 
     // Column mapping (must match DataTables column order)
     $columns = [
@@ -47,16 +47,16 @@ try {
     $orderColumn = isset($columns[$orderColIdx]) ? $columns[$orderColIdx] : 'spec_code';
 
     // ─── Extract Filters Early (GET params + DataTables per-column search) ───
-    $periodeFilter = $_GET['filterPeriode'] ?? $_GET['periode'] ?? $_GET['periode_group'] ?? null;
-    $subLocFilter  = $_GET['filterSubLocation'] ?? $_GET['sub_location'] ?? null;
+    $periodeFilter = $_REQUEST['filterPeriode'] ?? $_REQUEST['periode'] ?? $_REQUEST['periode_group'] ?? null;
+    $subLocFilter  = $_REQUEST['filterSubLocation'] ?? $_REQUEST['sub_location'] ?? null;
 
-    if (!$periodeFilter && isset($_GET['columns'][10]['search']['value']) && !empty($_GET['columns'][10]['search']['value'])) {
-        $rawVal = $_GET['columns'][10]['search']['value'];
+    if (!$periodeFilter && isset($_REQUEST['columns'][10]['search']['value']) && !empty($_REQUEST['columns'][10]['search']['value'])) {
+        $rawVal = $_REQUEST['columns'][10]['search']['value'];
         $periodeFilter = preg_replace('/^\^|\$$/', '', $rawVal);
     }
 
-    if (!$subLocFilter && isset($_GET['columns'][8]['search']['value']) && !empty($_GET['columns'][8]['search']['value'])) {
-        $rawVal = $_GET['columns'][8]['search']['value'];
+    if (!$subLocFilter && isset($_REQUEST['columns'][8]['search']['value']) && !empty($_REQUEST['columns'][8]['search']['value'])) {
+        $rawVal = $_REQUEST['columns'][8]['search']['value'];
         $subLocFilter = preg_replace('/^\^|\$$/', '', $rawVal);
     }
 
@@ -170,8 +170,8 @@ try {
     // Per-column search from DataTables (excluding period column 10 which is already scoped)
     $colNames = ['spec_code', 'spec_name', 'reg_no', 'asset_planner_organization', 'nbv',
                  'so_result', 'so_location', "{$q}range{$q}", 'sub_location', 'category', 'periode_group', 'status'];
-    if (isset($_GET['columns']) && is_array($_GET['columns'])) {
-        foreach ($_GET['columns'] as $colIdx => $colData) {
+    if (isset($_REQUEST['columns']) && is_array($_REQUEST['columns'])) {
+        foreach ($_REQUEST['columns'] as $colIdx => $colData) {
             if ($colIdx === 10) continue; // Periode handled at query scoping level
             if (!empty($colData['search']['value']) && isset($colNames[$colIdx])) {
                 $colName = $colNames[$colIdx];

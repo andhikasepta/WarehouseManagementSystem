@@ -22,14 +22,14 @@ try {
     }
 
     // ─── DataTables Server-Side Parameters ───
-    $draw    = isset($_GET['draw']) ? intval($_GET['draw']) : 0;
-    $start   = isset($_GET['start']) ? intval($_GET['start']) : 0;
-    $length  = isset($_GET['length']) ? intval($_GET['length']) : 25;
-    $searchValue = isset($_GET['search']['value']) ? trim($_GET['search']['value']) : '';
+    $draw    = isset($_REQUEST['draw']) ? intval($_REQUEST['draw']) : 0;
+    $start   = isset($_REQUEST['start']) ? intval($_REQUEST['start']) : 0;
+    $length  = isset($_REQUEST['length']) ? intval($_REQUEST['length']) : 25;
+    $searchValue = isset($_REQUEST['search']['value']) ? trim($_REQUEST['search']['value']) : '';
 
     // Order parameters
-    $orderColIdx = isset($_GET['order'][0]['column']) ? intval($_GET['order'][0]['column']) : 0;
-    $orderDir    = (isset($_GET['order'][0]['dir']) && strtolower($_GET['order'][0]['dir']) === 'asc') ? 'ASC' : 'DESC';
+    $orderColIdx = isset($_REQUEST['order'][0]['column']) ? intval($_REQUEST['order'][0]['column']) : 0;
+    $orderDir    = (isset($_REQUEST['order'][0]['dir']) && strtolower($_REQUEST['order'][0]['dir']) === 'asc') ? 'ASC' : 'DESC';
 
     // Column mapping (must match DataTables column order)
     $columns = [
@@ -61,10 +61,10 @@ try {
     }
 
     // ─── External filter parameters (from dropdown filters) ───
-    $periodeFilter  = $_GET['periode'] ?? $_GET['periode_group'] ?? null;
-    $bagianFilter   = $_GET['bagian'] ?? null;
-    $picFilter      = $_GET['pic'] ?? null;
-    $kategoriFilter = $_GET['kategori'] ?? null;
+    $periodeFilter  = $_REQUEST['periode'] ?? $_REQUEST['periode_group'] ?? null;
+    $bagianFilter   = $_REQUEST['bagian'] ?? null;
+    $picFilter      = $_REQUEST['pic'] ?? null;
+    $kategoriFilter = $_REQUEST['kategori'] ?? null;
 
     // ─── Build WHERE clause ───
     $whereConditions = [];
@@ -99,8 +99,8 @@ try {
     }
 
     // Per-column search from DataTables
-    if (isset($_GET['columns']) && is_array($_GET['columns'])) {
-        foreach ($_GET['columns'] as $colIdx => $colData) {
+    if (isset($_REQUEST['columns']) && is_array($_REQUEST['columns'])) {
+        foreach ($_REQUEST['columns'] as $colIdx => $colData) {
             if (!empty($colData['search']['value']) && isset($columns[$colIdx])) {
                 $colName = $columns[$colIdx];
                 $colSearchVal = $colData['search']['value'];
