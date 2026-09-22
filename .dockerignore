@@ -20,15 +20,29 @@
 *.key
 *.cert
 *.crt
+*.pub
+*.ppk
 
-# ── Logs & Debugging ────────────────────────────────────────────────
+# ── Logs & Debugging (All Log Files & Directories) ───────────────────
 *.log
 **/*.log
+*.log.*
+**/*.log.*
 logs/
+**/logs/
 log/
+**/log/
 apache_logs/
+**/apache_logs/
+storage/logs/
+backend/logs/
+var/log/
 error.log
 access.log
+*.err
+**/*.err
+*.out
+**/*.out
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
@@ -36,27 +50,106 @@ pnpm-debug.log*
 
 # ── Uploads & User Generated Content (Mounted as Volume) ────────────
 uploads/
+uploads/**
 storage/
+storage/**
 storage_hub/
+storage_hub/**
+backend/uploads/
+api/uploads/
 
-# ── Database Dumps, SQLite & Migrations Scratch ─────────────────────
+# ── Database Dumps, SQLite & Backups ────────────────────────────────
 *.sql
 *.sql.gz
+*.sql.zip
 *.sqlite
 *.sqlite3
 *.db
-backend/scratch_*.php
-scratch/
+*.dump
+*.bak
+*.backup
+*.old
+*.orig
+*.swp
+*.swo
+*~
 
-# ── Node.js, Build Tooling & Uncompiled Sources ─────────────────────
+# ── Test & Scratch Scripts (Excluded from Production Container) ─────
+tests/
+test/
+**/tests/
+**/test/
+test_*.php
+**/test_*.php
+scratch_*.php
+**/scratch_*.php
+backend/scratch_*.php
+backend/test_*.php
+api/test_*.php
+scratch/
+**/scratch/
+scratch_verify.php
+test_gr_api.php
+test_gr_count.php
+
+# ── Temporary & Cache Files ─────────────────────────────────────────
+*.tmp
+*.temp
+*.cache
+.cache/
+**/.cache/
+temp/
+tmp/
+**/temp/
+**/tmp/
+temp.json
+temp_rack.json
+output.txt
+test_output.json
+api/test_output.json
+**/test_output.json
+.redis_offline
+**/.redis_offline
+*.flag
+**/*.flag
+phpunit.xml*
+.phpunit.result.cache
+.phpunit.cache/
+coverage/
+.coverage/
+.php-cs-fixer.cache
+
+# ── Node.js, Build Tooling & Lockfiles ──────────────────────────────
 node_modules/
 package.json
 package-lock.json
 yarn.lock
 pnpm-lock.yaml
 gulpfile.js
-frontend/scss/
 .sass-cache/
+
+# ── Uncompiled Assets & Source Maps (Faster Build & Compact Image) ──
+# Style sources (compiled CSS is used in production)
+**/*.scss
+**/*.less
+frontend/scss/
+frontend/vendor/**/scss/
+frontend/vendor/**/less/
+frontend/vendor/bootstrap/scss/
+
+# JavaScript & CSS Source Maps
+**/*.map
+frontend/vendor/**/*.map
+
+# Unused FontAwesome raw assets (over 1,600 unused SVGs/sprites/metadata)
+frontend/vendor/fontawesome-free/svgs/
+frontend/vendor/fontawesome-free/sprites/
+frontend/vendor/fontawesome-free/less/
+frontend/vendor/fontawesome-free/scss/
+frontend/vendor/fontawesome-free/metadata/
+frontend/vendor/fontawesome-free/package.json
+frontend/vendor/fontawesome-free/attribution.js
+frontend/vendor/fontawesome-free/LICENSE.txt
 
 # ── IDEs, Editors & AI Workspace Tools ──────────────────────────────
 .vscode/
@@ -70,11 +163,6 @@ frontend/scss/
 .settings/
 .classpath
 .buildpath
-*.swp
-*.swo
-*~
-*.bak
-*.orig
 .editorconfig
 
 # ── Operating System Metadata ───────────────────────────────────────
@@ -89,37 +177,15 @@ Desktop.ini
 [Nn]et[Hh]ood
 [Pp]rint[Hh]ood
 
-# ── Temporary & Scratch Files ───────────────────────────────────────
-*.tmp
-*.temp
-*.cache
-.cache/
-temp/
-tmp/
-temp.json
-temp_rack.json
-output.txt
-test_output.json
-api/test_output.json
-
-# ── Testing & Code Quality Tools ────────────────────────────────────
-tests/
-test/
-phpunit.xml*
-.phpunit.result.cache
-.phpunit.cache/
-coverage/
-.coverage/
-.php-cs-fixer.cache
-
 # ── Documentation & Non-Runtime Assets ──────────────────────────────
 README.md
 CHANGELOG.md
 LICENSE
 docs/
 *.md
+**/*.md
 
-# ── Docker Configs (Excluded from COPY . inside image) ──────────────
+# ── Docker Configs (Excluded from COPY . inside web root) ────────────
 docker-compose.yml
 docker-compose.*.yml
 Dockerfile
