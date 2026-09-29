@@ -110,7 +110,6 @@ if (!defined('SPA_MODE')) {
                                 </div>
                             </div>
                         </div>
-
                         <!-- Storage Card -->
                         <div class="col-lg-4 col-md-6 mb-4">
                             <div class="card module-card shadow h-100" onclick="window.location.href='login.php?redirect=warehouse.php'">
@@ -131,7 +130,6 @@ if (!defined('SPA_MODE')) {
                             </div>
                         </div>
 
-                        <!-- Outbound Card -->
                         <div class="col-lg-4 col-md-6 mb-4">
                             <div class="card module-card shadow h-100" onclick="window.location.href='login.php?redirect=outbound.php'">
                                 <div class="module-icon-bg bg-gradient-outbound text-white">

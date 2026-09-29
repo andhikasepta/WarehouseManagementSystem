@@ -54,9 +54,7 @@ if (!defined('SPA_MODE')) {
                         <h1 class="h3 mb-0 text-gray-800 font-weight-bold">KPI Monitoring</h1>
                     </div>
 
-                    <!-- 9 KPI Metric Cards Grid (3 Columns across, Normal Compact Size) -->
                     <div class="row" style="margin-left: -4px; margin-right: -4px;">
-                        <!-- Card 1: Receiving (GR) SLA (%) -->
                         <div class="col-xl-4 col-md-4 col-sm-6 mb-4" style="padding-left: 4px; padding-right: 4px;">
                             <div class="card border-left-primary shadow h-100 py-2 kpi-metric-card"
                                 onclick="openKpiModal('receiving_sla')"
@@ -71,7 +69,6 @@ if (!defined('SPA_MODE')) {
                             </div>
                         </div>
 
-                        <!-- Card 2: Registration SLA (%) -->
                         <div class="col-xl-4 col-md-4 col-sm-6 mb-4" style="padding-left: 4px; padding-right: 4px;">
                             <div class="card border-left-info shadow h-100 py-2 kpi-metric-card"
                                 onclick="openKpiModal('registration_sla')"
@@ -86,7 +83,6 @@ if (!defined('SPA_MODE')) {
                             </div>
                         </div>
 
-                        <!-- Card 3: MR Closing (Akumulatif) SLA (%) -->
                         <div class="col-xl-4 col-md-4 col-sm-6 mb-4" style="padding-left: 4px; padding-right: 4px;">
                             <div class="card border-left-success shadow h-100 py-2 kpi-metric-card"
                                 onclick="openKpiModal('mr_closing')" title="Klik untuk detail kalkulasi &amp; formula">
@@ -100,7 +96,6 @@ if (!defined('SPA_MODE')) {
                             </div>
                         </div>
 
-                        <!-- Card 4: Stock Opname Warehouse Hub (%) -->
                         <div class="col-xl-4 col-md-4 col-sm-6 mb-4" style="padding-left: 4px; padding-right: 4px;">
                             <div class="card border-left-success shadow h-100 py-2 kpi-metric-card"
                                 onclick="openKpiModal('stock_opname_hub')"
@@ -115,7 +110,6 @@ if (!defined('SPA_MODE')) {
                             </div>
                         </div>
 
-                        <!-- Card 5: Stock Opname Outlet Warehouse (%) -->
                         <div class="col-xl-4 col-md-4 col-sm-6 mb-4" style="padding-left: 4px; padding-right: 4px;">
                             <div class="card border-left-info shadow h-100 py-2 kpi-metric-card"
                                 onclick="openKpiModal('stock_opname_outlet')"
@@ -417,7 +411,6 @@ if (!defined('SPA_MODE')) {
                             </button>
                         </div>
                         <div class="modal-body p-4 bg-white">
-                            <!-- Metrics Quick Bar (Target vs Realisasi) -->
                             <div class="row text-center mb-4">
                                 <div class="col-6 border-right">
                                     <div class="text-xs text-muted text-uppercase font-weight-bold">Target</div>
@@ -445,10 +438,8 @@ if (!defined('SPA_MODE')) {
                 include FRONTEND_PATH . 'components/footer.php';
             } ?>
 
-            <!-- Page level plugins & Chart Script -->
             <script src="frontend/vendor/chart.js/Chart.min.js"></script>
 
-            <!-- KPI Monitoring Page Scripts -->
             <script>
                 (function () {
                     'use strict';
@@ -532,7 +523,6 @@ if (!defined('SPA_MODE')) {
                         loadPeriods();
                     });
 
-                    // Populate selects helper
                     function populateSelect(selectId, items, placeholder) {
                         var sel = document.getElementById(selectId);
                         if (!sel) return;
@@ -554,7 +544,6 @@ if (!defined('SPA_MODE')) {
                         var y = document.getElementById('period-year-select');
                         var btn = document.getElementById('btn-load-period');
                         if (btn) {
-                            // On KPI Monitoring, selecting Year is sufficient to view the full year trend
                             btn.disabled = !(y && y.value);
                         }
                     }
@@ -663,7 +652,6 @@ if (!defined('SPA_MODE')) {
                             });
                     }
 
-                    // Render 9 Top KPI Summary Metric Cards (Summary of the selected Year period)
                     function renderKpiCards(cards) {
                         if (!cards) return;
 
