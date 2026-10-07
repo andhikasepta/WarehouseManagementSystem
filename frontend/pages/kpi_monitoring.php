@@ -89,9 +89,13 @@ if (!defined('SPA_MODE')) {
                                 <div class="card-body p-3 d-flex flex-column justify-content-between">
                                     <div class="text-xs font-weight-bold text-success text-uppercase mb-1"
                                         style="font-size: 0.72rem; line-height: 1.15;">
-                                        MR CLOSING (AKUMULATIF) SLA</div>
-                                    <div class="h4 mb-0 font-weight-bold text-gray-800 mt-auto"
-                                        style="line-height: 1.1;" id="card-val-stock-opname">0.0%</div>
+                                        MR CLOSING SLA (KUMULATIF)</div>
+                                    <div class="d-flex align-items-baseline justify-content-between mt-auto">
+                                        <div class="h4 mb-0 font-weight-bold text-gray-800"
+                                            style="line-height: 1.1;" id="card-val-stock-opname">0.0%</div>
+                                        <span class="badge badge-light border text-muted font-weight-normal text-xs"
+                                            id="card-sub-stock-opname" style="font-size: 0.68rem;">Kumulatif</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -124,16 +128,20 @@ if (!defined('SPA_MODE')) {
                             </div>
                         </div>
 
-                        <!-- Card 6: Slow Moving SLA (%) -->
+                        <!-- Card 6: Slow Moving SLA (Kumulatif) (%) -->
                         <div class="col-xl-4 col-md-4 col-sm-6 mb-4" style="padding-left: 4px; padding-right: 4px;">
                             <div class="card border-left-warning shadow h-100 py-2 kpi-metric-card"
                                 onclick="openKpiModal('slow_moving')" title="Klik untuk detail kalkulasi &amp; formula">
                                 <div class="card-body p-3 d-flex flex-column justify-content-between">
                                     <div class="text-xs font-weight-bold text-warning text-uppercase mb-1"
                                         style="font-size: 0.72rem; line-height: 1.15;">
-                                        SLOW MOVING SLA</div>
-                                    <div class="h4 mb-0 font-weight-bold text-gray-800 mt-auto"
-                                        style="line-height: 1.1;" id="card-val-slow-moving">0.0%</div>
+                                        SLOW MOVING SLA (KUMULATIF)</div>
+                                    <div class="d-flex align-items-baseline justify-content-between mt-auto">
+                                        <div class="h4 mb-0 font-weight-bold text-gray-800"
+                                            style="line-height: 1.1;" id="card-val-slow-moving">0.0%</div>
+                                        <span class="badge badge-light border text-muted font-weight-normal text-xs"
+                                            id="card-sub-slow-moving" style="font-size: 0.68rem;">Kumulatif</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -256,7 +264,7 @@ if (!defined('SPA_MODE')) {
                                                 <div
                                                     class="card-header bg-white py-2 px-3 border-bottom d-flex align-items-center justify-content-between">
                                                     <h6 class="m-0 font-weight-bold text-gray-800 small text-truncate">
-                                                        MR Closing (Akumulatif) SLA</h6>
+                                                        MR Closing SLA (Kumulatif)</h6>
                                                     <span class="badge badge-success px-2 py-1"
                                                         style="font-size: 0.7rem;">Target: ≥ 90.0%</span>
                                                 </div>
@@ -315,7 +323,7 @@ if (!defined('SPA_MODE')) {
                                                 <div
                                                     class="card-header bg-white py-2 px-3 border-bottom d-flex align-items-center justify-content-between">
                                                     <h6 class="m-0 font-weight-bold text-gray-800 small text-truncate">
-                                                        Slow Moving SLA</h6>
+                                                        Slow Moving SLA (Kumulatif)</h6>
                                                     <span class="badge badge-warning px-2 py-1 text-white"
                                                         style="font-size: 0.7rem;">Target: ≥ 85.0%</span>
                                                 </div>
@@ -429,6 +437,31 @@ if (!defined('SPA_MODE')) {
                             <!-- Alert status -->
                             <div class="alert alert-info py-2 px-3 mb-0" id="modal-kpi-alert"
                                 style="font-size: 0.78rem; border-radius: 8px; min-height: 38px;"></div>
+
+                            <!-- Cumulative Calculation Table (For MR Closing & Slow Moving SLA) -->
+                            <div id="modal-kpi-cumulative-container" class="mt-4" style="display: none;">
+                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                    <h6 class="font-weight-bold text-gray-800 mb-0 small text-uppercase" style="letter-spacing: 0.5px;">
+                                        <i class="fas fa-calculator text-success mr-1"></i> <span id="modal-cum-title-metric">Perhitungan KPI Kumulatif</span>
+                                    </h6>
+                                    <span class="badge badge-light border text-muted" style="font-size: 0.72rem;">Formula: Rata-rata Berjalan</span>
+                                </div>
+                                <div class="table-responsive" style="max-height: 280px; overflow-y: auto;">
+                                    <table class="table table-bordered table-sm table-hover text-center mb-0" style="font-size: 0.8rem;">
+                                        <thead class="thead-light">
+                                            <tr>
+                                                <th class="text-center align-middle" style="width: 16%;">Bulan</th>
+                                                <th class="text-center align-middle" style="width: 18%;">KPI Bulanan</th>
+                                                <th class="text-center align-middle" style="width: 44%;">Cara Menghitung KPI Kumulatif</th>
+                                                <th class="text-center align-middle" style="width: 22%;">Hasil KPI Kumulatif</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="modal-kpi-cumulative-tbody">
+                                            <!-- Dynamically populated via openKpiModal -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -455,11 +488,11 @@ if (!defined('SPA_MODE')) {
                     var KPI_CONFIGS = {
                         'receiving_sla': { name: 'Receiving (GR) SLA', code: 'KPI-IN-01', target: 98.0, target_display: '≥ 98.0%', color: '#4e73df', icon: 'fa-clipboard-check' },
                         'registration_sla': { name: 'Registration SLA', code: 'KPI-IN-02', target: 98.0, target_display: '≥ 98.0%', color: '#36b9cc', icon: 'fa-barcode' },
-                        'mr_closing': { name: 'MR Closing (Akumulatif) SLA', code: 'KPI-OB-03', target: 90.0, target_display: '≥ 90.0%', color: '#1cc88a', icon: 'fa-check-double' },
-                        'stock_opname': { name: 'MR Closing (Akumulatif) SLA', code: 'KPI-OB-03', target: 90.0, target_display: '≥ 90.0%', color: '#1cc88a', icon: 'fa-check-double' },
+                        'mr_closing': { name: 'MR Closing SLA (Kumulatif)', code: 'KPI-OB-03', target: 90.0, target_display: '≥ 90.0%', color: '#1cc88a', icon: 'fa-check-double' },
+                        'stock_opname': { name: 'MR Closing SLA (Kumulatif)', code: 'KPI-OB-03', target: 90.0, target_display: '≥ 90.0%', color: '#1cc88a', icon: 'fa-check-double' },
                         'stock_opname_hub': { name: 'Stock Opname Warehouse Hub', code: 'KPI-ST-01A', target: 85.0, target_display: '≥ 85.0%', color: '#20c997', icon: 'fa-warehouse' },
                         'stock_opname_outlet': { name: 'Stock Opname Outlet Warehouse', code: 'KPI-ST-01B', target: 85.0, target_display: '≥ 85.0%', color: '#0dcaf0', icon: 'fa-store' },
-                        'slow_moving': { name: 'Slow Moving SLA', code: 'KPI-ST-02', target: 85.0, target_display: '≥ 85.0%', color: '#f6c23e', icon: 'fa-hourglass-half' },
+                        'slow_moving': { name: 'Slow Moving SLA (Kumulatif)', code: 'KPI-ST-02', target: 85.0, target_display: '≥ 85.0%', color: '#f6c23e', icon: 'fa-hourglass-half' },
                         'capacity': { name: 'Capacity SLA (Utilisasi Space)', code: 'KPI-ST-03', target: 90.0, target_display: '≥ 90.0%', color: '#6f42c1', icon: 'fa-warehouse' },
                         'delivery_effectiveness': { name: 'Delivery Effectiveness SLA', code: 'KPI-OB-01', target: 97.0, target_display: '≥ 97.0%', color: '#e83e8c', icon: 'fa-truck-fast' },
                         'delivery_efficiency': { name: 'Efisiensi Delivery SLA', code: 'KPI-OB-02', target: 10.0, target_display: '≥ 10.0%', color: '#17a2b8', icon: 'fa-percentage' }
@@ -617,6 +650,17 @@ if (!defined('SPA_MODE')) {
                             if (el) el.textContent = '0.0%';
                         });
 
+                        var mrSub = document.getElementById('card-sub-stock-opname');
+                        if (mrSub) {
+                            mrSub.textContent = 'Kumulatif';
+                            mrSub.className = 'badge badge-light border text-muted font-weight-normal text-xs';
+                        }
+                        var slowSub = document.getElementById('card-sub-slow-moving');
+                        if (slowSub) {
+                            slowSub.textContent = 'Kumulatif';
+                            slowSub.className = 'badge badge-light border text-muted font-weight-normal text-xs';
+                        }
+
                         renderAllKpiCharts(getDefaultTrends());
                     }
 
@@ -667,10 +711,32 @@ if (!defined('SPA_MODE')) {
 
                         setCardVal('card-val-receiving', cards.receiving_sla);
                         setCardVal('card-val-registration', cards.registration_sla);
-                        setCardVal('card-val-stock-opname', cards.mr_closing || cards.stock_opname);
+                        var mrCardItem = cards.mr_closing || cards.stock_opname;
+                        setCardVal('card-val-stock-opname', mrCardItem);
+                        var mrSub = document.getElementById('card-sub-stock-opname');
+                        if (mrSub) {
+                            if (mrCardItem && mrCardItem.latest_month) {
+                                mrSub.textContent = 's.d. ' + mrCardItem.latest_month;
+                                mrSub.className = 'badge badge-success text-white font-weight-normal text-xs';
+                            } else {
+                                mrSub.textContent = 'Kumulatif';
+                                mrSub.className = 'badge badge-light border text-muted font-weight-normal text-xs';
+                            }
+                        }
                         setCardVal('card-val-so-hub', cards.stock_opname_hub);
                         setCardVal('card-val-so-outlet', cards.stock_opname_outlet);
-                        setCardVal('card-val-slow-moving', cards.slow_moving);
+                        var slowCardItem = cards.slow_moving;
+                        setCardVal('card-val-slow-moving', slowCardItem);
+                        var slowSub = document.getElementById('card-sub-slow-moving');
+                        if (slowSub) {
+                            if (slowCardItem && slowCardItem.latest_month) {
+                                slowSub.textContent = 's.d. ' + slowCardItem.latest_month;
+                                slowSub.className = 'badge badge-warning text-white font-weight-normal text-xs';
+                            } else {
+                                slowSub.textContent = 'Kumulatif';
+                                slowSub.className = 'badge badge-light border text-muted font-weight-normal text-xs';
+                            }
+                        }
                         setCardVal('card-val-capacity', cards.capacity);
                         setCardVal('card-val-delivery-eff', cards.delivery_effectiveness);
                         setCardVal('card-val-delivery-idr', cards.delivery_efficiency);
@@ -827,6 +893,13 @@ if (!defined('SPA_MODE')) {
                                             label: function (tooltipItem, data) {
                                                 var dsLabel = data.datasets[tooltipItem.datasetIndex].label || '';
                                                 var val = tooltipItem.yLabel;
+                                                if ((kpiId === 'mr_closing' || kpiId === 'slow_moving') && tooltipItem.datasetIndex === 1 && kpiSeries.monthly_achievement) {
+                                                    var mVal = kpiSeries.monthly_achievement[tooltipItem.index];
+                                                    return [
+                                                        ' ' + dsLabel + ' (Kumulatif): ' + val + '%',
+                                                        ' KPI Bulanan: ' + mVal + '%'
+                                                    ];
+                                                }
                                                 return ' ' + dsLabel + ': ' + val + '%';
                                             }
                                         }
@@ -916,6 +989,53 @@ if (!defined('SPA_MODE')) {
                             } else {
                                 alertEl.className = 'alert alert-danger py-2 px-3 mb-0';
                                 alertEl.innerHTML = '<i class="fas fa-times-circle mr-2"></i><strong>Status Data Info:</strong> ' + periodLabel + ' Tidak Tercapai';
+                            }
+                        }
+
+                        // Populate Cumulative Table for MR Closing SLA & Slow Moving SLA
+                        var cumContainer = document.getElementById('modal-kpi-cumulative-container');
+                        var cumTbody = document.getElementById('modal-kpi-cumulative-tbody');
+                        var cumTitle = document.getElementById('modal-cum-title-metric');
+
+                        if (cumContainer && cumTbody) {
+                            if (kpiId === 'mr_closing' || kpiId === 'stock_opname' || kpiId === 'slow_moving') {
+                                cumContainer.style.display = 'block';
+                                cumTbody.innerHTML = '';
+                                if (cumTitle) {
+                                    cumTitle.textContent = (kpiId === 'slow_moving') ? 'Perhitungan KPI Kumulatif Slow Moving SLA' : 'Perhitungan KPI Kumulatif MR Closing SLA';
+                                }
+                                var cumList = (kpiDataCache && kpiDataCache.cards && kpiDataCache.cards[kpiId] && kpiDataCache.cards[kpiId].cumulative_table)
+                                    ? kpiDataCache.cards[kpiId].cumulative_table
+                                    : ((kpiDataCache && kpiDataCache.monthly_trends && kpiDataCache.monthly_trends[kpiId] && kpiDataCache.monthly_trends[kpiId].cumulative_table)
+                                        ? kpiDataCache.monthly_trends[kpiId].cumulative_table
+                                        : []);
+
+                                if (cumList && cumList.length > 0) {
+                                    cumList.forEach(function (row) {
+                                        var tr = document.createElement('tr');
+                                        var isRowSelected = (typeof monthIndex === 'number' && row.month_index === monthIndex);
+                                        var rowSelectedClass = (kpiId === 'slow_moving') ? 'table-warning font-weight-bold' : 'table-success font-weight-bold';
+                                        if (isRowSelected) {
+                                            tr.className = rowSelectedClass;
+                                        }
+                                        var statusBadge = (row.hasil_kumulatif >= row.target)
+                                            ? '<span class="badge badge-success ml-1 px-1" style="font-size:0.68rem;">SLA</span>'
+                                            : '<span class="badge badge-danger ml-1 px-1" style="font-size:0.68rem;">Under</span>';
+
+                                        var arrowColor = (kpiId === 'slow_moving') ? 'text-warning' : 'text-success';
+                                        var valColor = (kpiId === 'slow_moving') ? 'text-warning' : 'text-success';
+
+                                        tr.innerHTML = '<td class="align-middle text-left font-weight-bold pl-3">' + row.bulan + (isRowSelected ? ' <i class="fas fa-arrow-left ' + arrowColor + ' ml-1" style="font-size:0.75rem;"></i>' : '') + '</td>' +
+                                            '<td class="align-middle">' + row.kpi_bulanan_display + '</td>' +
+                                            '<td class="align-middle text-left pl-3 text-muted" style="font-size: 0.76rem;">' + row.cara_hitung + '</td>' +
+                                            '<td class="align-middle font-weight-bold ' + valColor + '">' + row.hasil_kumulatif_display + statusBadge + '</td>';
+                                        cumTbody.appendChild(tr);
+                                    });
+                                } else {
+                                    cumTbody.innerHTML = '<tr><td colspan="4" class="text-muted py-3">Tidak ada data kumulatif untuk periode ini</td></tr>';
+                                }
+                            } else {
+                                cumContainer.style.display = 'none';
                             }
                         }
 

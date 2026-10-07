@@ -157,6 +157,95 @@ try {
             }
         }
 
+        // ── Cumulative Calculation for MR Closing SLA ──
+        // Bulan 1: Hanya nilai Januari sendiri
+        // Bulan 2: Rata-rata (Jan + Feb) / 2
+        // Bulan 3: Rata-rata (Jan + Feb + Mar) / 3
+        // Bulan 4: Rata-rata (Jan + Feb + Mar + Apr) / 4
+        // ... dst
+        $trendMrKumulatif = [];
+        $mrCumulativeTable = [];
+        $runningMrSum = 0;
+        $runningMrCount = 0;
+
+        foreach ($trendMrRealisasi as $mIdx => $mVal) {
+            if ($mVal > 0) {
+                $runningMrSum += $mVal;
+                $runningMrCount++;
+                $cumVal = round($runningMrSum / $runningMrCount, 2);
+                $trendMrKumulatif[] = $cumVal;
+
+                if ($runningMrCount === 1) {
+                    $caraHitung = 'Hanya nilai Januari sendiri';
+                } elseif ($runningMrCount === 2) {
+                    $caraHitung = 'Rata-rata (Jan + Feb) / 2';
+                } elseif ($runningMrCount === 3) {
+                    $caraHitung = 'Rata-rata (Jan + Feb + Mar) / 3';
+                } elseif ($runningMrCount === 4) {
+                    $caraHitung = 'Rata-rata (Jan + Feb + Mar + Apr) / 4';
+                } else {
+                    $caraHitung = 'Rata-rata (Jan s.d. ' . substr($monthsIndo[$mIdx], 0, 3) . ') / ' . $runningMrCount;
+                }
+
+                $mrCumulativeTable[] = [
+                    'month_index' => $mIdx,
+                    'bulan' => $monthsIndo[$mIdx],
+                    'bulan_en' => $validMonths[$mIdx],
+                    'kpi_bulanan' => $mVal,
+                    'kpi_bulanan_display' => number_format($mVal, 2, ',', '.') . '%',
+                    'cara_hitung' => $caraHitung,
+                    'hasil_kumulatif' => $cumVal,
+                    'hasil_kumulatif_display' => number_format($cumVal, 2, ',', '.') . '%',
+                    'target' => $mrClosingTarget,
+                    'status' => ($cumVal >= $mrClosingTarget) ? 'SLA Tercapai' : 'Tidak Tercapai'
+                ];
+            } else {
+                $trendMrKumulatif[] = 0.0;
+            }
+        }
+
+        // ── Cumulative Calculation for Slow Moving SLA ──
+        $trendSlowKumulatif = [];
+        $slowCumulativeTable = [];
+        $runningSlowSum = 0;
+        $runningSlowCount = 0;
+
+        foreach ($trendSlowRealisasi as $mIdx => $mVal) {
+            if ($mVal > 0) {
+                $runningSlowSum += $mVal;
+                $runningSlowCount++;
+                $cumVal = round($runningSlowSum / $runningSlowCount, 2);
+                $trendSlowKumulatif[] = $cumVal;
+
+                if ($runningSlowCount === 1) {
+                    $caraHitung = 'Hanya nilai Januari sendiri';
+                } elseif ($runningSlowCount === 2) {
+                    $caraHitung = 'Rata-rata (Jan + Feb) / 2';
+                } elseif ($runningSlowCount === 3) {
+                    $caraHitung = 'Rata-rata (Jan + Feb + Mar) / 3';
+                } elseif ($runningSlowCount === 4) {
+                    $caraHitung = 'Rata-rata (Jan + Feb + Mar + Apr) / 4';
+                } else {
+                    $caraHitung = 'Rata-rata (Jan s.d. ' . substr($monthsIndo[$mIdx], 0, 3) . ') / ' . $runningSlowCount;
+                }
+
+                $slowCumulativeTable[] = [
+                    'month_index' => $mIdx,
+                    'bulan' => $monthsIndo[$mIdx],
+                    'bulan_en' => $validMonths[$mIdx],
+                    'kpi_bulanan' => $mVal,
+                    'kpi_bulanan_display' => number_format($mVal, 2, ',', '.') . '%',
+                    'cara_hitung' => $caraHitung,
+                    'hasil_kumulatif' => $cumVal,
+                    'hasil_kumulatif_display' => number_format($cumVal, 2, ',', '.') . '%',
+                    'target' => $slowMovingTarget,
+                    'status' => ($cumVal >= $slowMovingTarget) ? 'SLA Tercapai' : 'Tidak Tercapai'
+                ];
+            } else {
+                $trendSlowKumulatif[] = 0.0;
+            }
+        }
+
         // Helper to pick card value: if month selected, take that month's realisasi; else average of non-zero entries (or latest month)
         $calcCardVal = function ($series) use ($monthIdx) {
             if ($monthIdx !== false && isset($series[$monthIdx])) {
@@ -171,10 +260,26 @@ try {
 
         $valRec = $calcCardVal($trendReceivingRealisasi);
         $valReg = $calcCardVal($trendRegRealisasi);
-        $valMr = $calcCardVal($trendMrRealisasi);
+        // MR Closing uses cumulative calculation:
+        if ($monthIdx !== false && isset($trendMrKumulatif[$monthIdx]) && $trendMrKumulatif[$monthIdx] > 0) {
+            $valMr = (float)$trendMrKumulatif[$monthIdx];
+        } elseif (!empty($mrCumulativeTable)) {
+            $latestMr = end($mrCumulativeTable);
+            $valMr = (float)$latestMr['hasil_kumulatif'];
+        } else {
+            $valMr = 0.0;
+        }
         $valSoHub = $calcCardVal($trendSoHubRealisasi);
         $valSoOutlet = $calcCardVal($trendSoOutletRealisasi);
-        $valSlow = $calcCardVal($trendSlowRealisasi);
+        // Slow Moving uses cumulative calculation:
+        if ($monthIdx !== false && isset($trendSlowKumulatif[$monthIdx]) && $trendSlowKumulatif[$monthIdx] > 0) {
+            $valSlow = (float)$trendSlowKumulatif[$monthIdx];
+        } elseif (!empty($slowCumulativeTable)) {
+            $latestSlow = end($slowCumulativeTable);
+            $valSlow = (float)$latestSlow['hasil_kumulatif'];
+        } else {
+            $valSlow = 0.0;
+        }
         $valCap = $calcCardVal($trendCapRealisasi);
         $valDelEff = $calcCardVal($trendDelEffRealisasi);
         $valDelEcon = $calcCardVal($trendDelEconRealisasi);
@@ -227,36 +332,38 @@ try {
             [
                 'id' => 'mr_closing',
                 'code' => 'KPI-OB-03',
-                'name' => 'MR Closing (Akumulatif) SLA',
+                'name' => 'MR Closing SLA (Kumulatif)',
                 'category' => 'Outbound Management',
                 'unit' => '%',
                 'is_currency' => false,
                 'target' => $mrClosingTarget,
                 'target_display' => '≥ ' . number_format($mrClosingTarget, 1) . '%',
                 'actual' => $valMr,
-                'actual_display' => number_format($valMr, 1, ',', '.') . '%',
+                'actual_display' => number_format($valMr, 2, ',', '.') . '%',
                 'status' => $getStatus($valMr, $mrClosingTarget),
                 'status_info' => $getStatusInfo($valMr, $mrClosingTarget, $kpiYear),
                 'description' => 'Persentase penyelesaian dan penutupan Material Request (MR) secara akumulatif.',
-                'formula' => '(Total MR Closed Akumulatif / Total MR Masuk) × 100%',
+                'formula' => 'Rata-rata kumulatif KPI Bulanan = (KPI Bulan 1 + ... + KPI Bulan n) / n',
+                'cumulative_table' => $mrCumulativeTable,
                 'icon' => 'fa-check-double',
                 'color' => '#1cc88a'
             ],
             [
                 'id' => 'stock_opname',
                 'code' => 'KPI-OB-03',
-                'name' => 'MR Closing (Akumulatif) SLA',
+                'name' => 'MR Closing SLA (Kumulatif)',
                 'category' => 'Outbound Management',
                 'unit' => '%',
                 'is_currency' => false,
                 'target' => $mrClosingTarget,
                 'target_display' => '≥ ' . number_format($mrClosingTarget, 1) . '%',
                 'actual' => $valMr,
-                'actual_display' => number_format($valMr, 1, ',', '.') . '%',
+                'actual_display' => number_format($valMr, 2, ',', '.') . '%',
                 'status' => $getStatus($valMr, $mrClosingTarget),
                 'status_info' => $getStatusInfo($valMr, $mrClosingTarget, $kpiYear),
                 'description' => 'Persentase penyelesaian dan penutupan Material Request (MR) secara akumulatif.',
-                'formula' => '(Total MR Closed Akumulatif / Total MR Masuk) × 100%',
+                'formula' => 'Rata-rata kumulatif KPI Bulanan = (KPI Bulan 1 + ... + KPI Bulan n) / n',
+                'cumulative_table' => $mrCumulativeTable,
                 'icon' => 'fa-check-double',
                 'color' => '#1cc88a'
             ],
@@ -299,18 +406,19 @@ try {
             [
                 'id' => 'slow_moving',
                 'code' => 'KPI-ST-02',
-                'name' => 'Slow Moving SLA',
+                'name' => 'Slow Moving SLA (Kumulatif)',
                 'category' => 'Storage & Warehouse Management',
                 'unit' => '%',
                 'is_currency' => false,
                 'target' => $slowMovingTarget,
                 'target_display' => '≥ ' . number_format($slowMovingTarget, 1) . '%',
                 'actual' => $valSlow,
-                'actual_display' => number_format($valSlow, 1, ',', '.') . '%',
+                'actual_display' => number_format($valSlow, 2, ',', '.') . '%',
                 'status' => $getStatus($valSlow, $slowMovingTarget),
                 'status_info' => $getStatusInfo($valSlow, $slowMovingTarget, $kpiYear),
-                'description' => 'Target efektivitas pengelolaan perputaran dan pengurangan inventori slow moving.',
-                'formula' => 'Target: 85% dari KPI Master Data',
+                'description' => 'Target efektivitas pengelolaan perputaran dan pengurangan inventori slow moving secara kumulatif.',
+                'formula' => 'Rata-rata kumulatif KPI Bulanan = (KPI Bulan 1 + ... + KPI Bulan n) / n',
+                'cumulative_table' => $slowCumulativeTable,
                 'icon' => 'fa-hourglass-half',
                 'color' => '#f6c23e'
             ],
@@ -393,22 +501,26 @@ try {
                 'color' => '#36b9cc'
             ],
             'mr_closing' => [
-                'name' => 'MR Closing (Akumulatif) SLA',
+                'name' => 'MR Closing SLA (Kumulatif)',
                 'code' => 'KPI-OB-03',
                 'unit' => '%',
                 'target' => $trendMrTarget,
-                'realisasi' => $trendMrRealisasi,
-                'achievement' => $trendMrRealisasi,
+                'realisasi' => $trendMrKumulatif,
+                'achievement' => $trendMrKumulatif,
+                'monthly_achievement' => $trendMrRealisasi,
+                'cumulative_table' => $mrCumulativeTable,
                 'target_display' => '≥ ' . number_format($mrClosingTarget, 1) . '%',
                 'color' => '#1cc88a'
             ],
             'stock_opname' => [ // Alias for backward compatibility
-                'name' => 'MR Closing (Akumulatif) SLA',
+                'name' => 'MR Closing SLA (Kumulatif)',
                 'code' => 'KPI-OB-03',
                 'unit' => '%',
                 'target' => $trendMrTarget,
-                'realisasi' => $trendMrRealisasi,
-                'achievement' => $trendMrRealisasi,
+                'realisasi' => $trendMrKumulatif,
+                'achievement' => $trendMrKumulatif,
+                'monthly_achievement' => $trendMrRealisasi,
+                'cumulative_table' => $mrCumulativeTable,
                 'target_display' => '≥ ' . number_format($mrClosingTarget, 1) . '%',
                 'color' => '#1cc88a'
             ],
@@ -433,12 +545,14 @@ try {
                 'color' => '#0dcaf0'
             ],
             'slow_moving' => [
-                'name' => 'Slow Moving SLA',
+                'name' => 'Slow Moving SLA (Kumulatif)',
                 'code' => 'KPI-ST-02',
                 'unit' => '%',
                 'target' => $trendSlowTarget,
-                'realisasi' => $trendSlowRealisasi,
-                'achievement' => $trendSlowRealisasi,
+                'realisasi' => $trendSlowKumulatif,
+                'achievement' => $trendSlowKumulatif,
+                'monthly_achievement' => $trendSlowRealisasi,
+                'cumulative_table' => $slowCumulativeTable,
                 'target_display' => '≥ ' . number_format($slowMovingTarget, 1) . '%',
                 'color' => '#f6c23e'
             ],
@@ -506,22 +620,28 @@ try {
                     'status_info' => $getStatusInfo($valReg, $registrationSlaTarget, $kpiYear)
                 ],
                 'mr_closing' => [
-                    'name' => 'MR Closing (Akumulatif) SLA',
+                    'name' => 'MR Closing SLA (Kumulatif)',
                     'value' => $valMr,
-                    'value_formatted' => number_format($valMr, 1, ',', '.') . '%',
+                    'value_formatted' => number_format($valMr, 2, ',', '.') . '%',
                     'target' => $mrClosingTarget,
                     'unit' => '%',
                     'status' => $getStatus($valMr, $mrClosingTarget),
-                    'status_info' => $getStatusInfo($valMr, $mrClosingTarget, $kpiYear)
+                    'status_info' => $getStatusInfo($valMr, $mrClosingTarget, $kpiYear),
+                    'is_cumulative' => true,
+                    'cumulative_table' => $mrCumulativeTable,
+                    'latest_month' => (!empty($mrCumulativeTable) ? end($mrCumulativeTable)['bulan'] : '')
                 ],
                 'stock_opname' => [ // Backward compatibility alias
-                    'name' => 'MR Closing (Akumulatif) SLA',
+                    'name' => 'MR Closing SLA (Kumulatif)',
                     'value' => $valMr,
-                    'value_formatted' => number_format($valMr, 1, ',', '.') . '%',
+                    'value_formatted' => number_format($valMr, 2, ',', '.') . '%',
                     'target' => $mrClosingTarget,
                     'unit' => '%',
                     'status' => $getStatus($valMr, $mrClosingTarget),
-                    'status_info' => $getStatusInfo($valMr, $mrClosingTarget, $kpiYear)
+                    'status_info' => $getStatusInfo($valMr, $mrClosingTarget, $kpiYear),
+                    'is_cumulative' => true,
+                    'cumulative_table' => $mrCumulativeTable,
+                    'latest_month' => (!empty($mrCumulativeTable) ? end($mrCumulativeTable)['bulan'] : '')
                 ],
                 'stock_opname_hub' => [
                     'name' => 'Stock Opname Warehouse Hub',
@@ -542,13 +662,16 @@ try {
                     'status_info' => $getStatusInfo($valSoOutlet, $stockOpnameOutletTarget, $kpiYear)
                 ],
                 'slow_moving' => [
-                    'name' => 'Slow Moving SLA',
+                    'name' => 'Slow Moving SLA (Kumulatif)',
                     'value' => $valSlow,
-                    'value_formatted' => number_format($valSlow, 1, ',', '.') . '%',
+                    'value_formatted' => number_format($valSlow, 2, ',', '.') . '%',
                     'target' => $slowMovingTarget,
                     'unit' => '%',
                     'status' => $getStatus($valSlow, $slowMovingTarget),
-                    'status_info' => $getStatusInfo($valSlow, $slowMovingTarget, $kpiYear)
+                    'status_info' => $getStatusInfo($valSlow, $slowMovingTarget, $kpiYear),
+                    'is_cumulative' => true,
+                    'cumulative_table' => $slowCumulativeTable,
+                    'latest_month' => (!empty($slowCumulativeTable) ? end($slowCumulativeTable)['bulan'] : '')
                 ],
                 'capacity' => [
                     'name' => 'Capacity SLA',
