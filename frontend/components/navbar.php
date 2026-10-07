@@ -2183,7 +2183,7 @@ if (preg_match('/(?:versi|version)?\s*((?:beta|alpha|rc)[-_ ]?v?\d+(?:\.\d+)*(?:
                 <h5 class="font-weight-bold text-gray-800 mb-2" id="noticeTitleText">
                     <?php echo htmlspecialchars($navAnnouncement['title'] ?? ''); ?></h5>
                 <p class="text-gray-700 small mb-3 text-left p-3 rounded"
-                    style="background-color: #f8fafc; border: 1px solid #e2e8f0; white-space: pre-line; max-height: 180px; overflow-y: auto;"
+                    style="background-color: #f8fafc; border: 1px solid #e2e8f0; white-space: pre-line; max-height: 260px; overflow-y: auto;"
                     id="noticeDescriptionText"><?php echo htmlspecialchars($navAnnouncement['description'] ?? ''); ?>
                 </p>
                 <div class="badge px-4 py-3 small font-weight-bold mt-3 mb-1" id="noticeBottomBadge"

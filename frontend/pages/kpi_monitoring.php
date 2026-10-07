@@ -35,6 +35,57 @@ if (!defined('SPA_MODE')) {
                         box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.12) !important;
                     }
 
+                    /* Perfect Vertical Centering for Badges & Spans */
+                    .badge {
+                        display: inline-flex !important;
+                        align-items: center !important;
+                        justify-content: center !important;
+                        vertical-align: middle !important;
+                        line-height: 1 !important;
+                        padding: 0.32rem 0.55rem !important;
+                        font-weight: 600 !important;
+                    }
+
+                    /* Sub-badge indicators on cards (Kumulatif / s.d. Bulan) */
+                    #card-sub-stock-opname,
+                    #card-sub-slow-moving {
+                        display: inline-flex !important;
+                        align-items: center !important;
+                        justify-content: center !important;
+                        vertical-align: middle !important;
+                        line-height: 1 !important;
+                        padding: 0.25rem 0.5rem !important;
+                        font-size: 0.68rem !important;
+                    }
+
+                    /* Perfect Vertical Centering for Alerts */
+                    .alert {
+                        display: flex !important;
+                        align-items: center !important;
+                        line-height: 1.4 !important;
+                    }
+
+                    .alert i {
+                        display: inline-flex !important;
+                        align-items: center !important;
+                        justify-content: center !important;
+                        line-height: 1 !important;
+                        vertical-align: middle !important;
+                    }
+
+                    /* Highlight row on modal table when line chart data point is clicked */
+                    .kpi-row-highlight-success {
+                        background-color: #d1e7dd !important;
+                        color: #0f5132 !important;
+                        font-weight: 700 !important;
+                    }
+
+                    .kpi-row-highlight-warning {
+                        background-color: #fff3cd !important;
+                        color: #664d03 !important;
+                        font-weight: 700 !important;
+                    }
+
                     /* On KPI Monitoring, PILIH PERIODE DATA dropdown displays ONLY Tahun */
                     #month-select-group,
                     #batch-select-group,
@@ -90,7 +141,7 @@ if (!defined('SPA_MODE')) {
                                     <div class="text-xs font-weight-bold text-success text-uppercase mb-1"
                                         style="font-size: 0.72rem; line-height: 1.15;">
                                         MR CLOSING SLA (KUMULATIF)</div>
-                                    <div class="d-flex align-items-baseline justify-content-between mt-auto">
+                                    <div class="d-flex align-items-center justify-content-between mt-auto">
                                         <div class="h4 mb-0 font-weight-bold text-gray-800"
                                             style="line-height: 1.1;" id="card-val-stock-opname">0.0%</div>
                                         <span class="badge badge-light border text-muted font-weight-normal text-xs"
@@ -136,7 +187,7 @@ if (!defined('SPA_MODE')) {
                                     <div class="text-xs font-weight-bold text-warning text-uppercase mb-1"
                                         style="font-size: 0.72rem; line-height: 1.15;">
                                         SLOW MOVING SLA (KUMULATIF)</div>
-                                    <div class="d-flex align-items-baseline justify-content-between mt-auto">
+                                    <div class="d-flex align-items-center justify-content-between mt-auto">
                                         <div class="h4 mb-0 font-weight-bold text-gray-800"
                                             style="line-height: 1.1;" id="card-val-slow-moving">0.0%</div>
                                         <span class="badge badge-light border text-muted font-weight-normal text-xs"
@@ -285,8 +336,7 @@ if (!defined('SPA_MODE')) {
                                                     <h6 class="m-0 font-weight-bold text-gray-800 small text-truncate">
                                                         Stock Opname Warehouse Hub</h6>
                                                     <span class="badge px-2 py-1 text-white"
-                                                        style="font-size: 0.7rem; background-color: #20c997;">Target: ≥
-                                                        85.0%</span>
+                                                        style="font-size: 0.7rem; background-color: #20c997;">Target: ≥ 85.0%</span>
                                                 </div>
                                                 <div class="card-body p-2 bg-white">
                                                     <div style="height: 180px; position: relative;">
@@ -305,8 +355,7 @@ if (!defined('SPA_MODE')) {
                                                     <h6 class="m-0 font-weight-bold text-gray-800 small text-truncate">
                                                         Stock Opname Outlet Warehouse</h6>
                                                     <span class="badge px-2 py-1 text-white"
-                                                        style="font-size: 0.7rem; background-color: #0dcaf0;">Target: ≥
-                                                        85.0%</span>
+                                                        style="font-size: 0.7rem; background-color: #0dcaf0;">Target: ≥ 85.0%</span>
                                                 </div>
                                                 <div class="card-body p-2 bg-white">
                                                     <div style="height: 180px; position: relative;">
@@ -344,8 +393,7 @@ if (!defined('SPA_MODE')) {
                                                     <h6 class="m-0 font-weight-bold text-gray-800 small text-truncate">
                                                         Capacity SLA (Utilisasi Space)</h6>
                                                     <span class="badge px-2 py-1 text-white"
-                                                        style="font-size: 0.7rem; background-color: #6f42c1;">Target: ≥
-                                                        90.0%</span>
+                                                        style="font-size: 0.7rem; background-color: #6f42c1;">Target: ≥ 90.0%</span>
                                                 </div>
                                                 <div class="card-body p-2 bg-white">
                                                     <div style="height: 180px; position: relative;">
@@ -364,8 +412,7 @@ if (!defined('SPA_MODE')) {
                                                     <h6 class="m-0 font-weight-bold text-gray-800 small text-truncate">
                                                         Delivery Effectiveness SLA</h6>
                                                     <span class="badge px-2 py-1 text-white"
-                                                        style="font-size: 0.7rem; background-color: #e83e8c;">Target: ≥
-                                                        97.0%</span>
+                                                        style="font-size: 0.7rem; background-color: #e83e8c;">Target: ≥ 97.0%</span>
                                                 </div>
                                                 <div class="card-body p-2 bg-white">
                                                     <div style="height: 180px; position: relative;">
@@ -384,8 +431,7 @@ if (!defined('SPA_MODE')) {
                                                     <h6 class="m-0 font-weight-bold text-gray-800 small text-truncate">
                                                         Efisiensi Delivery SLA</h6>
                                                     <span class="badge px-2 py-1 text-white"
-                                                        style="font-size: 0.7rem; background-color: #17a2b8;">Target: ≥
-                                                        10.0%</span>
+                                                        style="font-size: 0.7rem; background-color: #17a2b8;">Target: ≥ 10.0%</span>
                                                 </div>
                                                 <div class="card-body p-2 bg-white">
                                                     <div style="height: 180px; position: relative;">
@@ -440,20 +486,13 @@ if (!defined('SPA_MODE')) {
 
                             <!-- Cumulative Calculation Table (For MR Closing & Slow Moving SLA) -->
                             <div id="modal-kpi-cumulative-container" class="mt-4" style="display: none;">
-                                <div class="d-flex align-items-center justify-content-between mb-2">
-                                    <h6 class="font-weight-bold text-gray-800 mb-0 small text-uppercase" style="letter-spacing: 0.5px;">
-                                        <i class="fas fa-calculator text-success mr-1"></i> <span id="modal-cum-title-metric">Perhitungan KPI Kumulatif</span>
-                                    </h6>
-                                    <span class="badge badge-light border text-muted" style="font-size: 0.72rem;">Formula: Rata-rata Berjalan</span>
-                                </div>
                                 <div class="table-responsive" style="max-height: 280px; overflow-y: auto;">
                                     <table class="table table-bordered table-sm table-hover text-center mb-0" style="font-size: 0.8rem;">
                                         <thead class="thead-light">
                                             <tr>
-                                                <th class="text-center align-middle" style="width: 16%;">Bulan</th>
-                                                <th class="text-center align-middle" style="width: 18%;">KPI Bulanan</th>
-                                                <th class="text-center align-middle" style="width: 44%;">Cara Menghitung KPI Kumulatif</th>
-                                                <th class="text-center align-middle" style="width: 22%;">Hasil KPI Kumulatif</th>
+                                                <th class="text-center align-middle" style="width: 25%;">Bulan</th>
+                                                <th class="text-center align-middle" style="width: 35%;">KPI Bulanan</th>
+                                                <th class="text-center align-middle" style="width: 40%;">Hasil KPI Kumulatif</th>
                                             </tr>
                                         </thead>
                                         <tbody id="modal-kpi-cumulative-tbody">
@@ -981,29 +1020,25 @@ if (!defined('SPA_MODE')) {
                         if (alertEl) {
                             var periodLabel = isSpecificMonth ? (monthName + ' ' + currentYear) : ('Periode ' + currentYear);
                             if (actualDisplay === '-' || actualVal === 0) {
-                                alertEl.className = 'alert alert-info py-2 px-3 mb-0';
-                                alertEl.innerHTML = '<i class="fas fa-info-circle mr-2"></i><strong>Status Data Info:</strong> ' + periodLabel + ' Belum Ada Data';
+                                alertEl.className = 'alert alert-info py-2 px-3 mb-0 d-flex align-items-center';
+                                alertEl.innerHTML = '<i class="fas fa-info-circle mr-2"></i><span><strong>Status Data Info:</strong> ' + periodLabel + ' Belum Ada Data</span>';
                             } else if (isAchieved) {
-                                alertEl.className = 'alert alert-success py-2 px-3 mb-0';
-                                alertEl.innerHTML = '<i class="fas fa-check-circle mr-2"></i><strong>Status Data Info:</strong> ' + periodLabel + ' SLA Tercapai';
+                                alertEl.className = 'alert alert-success py-2 px-3 mb-0 d-flex align-items-center';
+                                alertEl.innerHTML = '<i class="fas fa-check-circle mr-2"></i><span><strong>Status Data Info:</strong> ' + periodLabel + ' Tercapai</span>';
                             } else {
-                                alertEl.className = 'alert alert-danger py-2 px-3 mb-0';
-                                alertEl.innerHTML = '<i class="fas fa-times-circle mr-2"></i><strong>Status Data Info:</strong> ' + periodLabel + ' Tidak Tercapai';
+                                alertEl.className = 'alert alert-danger py-2 px-3 mb-0 d-flex align-items-center';
+                                alertEl.innerHTML = '<i class="fas fa-times-circle mr-2"></i><span><strong>Status Data Info:</strong> ' + periodLabel + ' Tidak Tercapai</span>';
                             }
                         }
 
                         // Populate Cumulative Table for MR Closing SLA & Slow Moving SLA
                         var cumContainer = document.getElementById('modal-kpi-cumulative-container');
                         var cumTbody = document.getElementById('modal-kpi-cumulative-tbody');
-                        var cumTitle = document.getElementById('modal-cum-title-metric');
 
                         if (cumContainer && cumTbody) {
                             if (kpiId === 'mr_closing' || kpiId === 'stock_opname' || kpiId === 'slow_moving') {
                                 cumContainer.style.display = 'block';
                                 cumTbody.innerHTML = '';
-                                if (cumTitle) {
-                                    cumTitle.textContent = (kpiId === 'slow_moving') ? 'Perhitungan KPI Kumulatif Slow Moving SLA' : 'Perhitungan KPI Kumulatif MR Closing SLA';
-                                }
                                 var cumList = (kpiDataCache && kpiDataCache.cards && kpiDataCache.cards[kpiId] && kpiDataCache.cards[kpiId].cumulative_table)
                                     ? kpiDataCache.cards[kpiId].cumulative_table
                                     : ((kpiDataCache && kpiDataCache.monthly_trends && kpiDataCache.monthly_trends[kpiId] && kpiDataCache.monthly_trends[kpiId].cumulative_table)
@@ -1014,25 +1049,19 @@ if (!defined('SPA_MODE')) {
                                     cumList.forEach(function (row) {
                                         var tr = document.createElement('tr');
                                         var isRowSelected = (typeof monthIndex === 'number' && row.month_index === monthIndex);
-                                        var rowSelectedClass = (kpiId === 'slow_moving') ? 'table-warning font-weight-bold' : 'table-success font-weight-bold';
                                         if (isRowSelected) {
-                                            tr.className = rowSelectedClass;
+                                            tr.className = (kpiId === 'slow_moving') ? 'kpi-row-highlight-warning' : 'kpi-row-highlight-success';
                                         }
-                                        var statusBadge = (row.hasil_kumulatif >= row.target)
-                                            ? '<span class="badge badge-success ml-1 px-1" style="font-size:0.68rem;">SLA</span>'
-                                            : '<span class="badge badge-danger ml-1 px-1" style="font-size:0.68rem;">Under</span>';
 
-                                        var arrowColor = (kpiId === 'slow_moving') ? 'text-warning' : 'text-success';
                                         var valColor = (kpiId === 'slow_moving') ? 'text-warning' : 'text-success';
 
-                                        tr.innerHTML = '<td class="align-middle text-left font-weight-bold pl-3">' + row.bulan + (isRowSelected ? ' <i class="fas fa-arrow-left ' + arrowColor + ' ml-1" style="font-size:0.75rem;"></i>' : '') + '</td>' +
+                                        tr.innerHTML = '<td class="align-middle text-left font-weight-bold pl-3">' + row.bulan + '</td>' +
                                             '<td class="align-middle">' + row.kpi_bulanan_display + '</td>' +
-                                            '<td class="align-middle text-left pl-3 text-muted" style="font-size: 0.76rem;">' + row.cara_hitung + '</td>' +
-                                            '<td class="align-middle font-weight-bold ' + valColor + '">' + row.hasil_kumulatif_display + statusBadge + '</td>';
+                                            '<td class="align-middle font-weight-bold ' + valColor + '">' + row.hasil_kumulatif_display + '</td>';
                                         cumTbody.appendChild(tr);
                                     });
                                 } else {
-                                    cumTbody.innerHTML = '<tr><td colspan="4" class="text-muted py-3">Tidak ada data kumulatif untuk periode ini</td></tr>';
+                                    cumTbody.innerHTML = '<tr><td colspan="3" class="text-muted py-3">Tidak ada data kumulatif untuk periode ini</td></tr>';
                                 }
                             } else {
                                 cumContainer.style.display = 'none';

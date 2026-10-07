@@ -4,7 +4,8 @@ require_once __DIR__ . '/../../backend/auth.php';
 
 // Authentication guard: user must be logged in to view repository
 if (!isLoggedIn()) {
-    header("Location: /?view=login&redirect=" . urlencode('/repository'));
+    $_SESSION['login_redirect'] = '/repository';
+    header("Location: /login");
     exit;
 }
 
@@ -25,6 +26,7 @@ elseif ($user['role'] === 'outsourcing')
     $userRoleDisplay = 'Outsourcing';
 elseif ($user['role'] === 'repository_admin')
     $userRoleDisplay = 'Repository Admin';
+$userJobTitle = !empty($user['job_title']) ? $user['job_title'] : $userRoleDisplay;
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -176,24 +178,43 @@ elseif ($user['role'] === 'repository_admin')
             background: rgba(255, 255, 255, 0.12);
             color: #ffffff !important;
             border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 24px;
-            padding: 5px 12px;
+            border-radius: 20px;
+            padding: 4px 14px 4px 10px;
             font-size: 0.82rem;
-            font-weight: 600;
             display: inline-flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
             cursor: pointer;
             transition: all 0.2s ease;
             text-decoration: none !important;
             white-space: nowrap;
-            max-width: 180px;
+            max-width: none;
+        }
+
+        .repo-user-info {
+            display: flex;
+            flex-direction: column;
+            text-align: left;
+            line-height: 1.2;
         }
 
         .repo-user-btn .repo-user-name {
-            overflow: hidden;
-            text-overflow: ellipsis;
+            font-weight: 700;
+            font-size: 0.82rem;
+            color: #ffffff;
             white-space: nowrap;
+            overflow: visible;
+            text-overflow: clip;
+        }
+
+        .repo-user-btn .repo-user-job {
+            font-size: 0.68rem;
+            font-weight: 500;
+            color: #93c5fd;
+            line-height: 1.1;
+            margin-top: 1px;
+            white-space: nowrap;
+            overflow: visible;
         }
 
         .repo-user-btn:hover,
@@ -208,7 +229,8 @@ elseif ($user['role'] === 'repository_admin')
             border: 1px solid #e2e8f0;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
             padding: 6px 0;
-            min-width: 200px;
+            min-width: 220px;
+            width: max-content;
             font-size: 0.85rem;
             margin-top: 8px;
         }
@@ -554,17 +576,19 @@ elseif ($user['role'] === 'repository_admin')
             }
 
             .repo-user-btn {
-                padding: 4px 8px;
+                padding: 4px 10px 4px 8px;
                 font-size: 0.75rem;
-                max-width: 140px;
-                gap: 4px;
+                max-width: none;
+                gap: 6px;
             }
 
             .repo-user-btn .repo-user-name {
-                display: inline-block;
-                max-width: 95px;
-                overflow: hidden;
-                text-overflow: ellipsis;
+                font-size: 0.76rem;
+                white-space: nowrap;
+            }
+
+            .repo-user-btn .repo-user-job {
+                font-size: 0.65rem;
                 white-space: nowrap;
             }
 
@@ -644,13 +668,24 @@ elseif ($user['role'] === 'repository_admin')
             }
 
             .repo-user-btn {
-                padding: 3px 6px;
+                padding: 3px 8px 3px 6px;
                 font-size: 0.72rem;
-                max-width: 115px;
+                max-width: 200px;
             }
 
             .repo-user-btn .repo-user-name {
-                max-width: 75px;
+                max-width: 150px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .repo-user-btn .repo-user-job {
+                max-width: 150px;
+                font-size: 0.62rem;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
             }
         }
     </style>
@@ -671,10 +706,15 @@ elseif ($user['role'] === 'repository_admin')
                 <div class="dropdown">
                     <button class="repo-user-btn dropdown-toggle" type="button" id="userDropdownMenu"
                         data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        <i class="fas fa-user-circle text-info"></i>
-                        <span class="repo-user-name">
-                            <?php echo htmlspecialchars($user['name'] ?: $user['username']); ?>
-                        </span>
+                        <i class="fas fa-user-circle text-info" style="font-size: 1.45rem;"></i>
+                        <div class="repo-user-info text-left">
+                            <span class="repo-user-name">
+                                <?php echo htmlspecialchars($user['name'] ?: $user['username']); ?>
+                            </span>
+                            <span class="repo-user-job">
+                                <?php echo htmlspecialchars($userJobTitle); ?>
+                            </span>
+                        </div>
                     </button>
                     <div class="dropdown-menu dropdown-menu-right repo-dropdown-menu shadow"
                         aria-labelledby="userDropdownMenu">
@@ -691,7 +731,7 @@ elseif ($user['role'] === 'repository_admin')
                             <i class="fas fa-th mr-2 text-primary"></i> Landing Page Portal
                         </a>
                         <div class="dropdown-divider my-1"></div>
-                        <a class="dropdown-item text-danger py-2" href="/?action=logout&redirect=/repository">
+                        <a class="dropdown-item text-danger py-2" href="/?action=logout">
                             <i class="fas fa-sign-out-alt mr-2"></i> Logout
                         </a>
                     </div>
@@ -748,7 +788,8 @@ elseif ($user['role'] === 'repository_admin')
 
                     <!-- Sub Bagian Filter -->
                     <div class="col-md-4 col-sm-12 mb-2 mb-md-0">
-                        <label for="filterRepoSubBagian" class="small font-weight-bold text-gray-700 mb-1">Sub Bagian</label>
+                        <label for="filterRepoSubBagian" class="small font-weight-bold text-gray-700 mb-1">Sub
+                            Bagian</label>
                         <select class="form-control form-control-sm custom-select custom-select-sm"
                             id="filterRepoSubBagian">
                             <option value="">Semua Sub Bagian</option>
@@ -853,8 +894,8 @@ elseif ($user['role'] === 'repository_admin')
     <footer class="repo-footer">
         <div class="container">
             <p class="mb-0">
-                &copy;
-                <?php echo date('Y'); ?> PT. Aplikanusa Lintasarta. All rights reserved.
+                &copy; 2026 PT. Aplikanusa Lintasarta <br> <i>Internal Prototype &mdash; Property of Asset &amp;
+                    Warehouse Management</i>
             </p>
         </div>
     </footer>

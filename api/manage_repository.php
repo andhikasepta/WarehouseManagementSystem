@@ -9,7 +9,8 @@ $action = $_GET['action'] ?? $_POST['action'] ?? 'list';
 // Public/Guest access is not allowed - user must be logged in
 if (!isLoggedIn()) {
     if (in_array($action, ['download', 'view'])) {
-        header("Location: /?view=login&redirect=" . urlencode('/repository'));
+        $_SESSION['login_redirect'] = '/repository';
+        header("Location: /login");
         exit;
     }
     header('Content-Type: application/json');
@@ -23,6 +24,130 @@ $storageDir = realpath(__DIR__ . '/../uploads/repository') ?: (__DIR__ . '/../up
 
 if (!is_dir($storageDir)) {
     @mkdir($storageDir, 0755, true);
+}
+
+/**
+ * Stream a PDF file with HTTP Range (byte serving), conditional caching (ETag / Last-Modified),
+ * output buffer cleaning, and session lock release for instant previewing of multi-MB PDFs.
+ */
+function streamPdfFile($fullPath, $downloadName, $disposition = 'inline') {
+    // 1. Release PHP session lock immediately so parallel requests aren't held
+    if (session_status() === PHP_SESSION_ACTIVE) {
+        session_write_close();
+    }
+
+    $fileSize = filesize($fullPath);
+    $lastModified = filemtime($fullPath);
+    $etag = sprintf('"%x-%x"', $lastModified, $fileSize);
+
+    // 2. Conditional caching check (ETag / 304 Not Modified)
+    $ifNoneMatch = isset($_SERVER['HTTP_IF_NONE_MATCH']) ? trim($_SERVER['HTTP_IF_NONE_MATCH']) : '';
+    $ifModifiedSince = isset($_SERVER['HTTP_IF_MODIFIED_SINCE']) ? strtotime($_SERVER['HTTP_IF_MODIFIED_SINCE']) : false;
+
+    if ($ifNoneMatch === $etag || ($ifModifiedSince && $ifModifiedSince >= $lastModified)) {
+        header('HTTP/1.1 304 Not Modified');
+        header('ETag: ' . $etag);
+        header('Last-Modified: ' . gmdate('D, d M Y H:i:s', $lastModified) . ' GMT');
+        header('Cache-Control: private, max-age=86400, must-revalidate');
+        exit;
+    }
+
+    // 3. Clear all output buffers so chunked output streams immediately
+    while (ob_get_level() > 0) {
+        ob_end_clean();
+    }
+
+    if (function_exists('apache_setenv')) {
+        @apache_setenv('no-gzip', '1');
+    }
+    @ini_set('zlib.output_compression', 'Off');
+
+    $start = 0;
+    $end = $fileSize - 1;
+    $isRange = false;
+
+    // 4. Handle HTTP Range Request (RFC 7233) for fast PDF page loading
+    if (isset($_SERVER['HTTP_RANGE']) && preg_match('/^bytes=\s*(\d*)\s*-\s*(\d*)\s*$/i', $_SERVER['HTTP_RANGE'], $matches)) {
+        $rangeStart = $matches[1];
+        $rangeEnd = $matches[2];
+
+        if ($rangeStart === '' && $rangeEnd !== '') {
+            // Suffix byte range: bytes=-500 (last 500 bytes)
+            $suffix = intval($rangeEnd);
+            if ($suffix > $fileSize) $suffix = $fileSize;
+            $start = $fileSize - $suffix;
+            $end = $fileSize - 1;
+            $isRange = true;
+        } elseif ($rangeStart !== '') {
+            $start = floatval($rangeStart);
+            if ($rangeEnd !== '') {
+                $end = floatval($rangeEnd);
+            }
+            if ($start <= $end && $start < $fileSize) {
+                if ($end >= $fileSize) {
+                    $end = $fileSize - 1;
+                }
+                $isRange = true;
+            }
+        }
+
+        if (!$isRange) {
+            header('HTTP/1.1 416 Requested Range Not Satisfiable');
+            header("Content-Range: bytes */$fileSize");
+            exit;
+        }
+    }
+
+    $length = $end - $start + 1;
+
+    // 5. Send proper streaming headers
+    header('Content-Type: application/pdf');
+    header('Content-Disposition: ' . $disposition . '; filename="' . $downloadName . '"');
+    header('Accept-Ranges: bytes');
+    header('ETag: ' . $etag);
+    header('Last-Modified: ' . gmdate('D, d M Y H:i:s', $lastModified) . ' GMT');
+    header('Cache-Control: private, max-age=86400, must-revalidate');
+    header('X-Content-Type-Options: nosniff');
+
+    if ($isRange) {
+        header('HTTP/1.1 206 Partial Content');
+        header("Content-Range: bytes $start-$end/$fileSize");
+    } else {
+        header('HTTP/1.1 200 OK');
+    }
+    header('Content-Length: ' . $length);
+
+    if (isset($_SERVER['REQUEST_METHOD']) && strtoupper($_SERVER['REQUEST_METHOD']) === 'HEAD') {
+        exit;
+    }
+
+    // 6. Fast buffered chunk stream
+    $fp = @fopen($fullPath, 'rb');
+    if (!$fp) {
+        http_response_code(500);
+        die('File tidak dapat dibuka.');
+    }
+
+    if ($start > 0) {
+        fseek($fp, $start);
+    }
+
+    $remaining = $length;
+    $chunkSize = 64 * 1024; // 64KB per chunk
+
+    while ($remaining > 0 && !feof($fp) && !connection_aborted()) {
+        $readBytes = min($chunkSize, $remaining);
+        $buffer = fread($fp, $readBytes);
+        if ($buffer === false || $buffer === '') {
+            break;
+        }
+        echo $buffer;
+        flush();
+        $remaining -= strlen($buffer);
+    }
+
+    fclose($fp);
+    exit;
 }
 
 // ----------------------------------------------------
@@ -58,15 +183,7 @@ if ($action === 'view') {
         $downloadName .= '.pdf';
     }
 
-    header('Content-Type: application/pdf');
-    header('Content-Disposition: inline; filename="' . $downloadName . '"');
-    header('Content-Length: ' . filesize($fullPath));
-    header('X-Content-Type-Options: nosniff');
-    header('Cache-Control: private, max-age=0, must-revalidate');
-    header('Pragma: public');
-
-    readfile($fullPath);
-    exit;
+    streamPdfFile($fullPath, $downloadName, 'inline');
 }
 
 // ----------------------------------------------------
@@ -101,18 +218,7 @@ if ($action === 'download') {
         $downloadName .= '.pdf';
     }
 
-    header('Content-Description: File Transfer');
-    header('Content-Type: application/pdf');
-    header('Content-Disposition: attachment; filename="' . $downloadName . '"');
-    header('Content-Length: ' . filesize($fullPath));
-    header('Content-Transfer-Encoding: binary');
-    header('X-Content-Type-Options: nosniff');
-    header('Expires: 0');
-    header('Cache-Control: must-revalidate');
-    header('Pragma: public');
-
-    readfile($fullPath);
-    exit;
+    streamPdfFile($fullPath, $downloadName, 'attachment');
 }
 
 // All remaining actions return JSON

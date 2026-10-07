@@ -197,7 +197,7 @@ try {
                     'hasil_kumulatif' => $cumVal,
                     'hasil_kumulatif_display' => number_format($cumVal, 2, ',', '.') . '%',
                     'target' => $mrClosingTarget,
-                    'status' => ($cumVal >= $mrClosingTarget) ? 'SLA Tercapai' : 'Tidak Tercapai'
+                    'status' => ($cumVal >= $mrClosingTarget) ? 'Tercapai' : 'Tidak Tercapai'
                 ];
             } else {
                 $trendMrKumulatif[] = 0.0;
@@ -239,7 +239,7 @@ try {
                     'hasil_kumulatif' => $cumVal,
                     'hasil_kumulatif_display' => number_format($cumVal, 2, ',', '.') . '%',
                     'target' => $slowMovingTarget,
-                    'status' => ($cumVal >= $slowMovingTarget) ? 'SLA Tercapai' : 'Tidak Tercapai'
+                    'status' => ($cumVal >= $slowMovingTarget) ? 'Tercapai' : 'Tidak Tercapai'
                 ];
             } else {
                 $trendSlowKumulatif[] = 0.0;
@@ -284,9 +284,9 @@ try {
         $valDelEff = $calcCardVal($trendDelEffRealisasi);
         $valDelEcon = $calcCardVal($trendDelEconRealisasi);
 
-        // Status helpers according to requirement: SLA Tercapai if above/equal target, Tidak Tercapai if below target
+        // Status helpers: Tercapai if above/equal target, Tidak Tercapai if below target
         $getStatus = function ($val, $target) {
-            return ($val >= $target) ? 'SLA Tercapai' : 'Tidak Tercapai';
+            return ($val >= $target) ? 'Tercapai' : 'Tidak Tercapai';
         };
         $getStatusInfo = function ($val, $target, $yr) use ($getStatus) {
             return 'Periode ' . $yr . ' ' . $getStatus($val, $target);

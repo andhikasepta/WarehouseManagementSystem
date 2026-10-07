@@ -110,7 +110,7 @@ if (!defined('SPA_MODE')) {
                                 </div>
                                 <div class="form-group mb-3">
                                     <label for="modal_description" class="font-weight-bold text-gray-800 small">Deskripsi / Pesan Notifikasi <span class="text-danger">*</span></label>
-                                    <textarea class="form-control" id="modal_description" name="description" rows="4" required></textarea>
+                                    <textarea class="form-control" id="modal_description" name="description" rows="8" style="min-height: 180px; resize: vertical;" placeholder="Tuliskan isi pengumuman atau detail pesan notifikasi di sini..." required></textarea>
                                 </div>
                                 <div class="form-row mb-3">
                                     <div class="form-group col-md-6 mb-0">

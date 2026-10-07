@@ -84,17 +84,18 @@ if (!function_exists('assetUrl')) {
             justify-content: space-between;
             position: relative;
             z-index: 1;
-            padding-top: 12px;
+            padding-top: 10px;
             padding-bottom: 6px;
+            max-width: 1280px;
         }
 
         .brand-header {
-            padding-top: 10px;
+            padding-top: 8px;
             padding-bottom: 2px;
         }
 
         .brand-logo {
-            width: 185px;
+            width: 180px;
             max-width: 100%;
             height: auto;
             object-fit: contain;
@@ -118,7 +119,7 @@ if (!function_exists('assetUrl')) {
         .portal-card-link {
             display: block;
             width: 100%;
-            max-width: 295px;
+            max-width: 285px;
             margin: 0 auto;
             text-decoration: none !important;
             border-radius: 14px;
@@ -147,20 +148,21 @@ if (!function_exists('assetUrl')) {
         }
 
         .portal-card-body {
-            padding: 9px 14px 12px 14px;
+            padding: 9px 12px 12px 12px;
             text-align: left;
         }
 
         .portal-card-title {
             color: #ffffff;
-            font-size: 0.95rem;
+            font-size: 0.90rem;
             font-weight: 700;
             margin-bottom: 2px;
+            line-height: 1.25;
         }
 
         .portal-card-desc {
             color: #94a3b8;
-            font-size: 0.78rem;
+            font-size: 0.76rem;
             line-height: 1.35;
             margin-bottom: 0;
         }
@@ -173,7 +175,7 @@ if (!function_exists('assetUrl')) {
             width: 100%;
         }
 
-        @media (max-width: 768px) {
+        @media (max-width: 991px) {
 
             html,
             body {
@@ -239,45 +241,61 @@ if (!function_exists('assetUrl')) {
         </div>
 
         <!-- Cards Row: Glassmorphism Card Container with Closer Padding -->
-        <div class="row justify-content-center align-items-stretch my-auto py-2 px-md-3">
+        <div class="row justify-content-center align-items-stretch my-auto py-2 px-md-2">
             <!-- Card 1: AWan System -->
-            <div class="col-md-4 col-lg-4 mb-3 mb-md-0 text-center px-md-2 px-lg-2">
+            <div class="col-sm-6 col-md-6 col-lg-3 mb-3 mb-lg-0 text-center px-md-2 px-lg-2">
                 <a href="/awan/" class="portal-card-link h-100 d-flex flex-column">
                     <img src="<?php echo assetUrl('frontend/img/AWan.png'); ?>" alt="AWan System"
                         class="portal-card-img">
                     <div class="portal-card-body flex-grow-1 d-flex flex-column justify-content-between">
                         <div>
                             <div class="portal-card-title">AWan</div>
-                            <p class="portal-card-desc">Sistem Manajemen pencatatan dan mutasi asset.</p>
+                            <p class="portal-card-desc">Sistem manajemen pencatatan mutasi asset.</p>
                         </div>
                     </div>
                 </a>
             </div>
 
             <!-- Card 2: WMS System -->
-            <div class="col-md-4 col-lg-4 mb-3 mb-md-0 text-center px-md-2 px-lg-2">
-                <a href="<?php echo (function_exists('isLoggedIn') && isLoggedIn()) ? '/' : '/?view=login'; ?>" class="portal-card-link h-100 d-flex flex-column">
+            <div class="col-sm-6 col-md-6 col-lg-3 mb-3 mb-lg-0 text-center px-md-2 px-lg-2">
+                <a href="<?php echo (function_exists('isLoggedIn') && isLoggedIn()) ? '/' : '/login'; ?>"
+                    class="portal-card-link h-100 d-flex flex-column">
                     <img src="<?php echo assetUrl('frontend/img/WMS.png'); ?>" alt="Warehouse Management System"
                         class="portal-card-img">
                     <div class="portal-card-body flex-grow-1 d-flex flex-column justify-content-between">
                         <div>
                             <div class="portal-card-title">Warehouse Management System</div>
-                            <p class="portal-card-desc">Dashboard monitoring Inbound, Storage, dan Outbound.</p>
+                            <p class="portal-card-desc">Dashboard monitoring Inbound, Storage, Outbound, dan KPI
+                                Monitoring.</p>
                         </div>
                     </div>
                 </a>
             </div>
 
             <!-- Card 3: CentraDocs / Warehouse Repository -->
-            <div class="col-md-4 col-lg-4 mb-3 mb-md-0 text-center px-md-2 px-lg-2">
+            <div class="col-sm-6 col-md-6 col-lg-3 mb-3 mb-lg-0 text-center px-md-2 px-lg-2">
                 <a href="/repository" class="portal-card-link h-100 d-flex flex-column">
                     <img src="<?php echo assetUrl('frontend/img/centradocs.png'); ?>" alt="CentraDocs"
                         class="portal-card-img">
                     <div class="portal-card-body flex-grow-1 d-flex flex-column justify-content-between">
                         <div>
-                            <div class="portal-card-title">Sentralisasi Dokumen</div>
-                            <p class="portal-card-desc">Repository dokumen, panduan, &amp; work instruction (WI).
-                            </p>
+                            <div class="portal-card-title">Centralized Documents</div>
+                            <p class="portal-card-desc">Repository dokumen &amp; work instruction (WI).</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <!-- Card 4: AMORA System -->
+            <div class="col-sm-6 col-md-6 col-lg-3 mb-3 mb-lg-0 text-center px-md-2 px-lg-2">
+                <a href="/portal" class="portal-card-link h-100 d-flex flex-column"
+                    title="Asset Management &amp; Opname Report Analytics">
+                    <img src="<?php echo assetUrl('frontend/img/AMORA.jpg'); ?>"
+                        alt="AMORA - Asset Management &amp; Opname Report Analytics" class="portal-card-img">
+                    <div class="portal-card-body flex-grow-1 d-flex flex-column justify-content-between">
+                        <div>
+                            <div class="portal-card-title">Asset Management &amp; Opname Report Analytics</div>
+                            <p class="portal-card-desc">Dashboard grafik &amp; report hasil stock opname.</p>
                         </div>
                     </div>
                 </a>
@@ -287,9 +305,8 @@ if (!function_exists('assetUrl')) {
         <!-- Footer -->
         <div class="footer-text text-center">
             <p class="mb-0">
-
-                <?php echo htmlspecialchars(function_exists('getSystemAppVersion') ? getSystemAppVersion($pdo ?? null) : 'Beta-v1.0.0'); ?>
-                &copy; PT. Aplikanusa Lintasarta
+                &copy; 2026 PT. Aplikanusa Lintasarta <br> <i>Internal Prototype &mdash; Property of Asset &amp;
+                    Warehouse Management</i>
             </p>
         </div>
     </div>

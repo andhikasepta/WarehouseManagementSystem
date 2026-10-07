@@ -4,7 +4,11 @@ require_once __DIR__ . '/../../backend/config/database.php';
 require_once __DIR__ . '/../../backend/auth.php';
 
 $error = '';
-$redirect = $_GET['redirect'] ?? $_POST['redirect'] ?? 'dashboard.php';
+// Read redirect securely from server session, with fallback to GET/POST for backwards compatibility
+$redirect = $_SESSION['login_redirect'] ?? $_GET['redirect'] ?? $_POST['redirect'] ?? '';
+if (!empty($_GET['redirect'])) {
+    $_SESSION['login_redirect'] = $_GET['redirect'];
+}
 
 // ── Open Redirect Protection ──────────────────────────────────────
 // Only allow redirects to known internal pages (no external URLs, no path traversal)
@@ -28,6 +32,7 @@ $allowedRedirectPages = [
 $redirectBase = basename(parse_url($redirect, PHP_URL_PATH) ?: '');
 if (!in_array($redirectBase, $allowedRedirectPages, true) && $redirect !== '/repository' && $redirect !== 'repository') {
     $redirect = '';
+    unset($_SESSION['login_redirect']);
 }
 
 // Show access denied notification if redirected back
@@ -47,7 +52,6 @@ if (strpos($redirect, 'inbound') !== false) {
 } elseif (strpos($redirect, 'user_management') !== false) {
     $moduleSubtitle = 'User Management';
 } elseif (strpos($redirect, 'repository') !== false) {
-    $moduleSubtitle = 'Document Repository AWM';
 }
 
 // Handle Logout
@@ -71,15 +75,15 @@ if (isset($_GET['action']) && $_GET['action'] === 'logout') {
         );
     }
     session_destroy();
-    $reasonParam = isset($_GET['reason']) ? '&reason=' . urlencode($_GET['reason']) : '';
-    $redirectParam = isset($_GET['redirect']) ? '&redirect=' . urlencode($_GET['redirect']) : '';
-    header("Location: /?view=login" . $reasonParam . $redirectParam);
+    header("Location: /login");
     exit;
 }
 
 // If already logged in and no logout request
 if (isset($_SESSION['user_id']) && !empty($_SESSION['user_id']) && !isset($_GET['action'])) {
-    if ($redirect === 'repository' || $redirect === 'repository.php' || $redirect === '/repository') {
+    $targetRedirect = $_SESSION['login_redirect'] ?? $redirect ?? '';
+    unset($_SESSION['login_redirect']);
+    if ($targetRedirect === 'repository' || $targetRedirect === 'repository.php' || $targetRedirect === '/repository') {
         header("Location: /repository");
         exit;
     }
@@ -190,8 +194,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
                 }
 
-                if ($redirect === 'repository' || $redirect === 'repository.php' || $redirect === '/repository') {
+                $targetRedirect = $_SESSION['login_redirect'] ?? $redirect ?? '';
+                unset($_SESSION['login_redirect']);
+
+                if ($targetRedirect === 'repository' || $targetRedirect === 'repository.php' || $targetRedirect === '/repository') {
                     header("Location: /repository");
+                } elseif (!empty($targetRedirect) && $targetRedirect !== 'dashboard.php' && $targetRedirect !== '/') {
+                    header("Location: " . $targetRedirect);
                 } else {
                     header("Location: /");
                 }
@@ -312,7 +321,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <div class="login-card text-center">
         <div class="mb-4">
-            <h4 class="font-weight-bold text-white mb-1">Login WMS</h4>
+            <h4 class="font-weight-bold text-white mb-1">Login</h4>
             <?php if (!empty($moduleSubtitle)): ?>
                 <p class="text-muted small mb-0"><?php echo htmlspecialchars($moduleSubtitle); ?></p>
             <?php endif; ?>
@@ -331,9 +340,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
         <?php endif; ?>
 
-        <form method="POST" action="/?view=login">
+        <form method="POST" action="/login">
             <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(getCsrfToken()); ?>">
-            <input type="hidden" name="redirect" value="<?php echo htmlspecialchars($redirect); ?>">
 
             <div class="form-group text-left mb-3">
                 <label for="username" class="small font-weight-bold text-gray-300">Username</label>
@@ -364,8 +372,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
 
         <div class="footer-text">
-            <?php echo htmlspecialchars(function_exists('getSystemAppVersion') ? getSystemAppVersion($pdo ?? null) : 'Beta-v1.0.0'); ?>
-            &copy; PT. Aplikanusa Lintasarta
+            &copy; 2026 PT. Aplikanusa Lintasarta <br> <i>Internal Prototype &mdash; Property of Asset &amp;
+                Warehouse Management</i>
         </div>
     </div>
 
@@ -373,11 +381,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <script src="frontend/vendor/jquery/jquery.min.js"></script>
     <script src="frontend/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
     <script>
-    $(function() {
-        $('form').on('submit', function() {
-            sessionStorage.clear();
+        $(function () {
+            $('form').on('submit', function () {
+                sessionStorage.clear();
+            });
         });
-    });
     </script>
 </body>
 

@@ -32,6 +32,20 @@ if ($requestPath === '/portal.php') {
     exit;
 }
 
+// ── Handle /login directly in Front Controller ─────────────────────
+if ($requestPath === '/login' || $requestPath === '/login/') {
+    if (isLoggedIn()) {
+        header("Location: /");
+        exit;
+    }
+    require FRONTEND_PATH . 'pages/login.php';
+    exit;
+}
+if ($requestPath === '/login.php') {
+    header("Location: /login", true, 301);
+    exit;
+}
+
 // ── Handle Logout ──────────────────────────────────────────────────
 if (isset($_GET['action']) && $_GET['action'] === 'logout') {
     $_SESSION = array();
@@ -49,20 +63,25 @@ if (isset($_GET['action']) && $_GET['action'] === 'logout') {
     }
     session_destroy();
     
-    $reasonParam = isset($_GET['reason']) ? '&reason=' . urlencode($_GET['reason']) : '';
-    $redirectParam = isset($_GET['redirect']) ? '&redirect=' . urlencode($_GET['redirect']) : '';
-    header("Location: /?view=login" . $reasonParam . $redirectParam);
+    header("Location: /login");
     exit;
 }
 
 // ── Not logged in ──────────────────────────────────────────────────
 if (!isLoggedIn()) {
     $view = $_GET['view'] ?? '';
-    // Show login if explicitly requested, if submitting form, or if error/redirect query params exist
+    // If accessing via legacy query /?view=login on GET, seamlessly redirect to clean /login
+    if ($view === 'login' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+        if (!empty($_GET['redirect'])) {
+            $_SESSION['login_redirect'] = $_GET['redirect'];
+        }
+        header("Location: /login", true, 301);
+        exit;
+    }
     if ($view === 'login' || $_SERVER['REQUEST_METHOD'] === 'POST' || isset($_GET['reason']) || isset($_GET['access_denied']) || isset($_GET['redirect'])) {
         include FRONTEND_PATH . 'pages/login.php';
     } else {
-        // Default entry point: 3-card Landing Page Portal
+        // Default entry point: 4-card Landing Page Portal
         include FRONTEND_PATH . 'pages/index.php';
     }
     exit;
