@@ -288,7 +288,7 @@ if (!function_exists('assetUrl')) {
 
             <!-- Card 4: AMORA System -->
             <div class="col-sm-6 col-md-6 col-lg-3 mb-3 mb-lg-0 text-center px-md-2 px-lg-2">
-                <a href="/portal" class="portal-card-link h-100 d-flex flex-column"
+                <a href="https://intan.lintasarta.net/" class="portal-card-link h-100 d-flex flex-column"
                     title="Asset Management &amp; Opname Report Analytics">
                     <img src="<?php echo assetUrl('frontend/img/AMORA.jpg'); ?>"
                         alt="AMORA - Asset Management &amp; Opname Report Analytics" class="portal-card-img">

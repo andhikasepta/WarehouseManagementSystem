@@ -59,11 +59,14 @@ try {
         $status = 'TOTAL SHIPPED';
     }
 
+    // Site Origin filter: Strictly lookup from 50002003289 - GUDANG WAREHOUSE TEKNO
+    $siteOriginWhere = "(TRIM(site_origin) = '50002003289 - GUDANG WAREHOUSE TEKNO' OR site_origin LIKE '50002003289%')";
+
     // Build base period condition
-    $periodWhere = "1=1";
+    $periodWhere = "$siteOriginWhere";
     $periodParams = [];
     if (!empty($periode) && $periode !== 'PILIH PERIODE DATA' && $periode !== '-') {
-        $periodWhere = "(periode_group = ? OR periode_group LIKE ?)";
+        $periodWhere = "(periode_group = ? OR periode_group LIKE ?) AND $siteOriginWhere";
         $periodParams = [$periode, $periode . '%'];
     }
 
@@ -91,10 +94,14 @@ try {
                 COUNT(DISTINCT CASE WHEN mr_no IS NOT NULL AND TRIM(mr_no) != '' THEN mr_no END) as total_mr,
                 COUNT(DISTINCT CASE WHEN mr_no IS NOT NULL AND TRIM(mr_no) != '' AND UPPER(TRIM(mr_status)) = 'CLOSED' THEN mr_no END) as closed_mr,
                 COUNT(CASE WHEN UPPER(TRIM(mr_status)) = 'CLOSED' THEN 1 END) as closed_cnt,
+                COUNT(DISTINCT CASE WHEN mr_no IS NOT NULL AND TRIM(mr_no) != '' AND (
+                    UPPER(TRIM(mr_status)) IN ('OPEN', 'DELIVERED', 'PARTIALLY CLOSED', 'SHIPPED')
+                    OR (UPPER(TRIM(COALESCE(dn_status, ''))) = 'DELIVERED' AND UPPER(TRIM(COALESCE(mr_status, ''))) NOT IN ('CLOSED', 'CANCELED', 'REJECTED'))
+                ) THEN mr_no END) as open_mr,
                 COUNT(DISTINCT CASE WHEN po_no IS NOT NULL AND TRIM(po_no) != '' THEN po_no END) as total_po,
                 COUNT(*) as total_rows
             FROM outbound_master 
-            WHERE periode_group LIKE ?
+            WHERE periode_group LIKE ? AND $siteOriginWhere
             GROUP BY mth
             ORDER BY mth
         ";
@@ -106,11 +113,13 @@ try {
         $mrCounts = array_fill(0, 12, 0);
         $closedCounts = array_fill(0, 12, 0);
         $closedDistinct = array_fill(0, 12, 0);
+        $openCounts = array_fill(0, 12, 0);
         $poCounts = array_fill(0, 12, 0);
         $rowCounts = array_fill(0, 12, 0);
 
         $totalMrYear = 0;
         $totalClosedYear = 0;
+        $totalOpenYear = 0;
         $totalPoYear = 0;
 
         foreach ($mthRows as $r) {
@@ -120,11 +129,13 @@ try {
                 $mrCounts[$idx] = (int)$r['total_mr'];
                 $closedCounts[$idx] = (int)$r['closed_cnt'];
                 $closedDistinct[$idx] = (int)$r['closed_mr'];
+                $openCounts[$idx] = (int)($r['open_mr'] ?? 0);
                 $poCounts[$idx] = (int)$r['total_po'];
                 $rowCounts[$idx] = (int)$r['total_rows'];
 
                 $totalMrYear += (int)$r['total_mr'];
                 $totalClosedYear += (int)$r['closed_cnt'];
+                $totalOpenYear += (int)($r['open_mr'] ?? 0);
                 $totalPoYear += (int)$r['total_po'];
             }
         }
@@ -132,26 +143,30 @@ try {
         $mrPercentages = array_fill(0, 12, 0);
         $closedPercentages = array_fill(0, 12, 0);
         $closeRates = array_fill(0, 12, 0);
+        $openPercentages = array_fill(0, 12, 0);
+        $openRates = array_fill(0, 12, 0);
         $poPercentages = array_fill(0, 12, 0);
 
         for ($i = 0; $i < 12; $i++) {
             $mrPercentages[$i] = $totalMrYear > 0 ? round(($mrCounts[$i] / $totalMrYear) * 100, 1) : 0;
             $closedPercentages[$i] = $totalClosedYear > 0 ? round(($closedCounts[$i] / $totalClosedYear) * 100, 1) : 0;
             $closeRates[$i] = $mrCounts[$i] > 0 ? round(($closedDistinct[$i] / $mrCounts[$i]) * 100, 1) : 0;
+            $openPercentages[$i] = $totalOpenYear > 0 ? round(($openCounts[$i] / $totalOpenYear) * 100, 1) : 0;
+            $openRates[$i] = $mrCounts[$i] > 0 ? round(($openCounts[$i] / $mrCounts[$i]) * 100, 1) : 0;
             $poPercentages[$i] = $totalPoYear > 0 ? round(($poCounts[$i] / $totalPoYear) * 100, 1) : 0;
         }
 
-        // Calculate Moda Counts (Udara, Laut, Darat, Udara PTP)
+        // Calculate Moda Counts (Udara, Laut, Darat, Udara PTP - Non duplicate DN NO per origin rule)
         $isPeriodFilter = (!empty($periode) && $periode !== 'PILIH PERIODE DATA' && $periode !== '-');
-        $modaWhere = $isPeriodFilter ? $periodWhere : "periode_group LIKE ?";
+        $modaWhere = $isPeriodFilter ? $periodWhere : "periode_group LIKE ? AND $siteOriginWhere";
         $modaParams = $isPeriodFilter ? $periodParams : ["%$chartYear%"];
 
         $stmtModa = $pdo->prepare("SELECT 
-            COUNT(CASE WHEN UPPER(TRIM(via)) LIKE '%UDARA%' AND UPPER(TRIM(via)) NOT LIKE '%DTP%' AND UPPER(TRIM(via)) NOT LIKE '%PTP%' THEN 1 END) as udara,
-            COUNT(CASE WHEN UPPER(TRIM(via)) LIKE '%LAUT%' THEN 1 END) as laut,
-            COUNT(CASE WHEN UPPER(TRIM(via)) LIKE '%DARAT%' THEN 1 END) as darat,
-            COUNT(CASE WHEN UPPER(TRIM(via)) LIKE '%DTP%' OR UPPER(TRIM(via)) LIKE '%PTP%' THEN 1 END) as udara_ptp,
-            COUNT(CASE WHEN via IS NOT NULL AND TRIM(via) != '' THEN 1 END) as total_moda
+            COUNT(DISTINCT CASE WHEN UPPER(TRIM(via)) LIKE '%UDARA%' AND UPPER(TRIM(via)) NOT LIKE '%DTP%' AND UPPER(TRIM(via)) NOT LIKE '%PTP%' AND dn_no IS NOT NULL AND TRIM(dn_no) != '' THEN dn_no END) as udara,
+            COUNT(DISTINCT CASE WHEN UPPER(TRIM(via)) LIKE '%LAUT%' AND dn_no IS NOT NULL AND TRIM(dn_no) != '' THEN dn_no END) as laut,
+            COUNT(DISTINCT CASE WHEN UPPER(TRIM(via)) LIKE '%DARAT%' AND dn_no IS NOT NULL AND TRIM(dn_no) != '' THEN dn_no END) as darat,
+            COUNT(DISTINCT CASE WHEN (UPPER(TRIM(via)) LIKE '%DTP%' OR UPPER(TRIM(via)) LIKE '%PTP%') AND dn_no IS NOT NULL AND TRIM(dn_no) != '' THEN dn_no END) as udara_ptp,
+            COUNT(DISTINCT CASE WHEN via IS NOT NULL AND TRIM(via) != '' AND dn_no IS NOT NULL AND TRIM(dn_no) != '' THEN dn_no END) as total_moda
         FROM outbound_master WHERE $modaWhere");
         $stmtModa->execute($modaParams);
         $mRow = $stmtModa->fetch(PDO::FETCH_ASSOC) ?: [];
@@ -174,6 +189,56 @@ try {
             'total' => $tModa
         ];
 
+        // 5. Tender / Direct Selection Monthly Chart (from outbound_forwarder with origin rule)
+        $stmtProc = $pdo->prepare("
+            SELECT 
+                CASE 
+                    WHEN LOWER(periode_group) LIKE '%january%' OR LOWER(periode_group) LIKE '%januari%' THEN 1
+                    WHEN LOWER(periode_group) LIKE '%february%' OR LOWER(periode_group) LIKE '%februari%' THEN 2
+                    WHEN LOWER(periode_group) LIKE '%march%' OR LOWER(periode_group) LIKE '%maret%' THEN 3
+                    WHEN LOWER(periode_group) LIKE '%april%' THEN 4
+                    WHEN LOWER(periode_group) LIKE '%may%' OR LOWER(periode_group) LIKE '%mei%' THEN 5
+                    WHEN LOWER(periode_group) LIKE '%june%' OR LOWER(periode_group) LIKE '%juni%' THEN 6
+                    WHEN LOWER(periode_group) LIKE '%july%' OR LOWER(periode_group) LIKE '%juli%' THEN 7
+                    WHEN LOWER(periode_group) LIKE '%august%' OR LOWER(periode_group) LIKE '%agustus%' THEN 8
+                    WHEN LOWER(periode_group) LIKE '%september%' THEN 9
+                    WHEN LOWER(periode_group) LIKE '%october%' OR LOWER(periode_group) LIKE '%oktober%' THEN 10
+                    WHEN LOWER(periode_group) LIKE '%november%' THEN 11
+                    WHEN LOWER(periode_group) LIKE '%december%' OR LOWER(periode_group) LIKE '%desember%' THEN 12
+                    ELSE 0
+                END as mth,
+                COUNT(CASE WHEN UPPER(TRIM(proc_vendor_mode)) = 'TENDER' THEN 1 END) as tender_cnt,
+                COUNT(CASE WHEN UPPER(TRIM(proc_vendor_mode)) LIKE '%DIRECT%' THEN 1 END) as direct_cnt,
+                COUNT(CASE WHEN proc_vendor_mode IS NOT NULL AND TRIM(proc_vendor_mode) != '' THEN 1 END) as total_proc
+            FROM outbound_forwarder
+            WHERE (asal_code = '50002003289' OR asal_site LIKE '%TEKNO%') AND periode_group LIKE ?
+            GROUP BY mth
+            ORDER BY mth
+        ");
+        $stmtProc->execute(["%$chartYear%"]);
+        $procRows = $stmtProc->fetchAll(PDO::FETCH_ASSOC);
+
+        $tenderPcts = array_fill(0, 12, 0);
+        $directPcts = array_fill(0, 12, 0);
+        $tenderCounts = array_fill(0, 12, 0);
+        $directCounts = array_fill(0, 12, 0);
+
+        foreach ($procRows as $pr) {
+            $m = (int)$pr['mth'];
+            if ($m >= 1 && $m <= 12) {
+                $idx = $m - 1;
+                $tot = (int)$pr['total_proc'];
+                $tCnt = (int)$pr['tender_cnt'];
+                $dCnt = (int)$pr['direct_cnt'];
+                $tenderCounts[$idx] = $tCnt;
+                $directCounts[$idx] = $dCnt;
+                if ($tot > 0) {
+                    $tenderPcts[$idx] = round(($tCnt / $tot) * 100, 1);
+                    $directPcts[$idx] = round(($dCnt / $tot) * 100, 1);
+                }
+            }
+        }
+
         $monthlyCharts = [
             'year' => $chartYear,
             'labels' => ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'],
@@ -183,9 +248,9 @@ try {
                 'total_year' => $totalMrYear
             ],
             'bulanan_po' => [
-                'percentages' => array_fill(0, 12, 0),
-                'counts' => array_fill(0, 12, 0),
-                'total_year' => 0
+                'percentages' => $poPercentages,
+                'counts' => $poCounts,
+                'total_year' => $totalPoYear
             ],
             'close_mr' => [
                 'percentages' => $closedPercentages,
@@ -194,7 +259,19 @@ try {
                 'distinct_closed' => $closedDistinct,
                 'total_year' => $totalClosedYear
             ],
-            'moda_delivery' => $modaPercentages
+            'open_mr' => [
+                'percentages' => $openPercentages,
+                'open_rates' => $openRates,
+                'counts' => $openCounts,
+                'total_year' => $totalOpenYear
+            ],
+            'moda_delivery' => $modaPercentages,
+            'tender_direct' => [
+                'tender_percentages' => $tenderPcts,
+                'direct_percentages' => $directPcts,
+                'tender_counts' => $tenderCounts,
+                'direct_counts' => $directCounts
+            ]
         ];
 
         // If no period is specified and user requested empty default, return 0s for cards but keep 2026 charts
@@ -203,8 +280,18 @@ try {
                 'status' => 'success',
                 'counts' => [
                     'total_mr' => 0,
+                    'total_po' => 0,
+                    'total_po_price' => 0,
+                    'total_po_price_formatted' => 'Rp 0',
+                    'saving' => 0,
+                    'saving_formatted' => 'Rp 0',
+                    'most_cost_delivery_via' => '-',
+                    'most_cost_delivery_value' => 0,
+                    'most_cost_delivery_formatted' => 'Rp 0',
                     'total_packed' => 0,
                     'total_shipped' => 0,
+                    'mr_open' => 0,
+                    'total_mr_open' => 0,
                     'dalam_perjalanan' => 0,
                     'tiba_di_lokasi' => 0,
                     'segments' => [
@@ -227,13 +314,13 @@ try {
         $stmtMr->execute($periodParams);
         $totalMr = (int) $stmtMr->fetchColumn();
         
-        // 2. Total Packed = Count data (Kolom PCK Status kecuali CLOSED dan SHIPPED)
-        $stmtPck = $pdo->prepare("SELECT COUNT(*) FROM outbound_master WHERE $periodWhere AND pck_status IS NOT NULL AND TRIM(pck_status) != '' AND UPPER(TRIM(pck_status)) NOT IN ('CLOSED', 'SHIPPED')");
+        // 2. Total Packed = count data of PCK NO (distinct pck_no)
+        $stmtPck = $pdo->prepare("SELECT COUNT(DISTINCT pck_no) FROM outbound_master WHERE $periodWhere AND pck_no IS NOT NULL AND TRIM(pck_no) != ''");
         $stmtPck->execute($periodParams);
         $totalPacked = (int) $stmtPck->fetchColumn();
         
-        // 3. Total Shipped = Internal (Delivery, Pickup, Handcarry) + External (Mover) from Kolom MR Status Shipped
-        $stmtPt = $pdo->prepare("SELECT pickup_type, COUNT(*) as cnt FROM outbound_master WHERE $periodWhere AND UPPER(TRIM(COALESCE(mr_status, ''))) = 'SHIPPED' AND pickup_type IS NOT NULL AND TRIM(pickup_type) != '' GROUP BY pickup_type");
+        // 3. Total Shipped = count data of Shipped (DN NO) Non duplicate from Kolom MR Status Shipped
+        $stmtPt = $pdo->prepare("SELECT pickup_type, COUNT(DISTINCT dn_no) as cnt FROM outbound_master WHERE $periodWhere AND UPPER(TRIM(COALESCE(mr_status, ''))) = 'SHIPPED' AND dn_no IS NOT NULL AND TRIM(dn_no) != '' AND pickup_type IS NOT NULL AND TRIM(pickup_type) != '' GROUP BY pickup_type");
         $stmtPt->execute($periodParams);
         $allPickupTypes = $stmtPt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -262,53 +349,137 @@ try {
 
         $internalCount = $deliveryCount + $pickupCount + $handcarryCount;
         $externalCount = $moverCount;
-        $totalShipped = $internalCount + $externalCount;
 
-        // 4. Total Dalam Perjalanan = Count data (DN Status Shipped + MR Status kecuali CLOSED, REJECTED, FULFILLED)
+        // Distinct overall DN NO count for Total Shipped
+        $stmtShippedTotal = $pdo->prepare("SELECT COUNT(DISTINCT dn_no) FROM outbound_master WHERE $periodWhere AND UPPER(TRIM(COALESCE(mr_status, ''))) = 'SHIPPED' AND dn_no IS NOT NULL AND TRIM(dn_no) != ''");
+        $stmtShippedTotal->execute($periodParams);
+        $totalShipped = (int) $stmtShippedTotal->fetchColumn();
+
+        // 4. MR Open = count of MR Status: Open and 3 condition of Status MR: Delivered, Partially Closed, Shipped (Non duplicate)
+        $stmtMrOpen = $pdo->prepare("
+            SELECT COUNT(DISTINCT mr_no) 
+            FROM outbound_master 
+            WHERE $periodWhere 
+              AND mr_no IS NOT NULL AND TRIM(mr_no) != ''
+              AND (
+                  UPPER(TRIM(mr_status)) IN ('OPEN', 'DELIVERED', 'PARTIALLY CLOSED', 'SHIPPED')
+                  OR (UPPER(TRIM(COALESCE(dn_status, ''))) = 'DELIVERED' AND UPPER(TRIM(COALESCE(mr_status, ''))) NOT IN ('CLOSED', 'CANCELED', 'REJECTED'))
+              )
+        ");
+        $stmtMrOpen->execute($periodParams);
+        $mrOpen = (int) $stmtMrOpen->fetchColumn();
+
+        // 5. Total Dalam Perjalanan = Count data (DN Status Shipped + MR Status kecuali CLOSED, REJECTED, FULFILLED)
         $stmtJalan = $pdo->prepare("SELECT COUNT(*) FROM outbound_master WHERE $periodWhere AND UPPER(TRIM(COALESCE(dn_status, ''))) = 'SHIPPED' AND UPPER(TRIM(COALESCE(mr_status, ''))) NOT IN ('CLOSED', 'REJECTED', 'FULFILLED')");
         $stmtJalan->execute($periodParams);
         $dalamPerjalanan = (int) $stmtJalan->fetchColumn();
 
-        // 5. Total Tiba Di Lokasi = Count data (MR Status Closed + DN Status Delivered)
+        // 6. Total Tiba Di Lokasi = Count data (MR Status Closed + DN Status Delivered)
         $stmtTiba = $pdo->prepare("SELECT COUNT(*) FROM outbound_master WHERE $periodWhere AND UPPER(TRIM(COALESCE(mr_status, ''))) = 'CLOSED' AND UPPER(TRIM(COALESCE(dn_status, ''))) = 'DELIVERED'");
         $stmtTiba->execute($periodParams);
         $tibaLokasi = (int) $stmtTiba->fetchColumn();
 
-        // 6. Most Moda Delivery = Sum data terbanyak di VIA
+        // 7. Most Moda Delivery = Sum data terbanyak di VIA
         $stmtVia = $pdo->prepare("SELECT via, COUNT(*) as cnt FROM outbound_master WHERE $periodWhere AND via IS NOT NULL AND TRIM(via) != '' GROUP BY via ORDER BY cnt DESC LIMIT 1");
         $stmtVia->execute($periodParams);
         $mostViaRow = $stmtVia->fetch(PDO::FETCH_ASSOC);
         $mostModa = $mostViaRow ? trim($mostViaRow['via']) : '-';
         $mostModaCount = $mostViaRow ? (int)$mostViaRow['cnt'] : 0;
 
-        // Top 10 Site MR Open:
-        // Count data (Site Destination -> MR Status FULFILLED, PACKED, All PARTIALLY Type, SHIPPED; DN STATUS DELIVERED, DRAFT, SHIPPED. Sort by yang terbanyak MR - sedikit sesuai kategori)
+        // Site MR Open:
+        // count of MR Status: Open dan 3 condition Status MR: Delivered, Partially Closed, Shipped
         $stmtTopSites = $pdo->prepare("
             SELECT 
                 site_destination, 
-                COUNT(*) as total_mr,
-                COUNT(DISTINCT CASE WHEN mr_no IS NOT NULL AND TRIM(mr_no) != '' THEN mr_no END) as distinct_mr
+                COUNT(DISTINCT CASE WHEN mr_no IS NOT NULL AND TRIM(mr_no) != '' THEN mr_no END) as distinct_mr,
+                COUNT(*) as total_mr
             FROM outbound_master 
             WHERE $periodWhere 
               AND site_destination IS NOT NULL AND TRIM(site_destination) != '' 
               AND (
-                  UPPER(TRIM(mr_status)) IN ('FULFILLED', 'PACKED', 'SHIPPED') 
-                  OR UPPER(TRIM(mr_status)) LIKE '%PARTIALLY%'
+                  UPPER(TRIM(mr_status)) IN ('OPEN', 'DELIVERED', 'PARTIALLY CLOSED', 'SHIPPED')
+                  OR (UPPER(TRIM(COALESCE(dn_status, ''))) = 'DELIVERED' AND UPPER(TRIM(COALESCE(mr_status, ''))) NOT IN ('CLOSED', 'CANCELED', 'REJECTED'))
               )
-              AND UPPER(TRIM(dn_status)) IN ('DELIVERED', 'DRAFT', 'SHIPPED')
             GROUP BY site_destination 
-            ORDER BY total_mr DESC, site_destination ASC 
+            ORDER BY distinct_mr DESC, total_mr DESC, site_destination ASC 
             LIMIT 10
         ");
         $stmtTopSites->execute($periodParams);
         $topSites = $stmtTopSites->fetchAll(PDO::FETCH_ASSOC);
 
+        // Total PO = Count distinct NO PO for site origin
+        $stmtPo = $pdo->prepare("SELECT COUNT(DISTINCT po_no) FROM outbound_master WHERE $periodWhere AND po_no IS NOT NULL AND TRIM(po_no) != ''");
+        $stmtPo->execute($periodParams);
+        $totalPo = (int) $stmtPo->fetchColumn();
+
+        // 8. Outbound Forwarder metrics: Total PO Price, Saving (Valuation Price - PO Price), Most Cost Delivery
+        $fwdPeriodWhere = "(asal_code = '50002003289' OR asal_site LIKE '%TEKNO%')";
+        $fwdParams = [];
+        if (!empty($periode) && $periode !== 'PILIH PERIODE DATA' && $periode !== '-') {
+            $fwdPeriodWhere .= " AND (periode_group = ? OR periode_group LIKE ?)";
+            $fwdParams = [$periode, $periode . '%'];
+        }
+
+        $stmtFwdTotals = $pdo->prepare("
+            SELECT 
+                SUM(CASE 
+                    WHEN po_price ~ '^[0-9]+(\.[0-9]+)?$' THEN po_price::numeric 
+                    WHEN po_tgl ~ '^[0-9]+(\.[0-9]+)?$' THEN po_tgl::numeric 
+                    ELSE 0 
+                END) as total_po_price,
+                SUM(CASE 
+                    WHEN valuation_price ~ '^[0-9]+(\.[0-9]+)?$' THEN valuation_price::numeric 
+                    ELSE 0 
+                END) as total_val_price
+            FROM outbound_forwarder
+            WHERE $fwdPeriodWhere
+        ");
+        $stmtFwdTotals->execute($fwdParams);
+        $fwdRow = $stmtFwdTotals->fetch(PDO::FETCH_ASSOC);
+
+        $totalPoPrice = (float)($fwdRow['total_po_price'] ?? 0);
+        $totalValPrice = (float)($fwdRow['total_val_price'] ?? 0);
+        $saving = $totalValPrice - $totalPoPrice;
+
+        // Most Cost Delivery (Filter Via, SUM PO Price. Diambil nilai tertinggi dari VIA)
+        $stmtMostCost = $pdo->prepare("
+            SELECT 
+                COALESCE(NULLIF(TRIM(delivery_via), ''), NULLIF(TRIM(delivery_type), ''), '-') as via_name,
+                SUM(CASE 
+                    WHEN po_price ~ '^[0-9]+(\.[0-9]+)?$' THEN po_price::numeric 
+                    WHEN po_tgl ~ '^[0-9]+(\.[0-9]+)?$' THEN po_tgl::numeric 
+                    ELSE 0 
+                END) as cost_sum
+            FROM outbound_forwarder
+            WHERE $fwdPeriodWhere AND (
+                (delivery_via IS NOT NULL AND TRIM(delivery_via) != '') OR 
+                (delivery_type IS NOT NULL AND TRIM(delivery_type) != '')
+            )
+            GROUP BY via_name
+            ORDER BY cost_sum DESC
+            LIMIT 1
+        ");
+        $stmtMostCost->execute($fwdParams);
+        $mostCostRow = $stmtMostCost->fetch(PDO::FETCH_ASSOC);
+        $mostCostVia = $mostCostRow ? trim((string)$mostCostRow['via_name']) : '-';
+        $mostCostVal = $mostCostRow ? (float)$mostCostRow['cost_sum'] : 0;
+
         echo json_encode([
             'status' => 'success',
             'counts' => [
                 'total_mr' => $totalMr,
+                'total_po' => $totalPo,
+                'total_po_price' => $totalPoPrice,
+                'total_po_price_formatted' => 'Rp ' . number_format($totalPoPrice, 0, ',', '.'),
+                'saving' => $saving,
+                'saving_formatted' => ($saving < 0 ? '-Rp ' : 'Rp ') . number_format(abs($saving), 0, ',', '.'),
+                'most_cost_delivery_via' => $mostCostVia,
+                'most_cost_delivery_value' => $mostCostVal,
+                'most_cost_delivery_formatted' => 'Rp ' . number_format($mostCostVal, 0, ',', '.'),
                 'total_packed' => $totalPacked,
                 'total_shipped' => $totalShipped,
+                'mr_open' => $mrOpen,
+                'total_mr_open' => $mrOpen,
                 'dalam_perjalanan' => $dalamPerjalanan,
                 'tiba_di_lokasi' => $tibaLokasi,
                 'segments' => [
@@ -341,26 +512,38 @@ try {
     $params = $periodParams;
 
     if ($status === 'TOTAL PACKED') {
-        $where .= " AND pck_status IS NOT NULL AND TRIM(pck_status) != '' AND UPPER(TRIM(pck_status)) NOT IN ('CLOSED', 'SHIPPED')";
+        $where .= " AND pck_no IS NOT NULL AND TRIM(pck_no) != ''";
     } elseif ($status === 'TOTAL SHIPPED') {
         $where .= " AND UPPER(TRIM(COALESCE(mr_status, ''))) = 'SHIPPED'";
+    } elseif ($status === 'MR OPEN' || $status === 'TOTAL MR OPEN') {
+        $where .= " AND mr_no IS NOT NULL AND TRIM(mr_no) != '' AND (
+            UPPER(TRIM(mr_status)) IN ('OPEN', 'DELIVERED', 'PARTIALLY CLOSED', 'SHIPPED')
+            OR (UPPER(TRIM(COALESCE(dn_status, ''))) = 'DELIVERED' AND UPPER(TRIM(COALESCE(mr_status, ''))) NOT IN ('CLOSED', 'CANCELED', 'REJECTED'))
+        )";
     } elseif ($status === 'DALAM PERJALANAN') {
         $where .= " AND UPPER(TRIM(COALESCE(dn_status, ''))) = 'SHIPPED' AND UPPER(TRIM(COALESCE(mr_status, ''))) NOT IN ('CLOSED', 'REJECTED', 'FULFILLED')";
     } elseif ($status === 'TIBA DI LOKASI') {
         $where .= " AND UPPER(TRIM(COALESCE(mr_status, ''))) = 'CLOSED' AND UPPER(TRIM(COALESCE(dn_status, ''))) = 'DELIVERED'";
     }
 
-    $stmt = $pdo->prepare("SELECT mr_no, mr_type, mr_desc, mr_status, pck_no, pck_detail, pck_status, awb, dn_no, pr_no, po_no, origin_from, site_origin, site_origin_addr, destination_to, site_destination, site_destination_addr, pickup_type, via, lt, delivery_target, dn_status, last_log FROM outbound_master WHERE $where ORDER BY id DESC LIMIT 500");
+    $stmt = $pdo->prepare("SELECT mr_no, mr_type, mr_desc, mr_status, pck_no, pck_detail, pck_status, awb, dn_no, pr_no, po_no, origin_from, site_origin, site_origin_addr, destination_to, site_destination, site_destination_addr, pickup_type, via, lt, delivery_target, dn_status, last_log FROM outbound_master WHERE $where ORDER BY id DESC LIMIT 1500");
     $stmt->execute($params);
     $rawRows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // Format rows according to the requested status headers
+    // Format rows according to the requested status headers (non-duplicate where applicable)
     $formattedRows = [];
+    $seenKeys = [];
     foreach ($rawRows as $r) {
         $userVal = !empty($r['origin_from']) ? $r['origin_from'] : (!empty($r['site_origin']) ? $r['site_origin'] : '-');
         $tujuanVal = !empty($r['site_destination']) ? $r['site_destination'] : (!empty($r['destination_to']) ? $r['destination_to'] : '-');
 
         if ($status === 'TOTAL MR') {
+            $mrNo = trim((string)($r['mr_no'] ?? ''));
+            if ($mrNo !== '' && isset($seenKeys[$mrNo])) {
+                continue;
+            }
+            if ($mrNo !== '') $seenKeys[$mrNo] = true;
+
             $pickupBy = !empty($r['pickup_type']) ? $r['pickup_type'] : (!empty($r['via']) ? $r['via'] : '-');
             $ketVal = !empty($r['mr_desc']) ? $r['mr_desc'] : (!empty($r['mr_status']) ? $r['mr_status'] : (!empty($r['dn_status']) ? $r['dn_status'] : '-'));
             $formattedRows[] = [
@@ -370,7 +553,14 @@ try {
                 'pickup_by' => $pickupBy,
                 'ket'       => $ketVal
             ];
+            if (count($formattedRows) >= 500) break;
         } elseif ($status === 'TOTAL PACKED') {
+            $pckNo = trim((string)($r['pck_no'] ?? ''));
+            if ($pckNo !== '' && isset($seenKeys[$pckNo])) {
+                continue;
+            }
+            if ($pckNo !== '') $seenKeys[$pckNo] = true;
+
             $formattedRows[] = [
                 'no_pck'     => $r['pck_no'] ?: '-',
                 'pck_detail' => $r['pck_detail'] ?: '-',
@@ -379,7 +569,14 @@ try {
                 'no_mr'      => $r['mr_no'] ?: '-',
                 'no_dn'      => $r['dn_no'] ?: '-'
             ];
+            if (count($formattedRows) >= 500) break;
         } elseif ($status === 'TOTAL SHIPPED') {
+            $dnNo = trim((string)($r['dn_no'] ?? ''));
+            if ($dnNo !== '' && isset($seenKeys[$dnNo])) {
+                continue;
+            }
+            if ($dnNo !== '') $seenKeys[$dnNo] = true;
+
             $formattedRows[] = [
                 'no_mr'           => $r['mr_no'] ?: '-',
                 'no_dn'           => $r['dn_no'] ?: '-',
@@ -391,6 +588,25 @@ try {
                 'delivery_target' => $r['delivery_target'] ?: '-',
                 'last_log'        => $r['last_log'] ?: '-'
             ];
+            if (count($formattedRows) >= 500) break;
+        } elseif ($status === 'MR OPEN' || $status === 'TOTAL MR OPEN') {
+            $mrNo = trim((string)($r['mr_no'] ?? ''));
+            if ($mrNo !== '' && isset($seenKeys[$mrNo])) {
+                continue;
+            }
+            if ($mrNo !== '') $seenKeys[$mrNo] = true;
+
+            $formattedRows[] = [
+                'no_mr'           => $r['mr_no'] ?: '-',
+                'user'            => $userVal,
+                'tujuan'          => $tujuanVal,
+                'status_mr'       => $r['mr_status'] ?: '-',
+                'no_dn'           => $r['dn_no'] ?: '-',
+                'status_dn'       => $r['dn_status'] ?: '-',
+                'pickup_type'     => $r['pickup_type'] ?: '-',
+                'delivery_target' => $r['delivery_target'] ?: '-'
+            ];
+            if (count($formattedRows) >= 500) break;
         } elseif ($status === 'DALAM PERJALANAN' || $status === 'TIBA DI LOKASI') {
             $formattedRows[] = [
                 'no_mr'           => $r['mr_no'] ?: '-',
@@ -403,6 +619,7 @@ try {
                 'delivery_target' => $r['delivery_target'] ?: '-',
                 'last_log'        => $r['last_log'] ?: '-'
             ];
+            if (count($formattedRows) >= 500) break;
         }
     }
 

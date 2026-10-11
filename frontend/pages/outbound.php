@@ -21,7 +21,10 @@ if (!defined('SPA_MODE')) {
                 <div class="container-fluid" style="padding-top: 100px;">
                     <!-- Page Heading just like inbound -->
                     <div class="d-sm-flex align-items-center justify-content-between mb-4">
-                        <h1 class="h3 mb-0 text-gray-800 font-weight-bold">Outbound Management</h1>
+                        <div>
+                            <h1 class="h3 mb-1 text-gray-800 font-weight-bold">Outbound Management</h1>
+                            <div class="text-muted small font-weight-medium">50002003289 - GUDANG WAREHOUSE TEKNO</div>
+                        </div>
                     </div>
 
                     <style>
@@ -109,33 +112,16 @@ if (!defined('SPA_MODE')) {
                                             </div>
                                         </div>
 
-                                        <!-- 4. Dalam Perjalanan -->
-                                        <div class="col-md border-right-divider mb-3 mb-md-0 status-card-clickable py-2 px-2 rounded"
-                                            data-toggle="modal" data-target="#mrStatusDetailModal"
-                                            data-status="DALAM PERJALANAN">
-                                            <div class="h3 font-weight-bold text-success mb-1"
-                                                id="card-dalam-perjalanan">0</div>
-                                            <div class="text-xs font-weight-bold text-uppercase text-muted mb-2">DALAM
-                                                PERJALANAN</div>
-                                            <div class="progress progress-sm" style="height: 6px; border-radius: 4px;">
-                                                <div class="progress-bar bg-success" role="progressbar"
-                                                    style="width: 0%" aria-valuenow="0" aria-valuemin="0"
-                                                    aria-valuemax="100"></div>
-                                            </div>
-                                        </div>
-
-                                        <!-- 5. Tiba di Lokasi -->
+                                        <!-- 4. MR Open -->
                                         <div class="col-md mb-3 mb-md-0 status-card-clickable py-2 px-2 rounded"
                                             data-toggle="modal" data-target="#mrStatusDetailModal"
-                                            data-status="TIBA DI LOKASI">
-                                            <div class="h3 font-weight-bold text-secondary mb-1" id="card-tiba-lokasi">0
+                                            data-status="MR OPEN">
+                                            <div class="h3 font-weight-bold text-warning mb-1" id="card-mr-open">0</div>
+                                            <div class="text-xs font-weight-bold text-uppercase text-muted mb-2">MR OPEN
                                             </div>
-                                            <div class="text-xs font-weight-bold text-uppercase text-muted mb-2">TIBA DI
-                                                LOKASI</div>
                                             <div class="progress progress-sm" style="height: 6px; border-radius: 4px;">
-                                                <div class="progress-bar bg-secondary" role="progressbar"
-                                                    style="width: 0%" aria-valuenow="0" aria-valuemin="0"
-                                                    aria-valuemax="100"></div>
+                                                <div class="progress-bar bg-warning" role="progressbar" style="width: 0%"
+                                                    aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
                                             </div>
                                         </div>
                                     </div>
@@ -223,7 +209,7 @@ if (!defined('SPA_MODE')) {
                                 </div>
                                 <div class="card-body pt-0 pb-3 px-4">
                                     <div class="row">
-                                        <!-- Left Column: 5 Kota Shipped Terbanyak, 5 Kota PO Value, & 5 Kota PO Terbanyak -->
+                                        <!-- Left Column: 5 Kota Shipped Terbanyak & 5 Kota PO Value -->
                                         <div class="col-lg-6 d-flex flex-column justify-content-between mb-4 mb-lg-0">
                                             <!-- Inner Card 1: 5 Kota Shipped Terbanyak -->
                                             <div class="card border shadow-sm mb-3" style="border-radius: 8px;">
@@ -293,7 +279,7 @@ if (!defined('SPA_MODE')) {
                                             </div>
 
                                             <!-- Inner Card 2: 5 Kota PO Value -->
-                                            <div class="card border shadow-sm mb-3" style="border-radius: 8px;">
+                                            <div class="card border shadow-sm mb-0" style="border-radius: 8px;">
                                                 <div class="card-body p-3">
                                                     <h6 class="font-weight-bold text-primary mb-3 pb-2 border-bottom small text-uppercase"
                                                         style="letter-spacing: 0.5px;">
@@ -358,83 +344,16 @@ if (!defined('SPA_MODE')) {
                                                     </div>
                                                 </div>
                                             </div>
-
-                                            <!-- Inner Card 3: 5 Kota PO Terbanyak (Bellow 5 Kota PO Value) -->
-                                            <div class="card border shadow-sm mb-0" style="border-radius: 8px;">
-                                                <div class="card-body p-3">
-                                                    <h6 class="font-weight-bold text-primary mb-3 pb-2 border-bottom small text-uppercase"
-                                                        style="letter-spacing: 0.5px;">
-                                                        5 Kota PO Terbanyak
-                                                    </h6>
-                                                    <div id="list-5-kota-po-terbanyak">
-                                                        <div class="mb-2">
-                                                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                                                <span class="small font-weight-bold text-gray-700">1. Jakarta</span>
-                                                                <span class="small font-weight-bold text-primary">0 PO</span>
-                                                            </div>
-                                                            <div class="progress progress-sm" style="height: 5px; border-radius: 4px;">
-                                                                <div class="progress-bar bg-primary" role="progressbar"
-                                                                    style="width: 0%" aria-valuenow="0"
-                                                                    aria-valuemin="0" aria-valuemax="100"></div>
-                                                            </div>
-                                                        </div>
-                                                        <div class="mb-2">
-                                                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                                                <span class="small font-weight-bold text-gray-700">2. Surabaya</span>
-                                                                <span class="small font-weight-bold text-primary">0 PO</span>
-                                                            </div>
-                                                            <div class="progress progress-sm" style="height: 5px; border-radius: 4px;">
-                                                                <div class="progress-bar bg-primary" role="progressbar"
-                                                                    style="width: 0%" aria-valuenow="0"
-                                                                    aria-valuemin="0" aria-valuemax="100"></div>
-                                                            </div>
-                                                        </div>
-                                                        <div class="mb-2">
-                                                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                                                <span class="small font-weight-bold text-gray-700">3. Medan</span>
-                                                                <span class="small font-weight-bold text-primary">0 PO</span>
-                                                            </div>
-                                                            <div class="progress progress-sm" style="height: 5px; border-radius: 4px;">
-                                                                <div class="progress-bar bg-primary" role="progressbar"
-                                                                    style="width: 0%" aria-valuenow="0"
-                                                                    aria-valuemin="0" aria-valuemax="100"></div>
-                                                            </div>
-                                                        </div>
-                                                        <div class="mb-2">
-                                                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                                                <span class="small font-weight-bold text-gray-700">4. Bandung</span>
-                                                                <span class="small font-weight-bold text-primary">0 PO</span>
-                                                            </div>
-                                                            <div class="progress progress-sm" style="height: 5px; border-radius: 4px;">
-                                                                <div class="progress-bar bg-primary" role="progressbar"
-                                                                    style="width: 0%" aria-valuenow="0"
-                                                                    aria-valuemin="0" aria-valuemax="100"></div>
-                                                            </div>
-                                                        </div>
-                                                        <div class="mb-0">
-                                                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                                                <span class="small font-weight-bold text-gray-700">5. Semarang</span>
-                                                                <span class="small font-weight-bold text-primary">0 PO</span>
-                                                            </div>
-                                                            <div class="progress progress-sm" style="height: 5px; border-radius: 4px;">
-                                                                <div class="progress-bar bg-primary" role="progressbar"
-                                                                    style="width: 0%" aria-valuenow="0"
-                                                                    aria-valuemin="0" aria-valuemax="100"></div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
                                         </div>
 
-                                        <!-- Right Column: 10 Site MR Open (Full Right) -->
+                                        <!-- Right Column: Site MR Open (Full Right) -->
                                         <div class="col-lg-6 d-flex flex-column mb-4 mb-lg-0">
-                                            <!-- Inner Card 4: 10 Site MR Open -->
+                                            <!-- Inner Card: Site MR Open -->
                                             <div class="card border shadow-sm h-100" style="border-radius: 8px;">
                                                 <div class="card-body p-3 d-flex flex-column">
                                                     <h6 class="font-weight-bold text-primary mb-3 pb-2 border-bottom small text-uppercase"
                                                         style="letter-spacing: 0.5px;">
-                                                        10 Site MR Open
+                                                        Site MR Open
                                                     </h6>
                                                     <div id="list-10-site-mr-open"
                                                         class="d-flex flex-column justify-content-between flex-grow-1">
@@ -531,7 +450,7 @@ if (!defined('SPA_MODE')) {
                                             <div class="card border shadow-sm h-100" style="border-radius: 8px;">
                                                 <div class="card-header bg-white py-2 px-3 border-bottom-0">
                                                     <h6 class="m-0 font-weight-bold text-primary small text-uppercase"
-                                                        style="letter-spacing: 0.5px;">Delivery per Moda (Value)
+                                                        style="letter-spacing: 0.5px;">Persentase Delivery per Moda (%)
                                                     </h6>
                                                 </div>
                                                 <div class="card-body p-3 d-flex flex-column justify-content-between">
@@ -603,7 +522,7 @@ if (!defined('SPA_MODE')) {
                                 <span id="modalMrStatusTitleText" class="font-weight-bold text-primary ml-1"></span>
                                 <span class="badge badge-danger px-2.5 py-1 font-weight-bold ml-2 d-none"
                                     id="shipped-modal-total-badge" style="font-size: 0.8rem; border-radius: 6px;">
-                                    <i class="fas fa-boxes mr-1"></i> Total: <span id="shipped-total-qty">0</span> QTY
+                                    <i class="fas fa-boxes mr-1"></i> Total: <span id="shipped-total-qty">0</span> DN
                                 </span>
                             </h5>
                             <button type="button" class="close text-gray-600 my-auto" data-dismiss="modal"
@@ -623,12 +542,12 @@ if (!defined('SPA_MODE')) {
                                         <button type="button"
                                             class="btn btn-sm btn-info rounded-pill px-3 font-weight-bold active"
                                             id="btn-tab-internal" style="transition: all 0.2s ease;">
-                                            Internal (<span id="tab-internal-qty">0</span> QTY)
+                                            Internal (<span id="tab-internal-qty">0</span> DN)
                                         </button>
                                         <button type="button"
                                             class="btn btn-sm btn-light text-muted rounded-pill px-3 font-weight-bold ml-1"
                                             id="btn-tab-external" style="transition: all 0.2s ease;">
-                                            External (<span id="tab-external-qty">0</span> QTY)
+                                            External (<span id="tab-external-qty">0</span> DN)
                                         </button>
                                     </div>
                                 </div>
@@ -648,7 +567,7 @@ if (!defined('SPA_MODE')) {
                                                 </div>
                                                 <span class="badge badge-info px-2.5 py-1.5 font-weight-bold"
                                                     style="font-size: 0.82rem; border-radius: 6px;">
-                                                    Total: <span id="internal-segment-total-qty">0</span> QTY
+                                                    Total: <span id="internal-segment-total-qty">0</span> DN
                                                 </span>
                                             </div>
 
@@ -662,7 +581,7 @@ if (!defined('SPA_MODE')) {
                                                             Delivery
                                                         </div>
                                                         <div class="h4 font-weight-bold text-primary mb-0"
-                                                            id="qty-internal-delivery">0 QTY</div>
+                                                            id="qty-internal-delivery">0 DN</div>
                                                     </div>
                                                 </div>
                                                 <!-- Pickup -->
@@ -674,7 +593,7 @@ if (!defined('SPA_MODE')) {
                                                             Pickup
                                                         </div>
                                                         <div class="h4 font-weight-bold text-info mb-0"
-                                                            id="qty-internal-pickup">0 QTY</div>
+                                                            id="qty-internal-pickup">0 DN</div>
                                                     </div>
                                                 </div>
                                                 <!-- Handcarry -->
@@ -686,7 +605,7 @@ if (!defined('SPA_MODE')) {
                                                             Handcarry
                                                         </div>
                                                         <div class="h4 font-weight-bold text-warning mb-0"
-                                                            id="qty-internal-handcarry">0 QTY</div>
+                                                            id="qty-internal-handcarry">0 DN</div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -703,7 +622,7 @@ if (!defined('SPA_MODE')) {
                                                 <span
                                                     class="badge badge-warning text-white px-2.5 py-1.5 font-weight-bold"
                                                     style="font-size: 0.82rem; border-radius: 6px;">
-                                                    Total: <span id="external-segment-total-qty">0</span> QTY
+                                                    Total: <span id="external-segment-total-qty">0</span> DN
                                                 </span>
                                             </div>
 
@@ -716,7 +635,7 @@ if (!defined('SPA_MODE')) {
                                                             Mover / Forwarder
                                                         </div>
                                                         <div class="h4 font-weight-bold text-danger mb-0"
-                                                            id="qty-external-mover">0 QTY</div>
+                                                            id="qty-external-mover">0 DN</div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -781,13 +700,9 @@ if (!defined('SPA_MODE')) {
                             headers: ['NO MR', 'NO DN', 'User', 'Tujuan', 'Pickup Type', 'Via', 'LT', 'Delivery Target', 'Last Log'],
                             keys: ['no_mr', 'no_dn', 'user', 'tujuan', 'pickup_type', 'via', 'lt', 'delivery_target', 'last_log']
                         },
-                        'DALAM PERJALANAN': {
-                            headers: ['NO MR', 'NO DN', 'User', 'Tujuan', 'Status MR', 'LT', 'Status DN', 'Delivery Target', 'Last Log'],
-                            keys: ['no_mr', 'no_dn', 'user', 'tujuan', 'status_mr', 'lt', 'status_dn', 'delivery_target', 'last_log']
-                        },
-                        'TIBA DI LOKASI': {
-                            headers: ['NO MR', 'NO DN', 'User', 'Tujuan', 'Status MR', 'LT', 'Status DN', 'Delivery Target', 'Last Log'],
-                            keys: ['no_mr', 'no_dn', 'user', 'tujuan', 'status_mr', 'lt', 'status_dn', 'delivery_target', 'last_log']
+                        'MR OPEN': {
+                            headers: ['NO MR', 'User', 'Tujuan', 'Status MR', 'NO DN', 'Status DN', 'Pickup Type', 'Delivery Target'],
+                            keys: ['no_mr', 'user', 'tujuan', 'status_mr', 'no_dn', 'status_dn', 'pickup_type', 'delivery_target']
                         }
                     };
 
@@ -809,13 +724,7 @@ if (!defined('SPA_MODE')) {
                             { key: 'pickup_type', label: 'Pickup Type' },
                             { key: 'via', label: 'Via' }
                         ],
-                        'DALAM PERJALANAN': [
-                            { key: 'user', label: 'User' },
-                            { key: 'tujuan', label: 'Tujuan' },
-                            { key: 'status_mr', label: 'Status MR' },
-                            { key: 'status_dn', label: 'Status DN' }
-                        ],
-                        'TIBA DI LOKASI': [
+                        'MR OPEN': [
                             { key: 'user', label: 'User' },
                             { key: 'tujuan', label: 'Tujuan' },
                             { key: 'status_mr', label: 'Status MR' },
@@ -1127,23 +1036,26 @@ if (!defined('SPA_MODE')) {
                         $('#card-total-mr').text(0);
                         $('#card-total-packed').text(0);
                         $('#card-shipped').text(0);
-                        $('#card-dalam-perjalanan').text(0);
-                        $('#card-tiba-lokasi').text(0);
+                        $('#card-mr-open').text(0);
                         $('.progress-bar').css('width', '0%');
-                        $('#qty-internal-delivery').text('0 QTY');
-                        $('#qty-internal-pickup').text('0 QTY');
-                        $('#qty-internal-handcarry').text('0 QTY');
+                        $('#qty-internal-delivery').text('0 DN');
+                        $('#qty-internal-pickup').text('0 DN');
+                        $('#qty-internal-handcarry').text('0 DN');
                         $('#internal-segment-total-qty').text(0);
                         $('#tab-internal-qty').text(0);
-                        $('#qty-external-mover').text('0 QTY');
+                        $('#qty-external-mover').text('0 DN');
                         $('#external-segment-total-qty').text(0);
                         $('#tab-external-qty').text(0);
                         $('#shipped-total-qty').text(0);
+                        $('#card-total-po').text(0);
+                        $('#card-total-po-price').text('Rp 0');
+                        $('#card-saving').text('Rp 0');
+                        $('#card-most-cost-delivery').text('-');
                         $('#card-most-moda-delivery').text('-');
                         render10SiteMrOpen([]);
                     }
 
-                    // Render dynamic 10 Site MR Open with proportional progress bars relative to rank 1
+                    // Render dynamic Site MR Open with proportional progress bars relative to rank 1
                     function render10SiteMrOpen(sites) {
                         var container = $('#list-10-site-mr-open');
                         if (!container.length) return;
@@ -1165,13 +1077,13 @@ if (!defined('SPA_MODE')) {
                             return;
                         }
 
-                        var maxMr = parseInt(sites[0].total_mr) || 0;
+                        var maxMr = parseInt(sites[0].distinct_mr !== undefined ? sites[0].distinct_mr : sites[0].total_mr) || 0;
                         var html = '';
 
                         sites.forEach(function (site, idx) {
                             var rank = idx + 1;
                             var name = site.site_destination || ('Site ' + rank);
-                            var totalMr = parseInt(site.total_mr) || 0;
+                            var totalMr = parseInt(site.distinct_mr !== undefined ? site.distinct_mr : site.total_mr) || 0;
                             var pct = (maxMr > 0) ? Math.min(100, Math.round((totalMr / maxMr) * 100)) : 0;
 
                             html += '<div class="d-flex flex-column justify-content-center flex-grow-1 mb-2">' +
@@ -1248,18 +1160,17 @@ if (!defined('SPA_MODE')) {
                                     var total = c.total_mr || 0;
 
                                     $('#card-total-mr').text(total);
+                                    $('#card-total-po').text(c.total_po || 0);
                                     $('#card-total-packed').text(c.total_packed || 0);
                                     $('#card-shipped').text(c.total_shipped || 0);
-                                    $('#card-dalam-perjalanan').text(c.dalam_perjalanan || 0);
-                                    $('#card-tiba-lokasi').text(c.tiba_di_lokasi || 0);
+                                    $('#card-mr-open').text(c.mr_open || c.total_mr_open || 0);
 
                                     // Update progress bars
                                     if (total > 0) {
                                         $('#card-total-mr').closest('.status-card-clickable').find('.progress-bar').css('width', '100%');
                                         $('#card-total-packed').closest('.status-card-clickable').find('.progress-bar').css('width', Math.min(100, Math.round((c.total_packed / total) * 100)) + '%');
                                         $('#card-shipped').closest('.status-card-clickable').find('.progress-bar').css('width', Math.min(100, Math.round((c.total_shipped / total) * 100)) + '%');
-                                        $('#card-dalam-perjalanan').closest('.status-card-clickable').find('.progress-bar').css('width', Math.min(100, Math.round((c.dalam_perjalanan / total) * 100)) + '%');
-                                        $('#card-tiba-lokasi').closest('.status-card-clickable').find('.progress-bar').css('width', Math.min(100, Math.round((c.tiba_di_lokasi / total) * 100)) + '%');
+                                        $('#card-mr-open').closest('.status-card-clickable').find('.progress-bar').css('width', Math.min(100, Math.round(((c.mr_open || c.total_mr_open || 0) / total) * 100)) + '%');
                                     } else {
                                         $('.progress-bar').css('width', '0%');
                                     }
@@ -1267,24 +1178,36 @@ if (!defined('SPA_MODE')) {
                                     // Update segment numbers if present
                                     if (c.segments) {
                                         var s = c.segments;
-                                        $('#qty-internal-delivery').text((s.internal_delivery || 0) + ' QTY');
-                                        $('#qty-internal-pickup').text((s.internal_pickup || 0) + ' QTY');
-                                        $('#qty-internal-handcarry').text((s.internal_handcarry || 0) + ' QTY');
+                                        $('#qty-internal-delivery').text((s.internal_delivery || 0) + ' DN');
+                                        $('#qty-internal-pickup').text((s.internal_pickup || 0) + ' DN');
+                                        $('#qty-internal-handcarry').text((s.internal_handcarry || 0) + ' DN');
                                         var intTotal = (s.internal_delivery || 0) + (s.internal_pickup || 0) + (s.internal_handcarry || 0);
                                         $('#internal-segment-total-qty').text(intTotal);
                                         $('#tab-internal-qty').text(intTotal);
 
-                                        $('#qty-external-mover').text((s.external_mover || 0) + ' QTY');
+                                        $('#qty-external-mover').text((s.external_mover || 0) + ' DN');
                                         $('#external-segment-total-qty').text(s.external_mover || 0);
                                         $('#tab-external-qty').text(s.external_mover || 0);
                                         $('#shipped-total-qty').text(c.total_shipped || 0);
                                     }
 
-                                    // Update 10 Site MR Open
+                                    // Update Site MR Open
                                     if (c.top_sites_mr_open) {
                                         render10SiteMrOpen(c.top_sites_mr_open);
                                     } else {
                                         render10SiteMrOpen([]);
+                                    }
+
+                                    // Update Total PO Price & Saving
+                                    $('#card-total-po-price').text(c.total_po_price_formatted || ('Rp ' + Number(c.total_po_price || 0).toLocaleString('id-ID')));
+                                    $('#card-saving').text(c.saving_formatted || ('Rp ' + Number(c.saving || 0).toLocaleString('id-ID')));
+
+                                    // Update Most Cost Delivery
+                                    if (c.most_cost_delivery_via && c.most_cost_delivery_via !== '-') {
+                                        var costFormatted = Number(c.most_cost_delivery_value || 0).toLocaleString('id-ID');
+                                        $('#card-most-cost-delivery').html(c.most_cost_delivery_via + ' <small class="text-muted font-weight-normal">(Rp ' + costFormatted + ')</small>');
+                                    } else {
+                                        $('#card-most-cost-delivery').text('-');
                                     }
 
                                     // Update Most Moda Delivery

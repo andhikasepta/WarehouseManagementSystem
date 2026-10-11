@@ -24,7 +24,9 @@ window.initOrUpdateOutboundCharts = function (monthlyCharts) {
         ? window._outboundMonthlyData.bulanan_mr.percentages
         : [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
-    var poPercentages = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+    var poPercentages = (window._outboundMonthlyData && window._outboundMonthlyData.bulanan_po && window._outboundMonthlyData.bulanan_po.percentages)
+        ? window._outboundMonthlyData.bulanan_po.percentages
+        : [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
     var closePercentages = (window._outboundMonthlyData && window._outboundMonthlyData.close_mr && window._outboundMonthlyData.close_mr.percentages)
         ? window._outboundMonthlyData.close_mr.percentages
@@ -37,6 +39,14 @@ window.initOrUpdateOutboundCharts = function (monthlyCharts) {
     var modaLabels = (window._outboundMonthlyData && window._outboundMonthlyData.moda_delivery && window._outboundMonthlyData.moda_delivery.labels)
         ? window._outboundMonthlyData.moda_delivery.labels
         : ['Udara', 'Laut', 'Darat', 'Udara PTP'];
+
+    var tenderPercentages = (window._outboundMonthlyData && window._outboundMonthlyData.tender_direct && window._outboundMonthlyData.tender_direct.tender_percentages)
+        ? window._outboundMonthlyData.tender_direct.tender_percentages
+        : [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+
+    var directPercentages = (window._outboundMonthlyData && window._outboundMonthlyData.tender_direct && window._outboundMonthlyData.tender_direct.direct_percentages)
+        ? window._outboundMonthlyData.tender_direct.direct_percentages
+        : [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
     // Common standard Y-Axis configuration: line chart with min 0% till 100%
     function getStandardPercentageYAxis() {
@@ -189,7 +199,14 @@ window.initOrUpdateOutboundCharts = function (monthlyCharts) {
                         caretPadding: 10,
                         callbacks: {
                             label: function (tooltipItem, data) {
-                                return 'Persentase PO: ' + (tooltipItem.yLabel || 0) + '%';
+                                var pct = tooltipItem.yLabel;
+                                var idx = tooltipItem.index;
+                                var lines = ['Persentase PO 2026: ' + pct + '%'];
+                                if (window._outboundMonthlyData && window._outboundMonthlyData.bulanan_po && window._outboundMonthlyData.bulanan_po.counts) {
+                                    var count = window._outboundMonthlyData.bulanan_po.counts[idx];
+                                    lines.push('Total NO PO: ' + Number(count || 0).toLocaleString('id-ID'));
+                                }
+                                return lines;
                             }
                         }
                     }
@@ -270,6 +287,12 @@ window.initOrUpdateOutboundCharts = function (monthlyCharts) {
                                         lines.push('Close Rate: ' + cData.close_rates[idx] + '%');
                                     }
                                 }
+                                if (window._outboundMonthlyData && window._outboundMonthlyData.open_mr) {
+                                    var oData = window._outboundMonthlyData.open_mr;
+                                    if (oData.counts && oData.counts[idx] > 0) {
+                                        lines.push('NO MR OPEN: ' + Number(oData.counts[idx] || 0).toLocaleString('id-ID') + ' (' + (oData.open_rates[idx] || 0) + '%)');
+                                    }
+                                }
                                 return lines;
                             }
                         }
@@ -347,7 +370,12 @@ window.initOrUpdateOutboundCharts = function (monthlyCharts) {
                         callbacks: {
                             label: function (tooltipItem, data) {
                                 var qty = tooltipItem.xLabel || 0;
-                                return 'Qty: ' + Number(qty).toLocaleString('id-ID') + ' Pengiriman';
+                                var idx = tooltipItem.index;
+                                var pctStr = '';
+                                if (window._outboundMonthlyData && window._outboundMonthlyData.moda_delivery && window._outboundMonthlyData.moda_delivery.percentages) {
+                                    pctStr = ' (' + window._outboundMonthlyData.moda_delivery.percentages[idx] + '%)';
+                                }
+                                return 'Total DN: ' + Number(qty).toLocaleString('id-ID') + ' Pengiriman' + pctStr;
                             }
                         }
                     }
@@ -361,6 +389,10 @@ window.initOrUpdateOutboundCharts = function (monthlyCharts) {
     if (ctxTender) {
         if (window.chartTenderDirectSelection && window.chartTenderDirectSelection.config && window.chartTenderDirectSelection.config.type === 'line') {
             window.chartTenderDirectSelection.data.labels = (window._outboundMonthlyData && window._outboundMonthlyData.labels) ? window._outboundMonthlyData.labels : bulanLabels;
+            if (window.chartTenderDirectSelection.data.datasets && window.chartTenderDirectSelection.data.datasets.length >= 2) {
+                window.chartTenderDirectSelection.data.datasets[0].data = tenderPercentages;
+                window.chartTenderDirectSelection.data.datasets[1].data = directPercentages;
+            }
             window.chartTenderDirectSelection.update();
         } else {
             if (window.chartTenderDirectSelection && typeof window.chartTenderDirectSelection.destroy === 'function') {
@@ -381,7 +413,7 @@ window.initOrUpdateOutboundCharts = function (monthlyCharts) {
                             pointBackgroundColor: "#4e73df",
                             pointBorderColor: "#ffffff",
                             pointBorderWidth: 1.5,
-                            data: Array(12).fill(0)
+                            data: tenderPercentages
                         },
                         {
                             label: "Direct Selection (%)",
@@ -393,7 +425,7 @@ window.initOrUpdateOutboundCharts = function (monthlyCharts) {
                             pointBackgroundColor: "#f6c23e",
                             pointBorderColor: "#ffffff",
                             pointBorderWidth: 1.5,
-                            data: Array(12).fill(0)
+                            data: directPercentages
                         }
                     ]
                 },
@@ -427,7 +459,18 @@ window.initOrUpdateOutboundCharts = function (monthlyCharts) {
                         callbacks: {
                             label: function (tooltipItem, data) {
                                 var dataset = data.datasets[tooltipItem.datasetIndex];
-                                return (dataset.label || '') + ': ' + tooltipItem.yLabel + '%';
+                                var idx = tooltipItem.index;
+                                var val = tooltipItem.yLabel;
+                                var line = (dataset.label || '') + ': ' + val + '%';
+                                if (window._outboundMonthlyData && window._outboundMonthlyData.tender_direct) {
+                                    var td = window._outboundMonthlyData.tender_direct;
+                                    if (tooltipItem.datasetIndex === 0 && td.tender_counts) {
+                                        line += ' (' + Number(td.tender_counts[idx] || 0).toLocaleString('id-ID') + ' Pengiriman)';
+                                    } else if (tooltipItem.datasetIndex === 1 && td.direct_counts) {
+                                        line += ' (' + Number(td.direct_counts[idx] || 0).toLocaleString('id-ID') + ' Pengiriman)';
+                                    }
+                                }
+                                return line;
                             }
                         }
                     }
