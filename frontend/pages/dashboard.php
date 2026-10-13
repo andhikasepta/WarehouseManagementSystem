@@ -447,6 +447,7 @@ if (!defined('SPA_MODE')) {
                                                         <div style="position: relative; height: 110px; width: 100%;"
                                                             class="mb-2">
                                                             <canvas id="dashInventorySummaryPieChart"></canvas>
+
                                                         </div>
 
                                                         <!-- Labels Below the Chart (Horizontal Grid of 2 Items) -->
@@ -587,6 +588,8 @@ if (!defined('SPA_MODE')) {
                                         <span class="font-weight-bold text-primary text-nowrap"
                                             style="font-size: 0.85rem;"><i class="fas fa-chart-line mr-2"></i>Trends
                                             Perangkat (IN & OUT)</span>
+                                        <span class="badge badge-info font-weight-normal text-nowrap px-2.5 py-1"
+                                            id="trends-title-period" style="font-size: 0.65rem;">Storage Tekno</span>
                                     </div>
                                     <div class="my-auto" style="position: relative; height: 145px;">
                                         <canvas id="dashReceivingTrendLineChart"></canvas>
@@ -857,21 +860,21 @@ if (!defined('SPA_MODE')) {
                                     </div>
                                     <div class="table-responsive border rounded shadow-sm"
                                         style="border-color: #eaecf4 !important; background: #ffffff;">
-                                        <table class="table table-hover table-striped text-center mb-0 w-100"
+                                        <table class="table table-hover table-striped mb-0 w-100 text-nowrap"
                                             id="tableInboundPoStatusDetail" style="font-size: 0.84rem;">
-                                            <thead class="thead-light text-gray-800 font-weight-bold"
+                                            <thead class="thead-light text-gray-800 font-weight-bold text-nowrap"
                                                 id="tableInboundPoStatusDetailHead"
                                                 style="border-bottom: 2px solid #e3e6f0;">
                                                 <tr>
-                                                    <th class="py-2 border-top-0">No. PO</th>
-                                                    <th class="py-2 border-top-0">Deskripsi PO</th>
-                                                    <th class="py-2 border-top-0">PIC Asset Planner</th>
-                                                    <th class="py-2 border-top-0">Department</th>
+                                                    <th class="py-2.5 px-3 border-top-0 text-left text-nowrap">PO Nomor</th>
+                                                    <th class="py-2.5 px-3 border-top-0 text-left text-nowrap">PO Deskripsi</th>
+                                                    <th class="py-2.5 px-3 border-top-0 text-left text-nowrap">PR PIC Teknis Nama</th>
+                                                    <th class="py-2.5 px-3 border-top-0 text-left text-nowrap">PR Nama Bagian</th>
                                                 </tr>
                                             </thead>
                                             <tbody id="tableInboundPoStatusDetailBody">
                                                 <tr>
-                                                    <td colspan="4" class="py-5 text-muted bg-white">
+                                                    <td colspan="4" class="py-5 text-muted bg-white text-left text-nowrap">
                                                         <i
                                                             class="fas fa-folder-open fa-2x mb-2 d-block text-gray-300"></i>
                                                         Belum ada data tersedia untuk status ini.
@@ -927,22 +930,23 @@ if (!defined('SPA_MODE')) {
                                     </div>
                                     <div class="table-responsive border rounded shadow-sm"
                                         style="border-color: #eaecf4 !important; background: #ffffff;">
-                                        <table class="table table-hover table-striped text-center mb-0 w-100"
+                                        <table class="table table-hover table-striped mb-0 w-100 text-nowrap"
                                             id="tableOutboundMrStatusDetail" style="font-size: 0.84rem;">
-                                            <thead class="thead-light text-gray-800 font-weight-bold"
+                                            <thead class="thead-light text-gray-800 font-weight-bold text-nowrap"
                                                 id="tableOutboundMrStatusDetailHead"
                                                 style="border-bottom: 2px solid #e3e6f0;">
                                                 <tr>
-                                                    <th class="py-2 border-top-0">No. MR</th>
-                                                    <th class="py-2 border-top-0">User</th>
-                                                    <th class="py-2 border-top-0">Tujuan</th>
-                                                    <th class="py-2 border-top-0">Pickup By</th>
-                                                    <th class="py-2 border-top-0">Keterangan</th>
+                                                    <th class="py-2.5 px-3 border-top-0 text-left text-nowrap">MR NO</th>
+                                                    <th class="py-2.5 px-3 border-top-0 text-left text-nowrap">FROM</th>
+                                                    <th class="py-2.5 px-3 border-top-0 text-left text-nowrap">SITE DESTINATION</th>
+                                                    <th class="py-2.5 px-3 border-top-0 text-left text-nowrap">PICKUP TYPE</th>
+                                                    <th class="py-2.5 px-3 border-top-0 text-left text-nowrap">MR DESC</th>
+                                                    <th class="py-2.5 px-3 border-top-0 text-left text-nowrap">MR STATUS</th>
                                                 </tr>
                                             </thead>
                                             <tbody id="tableOutboundMrStatusDetailBody">
                                                 <tr>
-                                                    <td colspan="5" class="py-5 text-muted bg-white">
+                                                    <td colspan="6" class="py-5 text-muted bg-white text-left text-nowrap">
                                                         <i
                                                             class="fas fa-folder-open fa-2x mb-2 d-block text-gray-300"></i>
                                                         Belum ada data tersedia untuk status ini.
@@ -992,23 +996,29 @@ if (!defined('SPA_MODE')) {
                                     </div>
                                     <div class="table-responsive border rounded shadow-sm"
                                         style="border-color: #eaecf4 !important; background: #ffffff;">
-                                        <table class="table table-hover table-striped text-center mb-0 w-100"
+                                        <table class="table table-hover table-striped mb-0 w-100 text-nowrap"
                                             id="tableStorageAssetDetail" style="font-size: 0.84rem;">
-                                            <thead class="thead-light text-gray-800 font-weight-bold"
+                                            <thead class="thead-light text-gray-800 font-weight-bold text-nowrap"
                                                 id="tableStorageAssetDetailHead"
                                                 style="border-bottom: 2px solid #e3e6f0;">
                                                 <tr>
-                                                    <th class="py-2 border-top-0">Serial Number</th>
-                                                    <th class="py-2 border-top-0">Deskripsi Item</th>
-                                                    <th class="py-2 border-top-0">Kategori</th>
-                                                    <th class="py-2 border-top-0">Site / Lokasi</th>
-                                                    <th class="py-2 border-top-0">Aging</th>
-                                                    <th class="py-2 border-top-0">Nilai Buku (NBV)</th>
+                                                    <th class="py-2.5 px-3 border-top-0 text-left text-nowrap">Spec Code</th>
+                                                    <th class="py-2.5 px-3 border-top-0 text-left text-nowrap">Spec Name</th>
+                                                    <th class="py-2.5 px-3 border-top-0 text-left text-nowrap">Reg No</th>
+                                                    <th class="py-2.5 px-3 border-top-0 text-left text-nowrap">Asset Planner Org</th>
+                                                    <th class="py-2.5 px-3 border-top-0 text-left text-nowrap">NBV</th>
+                                                    <th class="py-2.5 px-3 border-top-0 text-left text-nowrap">SO Result</th>
+                                                    <th class="py-2.5 px-3 border-top-0 text-left text-nowrap">SO Location</th>
+                                                    <th class="py-2.5 px-3 border-top-0 text-left text-nowrap">Range</th>
+                                                    <th class="py-2.5 px-3 border-top-0 text-left text-nowrap">Sub Location</th>
+                                                    <th class="py-2.5 px-3 border-top-0 text-left text-nowrap">Category</th>
+                                                    <th class="py-2.5 px-3 border-top-0 text-left text-nowrap">Periode Group</th>
+                                                    <th class="py-2.5 px-3 border-top-0 text-left text-nowrap">Status</th>
                                                 </tr>
                                             </thead>
                                             <tbody id="tableStorageAssetDetailBody">
                                                 <tr>
-                                                    <td colspan="6" class="py-5 text-muted bg-white">
+                                                    <td colspan="12" class="py-5 text-muted bg-white text-left text-nowrap">
                                                         <i
                                                             class="fas fa-folder-open fa-2x mb-2 d-block text-gray-300"></i>
                                                         Belum ada data tersedia untuk status ini.
@@ -1054,7 +1064,7 @@ if (!defined('SPA_MODE')) {
                                         <div class="d-flex align-items-center">
                                             <div class="input-group input-group-sm" style="max-width: 220px;">
                                                 <input type="text" class="form-control form-control-sm"
-                                                    id="searchModalUtilisasiInput" placeholder="Search..."
+                                                    id="searchModalUtilisasiInput" placeholder="Search anything data..."
                                                     style="font-size: 0.75rem;">
                                             </div>
                                         </div>
@@ -1068,14 +1078,14 @@ if (!defined('SPA_MODE')) {
                                             <thead class="bg-light font-weight-bold text-gray-800"
                                                 style="position: sticky; top: 0; z-index: 2; background-color: #f8f9fc; border-bottom: 2px solid #e3e6f0;">
                                                 <tr>
-                                                    <th class="py-2 px-3 text-left">RACK / AREA</th>
-                                                    <th class="py-2 px-3 text-center" style="width: 55%;">CAPACITY</th>
+                                                    <th class="py-2 px-3 text-left text-nowrap">RACK / AREA</th>
+                                                    <th class="py-2 px-3 text-left text-nowrap" style="width: 55%;">CAPACITY</th>
                                                 </tr>
                                             </thead>
                                             <tbody id="tableStorageUtilisasiBody">
                                                 <tr>
                                                     <td colspan="2"
-                                                        class="py-4 text-center text-muted bg-white font-italic">
+                                                        class="py-4 text-left text-nowrap text-muted bg-white font-italic">
                                                         <i class="fas fa-inbox fa-2x mb-2 d-block text-gray-300"></i>
                                                         Pilih periode data untuk menampilkan utilisasi area / rack
                                                     </td>
@@ -1101,7 +1111,7 @@ if (!defined('SPA_MODE')) {
                                     <h5 class="modal-title font-weight-bold text-gray-800 my-auto"
                                         style="font-size: 1rem;">
                                         <i class="fas fa-table text-primary mr-2"></i><span
-                                            id="kpiMonthModalTitle">Matriks Evaluasi 9 KPI</span>
+                                             id="kpiMonthModalTitle">Matriks Evaluasi 9 KPI</span>
                                     </h5>
                                     <button type="button" class="close text-gray-600 my-auto" data-dismiss="modal"
                                         aria-label="Close" style="padding: 0.25rem 0.5rem; margin: 0;">
@@ -1117,16 +1127,16 @@ if (!defined('SPA_MODE')) {
                                     </div>
                                     <div class="table-responsive border rounded p-1 mb-0"
                                         style="border-color: #eaecf4 !important;">
-                                        <table class="table table-hover table-striped mb-0 w-100"
+                                        <table class="table table-hover table-striped mb-0 w-100 text-nowrap"
                                             style="font-size: 0.83rem;">
-                                            <thead class="bg-light text-gray-700 font-weight-bold"
+                                            <thead class="bg-light text-gray-700 font-weight-bold text-nowrap"
                                                 style="font-size: 0.8rem;">
                                                 <tr>
-                                                    <th class="text-center py-2" style="width: 40px;">No</th>
-                                                    <th class="py-2">Indikator KPI</th>
-                                                    <th class="text-center py-2">Target</th>
-                                                    <th class="text-right py-2">Achievement</th>
-                                                    <th class="text-center py-2">Status</th>
+                                                    <th class="text-left text-nowrap py-2" style="width: 40px;">No</th>
+                                                    <th class="py-2 text-left text-nowrap">Indikator KPI</th>
+                                                    <th class="text-left text-nowrap py-2">Target</th>
+                                                    <th class="text-left text-nowrap py-2">Achievement</th>
+                                                    <th class="text-left text-nowrap py-2">Status</th>
                                                 </tr>
                                             </thead>
                                             <tbody id="kpiMonthModalBody">
@@ -1144,8 +1154,8 @@ if (!defined('SPA_MODE')) {
 
                 <script src="frontend/vendor/chart.js/Chart.min.js"></script>
                 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-                <script src="frontend/js/formula-controller.js?v=<?= time() ?>"></script>
-                <script src="frontend/js/demo/chart-dashboard-demo.js?v=<?= time() ?>"></script>
+                <script src="frontend/js/formula-controller.js?v=<?= @filemtime((defined('ROOT_PATH') ? ROOT_PATH : dirname(__DIR__, 2) . '/') . 'frontend/js/formula-controller.js') ?>"></script>
+                <script src="frontend/js/demo/chart-dashboard-demo.js?v=<?= @filemtime((defined('ROOT_PATH') ? ROOT_PATH : dirname(__DIR__, 2) . '/') . 'frontend/js/demo/chart-dashboard-demo.js') ?>"></script>
                 <script>
                     $(function () {
                         var ALL_MONTHS = [
@@ -1197,11 +1207,11 @@ if (!defined('SPA_MODE')) {
                                     statusBadge = '<span class="badge badge-info px-2 py-1">' + item.status + '</span>';
                                 }
 
-                                tr.innerHTML = '<td class="text-center font-weight-bold text-muted">' + item.no + '</td>' +
-                                    '<td class="font-weight-bold text-gray-800">' + item.name + '</td>' +
-                                    '<td class="text-center font-weight-bold text-muted">' + item.target + '</td>' +
-                                    '<td class="text-right font-weight-bold text-primary">' + item.actual + '</td>' +
-                                    '<td class="text-center">' + statusBadge + '</td>';
+                                tr.innerHTML = '<td class="text-left text-nowrap font-weight-bold text-muted">' + item.no + '</td>' +
+                                    '<td class="text-left text-nowrap font-weight-bold text-gray-800">' + item.name + '</td>' +
+                                    '<td class="text-left text-nowrap font-weight-bold text-muted">' + item.target + '</td>' +
+                                    '<td class="text-left text-nowrap font-weight-bold text-primary">' + item.actual + '</td>' +
+                                    '<td class="text-left text-nowrap">' + statusBadge + '</td>';
                                 tbody.appendChild(tr);
                             });
                         }
@@ -1267,51 +1277,70 @@ if (!defined('SPA_MODE')) {
                         // ─── 1. Inbound Summary Modal System (Matching Inbound Module) ───
                         var inboundStatusColumnConfig = {
                             'TOTAL PO INBOUND': {
-                                headers: ['No. PO', 'Deskripsi PO', 'PIC Asset Planner', 'Department', 'Vendor', 'Qty', 'Tgl Generate', 'Target Delivery'],
+                                headers: ['PO Nomor', 'PO Deskripsi', 'PR PIC Teknis Nama', 'PR Nama Bagian', 'PO Vendor', 'PO Qty Item', 'PO Tgl. Generate', 'PO Target Delivery'],
                                 keys: ['no_po', 'deskripsi_po', 'pic_asset_planner', 'department', 'vendor', 'qty', 'tgl_generate', 'target_delivery']
                             },
                             'PO ONTIME DELIVERY': {
-                                headers: ['No. PO', 'Deskripsi PO', 'PIC Asset Planner', 'Department', 'Vendor', 'Qty', 'Target Delivery'],
-                                keys: ['no_po', 'deskripsi_po', 'pic_asset_planner', 'department', 'vendor', 'qty', 'target_delivery']
+                                headers: ['PO Nomor', 'PO Deskripsi', 'PR PIC Teknis Nama', 'PR Nama Bagian', 'PO Vendor', 'PO Qty Item', 'PO Target Delivery', 'GR Date'],
+                                keys: ['no_po', 'deskripsi_po', 'pic_asset_planner', 'department', 'vendor', 'qty', 'target_delivery', 'gr_date']
                             },
                             'PO TERLAMBAT DELIVERY': {
-                                headers: ['No. PO', 'Deskripsi PO', 'PIC Asset Planner', 'Department', 'Vendor', 'Qty', 'Target Delivery'],
-                                keys: ['no_po', 'deskripsi_po', 'pic_asset_planner', 'department', 'vendor', 'qty', 'target_delivery']
+                                headers: ['PO Nomor', 'PO Deskripsi', 'PR PIC Teknis Nama', 'PR Nama Bagian', 'PO Vendor', 'PO Qty Item', 'PO Target Delivery', 'GR Date'],
+                                keys: ['no_po', 'deskripsi_po', 'pic_asset_planner', 'department', 'vendor', 'qty', 'target_delivery', 'gr_date']
                             },
                             'PO SUDAH GR': {
-                                headers: ['No. PO', 'Deskripsi PO', 'PIC Asset Planner', 'Department', 'Vendor / PIC GR', 'Qty', 'Target Delivery'],
-                                keys: ['no_po', 'deskripsi_po', 'pic_asset_planner', 'department', 'pic_gr', 'qty', 'target_delivery']
+                                headers: ['PO Nomor', 'GR No', 'PO Deskripsi', 'PR PIC Teknis Nama', 'PR Nama Bagian', 'PIC Submit GR', 'PO Qty Item', 'PO Target Delivery'],
+                                keys: ['no_po', 'no_gr', 'deskripsi_po', 'pic_asset_planner', 'department', 'pic_gr', 'qty', 'target_delivery']
+                            },
+                            'TOTAL GR': {
+                                headers: ['GR No', 'PO Nomor', 'PO Deskripsi', 'PR PIC Teknis Nama', 'PR Nama Bagian', 'PIC Submit GR', 'PO Qty Item', 'PO Target Delivery'],
+                                keys: ['no_gr', 'no_po', 'deskripsi_po', 'pic_asset_planner', 'department', 'pic_gr', 'qty', 'target_delivery']
                             },
                             'PO SUDAH REGISTRASI': {
-                                headers: ['No. PO', 'Deskripsi PO', 'PIC Asset Planner', 'Department', 'PIC Registrasi', 'Qty', 'Target Delivery'],
-                                keys: ['no_po', 'deskripsi_po', 'pic_asset_planner', 'department', 'pic_registrasi', 'qty', 'target_delivery']
+                                headers: ['PO Nomor', 'No Reg', 'PO Deskripsi', 'PR PIC Teknis Nama', 'PR Nama Bagian', 'PIC Registration', 'PO Qty Item', 'PO Target Delivery'],
+                                keys: ['no_po', 'no_reg', 'deskripsi_po', 'pic_asset_planner', 'department', 'pic_registrasi', 'qty', 'target_delivery']
+                            },
+                            'TOTAL REGISTRASI': {
+                                headers: ['No Reg', 'PO Nomor', 'PO Deskripsi', 'PR PIC Teknis Nama', 'PR Nama Bagian', 'PIC Registration', 'PO Qty Item', 'PO Target Delivery'],
+                                keys: ['no_reg', 'no_po', 'deskripsi_po', 'pic_asset_planner', 'department', 'pic_registrasi', 'qty', 'target_delivery']
                             }
                         };
 
                         var inboundStatusFilterMap = {
                             'TOTAL PO INBOUND': [
-                                { key: 'department', label: 'Department' },
-                                { key: 'pic_asset_planner', label: 'PIC Asset Planner' },
-                                { key: 'vendor', label: 'Vendor' }
+                                { key: 'department', label: 'PR Nama Bagian' },
+                                { key: 'pic_asset_planner', label: 'PR PIC Teknis' },
+                                { key: 'vendor', label: 'PO Vendor' }
                             ],
                             'PO ONTIME DELIVERY': [
-                                { key: 'department', label: 'Department' },
-                                { key: 'pic_asset_planner', label: 'PIC Asset Planner' },
-                                { key: 'vendor', label: 'Vendor' }
+                                { key: 'department', label: 'PR Nama Bagian' },
+                                { key: 'pic_asset_planner', label: 'PR PIC Teknis' },
+                                { key: 'vendor', label: 'PO Vendor' }
                             ],
                             'PO TERLAMBAT DELIVERY': [
-                                { key: 'department', label: 'Department' },
-                                { key: 'pic_asset_planner', label: 'PIC Asset Planner' },
-                                { key: 'vendor', label: 'Vendor' }
+                                { key: 'department', label: 'PR Nama Bagian' },
+                                { key: 'pic_asset_planner', label: 'PR PIC Teknis' },
+                                { key: 'vendor', label: 'PO Vendor' }
                             ],
                             'PO SUDAH GR': [
-                                { key: 'department', label: 'Department' },
-                                { key: 'pic_asset_planner', label: 'PIC Asset Planner' },
-                                { key: 'pic_gr', label: 'PIC GR' }
+                                { key: 'department', label: 'PR Nama Bagian' },
+                                { key: 'pic_asset_planner', label: 'PR PIC Teknis' },
+                                { key: 'pic_gr', label: 'PIC Submit GR' }
+                            ],
+                            'TOTAL GR': [
+                                { key: 'department', label: 'PR Nama Bagian' },
+                                { key: 'pic_asset_planner', label: 'PR PIC Teknis' },
+                                { key: 'pic_gr', label: 'PIC Submit GR' }
                             ],
                             'PO SUDAH REGISTRASI': [
-                                { key: 'department', label: 'Department' },
-                                { key: 'pic_asset_planner', label: 'PIC Asset Planner' }
+                                { key: 'department', label: 'PR Nama Bagian' },
+                                { key: 'pic_asset_planner', label: 'PR PIC Teknis' },
+                                { key: 'pic_registrasi', label: 'PIC Registration' }
+                            ],
+                            'TOTAL REGISTRASI': [
+                                { key: 'department', label: 'PR Nama Bagian' },
+                                { key: 'pic_asset_planner', label: 'PR PIC Teknis' },
+                                { key: 'pic_registrasi', label: 'PIC Registration' }
                             ]
                         };
 
@@ -1321,7 +1350,7 @@ if (!defined('SPA_MODE')) {
 
                         function renderInboundTableHeader() {
                             var thead = $('#tableInboundPoStatusDetailHead');
-                            var tr = $('<tr></tr>');
+                            var headHtml = '<tr>';
                             currentInboundConfig.headers.forEach(function (h, idx) {
                                 var key = currentInboundConfig.keys[idx];
                                 var sortIcon = '<i class="fas fa-sort text-gray-400 ml-1" style="font-size: 0.72rem;"></i>';
@@ -1330,17 +1359,53 @@ if (!defined('SPA_MODE')) {
                                         ? '<i class="fas fa-sort-up text-primary ml-1" style="font-size: 0.78rem;"></i>'
                                         : '<i class="fas fa-sort-down text-primary ml-1" style="font-size: 0.78rem;"></i>';
                                 }
-                                var th = $('<th class="py-2 border-top-0 sortable-inbound-header user-select-none" style="cursor: pointer;" data-key="' + key + '">' + h + ' ' + sortIcon + '</th>');
-                                tr.append(th);
+                                headHtml += '<th class="py-2.5 px-3 border-top-0 text-left text-nowrap sortable-inbound-header user-select-none" style="cursor: pointer; font-size: 0.78rem;" data-key="' + key + '">' + h + ' ' + sortIcon + '</th>';
                             });
-                            thead.html(tr);
+                            headHtml += '</tr>';
+
+                            // Secondary filter row: compact dropdown under each column
+                            headHtml += '<tr class="dt-column-filter-row bg-light">';
+                            currentInboundConfig.headers.forEach(function (h, idx) {
+                                var k = currentInboundConfig.keys[idx];
+                                headHtml += '<th class="p-1 border-top-0 align-middle">';
+                                headHtml += '<select class="form-control form-control-xs dt-column-select-filter dash-inbound-col-filter" data-key="' + k + '" style="font-size: 0.72rem; height: 25px; padding: 2px 4px; border-radius: 4px; min-width: 70px;" title="Filter ' + h + '">';
+                                headHtml += '<option value="">All</option>';
+
+                                var uniqueVals = {};
+                                if (currentInboundModalRows && currentInboundModalRows.length > 0) {
+                                    currentInboundModalRows.forEach(function (r) {
+                                        var val = (r[k] !== undefined && r[k] !== null) ? String(r[k]).trim() : '';
+                                        if (val !== '' && val !== '-') uniqueVals[val] = true;
+                                    });
+                                }
+                                var sorted = Object.keys(uniqueVals).sort(function (a, b) {
+                                    return a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
+                                });
+                                sorted.forEach(function (v) {
+                                    var display = v.length > 25 ? v.substring(0, 22) + '...' : v;
+                                    headHtml += '<option value="' + $('<div>').text(v).html() + '">' + $('<div>').text(display).html() + '</option>';
+                                });
+
+                                headHtml += '</select>';
+                                headHtml += '</th>';
+                            });
+                            headHtml += '</tr>';
+
+                            thead.html(headHtml);
+
+                            thead.find('.dash-inbound-col-filter').off('change.inboundCol').on('change.inboundCol', function (e) {
+                                e.stopPropagation();
+                                applyInboundModalFilters();
+                            }).on('click mousedown', function (e) {
+                                e.stopPropagation();
+                            });
                         }
 
                         function renderInboundModalRows(rows) {
                             var tbody = $('#tableInboundPoStatusDetailBody');
                             var colCount = currentInboundConfig.headers.length;
                             if (!rows || rows.length === 0) {
-                                tbody.html('<tr><td colspan="' + colCount + '" class="py-5 text-center text-muted bg-white"><i class="fas fa-folder-open fa-2x mb-2 d-block text-gray-300"></i>Belum ada data tersedia untuk filter ini.</td></tr>');
+                                tbody.html('<tr><td colspan="' + colCount + '" class="py-5 text-left text-nowrap text-muted bg-white"><i class="fas fa-folder-open fa-2x mb-2 d-block text-gray-300"></i>Belum ada data tersedia untuk filter ini.</td></tr>');
                                 $('#inbound-modal-count-display').text('0');
                                 return;
                             }
@@ -1351,8 +1416,7 @@ if (!defined('SPA_MODE')) {
                                 html += '<tr>';
                                 currentInboundConfig.keys.forEach(function (k) {
                                     var val = r[k] !== undefined && r[k] !== null && r[k] !== '' ? r[k] : '-';
-                                    var alignClass = (k === 'no_po' || k === 'deskripsi_po') ? 'text-left' : 'text-center';
-                                    html += '<td class="py-2 px-2 align-middle ' + alignClass + '" style="font-size: 0.82rem;">' + $('<div>').text(val).html() + '</td>';
+                                    html += '<td class="py-2 px-3 align-middle text-left text-nowrap" style="font-size: 0.82rem;">' + $('<div>').text(val).html() + '</td>';
                                 });
                                 html += '</tr>';
                             });
@@ -1361,7 +1425,7 @@ if (!defined('SPA_MODE')) {
 
                         function applyInboundModalFilters() {
                             var filterValues = {};
-                            $('.dash-inbound-modal-filter').each(function () {
+                            $('.dash-inbound-modal-filter, .dash-inbound-col-filter').each(function () {
                                 var key = $(this).attr('data-key');
                                 var val = $(this).val();
                                 if (val) {
@@ -1436,7 +1500,7 @@ if (!defined('SPA_MODE')) {
                             html += '<div style="flex: 1 1 170px; max-width: 230px; min-width: 140px;">';
                             html += '<div class="input-group input-group-sm">';
                             html += '<div class="input-group-prepend"><span class="input-group-text bg-white border-right-0 text-muted" style="border-radius: 6px 0 0 6px;"><i class="fas fa-search" style="font-size: 0.72rem;"></i></span></div>';
-                            html += '<input type="text" class="form-control form-control-sm border-left-0" id="filter-inbound-modal-search" placeholder="Search..." style="font-size: 0.78rem; border-radius: 0 6px 6px 0;">';
+                            html += '<input type="text" class="form-control form-control-sm border-left-0" id="filter-inbound-modal-search" placeholder="Search anything data..." style="font-size: 0.78rem; border-radius: 0 6px 6px 0;">';
                             html += '</div>';
                             html += '</div>';
 
@@ -1477,8 +1541,8 @@ if (!defined('SPA_MODE')) {
                                 'TOTAL PO INBOUND',
                                 'PO ONTIME DELIVERY',
                                 'PO TERLAMBAT DELIVERY',
-                                'PO SUDAH GR',
-                                'PO SUDAH REGISTRASI'
+                                'TOTAL GR',
+                                'TOTAL REGISTRASI'
                             ];
                             var statusName = statusKeys[stepIndex] || 'TOTAL PO INBOUND';
                             var cfg = inboundStatusColumnConfig[statusName] || inboundStatusColumnConfig['TOTAL PO INBOUND'];
@@ -1494,8 +1558,9 @@ if (!defined('SPA_MODE')) {
                             var colCount = cfg.headers.length;
 
                             var pText = document.getElementById('selected-period-text');
-                            var periodVal = pText ? pText.textContent.trim() : '';
+                            var periodVal = currentSelectedPeriod || (pText ? pText.textContent.trim() : '');
                             if (periodVal === 'PILIH PERIODE DATA' || periodVal === '-') periodVal = '';
+                            periodVal = periodVal.replace(/\s*\((?:ALL\s+)?BATCH(?:\s+ALL)?\)\s*$/i, '').trim();
 
                             if (!periodVal) {
                                 updateInboundModalFilters(statusName, []);
@@ -1505,9 +1570,23 @@ if (!defined('SPA_MODE')) {
                                 return;
                             }
 
-                            tbody.html('<tr><td colspan="' + colCount + '" class="py-5 text-center text-muted bg-white"><i class="fas fa-spinner fa-spin fa-2x text-primary mb-2 d-block"></i>Memuat data detail PO inbound...</td></tr>');
-                            $('#modalInboundDynamicFilterRow').empty();
-                            $('#inbound-modal-count-display').text('Memuat...');
+                            var modalCacheKey = 'inbound_modal_' + statusName + '_' + periodVal;
+                            var hasCached = false;
+                            if (window.WMSDataCache && window.WMSDataCache.has(modalCacheKey)) {
+                                var cachedRows = window.WMSDataCache.get(modalCacheKey);
+                                if (cachedRows && cachedRows.length > 0) {
+                                    hasCached = true;
+                                    currentInboundModalRows = cachedRows;
+                                    updateInboundModalFilters(statusName, cachedRows);
+                                    renderInboundModalRows(cachedRows);
+                                }
+                            }
+
+                            if (!hasCached) {
+                                tbody.html('<tr><td colspan="' + colCount + '" class="py-5 text-center text-muted bg-white"><i class="fas fa-spinner fa-spin fa-2x text-primary mb-2 d-block"></i>Memuat data detail PO inbound...</td></tr>');
+                                $('#modalInboundDynamicFilterRow').empty();
+                                $('#inbound-modal-count-display').text('Memuat...');
+                            }
 
                             $.ajax({
                                 url: 'api/get_inbound_status_detail.php',
@@ -1516,18 +1595,22 @@ if (!defined('SPA_MODE')) {
                                 dataType: 'json',
                                 success: function (res) {
                                     if (res.status === 'success' && res.data && res.data.length > 0) {
+                                        if (window.WMSDataCache) window.WMSDataCache.set(modalCacheKey, res.data);
                                         currentInboundModalRows = res.data;
                                         updateInboundModalFilters(statusName, res.data);
                                         renderInboundModalRows(res.data);
                                     } else {
+                                        if (window.WMSDataCache) window.WMSDataCache.set(modalCacheKey, []);
                                         updateInboundModalFilters(statusName, []);
                                         tbody.html('<tr><td colspan="' + colCount + '" class="py-5 text-center text-muted bg-white"><i class="fas fa-folder-open fa-2x mb-2 d-block text-gray-300"></i>Belum ada data tersedia untuk status ini.</td></tr>');
                                         $('#inbound-modal-count-display').text('0');
                                     }
                                 },
                                 error: function () {
-                                    tbody.html('<tr><td colspan="' + colCount + '" class="py-4 text-center text-danger bg-white"><i class="fas fa-exclamation-circle fa-2x mb-2 d-block"></i>Gagal memuat data dari server.</td></tr>');
-                                    $('#inbound-modal-count-display').text('0');
+                                    if (!hasCached) {
+                                        tbody.html('<tr><td colspan="' + colCount + '" class="py-4 text-center text-danger bg-white"><i class="fas fa-exclamation-circle fa-2x mb-2 d-block"></i>Gagal memuat data dari server.</td></tr>');
+                                        $('#inbound-modal-count-display').text('0');
+                                    }
                                 }
                             });
 
@@ -1537,53 +1620,99 @@ if (!defined('SPA_MODE')) {
                         // ─── 2. Outbound Summary Modal System (Matching Outbound Module) ───
                         var outboundStatusColumnConfig = {
                             'TOTAL MR': {
-                                headers: ['No. MR', 'User', 'Tujuan', 'Pickup By', 'Keterangan'],
-                                keys: ['no_mr', 'user', 'tujuan', 'pickup_by', 'ket']
+                                headers: ['MR NO', 'FROM', 'SITE DESTINATION', 'PICKUP TYPE', 'MR DESC', 'MR STATUS'],
+                                keys: ['no_mr', 'user', 'tujuan', 'pickup_by', 'ket', 'status_mr']
                             },
                             'TOTAL PACKED': {
-                                headers: ['No. PCK', 'PCK Detail', 'User', 'Tujuan', 'No. MR', 'No. DN'],
+                                headers: ['PCK NO', 'PCK DETAIL', 'FROM', 'SITE DESTINATION', 'MR NO', 'DN NO'],
                                 keys: ['no_pck', 'pck_detail', 'user', 'tujuan', 'no_mr', 'no_dn']
                             },
                             'TOTAL SHIPPED': {
-                                headers: ['No. MR', 'No. DN', 'User', 'Tujuan', 'Pickup Type', 'Via', 'LT', 'Target Delivery', 'Last Log'],
+                                headers: ['MR NO', 'DN NO', 'FROM', 'SITE DESTINATION', 'PICKUP TYPE', 'VIA', 'LT', 'DELIVERY TARGET', 'LAST LOG'],
                                 keys: ['no_mr', 'no_dn', 'user', 'tujuan', 'pickup_type', 'via', 'lt', 'delivery_target', 'last_log']
                             },
+                            'MR CLOSED': {
+                                headers: ['MR NO', 'FROM', 'SITE DESTINATION', 'MR STATUS', 'DN NO', 'DN STATUS', 'PICKUP TYPE', 'DELIVERY TARGET'],
+                                keys: ['no_mr', 'user', 'tujuan', 'status_mr', 'no_dn', 'status_dn', 'pickup_type', 'delivery_target']
+                            },
+                            'FULFILLED': {
+                                headers: ['MR NO', 'DN NO', 'FROM', 'SITE DESTINATION', 'MR STATUS', 'LT', 'DN STATUS', 'DELIVERY TARGET', 'LAST LOG'],
+                                keys: ['no_mr', 'no_dn', 'user', 'tujuan', 'status_mr', 'lt', 'status_dn', 'delivery_target', 'last_log']
+                            },
                             'DALAM PERJALANAN': {
-                                headers: ['No. MR', 'No. DN', 'User', 'Tujuan', 'Status MR', 'LT', 'Status DN', 'Target Delivery', 'Last Log'],
+                                headers: ['MR NO', 'DN NO', 'FROM', 'SITE DESTINATION', 'MR STATUS', 'LT', 'DN STATUS', 'DELIVERY TARGET', 'LAST LOG'],
                                 keys: ['no_mr', 'no_dn', 'user', 'tujuan', 'status_mr', 'lt', 'status_dn', 'delivery_target', 'last_log']
                             },
                             'TIBA DI LOKASI': {
-                                headers: ['No. MR', 'No. DN', 'User', 'Tujuan', 'Status MR', 'LT', 'Status DN', 'Target Delivery', 'Last Log'],
+                                headers: ['MR NO', 'DN NO', 'FROM', 'SITE DESTINATION', 'MR STATUS', 'LT', 'DN STATUS', 'DELIVERY TARGET', 'LAST LOG'],
                                 keys: ['no_mr', 'no_dn', 'user', 'tujuan', 'status_mr', 'lt', 'status_dn', 'delivery_target', 'last_log']
+                            },
+                            'TOTAL PO MOVER': {
+                                headers: ['NO DN', 'PO NO', 'VENDOR', 'SITE DESTINATION', 'VIA', 'PO PRICE', 'VALUATION PRICE', 'SAVING'],
+                                keys: ['no_dn', 'po_no', 'po_vendor', 'tujuan_site', 'delivery_via', 'po_price_formatted', 'val_price_formatted', 'saving_formatted']
+                            },
+                            'NILAI PO MOVER': {
+                                headers: ['NO DN', 'PO NO', 'VENDOR', 'SITE DESTINATION', 'VIA', 'PO PRICE'],
+                                keys: ['no_dn', 'po_no', 'po_vendor', 'tujuan_site', 'delivery_via', 'po_price_formatted']
+                            },
+                            'SAVING PO MOVER': {
+                                headers: ['NO DN', 'PO NO', 'SR NO', 'VENDOR', 'SITE DESTINATION', 'VIA', 'VALUATION PRICE', 'PO PRICE', 'SAVING'],
+                                keys: ['no_dn', 'po_no', 'sr_no', 'po_vendor', 'tujuan_site', 'delivery_via', 'val_price_formatted', 'po_price_formatted', 'saving_formatted']
                             }
                         };
 
                         var outboundStatusFilterMap = {
                             'TOTAL MR': [
-                                { key: 'user', label: 'User' },
-                                { key: 'tujuan', label: 'Tujuan' },
-                                { key: 'pickup_by', label: 'Pickup By' }
+                                { key: 'user', label: 'FROM' },
+                                { key: 'tujuan', label: 'SITE DESTINATION' },
+                                { key: 'pickup_by', label: 'PICKUP TYPE' },
+                                { key: 'status_mr', label: 'MR STATUS' }
                             ],
                             'TOTAL PACKED': [
-                                { key: 'user', label: 'User' },
-                                { key: 'tujuan', label: 'Tujuan' },
-                                { key: 'pck_detail', label: 'PCK Detail' }
+                                { key: 'user', label: 'FROM' },
+                                { key: 'tujuan', label: 'SITE DESTINATION' },
+                                { key: 'pck_detail', label: 'PCK DETAIL' }
                             ],
                             'TOTAL SHIPPED': [
-                                { key: 'user', label: 'User' },
-                                { key: 'tujuan', label: 'Tujuan' },
-                                { key: 'pickup_type', label: 'Pickup Type' },
-                                { key: 'via', label: 'Via' }
+                                { key: 'user', label: 'FROM' },
+                                { key: 'tujuan', label: 'SITE DESTINATION' },
+                                { key: 'pickup_type', label: 'PICKUP TYPE' },
+                                { key: 'via', label: 'VIA' }
+                            ],
+                            'MR CLOSED': [
+                                { key: 'user', label: 'FROM' },
+                                { key: 'tujuan', label: 'SITE DESTINATION' },
+                                { key: 'status_mr', label: 'MR STATUS' }
+                            ],
+                            'FULFILLED': [
+                                { key: 'user', label: 'FROM' },
+                                { key: 'tujuan', label: 'SITE DESTINATION' },
+                                { key: 'status_mr', label: 'MR STATUS' }
                             ],
                             'DALAM PERJALANAN': [
-                                { key: 'user', label: 'User' },
-                                { key: 'tujuan', label: 'Tujuan' },
-                                { key: 'status_mr', label: 'Status MR' }
+                                { key: 'user', label: 'FROM' },
+                                { key: 'tujuan', label: 'SITE DESTINATION' },
+                                { key: 'status_mr', label: 'MR STATUS' }
                             ],
                             'TIBA DI LOKASI': [
-                                { key: 'user', label: 'User' },
-                                { key: 'tujuan', label: 'Tujuan' },
-                                { key: 'status_mr', label: 'Status MR' }
+                                { key: 'user', label: 'FROM' },
+                                { key: 'tujuan', label: 'SITE DESTINATION' },
+                                { key: 'status_mr', label: 'MR STATUS' }
+                            ],
+                            'TOTAL PO MOVER': [
+                                { key: 'po_vendor', label: 'VENDOR' },
+                                { key: 'tujuan_site', label: 'SITE DESTINATION' },
+                                { key: 'delivery_via', label: 'VIA' }
+                            ],
+                            'NILAI PO MOVER': [
+                                { key: 'po_vendor', label: 'VENDOR' },
+                                { key: 'tujuan_site', label: 'SITE DESTINATION' },
+                                { key: 'delivery_via', label: 'VIA' }
+                            ],
+                            'SAVING PO MOVER': [
+                                { key: 'po_vendor', label: 'VENDOR' },
+                                { key: 'tujuan_site', label: 'SITE DESTINATION' },
+                                { key: 'delivery_via', label: 'VIA' }
                             ]
                         };
 
@@ -1593,7 +1722,7 @@ if (!defined('SPA_MODE')) {
 
                         function renderOutboundTableHeader() {
                             var thead = $('#tableOutboundMrStatusDetailHead');
-                            var tr = $('<tr></tr>');
+                            var headHtml = '<tr>';
                             currentOutboundConfig.headers.forEach(function (h, idx) {
                                 var key = currentOutboundConfig.keys[idx];
                                 var sortIcon = '<i class="fas fa-sort text-gray-400 ml-1" style="font-size: 0.72rem;"></i>';
@@ -1602,17 +1731,53 @@ if (!defined('SPA_MODE')) {
                                         ? '<i class="fas fa-sort-up text-primary ml-1" style="font-size: 0.78rem;"></i>'
                                         : '<i class="fas fa-sort-down text-primary ml-1" style="font-size: 0.78rem;"></i>';
                                 }
-                                var th = $('<th class="py-2.5 px-3 border-top-0 text-left sortable-outbound-header user-select-none" style="cursor: pointer;" data-key="' + key + '">' + h + ' ' + sortIcon + '</th>');
-                                tr.append(th);
+                                headHtml += '<th class="py-2.5 px-3 border-top-0 text-left text-nowrap sortable-outbound-header user-select-none" style="cursor: pointer; font-size: 0.78rem;" data-key="' + key + '">' + h + ' ' + sortIcon + '</th>';
                             });
-                            thead.html(tr);
+                            headHtml += '</tr>';
+
+                            // Secondary filter row: compact dropdown under each column
+                            headHtml += '<tr class="dt-column-filter-row bg-light">';
+                            currentOutboundConfig.headers.forEach(function (h, idx) {
+                                var k = currentOutboundConfig.keys[idx];
+                                headHtml += '<th class="p-1 border-top-0 align-middle">';
+                                headHtml += '<select class="form-control form-control-xs dt-column-select-filter dash-outbound-col-filter" data-key="' + k + '" style="font-size: 0.72rem; height: 25px; padding: 2px 4px; border-radius: 4px; min-width: 70px;" title="Filter ' + h + '">';
+                                headHtml += '<option value="">All</option>';
+
+                                var uniqueVals = {};
+                                if (currentOutboundModalRows && currentOutboundModalRows.length > 0) {
+                                    currentOutboundModalRows.forEach(function (r) {
+                                        var val = (r[k] !== undefined && r[k] !== null) ? String(r[k]).trim() : '';
+                                        if (val !== '' && val !== '-') uniqueVals[val] = true;
+                                    });
+                                }
+                                var sorted = Object.keys(uniqueVals).sort(function (a, b) {
+                                    return a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
+                                });
+                                sorted.forEach(function (v) {
+                                    var display = v.length > 25 ? v.substring(0, 22) + '...' : v;
+                                    headHtml += '<option value="' + $('<div>').text(v).html() + '">' + $('<div>').text(display).html() + '</option>';
+                                });
+
+                                headHtml += '</select>';
+                                headHtml += '</th>';
+                            });
+                            headHtml += '</tr>';
+
+                            thead.html(headHtml);
+
+                            thead.find('.dash-outbound-col-filter').off('change.outboundCol').on('change.outboundCol', function (e) {
+                                e.stopPropagation();
+                                applyOutboundModalFilters();
+                            }).on('click mousedown', function (e) {
+                                e.stopPropagation();
+                            });
                         }
 
                         function renderOutboundModalRows(rows) {
                             var tbody = $('#tableOutboundMrStatusDetailBody');
                             var colCount = currentOutboundConfig.headers.length;
                             if (!rows || rows.length === 0) {
-                                tbody.html('<tr><td colspan="' + colCount + '" class="py-5 text-center text-muted bg-white"><i class="fas fa-folder-open fa-2x mb-2 d-block text-gray-300"></i>Tidak ada data yang sesuai filter.</td></tr>');
+                                tbody.html('<tr><td colspan="' + colCount + '" class="py-5 text-left text-nowrap text-muted bg-white"><i class="fas fa-folder-open fa-2x mb-2 d-block text-gray-300"></i>Tidak ada data yang sesuai filter.</td></tr>');
                                 $('#outbound-modal-count-display').text('0');
                                 return;
                             }
@@ -1632,7 +1797,7 @@ if (!defined('SPA_MODE')) {
 
                         function applyOutboundModalFilters() {
                             var filterValues = {};
-                            $('.dash-outbound-modal-filter').each(function () {
+                            $('.dash-outbound-modal-filter, .dash-outbound-col-filter').each(function () {
                                 var key = $(this).attr('data-key');
                                 var val = $(this).val();
                                 if (val) {
@@ -1707,7 +1872,7 @@ if (!defined('SPA_MODE')) {
                             html += '<div style="flex: 1 1 170px; max-width: 230px; min-width: 140px;">';
                             html += '<div class="input-group input-group-sm">';
                             html += '<div class="input-group-prepend"><span class="input-group-text bg-white border-right-0 text-muted" style="border-radius: 6px 0 0 6px;"><i class="fas fa-search" style="font-size: 0.72rem;"></i></span></div>';
-                            html += '<input type="text" class="form-control form-control-sm border-left-0" id="filter-outbound-modal-search" placeholder="Search..." style="font-size: 0.78rem; border-radius: 0 6px 6px 0;">';
+                            html += '<input type="text" class="form-control form-control-sm border-left-0" id="filter-outbound-modal-search" placeholder="Search anything data..." style="font-size: 0.78rem; border-radius: 0 6px 6px 0;">';
                             html += '</div>';
                             html += '</div>';
 
@@ -1747,10 +1912,18 @@ if (!defined('SPA_MODE')) {
                             var statusName = 'TOTAL MR';
                             if (metricKey === 'packing') {
                                 statusName = 'TOTAL PACKED';
-                            } else if (metricKey === 'shipped' || metricKey === 'fulfill') {
+                            } else if (metricKey === 'shipped') {
                                 statusName = 'TOTAL SHIPPED';
+                            } else if (metricKey === 'fulfill') {
+                                statusName = 'FULFILLED';
                             } else if (metricKey === 'mr_closed' || metricKey === 'progress_closed') {
-                                statusName = 'TIBA DI LOKASI';
+                                statusName = 'MR CLOSED';
+                            } else if (metricKey === 'pr_po_mover' || metricKey === 'total_mover') {
+                                statusName = 'TOTAL PO MOVER';
+                            } else if (metricKey === 'nilai_po_mover') {
+                                statusName = 'NILAI PO MOVER';
+                            } else if (metricKey === 'saving') {
+                                statusName = 'SAVING PO MOVER';
                             } else {
                                 statusName = 'TOTAL MR';
                             }
@@ -1767,8 +1940,9 @@ if (!defined('SPA_MODE')) {
                             var colCount = cfg.headers.length;
 
                             var pText = document.getElementById('selected-period-text');
-                            var periodVal = pText ? pText.textContent.trim() : '';
+                            var periodVal = currentSelectedPeriod || (pText ? pText.textContent.trim() : '');
                             if (periodVal === 'PILIH PERIODE DATA' || periodVal === '-') periodVal = '';
+                            periodVal = periodVal.replace(/\s*\((?:ALL\s+)?BATCH(?:\s+ALL)?\)\s*$/i, '').trim();
 
                             if (!periodVal) {
                                 updateOutboundModalFilters(statusName, []);
@@ -1778,9 +1952,23 @@ if (!defined('SPA_MODE')) {
                                 return;
                             }
 
-                            tbody.html('<tr><td colspan="' + colCount + '" class="py-5 text-center text-muted bg-white"><i class="fas fa-spinner fa-spin fa-2x text-primary mb-2 d-block"></i>Memuat data detail outbound...</td></tr>');
-                            $('#modalOutboundDynamicFilterRow').empty();
-                            $('#outbound-modal-count-display').text('Memuat...');
+                            var modalCacheKey = 'outbound_modal_' + statusName + '_' + periodVal;
+                            var hasCached = false;
+                            if (window.WMSDataCache && window.WMSDataCache.has(modalCacheKey)) {
+                                var cachedRows = window.WMSDataCache.get(modalCacheKey);
+                                if (cachedRows && cachedRows.length > 0) {
+                                    hasCached = true;
+                                    currentOutboundModalRows = cachedRows;
+                                    updateOutboundModalFilters(statusName, cachedRows);
+                                    renderOutboundModalRows(cachedRows);
+                                }
+                            }
+
+                            if (!hasCached) {
+                                tbody.html('<tr><td colspan="' + colCount + '" class="py-5 text-center text-muted bg-white"><i class="fas fa-spinner fa-spin fa-2x text-primary mb-2 d-block"></i>Memuat data detail outbound...</td></tr>');
+                                $('#modalOutboundDynamicFilterRow').empty();
+                                $('#outbound-modal-count-display').text('Memuat...');
+                            }
 
                             $.ajax({
                                 url: 'api/get_outbound_status_detail.php',
@@ -1789,18 +1977,22 @@ if (!defined('SPA_MODE')) {
                                 dataType: 'json',
                                 success: function (res) {
                                     if (res.status === 'success' && res.data && res.data.length > 0) {
+                                        if (window.WMSDataCache) window.WMSDataCache.set(modalCacheKey, res.data);
                                         currentOutboundModalRows = res.data;
                                         updateOutboundModalFilters(statusName, res.data);
                                         renderOutboundModalRows(res.data);
                                     } else {
+                                        if (window.WMSDataCache) window.WMSDataCache.set(modalCacheKey, []);
                                         updateOutboundModalFilters(statusName, []);
                                         tbody.html('<tr><td colspan="' + colCount + '" class="py-5 text-center text-muted bg-white"><i class="fas fa-folder-open fa-2x mb-2 d-block text-gray-300"></i>Belum ada data tersedia untuk status ini.</td></tr>');
                                         $('#outbound-modal-count-display').text('0');
                                     }
                                 },
                                 error: function () {
-                                    tbody.html('<tr><td colspan="' + colCount + '" class="py-4 text-center text-danger bg-white"><i class="fas fa-exclamation-circle fa-2x mb-2 d-block"></i>Gagal memuat data dari server.</td></tr>');
-                                    $('#outbound-modal-count-display').text('0');
+                                    if (!hasCached) {
+                                        tbody.html('<tr><td colspan="' + colCount + '" class="py-4 text-center text-danger bg-white"><i class="fas fa-exclamation-circle fa-2x mb-2 d-block"></i>Gagal memuat data dari server.</td></tr>');
+                                        $('#outbound-modal-count-display').text('0');
+                                    }
                                 }
                             });
 
@@ -1810,12 +2002,12 @@ if (!defined('SPA_MODE')) {
                         // ─── 3. Storage Asset Summary Modal System (Matching Storage Management) ───
                         var currentStorageModalRows = [];
                         var currentStorageSort = { key: null, dir: 'asc' };
-                        var storageHeaders = ['Serial Number', 'Deskripsi Item', 'Kategori', 'Site / Lokasi', 'Aging', 'Nilai Buku (NBV)'];
-                        var storageKeys = ['serial_number', 'item_description', 'category', 'site_name', 'aging', 'nbv'];
+                        var storageHeaders = ['Spec Code', 'Spec Name', 'Reg No', 'Asset Planner Org', 'NBV', 'SO Result', 'SO Location', 'Range', 'Sub Location', 'Category', 'Periode Group', 'Status'];
+                        var storageKeys = ['spec_code', 'spec_name', 'reg_no', 'asset_planner_organization', 'nbv', 'so_result', 'so_location', 'range', 'sub_location', 'category', 'periode_group', 'status'];
 
                         function renderStorageTableHeader() {
                             var thead = $('#tableStorageAssetDetailHead');
-                            var tr = $('<tr></tr>');
+                            var headHtml = '<tr>';
                             storageHeaders.forEach(function (h, idx) {
                                 var key = storageKeys[idx];
                                 var sortIcon = '<i class="fas fa-sort text-gray-400 ml-1" style="font-size: 0.72rem;"></i>';
@@ -1824,27 +2016,69 @@ if (!defined('SPA_MODE')) {
                                         ? '<i class="fas fa-sort-up text-primary ml-1" style="font-size: 0.78rem;"></i>'
                                         : '<i class="fas fa-sort-down text-primary ml-1" style="font-size: 0.78rem;"></i>';
                                 }
-                                var th = $('<th class="py-2.5 px-3 border-top-0 text-left sortable-storage-header user-select-none" style="cursor: pointer;" data-key="' + key + '">' + h + ' ' + sortIcon + '</th>');
-                                tr.append(th);
+                                headHtml += '<th class="py-2.5 px-3 border-top-0 text-left text-nowrap sortable-storage-header user-select-none" style="cursor: pointer;" data-key="' + key + '">' + h + ' ' + sortIcon + '</th>';
                             });
-                            thead.html(tr);
+                            headHtml += '</tr>';
+
+                            // Secondary filter row: compact dropdown under each column
+                            headHtml += '<tr class="dt-column-filter-row bg-light">';
+                            storageHeaders.forEach(function (h, idx) {
+                                var k = storageKeys[idx];
+                                headHtml += '<th class="p-1 border-top-0 align-middle text-left text-nowrap">';
+                                headHtml += '<select class="form-control form-control-xs dt-column-select-filter dash-storage-col-filter" data-key="' + k + '" style="font-size: 0.72rem; height: 25px; padding: 2px 4px; border-radius: 4px; min-width: 70px;" title="Filter ' + h + '">';
+                                headHtml += '<option value="">All</option>';
+
+                                var uniqueVals = {};
+                                if (currentStorageModalRows && currentStorageModalRows.length > 0) {
+                                    currentStorageModalRows.forEach(function (r) {
+                                        var val = (r[k] !== undefined && r[k] !== null) ? String(r[k]).trim() : '';
+                                        if (val !== '' && val !== '-') uniqueVals[val] = true;
+                                    });
+                                }
+                                var sorted = Object.keys(uniqueVals).sort(function (a, b) {
+                                    return a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
+                                });
+                                sorted.forEach(function (v) {
+                                    var display = v.length > 25 ? v.substring(0, 22) + '...' : v;
+                                    headHtml += '<option value="' + $('<div>').text(v).html() + '">' + $('<div>').text(display).html() + '</option>';
+                                });
+
+                                headHtml += '</select>';
+                                headHtml += '</th>';
+                            });
+                            headHtml += '</tr>';
+
+                            thead.html(headHtml);
+
+                            thead.find('.dash-storage-col-filter').off('change.storageCol').on('change.storageCol', function (e) {
+                                e.stopPropagation();
+                                applyStorageModalFilters();
+                            }).on('click mousedown', function (e) {
+                                e.stopPropagation();
+                            });
                         }
 
                         function renderStorageModalRows(rows) {
                             var tbody = $('#tableStorageAssetDetailBody');
                             if (!rows || rows.length === 0) {
-                                tbody.html('<tr><td colspan="6" class="py-5 text-center text-muted bg-white"><i class="fas fa-folder-open fa-2x mb-2 d-block text-gray-300"></i>Tidak ada data asset storage yang sesuai filter.</td></tr>');
+                                tbody.html('<tr><td colspan="12" class="py-5 text-left text-nowrap text-muted bg-white"><i class="fas fa-folder-open fa-2x mb-2 d-block text-gray-300"></i>Tidak ada data asset storage yang sesuai filter.</td></tr>');
                                 $('#storage-modal-count-display').text('0');
                                 return;
                             }
 
-                            $('#storage-modal-count-display').text(rows.length);
+                            if (rows.length > 500) {
+                                $('#storage-modal-count-display').text(rows.length.toLocaleString('id-ID') + ' (500 teratas)');
+                            } else {
+                                $('#storage-modal-count-display').text(rows.length.toLocaleString('id-ID'));
+                            }
+
+                            var displayRows = rows.length > 500 ? rows.slice(0, 500) : rows;
                             var html = '';
-                            rows.forEach(function (r) {
+                            displayRows.forEach(function (r) {
                                 html += '<tr>';
                                 storageKeys.forEach(function (k) {
                                     var val = r[k] !== undefined && r[k] !== null && r[k] !== '' ? r[k] : '-';
-                                    html += '<td class="py-2 px-3 align-middle text-left text-nowrap" style="font-size: 0.82rem;">' + $('<div>').text(val).html() + '</td>';
+                                    html += '<td class="py-2 px-2 align-middle text-left text-nowrap" style="font-size: 0.82rem;">' + $('<div>').text(val).html() + '</td>';
                                 });
                                 html += '</tr>';
                             });
@@ -1853,7 +2087,7 @@ if (!defined('SPA_MODE')) {
 
                         function applyStorageModalFilters() {
                             var filterValues = {};
-                            $('.dash-storage-modal-filter').each(function () {
+                            $('.dash-storage-modal-filter, .dash-storage-col-filter').each(function () {
                                 var key = $(this).attr('data-key');
                                 var val = $(this).val();
                                 if (val) {
@@ -1898,8 +2132,10 @@ if (!defined('SPA_MODE')) {
                         function updateStorageModalFilters(rawData) {
                             var filterRow = $('#modalStorageDynamicFilterRow');
                             var filterDefs = [
-                                { key: 'category', label: 'Kategori' },
-                                { key: 'site_name', label: 'Site / Lokasi' }
+                                { key: 'category', label: 'Category' },
+                                { key: 'so_location', label: 'SO Location' },
+                                { key: 'range', label: 'Range' },
+                                { key: 'asset_planner_organization', label: 'Asset Planner Org' }
                             ];
                             var html = '';
 
@@ -1928,7 +2164,7 @@ if (!defined('SPA_MODE')) {
                             html += '<div style="flex: 1 1 170px; max-width: 230px; min-width: 140px;">';
                             html += '<div class="input-group input-group-sm">';
                             html += '<div class="input-group-prepend"><span class="input-group-text bg-white border-right-0 text-muted" style="border-radius: 6px 0 0 6px;"><i class="fas fa-search" style="font-size: 0.72rem;"></i></span></div>';
-                            html += '<input type="text" class="form-control form-control-sm border-left-0" id="filter-storage-modal-search" placeholder="Search..." style="font-size: 0.78rem; border-radius: 0 6px 6px 0;">';
+                            html += '<input type="text" class="form-control form-control-sm border-left-0" id="filter-storage-modal-search" placeholder="Search anything data..." style="font-size: 0.78rem; border-radius: 0 6px 6px 0;">';
                             html += '</div>';
                             html += '</div>';
 
@@ -1980,22 +2216,55 @@ if (!defined('SPA_MODE')) {
                             var tbody = $('#tableStorageAssetDetailBody');
 
                             var pText = document.getElementById('selected-period-text');
-                            var periodVal = pText ? pText.textContent.trim() : '';
+                            var periodVal = currentSelectedPeriod || (pText ? pText.textContent.trim() : '');
                             if (periodVal === 'PILIH PERIODE DATA' || periodVal === '-') periodVal = '';
+                            periodVal = periodVal.replace(/\s*\((?:ALL\s+)?BATCH(?:\s+ALL)?\)\s*$/i, '').trim();
 
-                            if (!periodVal) {
-                                updateStorageModalFilters([]);
-                                tbody.html('<tr><td colspan="6" class="py-5 text-center text-muted bg-white"><i class="fas fa-folder-open fa-2x mb-2 d-block text-gray-300"></i>Belum ada data tersedia untuk status ini.</td></tr>');
-                                $('#storage-modal-count-display').text('0');
+                            window.storageAssetMappedCache = window.storageAssetMappedCache || {};
+
+                            function applyStepFilterAndRender(mapped) {
+                                var filteredRows = mapped;
+                                if (stepIndex === 2) {
+                                    filteredRows = mapped.filter(function (r) {
+                                        var ag = (r.range || '').toLowerCase();
+                                        return ag.includes('< 1') || ag.includes('<1') || ag.includes('< 3') || ag.includes('<3') || ag.includes('3-12') || ag.includes('less') || ag.includes('0-1');
+                                    });
+                                } else if (stepIndex === 3) {
+                                    filteredRows = mapped.filter(function (r) {
+                                        var ag = (r.range || '').toLowerCase();
+                                        return ag.includes('1-2') || ag.includes('1 - 2') || (ag.includes('> 1') && !ag.includes('> 2')) || (ag.includes('>1') && !ag.includes('>2')) || (ag.includes('1 tahun') && !ag.includes('< 1'));
+                                    });
+                                } else if (stepIndex === 4) {
+                                    filteredRows = mapped.filter(function (r) {
+                                        var ag = (r.range || '').toLowerCase();
+                                        return ag.includes('> 2') || ag.includes('>2') || ag.includes('2-3') || ag.includes('> 3') || ag.includes('>3') || ag.includes('more than 2');
+                                    });
+                                } else if (stepIndex === 5) {
+                                    filteredRows = mapped.filter(function (r) {
+                                        var cat = (r.category || '').toLowerCase();
+                                        var desc = (r.spec_name || '').toLowerCase();
+                                        return cat.includes('re-use') || cat.includes('reuse') || desc.includes('re-use') || desc.includes('reuse');
+                                    });
+                                }
+
+                                currentStorageModalRows = filteredRows;
+                                updateStorageModalFilters(currentStorageModalRows);
+                                renderStorageModalRows(currentStorageModalRows);
+                            }
+
+                            var cacheKey = periodVal || '__latest__';
+                            if (window.storageAssetMappedCache[cacheKey]) {
+                                applyStepFilterAndRender(window.storageAssetMappedCache[cacheKey]);
                                 $('#storageAssetDetailModal').modal('show');
                                 return;
                             }
 
-                            tbody.html('<tr><td colspan="6" class="py-5 text-center text-muted bg-white"><i class="fas fa-spinner fa-spin fa-2x text-primary mb-2 d-block"></i>Memuat data asset storage...</td></tr>');
+                            tbody.html('<tr><td colspan="12" class="py-5 text-left text-nowrap text-muted bg-white"><i class="fas fa-spinner fa-spin fa-2x text-primary mb-2 d-block"></i>Memuat data asset storage...</td></tr>');
                             $('#modalStorageDynamicFilterRow').empty();
                             $('#storage-modal-count-display').text('Memuat...');
+                            $('#storageAssetDetailModal').modal('show');
 
-                            var dataUrl = 'api/get_data.php?periode=' + encodeURIComponent(periodVal);
+                            var dataUrl = 'api/get_data.php?full=1' + (periodVal ? ('&periode=' + encodeURIComponent(periodVal)) : '');
 
                             fetch(dataUrl)
                                 .then(function (res) { return res.json(); })
@@ -2007,66 +2276,67 @@ if (!defined('SPA_MODE')) {
                                                     var k = keys[idx];
                                                     for (var rk in row) {
                                                         if (rk.toLowerCase().replace(/[^a-z0-9]/g, '') === k.toLowerCase().replace(/[^a-z0-9]/g, '')) {
-                                                            return row[rk];
+                                                            var v = row[rk];
+                                                            if (v !== undefined && v !== null && String(v).trim() !== '') {
+                                                                return String(v).trim();
+                                                            }
                                                         }
                                                     }
                                                 }
                                                 return '-';
                                             };
 
-                                            var sn = getFld(['serialnumber', 'sn', 'serial_number', 'no_seri']);
-                                            var desc = getFld(['itemdescription', 'deskripsi_item', 'nama_barang', 'item_name']);
-                                            var cat = getFld(['itemcategory', 'kategori', 'category']);
-                                            var site = getFld(['sitename', 'site_name', 'lokasi', 'location']);
-                                            var aging = getFld(['aging', 'umur_barang', 'aging_bucket', 'age']);
-                                            var nbv = getFld(['nbv', 'nilaibuku', 'nilai_buku', 'book_value']);
+                                            var specCode = getFld(['spec_code', 'speccode']);
+                                            var specName = getFld(['spec_name', 'specname', 'item_description', 'deskripsi_item', 'nama_barang']);
+                                            var regNo = getFld(['reg_no', 'regno', 'serialnumber', 'sn', 'serial_number']);
+                                            var org = getFld(['asset_planner_organization', 'assetplannerorg', 'asset_planner_org', 'org']);
+                                            var rawNbv = getFld(['nbv', 'nilaibuku', 'nilai_buku', 'book_value']);
+                                            var soResult = getFld(['so_result', 'soresult']);
+                                            var soLocation = getFld(['so_location', 'solocation', 'site_name', 'lokasi']);
+                                            var range = getFld(['range', 'aging', 'umur_barang']);
+                                            var subLocation = getFld(['sub_location', 'sublocation']);
+                                            var category = getFld(['category', 'itemcategory', 'kategori']);
+                                            var pGroup = getFld(['periode_group', 'periodegroup', 'periode']);
+                                            var status = getFld(['status']);
+
+                                            var formattedNbv = '-';
+                                            if (rawNbv !== '-' && !isNaN(Number(rawNbv))) {
+                                                formattedNbv = 'Rp ' + Number(rawNbv).toLocaleString('id-ID');
+                                            } else if (rawNbv && rawNbv !== '-') {
+                                                formattedNbv = rawNbv;
+                                            }
 
                                             return {
-                                                serial_number: sn,
-                                                item_description: desc,
-                                                category: cat,
-                                                site_name: site,
-                                                aging: aging,
-                                                nbv: (nbv !== '-' && !isNaN(nbv)) ? 'Rp ' + Number(nbv).toLocaleString('id-ID') : nbv
+                                                spec_code: specCode,
+                                                spec_name: specName,
+                                                reg_no: regNo,
+                                                asset_planner_organization: org,
+                                                nbv: formattedNbv,
+                                                so_result: soResult,
+                                                so_location: soLocation,
+                                                range: range,
+                                                sub_location: subLocation,
+                                                category: category,
+                                                periode_group: pGroup,
+                                                status: status
                                             };
                                         });
 
-                                        // Apply step-specific slice / filter
-                                        var filteredRows = mapped;
-                                        if (stepIndex === 2) {
-                                            filteredRows = mapped.filter(function (r) {
-                                                var ag = (r.aging || '').toLowerCase();
-                                                return ag.includes('< 1') || ag.includes('<1') || ag.includes('less') || ag.includes('0-1');
-                                            });
-                                        } else if (stepIndex === 3) {
-                                            filteredRows = mapped.filter(function (r) {
-                                                var ag = (r.aging || '').toLowerCase();
-                                                return ag.includes('1-2') || ag.includes('1 - 2') || ag.includes('> 1') || ag.includes('>1');
-                                            });
-                                        } else if (stepIndex === 4) {
-                                            filteredRows = mapped.filter(function (r) {
-                                                var ag = (r.aging || '').toLowerCase();
-                                                return ag.includes('> 2') || ag.includes('>2') || ag.includes('more than 2');
-                                            });
-                                        } else if (stepIndex === 5) {
-                                            filteredRows = mapped.filter(function (r) {
-                                                var cat = (r.category || '').toLowerCase();
-                                                var desc = (r.item_description || '').toLowerCase();
-                                                return cat.includes('re-use') || cat.includes('reuse') || desc.includes('re-use') || desc.includes('reuse');
-                                            });
+                                        window.storageAssetMappedCache[cacheKey] = mapped;
+                                        if (mapped.length > 0 && mapped[0].periode_group) {
+                                            window.storageAssetMappedCache[mapped[0].periode_group] = mapped;
                                         }
 
-                                        currentStorageModalRows = (filteredRows.length > 0) ? filteredRows : mapped.slice(0, 100);
-                                        updateStorageModalFilters(currentStorageModalRows);
-                                        renderStorageModalRows(currentStorageModalRows);
+                                        applyStepFilterAndRender(mapped);
                                     } else {
                                         updateStorageModalFilters([]);
-                                        tbody.html('<tr><td colspan="6" class="py-5 text-center text-muted bg-white"><i class="fas fa-folder-open fa-2x mb-2 d-block text-gray-300"></i>Belum ada data tersedia untuk status ini.</td></tr>');
+                                        tbody.html('<tr><td colspan="12" class="py-5 text-left text-nowrap text-muted bg-white"><i class="fas fa-folder-open fa-2x mb-2 d-block text-gray-300"></i>Belum ada data tersedia untuk status ini.</td></tr>');
                                         $('#storage-modal-count-display').text('0');
                                     }
                                 })
                                 .catch(function () {
-                                    tbody.html('<tr><td colspan="6" class="py-4 text-center text-danger bg-white"><i class="fas fa-exclamation-circle fa-2x mb-2 d-block"></i>Gagal memuat data dari server.</td></tr>');
+                                    updateStorageModalFilters([]);
+                                    tbody.html('<tr><td colspan="12" class="py-4 text-left text-nowrap text-danger bg-white"><i class="fas fa-exclamation-circle fa-2x mb-2 d-block"></i>Gagal memuat data dari server.</td></tr>');
                                     $('#storage-modal-count-display').text('0');
                                 });
 
@@ -2144,7 +2414,83 @@ if (!defined('SPA_MODE')) {
                                 });
                         }
 
-                        function loadPeriods() {
+                        function resetDashboardCards() {
+                            var pText = document.getElementById('selected-period-text');
+                            if (pText) pText.textContent = "PILIH PERIODE DATA";
+
+                            window.currentDashboardData = [];
+                            window.currentDashboardHeaders = [];
+                            if (window.FormulaController) {
+                                window.FormulaController.updateDashboardCards([], []);
+                            }
+                            if (window.updateDashReceivingTrendChart) {
+                                window.updateDashReceivingTrendChart([], [], [], [], '');
+                            }
+
+                            // 1. Reset Inbound Module Cards
+                            if (window.updateInboundFlowPieChart) {
+                                window.updateInboundFlowPieChart([0, 0, 0]);
+                            }
+                            var elPo = document.getElementById('flow-po-count');
+                            if (elPo) elPo.textContent = '0 PO';
+                            var elOntime = document.getElementById('flow-po-proses-delivery');
+                            if (elOntime) elOntime.textContent = '0 PO';
+                            var elTerlambat = document.getElementById('flow-po-terlambat-delivery');
+                            if (elTerlambat) elTerlambat.textContent = '0 PO';
+                            var elGr = document.getElementById('flow-total-gr');
+                            if (elGr) elGr.textContent = '0 GR';
+                            var elReg = document.getElementById('flow-done-count');
+                            if (elReg) elReg.textContent = '0 Unit';
+
+                            // 2. Reset Storage Module Cards
+                            var elInvTot = document.getElementById('inv-total-perangkat');
+                            if (elInvTot) elInvTot.textContent = '0 Unit';
+                            var elInvNbv = document.getElementById('inv-total-nbv');
+                            if (elInvNbv) elInvNbv.textContent = 'Rp 0';
+                            var elLeg1 = document.getElementById('inv-legend-1');
+                            if (elLeg1) elLeg1.textContent = '0 Unit';
+                            var elLeg2 = document.getElementById('inv-legend-2');
+                            if (elLeg2) elLeg2.textContent = 'Rp 0';
+                            if (window.updateInventorySummaryPieChart) {
+                                window.updateInventorySummaryPieChart(0, 0);
+                            }
+                            var elUtilRate = document.getElementById('storage-util-rate');
+                            if (elUtilRate) elUtilRate.textContent = '0%';
+                            var elUtilBar = document.getElementById('storage-util-bar');
+                            if (elUtilBar) elUtilBar.style.width = '0%';
+                            var elTotCap = document.getElementById('storage-total-capacity');
+                            if (elTotCap) elTotCap.textContent = '0 Lokasi';
+                            var elUsed = document.getElementById('storage-used');
+                            if (elUsed) elUsed.textContent = '0%';
+                            var elAvail = document.getElementById('storage-available');
+                            if (elAvail) elAvail.textContent = '0%';
+
+                            // 3. Reset Outbound Module Cards
+                            var elMr = document.getElementById('outbound-total-mr');
+                            if (elMr) elMr.textContent = '0 MR';
+                            var elPoMover = document.getElementById('outbound-total-mover');
+                            if (elPoMover) elPoMover.textContent = '0 PO';
+                            var elNilaiMover = document.getElementById('outbound-nilai-mover');
+                            if (elNilaiMover) elNilaiMover.textContent = 'Rp 0';
+                            var elSaving = document.getElementById('outbound-saving');
+                            if (elSaving) elSaving.textContent = 'Rp 0';
+
+                            var elClosed = document.getElementById('outbound-terkirim');
+                            if (elClosed) elClosed.textContent = '0';
+                            var elClosedPct = document.getElementById('outbound-progress-percent');
+                            if (elClosedPct) elClosedPct.textContent = '0%';
+                            var elClosedBar = document.getElementById('outbound-progress-bar');
+                            if (elClosedBar) elClosedBar.style.width = '0%';
+
+                            var elFulfill = document.getElementById('sub-fulfill-count');
+                            if (elFulfill) elFulfill.textContent = '0';
+                            var elPck = document.getElementById('sub-packing-count');
+                            if (elPck) elPck.textContent = '0';
+                            var elShp = document.getElementById('sub-shipped-count');
+                            if (elShp) elShp.textContent = '0';
+                        }
+
+                        function loadPeriods(preferredPeriod) {
                             fetch('api/get_periods.php')
                                 .then(function (r) { return r.json(); })
                                 .then(function (result) {
@@ -2159,24 +2505,38 @@ if (!defined('SPA_MODE')) {
                                         });
                                     }
                                     var availableYears = (result.years && result.years.length > 0) ? result.years : Object.keys(yearsSet).sort();
-                                    availableYears = (availableYears || []).map(function (y) { return String(y); });
-                                    if (!availableYears || availableYears.length === 0) {
-                                        availableYears = [(new Date()).getFullYear().toString()];
-                                    }
-                                    populateSelect('period-month-select', ALL_MONTHS, '-- Pilih Bulan --');
-                                    populateSelect('period-year-select', availableYears, '-- Pilih Tahun --');
+                                    availableYears = (window.WMSPeriodManager)
+                                        ? window.WMSPeriodManager.ensureCurrentYear(availableYears)
+                                        : availableYears;
 
-                                    var pText = document.getElementById('selected-period-text');
-                                    if (pText) pText.textContent = "PILIH PERIODE DATA";
+                                    if (window.WMSPeriodManager) {
+                                        window.WMSPeriodManager.populateSelect('period-month-select', ALL_MONTHS, '-- Pilih Bulan --');
+                                        window.WMSPeriodManager.populateSelect('period-year-select', availableYears, '-- Pilih Tahun --');
+                                    } else {
+                                        populateSelect('period-month-select', ALL_MONTHS, '-- Pilih Bulan --');
+                                        populateSelect('period-year-select', availableYears, '-- Pilih Tahun --');
+                                    }
 
-                                    if (window.FormulaController) {
-                                        window.FormulaController.updateDashboardCards([], []);
+                                    // Auto-select active period or default today period
+                                    var targetPeriod = preferredPeriod;
+                                    if (!targetPeriod && window.WMSPeriodManager) {
+                                        targetPeriod = window.WMSPeriodManager.getActivePeriod(result.data, availableYears);
+                                    } else if (!targetPeriod) {
+                                        targetPeriod = sessionStorage.getItem('wms_dashboard_period');
                                     }
-                                    if (window.updateDashReceivingTrendChart) {
-                                        window.updateDashReceivingTrendChart([], [], [], [], '');
-                                    }
-                                    if (window.updateDashKpiMonitoringChart) {
-                                        window.updateDashKpiMonitoringChart([null, null, null, null, null, null, null, null, null]);
+
+                                    if (targetPeriod) {
+                                        if (window.WMSPeriodManager) {
+                                            window.WMSPeriodManager.applyPeriodToNavbar(targetPeriod);
+                                        }
+                                        loadDashboardData(targetPeriod);
+                                    } else {
+                                        if (window.WMSPeriodManager) {
+                                            window.WMSPeriodManager.applyPeriodToNavbar(null);
+                                        }
+                                        resetDashboardCards();
+                                        var curYr = availableYears[availableYears.length - 1] || new Date().getFullYear().toString();
+                                        fetchTrendsData(curYr);
                                     }
                                 })
                                 .catch(function (err) {
@@ -2184,214 +2544,283 @@ if (!defined('SPA_MODE')) {
                                 });
                         }
 
-                        var btnLoad = document.getElementById('btn-load-period');
-                        if (btnLoad) {
-                            btnLoad.addEventListener('click', function () {
-                                var m = document.getElementById('period-month-select');
-                                var b = document.getElementById('period-batch-select');
-                                var y = document.getElementById('period-year-select');
-                                if (m && m.value && y && y.value) {
-                                    var period = (b && b.value) ? (m.value + ' ' + y.value + '-Batch' + b.value) : (m.value + ' ' + y.value);
-                                    loadDashboardData(period);
-                                    if (window.jQuery) {
-                                        $('#periodDropdown').dropdown('toggle');
-                                    }
+                        if (window.WMSPeriodManager) {
+                            window.WMSPeriodManager.registerPageHandler({
+                                onLoad: function (period) {
+                                    loadDashboardData(period, true);
+                                },
+                                onReset: function () {
+                                    _dashLoadedPeriod = null;
+                                    resetDashboardCards();
+                                    var curYr = (new Date()).getFullYear().toString();
+                                    fetchTrendsData(curYr);
                                 }
                             });
                         }
 
-                        var btnReset = document.getElementById('btn-reset-period');
-                        if (btnReset) {
-                            btnReset.addEventListener('click', function () {
-                                var m = document.getElementById('period-month-select');
-                                var b = document.getElementById('period-batch-select');
-                                var y = document.getElementById('period-year-select');
-                                if (m) m.value = '';
-                                if (b) b.value = '';
-                                if (y) y.value = '';
-                                updateLoadButton();
+                        function renderDashboardStorage(result) {
+                            if (result && result.status === 'success' && (result.summary || (result.data && result.data.length > 0))) {
+                                var headers = (result.data && result.data.length > 0) ? Object.keys(result.data[0]) : [];
+                                window.currentDashboardData = result.data || [];
+                                window.currentDashboardHeaders = headers;
+                                if (window.FormulaController) {
+                                    window.FormulaController.updateDashboardCards(result.data || [], headers, null, result.summary);
+                                }
 
-                                var pText = document.getElementById('selected-period-text');
-                                if (pText) pText.textContent = "PILIH PERIODE DATA";
-
+                                var totPerangkat = (result.summary && result.summary.total_asset !== undefined) ? result.summary.total_asset : (result.summary && result.summary.total_qty ? result.summary.total_qty : 0);
+                                var totNbv = (result.summary && result.summary.total_nbv !== undefined) ? result.summary.total_nbv : 0;
+                                var elInvTot = document.getElementById('inv-total-perangkat');
+                                if (elInvTot) elInvTot.textContent = Number(totPerangkat).toLocaleString('id-ID') + ' Unit';
+                                var elInvNbv = document.getElementById('inv-total-nbv');
+                                if (elInvNbv) elInvNbv.textContent = 'Rp ' + Number(totNbv).toLocaleString('id-ID');
+                                var elLeg1 = document.getElementById('inv-legend-1');
+                                if (elLeg1) elLeg1.textContent = Number(totPerangkat).toLocaleString('id-ID') + ' Unit';
+                                var elLeg2 = document.getElementById('inv-legend-2');
+                                if (elLeg2) elLeg2.textContent = 'Rp ' + Number(totNbv).toLocaleString('id-ID');
+                                if (window.updateInventorySummaryPieChart) {
+                                    window.updateInventorySummaryPieChart(totPerangkat, totNbv);
+                                }
+                            } else {
                                 window.currentDashboardData = [];
                                 window.currentDashboardHeaders = [];
                                 if (window.FormulaController) {
                                     window.FormulaController.updateDashboardCards([], []);
                                 }
-                                if (window.updateDashReceivingTrendChart) {
-                                    window.updateDashReceivingTrendChart([], [], [], [], '');
-                                }
-
-                                if (window.updateInboundFlowPieChart) {
-                                    window.updateInboundFlowPieChart([0, 0, 0]);
-                                }
-                                var elPo = document.getElementById('flow-po-count');
-                                if (elPo) elPo.textContent = '0 PO';
-                                var elOntime = document.getElementById('flow-po-proses-delivery');
-                                if (elOntime) elOntime.textContent = '0 PO';
-                                var elTerlambat = document.getElementById('flow-po-terlambat-delivery');
-                                if (elTerlambat) elTerlambat.textContent = '0 PO';
-                                var elGr = document.getElementById('flow-total-gr');
-                                if (elGr) elGr.textContent = '0 GR';
-                                var elReg = document.getElementById('flow-done-count');
-                                if (elReg) elReg.textContent = '0 Registrasi';
-
-                                var elMr = document.getElementById('outbound-total-mr');
-                                if (elMr) elMr.textContent = '0 MR';
-                                var elPck = document.getElementById('sub-packing-count');
-                                if (elPck) elPck.textContent = '0 Unit';
-                                var elShp = document.getElementById('sub-shipped-count');
-                                if (elShp) elShp.textContent = '0 Unit';
-                                var elTiba = document.getElementById('outbound-terkirim');
-                                if (elTiba) elTiba.textContent = '0 Selesai';
-                            });
+                                var elInvTot = document.getElementById('inv-total-perangkat');
+                                if (elInvTot) elInvTot.textContent = '0 Unit';
+                                var elInvNbv = document.getElementById('inv-total-nbv');
+                                if (elInvNbv) elInvNbv.textContent = 'Rp 0';
+                                var elLeg1 = document.getElementById('inv-legend-1');
+                                if (elLeg1) elLeg1.textContent = '0 Unit';
+                                var elLeg2 = document.getElementById('inv-legend-2');
+                                if (elLeg2) elLeg2.textContent = 'Rp 0';
+                            }
                         }
 
-                        function loadDashboardData(period) {
-                            var pText = document.getElementById('selected-period-text');
-                            if (pText) pText.textContent = (period.indexOf('-Batch') !== -1 ? period : period + ' (ALL BATCH)').toUpperCase();
+                        function renderDashboardInbound(inboundRes) {
+                            if (inboundRes && inboundRes.status === 'success' && inboundRes.counts) {
+                                var c = inboundRes.counts;
+                                var totalPoInbound = parseInt(c.total_po_inbound) || 0;
+                                var poOntime = parseInt(c.po_ontime_delivery) || 0;
+                                var poTerlambat = parseInt(c.po_terlambat_delivery) || 0;
+                                var totalGr = parseInt(c.total_gr) || 0;
+                                var totalReg = parseInt(c.total_registrasi) || 0;
 
-                            if (typeof Swal !== 'undefined') {
-                                Swal.fire({
-                                    title: 'Data Is Processing Please Wait',
-                                    allowOutsideClick: false,
-                                    allowEscapeKey: false,
-                                    didOpen: () => { Swal.showLoading(); }
-                                });
+                                if (window.updateInboundFlowPieChart) {
+                                    window.updateInboundFlowPieChart([totalPoInbound, poOntime, poTerlambat]);
+                                }
+                                var elPo = document.getElementById('flow-po-count');
+                                if (elPo) elPo.textContent = totalPoInbound.toLocaleString('id-ID') + ' PO';
+                                var elOntime = document.getElementById('flow-po-proses-delivery');
+                                if (elOntime) elOntime.textContent = poOntime.toLocaleString('id-ID') + ' PO';
+                                var elTerlambat = document.getElementById('flow-po-terlambat-delivery');
+                                if (elTerlambat) elTerlambat.textContent = poTerlambat.toLocaleString('id-ID') + ' PO';
+                                var elGr = document.getElementById('flow-total-gr');
+                                if (elGr) elGr.textContent = totalGr.toLocaleString('id-ID') + ' GR';
+                                var elReg = document.getElementById('flow-done-count');
+                                if (elReg) elReg.textContent = totalReg.toLocaleString('id-ID') + ' Unit';
                             }
+                        }
+
+                        function renderDashboardRack(rackRes) {
+                            if (rackRes && rackRes.status === 'success' && rackRes.summary) {
+                                var rs = rackRes.summary;
+                                var utilRate = parseFloat(rs.avg_utilization) || 0;
+                                var totalCap = parseInt(rs.total_capacity) || 0;
+                                var usedCap = parseInt(rs.used) || 0;
+                                var availCap = parseInt(rs.available) || 0;
+                                var usedPct = totalCap > 0 ? Math.round((usedCap / totalCap) * 100) : 0;
+                                var availPct = totalCap > 0 ? Math.round((availCap / totalCap) * 100) : 0;
+
+                                var elUtilRate = document.getElementById('storage-util-rate');
+                                if (elUtilRate) elUtilRate.textContent = utilRate.toFixed(1) + '%';
+
+                                var elUtilBar = document.getElementById('storage-util-bar');
+                                if (elUtilBar) {
+                                    elUtilBar.style.width = Math.min(100, Math.max(0, utilRate)) + '%';
+                                    if (utilRate <= 50) {
+                                        elUtilBar.style.background = 'linear-gradient(90deg, #1cc88a 0%, #13855c 100%)';
+                                    } else if (utilRate <= 75) {
+                                        elUtilBar.style.background = 'linear-gradient(90deg, #f6c23e 0%, #dfa827 100%)';
+                                    } else {
+                                        elUtilBar.style.background = 'linear-gradient(90deg, #4e73df 0%, #224abe 100%)';
+                                    }
+                                }
+
+                                var elTotCap = document.getElementById('storage-total-capacity');
+                                if (elTotCap) elTotCap.textContent = totalCap.toLocaleString('id-ID') + ' Lokasi';
+
+                                var elUsed = document.getElementById('storage-used');
+                                if (elUsed) elUsed.textContent = usedPct + '% (' + usedCap.toLocaleString('id-ID') + ')';
+
+                                var elAvail = document.getElementById('storage-available');
+                                if (elAvail) elAvail.textContent = availPct + '% (' + availCap.toLocaleString('id-ID') + ')';
+                            }
+                        }
+
+                        function renderDashboardOutbound(outboundRes) {
+                            if (outboundRes && outboundRes.status === 'success' && outboundRes.counts) {
+                                var oc = outboundRes.counts;
+                                var totalMr = parseInt(oc.total_mr) || 0;
+                                var totalPoMover = parseInt(oc.total_po_mover !== undefined ? oc.total_po_mover : oc.total_po) || 0;
+                                var nilaiPoMover = oc.total_po_price_formatted || ('Rp ' + (parseFloat(oc.total_po_price) || 0).toLocaleString('id-ID'));
+                                var efisiensiSaving = oc.saving_formatted || ('Rp ' + (parseFloat(oc.saving) || 0).toLocaleString('id-ID'));
+                                var mrClosed = parseInt(oc.mr_closed) || 0;
+                                var mrClosedPct = (typeof oc.mr_closed_percent !== 'undefined') ? parseFloat(oc.mr_closed_percent) : (totalMr > 0 ? Math.round((mrClosed / totalMr) * 100) : 0);
+                                var totalFulfilled = parseInt(oc.total_fulfilled || oc.tiba_di_lokasi || mrClosed) || 0;
+                                var totalPacked = parseInt(oc.total_packed) || 0;
+                                var totalShipped = parseInt(oc.total_shipped) || 0;
+
+                                var elMr = document.getElementById('outbound-total-mr');
+                                if (elMr) elMr.textContent = totalMr.toLocaleString('id-ID') + ' MR';
+                                var elPoMover = document.getElementById('outbound-total-mover');
+                                if (elPoMover) elPoMover.textContent = totalPoMover.toLocaleString('id-ID') + ' PO';
+                                var elNilaiMover = document.getElementById('outbound-nilai-mover');
+                                if (elNilaiMover) elNilaiMover.textContent = nilaiPoMover;
+                                var elSaving = document.getElementById('outbound-saving');
+                                if (elSaving) elSaving.textContent = efisiensiSaving;
+
+                                var elClosed = document.getElementById('outbound-terkirim');
+                                if (elClosed) elClosed.textContent = mrClosed.toLocaleString('id-ID');
+                                var elClosedPct = document.getElementById('outbound-progress-percent');
+                                if (elClosedPct) elClosedPct.textContent = mrClosedPct + '%';
+                                var elClosedBar = document.getElementById('outbound-progress-bar');
+                                if (elClosedBar) elClosedBar.style.width = mrClosedPct + '%';
+
+                                var elFulfill = document.getElementById('sub-fulfill-count');
+                                if (elFulfill) elFulfill.textContent = totalFulfilled.toLocaleString('id-ID');
+                                var elPck = document.getElementById('sub-packing-count');
+                                if (elPck) elPck.textContent = totalPacked.toLocaleString('id-ID');
+                                var elShp = document.getElementById('sub-shipped-count');
+                                if (elShp) elShp.textContent = totalShipped.toLocaleString('id-ID');
+                            }
+                        }
+
+                        function renderDashboardYearly(resData, yr) {
+                            if (resData && resData.status === 'success' && resData.data) {
+                                var mLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                                if (window.perangkatInChart && window.perangkatInChart.data) {
+                                    try {
+                                        if (!window.perangkatInChart.$datalabels) window.perangkatInChart.$datalabels = { _listened: true };
+                                        window.perangkatInChart.data.labels = mLabels;
+                                        window.perangkatInChart.data.datasets[0].data = resData.data.in;
+                                        window.perangkatInChart._recordsPerIndex = resData.data.in_details || [];
+                                        window.perangkatInChart._chartTitle = "Perangkat IN";
+                                        window.perangkatInChart.update(0);
+                                        if (window.FormulaController) {
+                                            window.FormulaController.makeChartClickable(window.perangkatInChart, "Perangkat IN");
+                                        }
+                                    } catch (e) { console.warn('perangkatInChart error:', e); }
+                                }
+                                if (window.perangkatOutChart && window.perangkatOutChart.data) {
+                                    try {
+                                        if (!window.perangkatOutChart.$datalabels) window.perangkatOutChart.$datalabels = { _listened: true };
+                                        window.perangkatOutChart.data.labels = mLabels;
+                                        window.perangkatOutChart.data.datasets[0].data = resData.data.out;
+                                        window.perangkatOutChart._recordsPerIndex = resData.data.out_details || [];
+                                        window.perangkatOutChart._chartTitle = "Perangkat OUT";
+                                        window.perangkatOutChart.update(0);
+                                        if (window.FormulaController) {
+                                            window.FormulaController.makeChartClickable(window.perangkatOutChart, "Perangkat OUT");
+                                        }
+                                    } catch (e) { console.warn('perangkatOutChart error:', e); }
+                                }
+                                if (window.updateDashReceivingTrendChart) {
+                                    window.updateDashReceivingTrendChart(
+                                        resData.data.in,
+                                        resData.data.out,
+                                        resData.data.in_details,
+                                        resData.data.out_details,
+                                        yr
+                                    );
+                                }
+                            } else {
+                                if (window.updateDashReceivingTrendChart) {
+                                    window.updateDashReceivingTrendChart([], [], [], [], yr);
+                                }
+                            }
+                        }
+
+                        var _dashLoadedPeriod = null;
+                        var _dashReqToken = 0;
+
+                        // Fetch JSON; never rejects (resolves null on error) so one slow/failed API
+                        // never blocks the others from rendering.
+                        function dashFetchJson(url) {
+                            return fetch(url)
+                                .then(function (r) { return r.ok ? r.json() : null; })
+                                .catch(function (e) { console.warn('Dashboard fetch failed:', url, e); return null; });
+                        }
+
+                        // Render every card & chart of the overview in ONE synchronous pass
+                        function renderDashboardAll(d, yr) {
+                            if (d.storage) renderDashboardStorage(d.storage);
+                            if (d.inbound) renderDashboardInbound({ status: 'success', counts: d.inbound });
+                            if (d.outbound) renderDashboardOutbound({ status: 'success', counts: d.outbound });
+                            if (d.rack) renderDashboardRack(d.rack);
+                            if (d.yearly) renderDashboardYearly(d.yearly, yr);
+                        }
+
+                        function loadDashboardData(period, force) {
+                            if (!period) return;
+                            // Skip duplicate loads for the same period (eager render + loadPeriods)
+                            if (!force && _dashLoadedPeriod === period) return;
+                            _dashLoadedPeriod = period;
+                            var myToken = ++_dashReqToken;
+
+                            currentSelectedPeriod = period;
+                            if (window.WMSPeriodManager) window.WMSPeriodManager.applyPeriodToNavbar(period);
+                            var pText = document.getElementById('selected-period-text');
+                            if (pText) pText.textContent = period.toUpperCase();
 
                             var parts = period.match(/^(\w+)\s+(\d{4})(?:-Batch(\d+))?$/);
+                            var monthName = parts ? parts[1] : '';
                             var yr = parts ? parts[2] : new Date().getFullYear().toString();
-                            var controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
-                            var timeoutTimer = controller ? setTimeout(function () { controller.abort(); }, 60000) : null;
 
-                            var fetchDashboard = fetch('api/get_data.php?periode=' + encodeURIComponent(period), { signal: controller ? controller.signal : undefined })
-                                .then(function (response) {
-                                    if (!response.ok) throw new Error('HTTP ' + response.status + ' on get_data');
-                                    return response.json();
+                            // Cache keys are SHARED with the module pages (Outbound/Inbound/Storage),
+                            // so the stored shape must match: inbound/outbound store `res.counts`.
+                            var keys = {
+                                storage: 'storage_data_' + period,
+                                inbound: 'inbound_counts_' + period,
+                                outbound: 'outbound_counts_' + period,
+                                rack: 'rack_util_' + monthName + '_' + yr,
+                                yearly: 'yearly_in_out_' + yr
+                            };
+
+                            // ─── INSTANT CACHE RENDERING (0ms, all cards in the same frame) ───
+                            if (window.WMSDataCache) {
+                                var cached = {};
+                                Object.keys(keys).forEach(function (k) { cached[k] = window.WMSDataCache.get(keys[k]); });
+                                // Legacy entries stored the full response; unwrap them
+                                ['inbound', 'outbound'].forEach(function (k) {
+                                    if (cached[k] && cached[k].counts) cached[k] = cached[k].counts;
                                 });
+                                renderDashboardAll(cached, yr);
+                            }
 
-                            var fetchYearly = fetch('api/get_yearly_in_out.php?year=' + encodeURIComponent(yr), { signal: controller ? controller.signal : undefined })
-                                .then(function (response) {
-                                    if (!response.ok) throw new Error('HTTP ' + response.status + ' on get_yearly_in_out');
-                                    return response.json();
-                                });
-
-                            var fetchInbound = fetch('api/get_inbound_status_detail.php?action=counts&periode=' + encodeURIComponent(period), { signal: controller ? controller.signal : undefined })
-                                .then(function (response) { return response.ok ? response.json() : null; })
-                                .catch(function () { return null; });
-
-                            var fetchOutbound = fetch('api/get_outbound_status_detail.php?action=counts&periode=' + encodeURIComponent(period), { signal: controller ? controller.signal : undefined })
-                                .then(function (response) { return response.ok ? response.json() : null; })
-                                .catch(function () { return null; });
-
-                            Promise.all([fetchDashboard, fetchYearly, fetchInbound, fetchOutbound])
-                                .then(function (results) {
-                                    var result = results[0];
-                                    var resData = results[1];
-                                    var inboundRes = results[2];
-                                    var outboundRes = results[3];
-
-                                    if (result && result.status === 'success' && (result.summary || (result.data && result.data.length > 0))) {
-                                        var headers = (result.data && result.data.length > 0) ? Object.keys(result.data[0]) : [];
-                                        window.currentDashboardData = result.data || [];
-                                        window.currentDashboardHeaders = headers;
-                                        if (window.FormulaController) {
-                                            window.FormulaController.updateDashboardCards(result.data || [], headers, null, result.summary);
-                                        }
-                                    } else {
-                                        window.currentDashboardData = [];
-                                        window.currentDashboardHeaders = [];
-                                        if (window.FormulaController) {
-                                            window.FormulaController.updateDashboardCards([], []);
-                                        }
-                                    }
-
-                                    if (inboundRes && inboundRes.status === 'success' && inboundRes.counts) {
-                                        var c = inboundRes.counts;
-                                        if (window.updateInboundFlowPieChart) {
-                                            window.updateInboundFlowPieChart([c.total_po_inbound, c.po_ontime_delivery, c.po_terlambat_delivery]);
-                                        }
-                                        var elPo = document.getElementById('flow-po-count');
-                                        if (elPo) elPo.textContent = c.total_po_inbound + ' PO';
-                                        var elOntime = document.getElementById('flow-po-proses-delivery');
-                                        if (elOntime) elOntime.textContent = c.po_ontime_delivery + ' PO';
-                                        var elTerlambat = document.getElementById('flow-po-terlambat-delivery');
-                                        if (elTerlambat) elTerlambat.textContent = c.po_terlambat_delivery + ' PO';
-                                        var elGr = document.getElementById('flow-total-gr');
-                                        if (elGr) elGr.textContent = c.total_gr + ' GR';
-                                        var elReg = document.getElementById('flow-done-count');
-                                        if (elReg) elReg.textContent = c.total_registrasi + ' Registrasi';
-                                    }
-
-                                    if (outboundRes && outboundRes.status === 'success' && outboundRes.counts) {
-                                        var oc = outboundRes.counts;
-                                        var elMr = document.getElementById('outbound-total-mr');
-                                        if (elMr) elMr.textContent = oc.total_mr + ' MR';
-                                        var elPck = document.getElementById('sub-packing-count');
-                                        if (elPck) elPck.textContent = oc.total_packed + ' Unit';
-                                        var elShp = document.getElementById('sub-shipped-count');
-                                        if (elShp) elShp.textContent = oc.total_shipped + ' Unit';
-                                        var elTiba = document.getElementById('outbound-terkirim');
-                                        if (elTiba) elTiba.textContent = oc.tiba_di_lokasi + ' Selesai';
-                                    }
-
-                                    if (resData && resData.status === 'success' && resData.data) {
-                                        var mLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-                                        if (window.perangkatInChart && window.perangkatInChart.data) {
-                                            try {
-                                                if (!window.perangkatInChart.$datalabels) window.perangkatInChart.$datalabels = { _listened: true };
-                                                window.perangkatInChart.data.labels = mLabels;
-                                                window.perangkatInChart.data.datasets[0].data = resData.data.in;
-                                                window.perangkatInChart._recordsPerIndex = resData.data.in_details || [];
-                                                window.perangkatInChart._chartTitle = "Perangkat IN";
-                                                window.perangkatInChart.update(0);
-                                                if (window.FormulaController) {
-                                                    window.FormulaController.makeChartClickable(window.perangkatInChart, "Perangkat IN");
-                                                }
-                                            } catch (e) { console.warn('perangkatInChart error:', e); }
-                                        }
-                                        if (window.perangkatOutChart && window.perangkatOutChart.data) {
-                                            try {
-                                                if (!window.perangkatOutChart.$datalabels) window.perangkatOutChart.$datalabels = { _listened: true };
-                                                window.perangkatOutChart.data.labels = mLabels;
-                                                window.perangkatOutChart.data.datasets[0].data = resData.data.out;
-                                                window.perangkatOutChart._recordsPerIndex = resData.data.out_details || [];
-                                                window.perangkatOutChart._chartTitle = "Perangkat OUT";
-                                                window.perangkatOutChart.update(0);
-                                                if (window.FormulaController) {
-                                                    window.FormulaController.makeChartClickable(window.perangkatOutChart, "Perangkat OUT");
-                                                }
-                                            } catch (e) { console.warn('perangkatOutChart error:', e); }
-                                        }
-                                        if (window.updateDashReceivingTrendChart) {
-                                            window.updateDashReceivingTrendChart(
-                                                resData.data.in,
-                                                resData.data.out,
-                                                resData.data.in_details,
-                                                resData.data.out_details,
-                                                yr
-                                            );
-                                        }
-                                    } else {
-                                        if (window.updateDashReceivingTrendChart) {
-                                            window.updateDashReceivingTrendChart([], [], [], [], yr);
-                                        }
-                                    }
-
-                                    if (typeof Swal !== 'undefined') Swal.close();
-                                })
-                                .catch(function (error) {
-                                    console.error('Error fetching data:', error);
-                                    if (typeof Swal !== 'undefined') {
-                                        var msg = (error.name === 'AbortError') ? 'Waktu koneksi melebihi batas (Timeout 60 detik).' : ('Gagal memuat data: ' + (error.message || 'Silakan coba lagi.'));
-                                        Swal.fire('Error', msg, 'error');
-                                    }
-                                })
-                                .finally(function () {
-                                    if (timeoutTimer) clearTimeout(timeoutTimer);
-                                });
+                            // ─── PARALLEL FETCHES, SINGLE SYNCHRONIZED RENDER ───
+                            Promise.all([
+                                dashFetchJson('api/get_data.php?periode=' + encodeURIComponent(period)),
+                                dashFetchJson('api/get_inbound_status_detail.php?action=counts&periode=' + encodeURIComponent(period)),
+                                dashFetchJson('api/get_outbound_status_detail.php?action=counts&periode=' + encodeURIComponent(period)),
+                                monthName ? dashFetchJson('api/get_rack_utilisasi.php?month=' + encodeURIComponent(monthName) + '&year=' + encodeURIComponent(yr)) : Promise.resolve(null),
+                                dashFetchJson('api/get_yearly_in_out.php?year=' + encodeURIComponent(yr))
+                            ]).then(function (r) {
+                                if (myToken !== _dashReqToken) return; // a newer period was requested
+                                var fresh = {
+                                    storage: r[0],
+                                    inbound: (r[1] && r[1].status === 'success') ? r[1].counts : null,
+                                    outbound: (r[2] && r[2].status === 'success') ? r[2].counts : null,
+                                    rack: r[3],
+                                    yearly: r[4]
+                                };
+                                if (window.WMSDataCache) {
+                                    Object.keys(keys).forEach(function (k) {
+                                        if (fresh[k]) window.WMSDataCache.set(keys[k], fresh[k]);
+                                    });
+                                }
+                                renderDashboardAll(fresh, yr);
+                            });
                         }
 
                         // Storage Utilization (Area / Rack) Dashboard Integration & Modal Handlers
@@ -2439,7 +2868,7 @@ if (!defined('SPA_MODE')) {
                                 if (periodParts.length >= 2) {
                                     var rawMonth = periodParts[0];
                                     periodMonth = rawMonth.charAt(0).toUpperCase() + rawMonth.slice(1).toLowerCase();
-                                    periodYear = periodParts[1];
+                                    periodYear = (periodParts[1] || '').split('-')[0].trim();
                                 }
                             }
 
@@ -2563,7 +2992,7 @@ if (!defined('SPA_MODE')) {
                             $('#modal-util-rendered-count').text(renderedItems.length);
 
                             if (renderedItems.length === 0) {
-                                tbody.html('<tr><td colspan="2" class="py-4 text-center text-muted bg-white font-italic"><i class="fas fa-inbox fa-2x mb-2 d-block text-gray-300"></i>Tidak ada data rack/area yang sesuai dengan filter.</td></tr>');
+                                tbody.html('<tr><td colspan="2" class="py-4 text-left text-nowrap text-muted bg-white font-italic"><i class="fas fa-inbox fa-2x mb-2 d-block text-gray-300"></i>Tidak ada data rack/area yang sesuai dengan filter.</td></tr>');
                                 return;
                             }
 
@@ -2573,7 +3002,7 @@ if (!defined('SPA_MODE')) {
                                     '<td class="text-left font-weight-bold text-gray-800 py-2.5 px-3" style="font-size: 0.85rem; white-space: nowrap;">' +
                                     item.name +
                                     '</td>' +
-                                    '<td class="py-2.5 px-3">' +
+                                    '<td class="text-left text-nowrap py-2.5 px-3">' +
                                     '<div class="d-flex align-items-center">' +
                                     '<span class="mr-2 font-weight-bold text-gray-800 text-right" style="min-width: 38px; font-size: 0.8rem;">' + item.avgCap + '%</span>' +
                                     '<div class="progress progress-sm flex-grow-1" style="height: 10px; border-radius: 5px; background-color: #eaecf4;">' +
@@ -2591,8 +3020,19 @@ if (!defined('SPA_MODE')) {
                             renderUtilisasiModalTable();
                         });
 
+                        if (window.initDashboardOverviewCharts) {
+                            window.initDashboardOverviewCharts();
+                        }
+                        var eagerPeriod = window.WMSPeriodManager ? window.WMSPeriodManager.getActivePeriod() : null;
+                        if (eagerPeriod) {
+                            loadDashboardData(eagerPeriod);
+                        }
                         loadPeriods();
-                        window.loadPeriods = loadPeriods;
+                        window.loadPeriods = function (preferredPeriod) {
+                            _dashLoadedPeriod = null;
+                            if (window.WMSDataCache) window.WMSDataCache.clear();
+                            loadPeriods(preferredPeriod);
+                        };
 
                         if (window.jQuery) {
                             $('#storageManagementCarousel').on('slide.bs.carousel', function (e) {

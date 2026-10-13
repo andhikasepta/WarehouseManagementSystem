@@ -69,7 +69,7 @@ function parseDateVal($val)
     if (!$val)
         return null;
     $str = trim((string) $val);
-    if (empty($str))
+    if (empty($str) || $str === '-' || $str === '0')
         return null;
 
     // Check if numeric (Excel serial date number)
@@ -78,21 +78,59 @@ function parseDateVal($val)
         return date('Y-m-d', $unixTimestamp);
     }
 
-    // Handle DD/MM/YYYY or DD-MM-YYYY formats
+    // Handle DD/MM/YYYY or DD-MM-YYYY formats (e.g. 19/06/2026 or 19-06-2026)
     if (preg_match('/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/', $str, $m)) {
         return sprintf('%04d-%02d-%02d', $m[3], $m[2], $m[1]);
     }
 
-    // Handle YYYY-MM-DD
-    if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $str)) {
-        return $str;
+    // Handle YYYY-MM-DD or YYYY/MM/DD
+    if (preg_match('/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/', $str, $m)) {
+        return sprintf('%04d-%02d-%02d', $m[1], $m[2], $m[3]);
     }
 
-    $timestamp = strtotime($str);
+    // Handle Indonesian month names in textual dates (e.g. "19 Juni 2026")
+    $indoMonths = [
+        'januari' => 'January', 'februari' => 'February', 'pebruari' => 'February',
+        'maret' => 'March', 'mei' => 'May', 'juni' => 'June', 'juli' => 'July',
+        'agustus' => 'August', 'september' => 'September', 'oktober' => 'October',
+        'nopember' => 'November', 'desember' => 'December'
+    ];
+    $cleanStr = str_ireplace(array_keys($indoMonths), array_values($indoMonths), $str);
+
+    $timestamp = strtotime($cleanStr);
     if ($timestamp !== false) {
         return date('Y-m-d', $timestamp);
     }
     return null;
+}
+
+function determinePeriodeGroup($targetDate, $fallbackDate = null, $selectedBatch = null, $fallbackPeriode = null)
+{
+    $dateToUse = $targetDate ?: $fallbackDate;
+    if ($dateToUse) {
+        $ts = strtotime($dateToUse);
+        if ($ts !== false) {
+            $month = date('F', $ts); // English month (e.g. June)
+            $year = date('Y', $ts);  // e.g. 2026
+            $day = (int) date('j', $ts); // e.g. 19
+
+            // If user explicitly chose Batch 1 or Batch 2, use that; otherwise:
+            // Day 1-15 -> Batch 1, Day 16+ -> Batch 2
+            if (!empty($selectedBatch) && is_numeric($selectedBatch)) {
+                $batchNum = intval($selectedBatch);
+            } else {
+                $batchNum = ($day <= 15) ? 1 : 2;
+            }
+
+            return "$month $year-Batch$batchNum";
+        }
+    }
+
+    if (!empty($fallbackPeriode)) {
+        return $fallbackPeriode;
+    }
+
+    return date('F Y') . '-Batch1';
 }
 
 function parseNumberVal($val)
@@ -123,13 +161,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($action === 'init') {
                 $month = trim((string) ($data['month'] ?? ''));
                 $year = trim((string) ($data['year'] ?? ''));
-                $batch = trim((string) ($data['batch'] ?? '1'));
+                $batch = trim((string) ($data['batch'] ?? ''));
+                $clearAll = !empty($data['clear_all']);
                 $periodeGroup = !empty($data['periode_group']) ? trim((string) $data['periode_group']) : null;
                 if (!$periodeGroup && !empty($month) && !empty($year)) {
-                    $periodeGroup = $month . ' ' . $year . '-Batch' . intval($batch);
+                    $bNum = !empty($batch) ? intval($batch) : 1;
+                    $periodeGroup = $month . ' ' . $year . '-Batch' . $bNum;
                 }
 
-                $clearAll = !empty($data['clear_all']);
                 if ($clearAll) {
                     $canDelete = canDelete('master_data_inbound') || canDelete('inbound') || canDelete('master_data');
                     if (!$canDelete) {
@@ -141,6 +180,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $delStmt = $pdo->prepare("DELETE FROM inbound_master WHERE periode_group = ?");
                     $delStmt->execute([$periodeGroup]);
                 }
+
+                if (file_exists(__DIR__ . '/../backend/cache_helper.php')) {
+                    require_once __DIR__ . '/../backend/cache_helper.php';
+                    clearWmsBackendCache();
+                }
+
                 echo json_encode(['status' => 'success', 'message' => 'Inbound master batch initialized']);
                 exit;
             } elseif ($action === 'append' || $action === 'batch') {
@@ -150,13 +195,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     exit;
                 }
 
-                // Determine Periode Group
                 $month = trim((string) ($data['month'] ?? ''));
                 $year = trim((string) ($data['year'] ?? ''));
-                $batch = trim((string) ($data['batch'] ?? '1'));
+                $batch = trim((string) ($data['batch'] ?? ''));
+                $autoGroup = !empty($data['auto_group']) || (empty($month) && empty($year));
                 $periodeGroup = !empty($data['periode_group']) ? trim((string) $data['periode_group']) : null;
                 if (!$periodeGroup && !empty($month) && !empty($year)) {
-                    $periodeGroup = $month . ' ' . $year . '-Batch' . intval($batch);
+                    $bNum = !empty($batch) ? intval($batch) : 1;
+                    $periodeGroup = $month . ' ' . $year . '-Batch' . $bNum;
                 }
 
                 $insertedCount = 0;
@@ -185,11 +231,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             $poNomor = getValCI($row, ['PO Nomor', 'po_nomor', 'PO_Nomor']);
                             $poDeskripsi = getValCI($row, ['PO Deskripsi', 'po_deskripsi', 'Deskripsi']);
                             $poVendor = getValCI($row, ['PO Vendor', 'po_vendor', 'Vendor']);
-                            $poTglGen = parseDateVal(getValCI($row, ['PO Tgl. Generate', 'PO Tgl Generate', 'po_tgl_generate', 'Tgl Generate']));
+                            $poTglGen = parseDateVal(getValCI($row, ['PO Tgl. Generate', 'PO Tgl Generate', 'po_tgl_generate', 'Tgl Generate', 'Tgl. Generate']));
                             $poNamaItem = getValCI($row, ['PO Nama Item', 'po_nama_item', 'Nama Item', 'Item']);
                             $poQty = parseNumberVal(getValCI($row, ['PO Qty Item', 'po_qty_item', 'Qty Item', 'Qty']));
                             $poUomItem = getValCI($row, ['PO UoM Item', 'po_uom_item', 'UoM Item', 'UoM', 'Satuan']);
-                            $poTargetDel = parseDateVal(getValCI($row, ['PO Target Delivery', 'po_target_delivery', 'Target Delivery']));
+                            $poTargetDel = parseDateVal(getValCI($row, ['PO Target Delivery', 'po_target_delivery', 'Target Delivery', 'PO Delivery Target', 'Delivery Target']));
                             $projectId = getValCI($row, ['Project ID', 'project_id', 'Project_ID', 'ProjectID']);
 
                             // Skip entirely empty rows
@@ -197,10 +243,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 continue;
                             }
 
-                            // Fallback row period if not explicitly set
-                            $rowPeriod = $periodeGroup;
+                            // Dynamic Period Grouping from PO Target Delivery
+                            // If autoGroup is true OR target delivery exists, determine row period from PO Target Delivery
+                            $rowPeriod = null;
+                            if ($poTargetDel || $autoGroup) {
+                                $rowPeriod = determinePeriodeGroup($poTargetDel, $poTglGen, $batch, $periodeGroup);
+                            } else {
+                                $rowPeriod = $periodeGroup;
+                            }
+
                             if (!$rowPeriod) {
                                 $rowPeriod = getValCI($row, ['Periode Group', 'periode_group', 'Periode', 'periode']);
+                            }
+                            if (!$rowPeriod) {
+                                $rowPeriod = determinePeriodeGroup($poTargetDel, $poTglGen, $batch, null);
                             }
 
                             $placeholders[] = "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
@@ -241,13 +297,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                     $pdo->commit();
                 }
-                echo json_encode(['status' => 'success', 'message' => "$insertedCount data berhasil disimpan" . ($periodeGroup ? " untuk periode $periodeGroup" : "") . "!"]);
+                echo json_encode(['status' => 'success', 'message' => "$insertedCount data berhasil disimpan!"]);
                 exit;
             } elseif ($action === 'finalize') {
+                if (file_exists(__DIR__ . '/../backend/cache_helper.php')) {
+                    require_once __DIR__ . '/../backend/cache_helper.php';
+                    clearWmsBackendCache();
+                }
                 echo json_encode(['status' => 'success', 'message' => 'Inbound master batch finalized']);
                 exit;
             } elseif ($action === 'single_save') {
                 $id = isset($data['id']) && is_numeric($data['id']) ? (int) $data['id'] : null;
+                $tglDel = parseDateVal($data['po_target_delivery'] ?? null);
+                $tglGen = parseDateVal($data['po_tgl_generate'] ?? null);
+                $rowPeriod = !empty($data['periode_group']) ? trim((string) $data['periode_group']) : determinePeriodeGroup($tglDel, $tglGen);
 
                 if ($id) {
                     $stmt = $pdo->prepare("UPDATE inbound_master SET 
@@ -269,15 +332,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $data['po_nomor'] ?? null,
                         $data['po_deskripsi'] ?? null,
                         $data['po_vendor'] ?? null,
-                        parseDateVal($data['po_tgl_generate'] ?? null),
+                        $tglGen,
                         $data['po_nama_item'] ?? null,
                         parseNumberVal($data['po_qty_item'] ?? 0),
                         $data['po_uom_item'] ?? null,
-                        parseDateVal($data['po_target_delivery'] ?? null),
+                        $tglDel,
                         $data['project_id'] ?? null,
-                        $data['periode_group'] ?? null,
+                        $rowPeriod,
                         $id
                     ]);
+                    if (file_exists(__DIR__ . '/../backend/cache_helper.php')) {
+                        require_once __DIR__ . '/../backend/cache_helper.php';
+                        clearWmsBackendCache();
+                    }
                     echo json_encode(['status' => 'success', 'message' => 'Record updated successfully']);
                 } else {
                     $stmt = $pdo->prepare("INSERT INTO inbound_master (
@@ -299,14 +366,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $data['po_nomor'] ?? null,
                         $data['po_deskripsi'] ?? null,
                         $data['po_vendor'] ?? null,
-                        parseDateVal($data['po_tgl_generate'] ?? null),
+                        $tglGen,
                         $data['po_nama_item'] ?? null,
                         parseNumberVal($data['po_qty_item'] ?? 0),
                         $data['po_uom_item'] ?? null,
-                        parseDateVal($data['po_target_delivery'] ?? null),
+                        $tglDel,
                         $data['project_id'] ?? null,
-                        $data['periode_group'] ?? null
+                        $rowPeriod
                     ]);
+                    if (file_exists(__DIR__ . '/../backend/cache_helper.php')) {
+                        require_once __DIR__ . '/../backend/cache_helper.php';
+                        clearWmsBackendCache();
+                    }
                     echo json_encode(['status' => 'success', 'message' => 'Record created successfully']);
                 }
                 exit;

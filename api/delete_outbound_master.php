@@ -35,12 +35,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             $stmt = $pdo->prepare("DELETE FROM outbound_master WHERE id = ?");
             $stmt->execute([$id]);
+            require_once __DIR__ . '/../backend/cache_helper.php';
+            clearWmsBackendCache();
             echo json_encode(['status' => 'success', 'message' => 'Data Outbound berhasil dihapus']);
             exit;
         }
 
         if ($action === 'truncate_all' || $action === 'delete_all' || empty($action)) {
             $pdo->exec("TRUNCATE TABLE outbound_master");
+            require_once __DIR__ . '/../backend/cache_helper.php';
+            clearWmsBackendCache();
             echo json_encode(['status' => 'success', 'message' => 'Semua data Outbound Master berhasil dihapus']);
             exit;
         } else {

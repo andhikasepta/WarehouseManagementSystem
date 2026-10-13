@@ -209,7 +209,7 @@ if (!defined('SPA_MODE')) {
 
                     <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog"
                         aria-labelledby="exampleModalLabel" aria-hidden="true">
-                        <div class="modal-dialog" role="document">
+                        <div class="modal-dialog modal-dialog-centered" role="document">
                             <div class="modal-content">
                                 <div class="modal-header">
                                     <h5 class="modal-title" id="exampleModalLabel">Logout</h5>
@@ -241,7 +241,7 @@ if (!defined('SPA_MODE')) {
                     <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 
                     <!-- Page level custom scripts -->
-                    <script src="frontend/js/formula-controller.js?v=<?= time() ?>"></script>
+                    <script src="frontend/js/formula-controller.js?v=<?= @filemtime((defined('ROOT_PATH') ? ROOT_PATH : dirname(__DIR__, 2) . '/') . 'frontend/js/formula-controller.js') ?>"></script>
                     <script src="frontend/js/demo/chart-bar-demo.js?v=8"></script>
                     <script src="frontend/js/demo/chart-horizontal-bar-demo.js?v=5"></script>
 
@@ -280,32 +280,39 @@ if (!defined('SPA_MODE')) {
 
                                         // Build sorted year list ascending
                                         var availableYears = (result.years && result.years.length > 0) ? result.years : Object.keys(yearsSet).sort();
-                                        availableYears = (availableYears || []).map(function (y) { return String(y); });
-                                        if (!availableYears || availableYears.length === 0) {
-                                            availableYears = [(new Date()).getFullYear().toString()];
+                                        availableYears = (window.WMSPeriodManager)
+                                            ? window.WMSPeriodManager.ensureCurrentYear(availableYears)
+                                            : availableYears;
+
+                                        if (window.WMSPeriodManager) {
+                                            window.WMSPeriodManager.populateSelect('period-month-select', ALL_MONTHS, '-- Pilih Bulan --');
+                                            window.WMSPeriodManager.populateSelect('period-year-select', availableYears, '-- Pilih Tahun --');
+                                            window.WMSPeriodManager.populateSelect('deleteMonthSelect', ALL_MONTHS, '-- Pilih Bulan --');
+                                            window.WMSPeriodManager.populateSelect('deleteYearSelect', availableYears, '-- Pilih Tahun --');
+                                        } else {
+                                            populateSelect('period-month-select', ALL_MONTHS, '-- Pilih Bulan --');
+                                            populateSelect('period-year-select', availableYears, '-- Pilih Tahun --');
+                                            populateSelect('deleteMonthSelect', ALL_MONTHS, '-- Pilih Bulan --');
+                                            populateSelect('deleteYearSelect', availableYears, '-- Pilih Tahun --');
                                         }
 
-                                        // Populate navbar Month select (always all 12 months)
-                                        populateSelect('period-month-select', ALL_MONTHS, '-- Pilih Bulan --');
-                                        // Populate navbar Year select (dynamic from DB)
-                                        populateSelect('period-year-select', availableYears, '-- Pilih Tahun --');
+                                        var targetPeriod = selectPeriod;
+                                        if (!targetPeriod && window.WMSPeriodManager) {
+                                            targetPeriod = window.WMSPeriodManager.getActivePeriod(result.data, availableYears);
+                                        }
 
-                                        // Populate delete modal selects
-                                        populateSelect('deleteMonthSelect', ALL_MONTHS, '-- Pilih Bulan --');
-                                        populateSelect('deleteYearSelect', availableYears, '-- Pilih Tahun --');
-
-                                        // If a specific period was requested (e.g. after upload), pre-select it
-                                        if (selectPeriod) {
-                                            preselectPeriod(selectPeriod);
-                                            loadDataForPeriod(selectPeriod);
-                                        } else {
-                                            document.getElementById('selected-period-text').textContent = "PILIH PERIODE DATA";
-                                            if (window.FormulaController) {
-                                                window.FormulaController.updateDashboardCards([], []);
-                                                if (window.FormulaController.resetRackUtilisasi) {
-                                                    window.FormulaController.resetRackUtilisasi();
-                                                }
+                                        if (targetPeriod) {
+                                            if (window.WMSPeriodManager) {
+                                                window.WMSPeriodManager.applyPeriodToNavbar(targetPeriod);
+                                            } else {
+                                                preselectPeriod(targetPeriod);
                                             }
+                                            loadDataForPeriod(targetPeriod);
+                                        } else {
+                                            if (window.WMSPeriodManager) {
+                                                window.WMSPeriodManager.applyPeriodToNavbar(null);
+                                            }
+                                            resetWarehouseCards();
                                         }
                                     })
                                     .catch(function (err) {
@@ -313,122 +320,101 @@ if (!defined('SPA_MODE')) {
                                     });
                             }
 
-                            function populateSelect(selectId, items, placeholder) {
-                                var sel = document.getElementById(selectId);
-                                if (!sel) return;
-                                sel.replaceChildren();
-                                var defOpt = document.createElement('option');
-                                defOpt.value = '';
-                                defOpt.textContent = placeholder;
-                                sel.appendChild(defOpt);
-                                (items || []).forEach(function (item) {
-                                    var opt = document.createElement('option');
-                                    opt.value = item;
-                                    opt.textContent = String(item).toUpperCase();
-                                    sel.appendChild(opt);
-                                });
-                            }
-
-                            function preselectPeriod(period) {
-                                if (!period) return;
-                                // Parse "Month Year-BatchN" format
-                                var match = period.match(/^(\w+)\s+(\d{4})-Batch(\d+)$/i);
-                                if (match) {
-                                    var mSel = document.getElementById('period-month-select');
-                                    var bSel = document.getElementById('period-batch-select');
-                                    var ySel = document.getElementById('period-year-select');
-                                    if (mSel) mSel.value = match[1];
-                                    if (bSel) bSel.value = match[3];
-                                    if (ySel) ySel.value = match[2];
-                                    updateLoadButton();
-                                } else {
-                                    var parts = period.split(' ');
-                                    if (parts.length >= 2) {
-                                        var mSel = document.getElementById('period-month-select');
-                                        var ySel = document.getElementById('period-year-select');
-                                        if (mSel) mSel.value = parts[0];
-                                        if (ySel) ySel.value = parts[1];
-                                        updateLoadButton();
+                            function resetWarehouseCards() {
+                                var pText = document.getElementById('selected-period-text');
+                                if (pText) pText.textContent = "PILIH PERIODE DATA";
+                                if (window.FormulaController) {
+                                    window.FormulaController.updateDashboardCards([], []);
+                                    if (window.FormulaController.resetRackUtilisasi) {
+                                        window.FormulaController.resetRackUtilisasi();
                                     }
+                                }
+                                if (window.perangkatInChart && window.perangkatInChart.data) {
+                                    window.perangkatInChart.data.datasets[0].data = [];
+                                    window.perangkatInChart.update(0);
+                                }
+                                if (window.perangkatOutChart && window.perangkatOutChart.data) {
+                                    window.perangkatOutChart.data.datasets[0].data = [];
+                                    window.perangkatOutChart.update(0);
                                 }
                             }
 
-                            function updateLoadButton() {
-                                var m = document.getElementById('period-month-select');
-                                var y = document.getElementById('period-year-select');
-                                var btn = document.getElementById('btn-load-period');
-                                if (btn) {
-                                    btn.disabled = !(m && m.value && y && y.value);
-                                }
-                            }
-
-                            var monthSel = document.getElementById('period-month-select');
-                            var batchSel = document.getElementById('period-batch-select');
-                            var yearSel = document.getElementById('period-year-select');
-                            if (monthSel) monthSel.addEventListener('change', updateLoadButton);
-                            if (batchSel) batchSel.addEventListener('change', updateLoadButton);
-                            if (yearSel) yearSel.addEventListener('change', updateLoadButton);
-
-                            // ── Load button click ──
-                            var btnLoad = document.getElementById('btn-load-period');
-                            if (btnLoad) {
-                                btnLoad.addEventListener('click', function () {
-                                    var m = document.getElementById('period-month-select');
-                                    var b = document.getElementById('period-batch-select');
-                                    var y = document.getElementById('period-year-select');
-                                    if (m && m.value && y && y.value) {
-                                        var period = (b && b.value) ? (m.value + ' ' + y.value + '-Batch' + b.value) : (m.value + ' ' + y.value);
-                                        loadDataForPeriod(period);
-                                        $(periodMenu).closest('.dropdown').find('.dropdown-toggle').dropdown('toggle');
-                                    }
-                                });
-                            }
-
-                            // ── Reset button click ──
-                            var btnReset = document.getElementById('btn-reset-period');
-                            if (btnReset) {
-                                btnReset.addEventListener('click', function () {
-                                    if (monthSel) monthSel.value = '';
-                                    if (batchSel) batchSel.value = '';
-                                    if (yearSel) yearSel.value = '';
-                                    updateLoadButton();
-                                    document.getElementById('selected-period-text').textContent = "PILIH PERIODE DATA";
-                                    if (window.FormulaController) {
-                                        window.FormulaController.updateDashboardCards([], []);
-                                    }
-                                    if (window.perangkatInChart && window.perangkatInChart.data) {
-                                        window.perangkatInChart.data.datasets[0].data = [];
-                                        window.perangkatInChart.update(0);
-                                    }
-                                    if (window.perangkatOutChart && window.perangkatOutChart.data) {
-                                        window.perangkatOutChart.data.datasets[0].data = [];
-                                        window.perangkatOutChart.update(0);
+                            if (window.WMSPeriodManager) {
+                                window.WMSPeriodManager.registerPageHandler({
+                                    onLoad: function (period) {
+                                        loadDataForPeriod(period, true);
+                                    },
+                                    onReset: function () {
+                                        _loadedPeriod = null;
+                                        resetWarehouseCards();
                                     }
                                 });
                             }
 
                             // ── Fetch & render data for a period ──
-                            function loadDataForPeriod(period) {
-                                document.getElementById('selected-period-text').textContent = (period.indexOf('-Batch') !== -1 ? period : period + ' (ALL BATCH)').toUpperCase();
-
-                                if (typeof Swal !== 'undefined') {
-                                    Swal.fire({
-                                        title: 'Data Is Processing Please Wait',
-                                        allowOutsideClick: false,
-                                        allowEscapeKey: false,
-                                        didOpen: () => {
-                                            Swal.showLoading();
-                                        }
-                                    });
+                            var _loadedPeriod = null;
+                            var _reqToken = 0;
+                            function loadDataForPeriod(period, force) {
+                                if (!period) return;
+                                // Skip duplicate loads for the same period (eager + loadPeriods)
+                                if (!force && _loadedPeriod === period) return;
+                                _loadedPeriod = period;
+                                var myToken = ++_reqToken;
+                                if (window.WMSPeriodManager) {
+                                    window.WMSPeriodManager.applyPeriodToNavbar(period);
+                                }
+                                var pText = document.getElementById('selected-period-text');
+                                if (pText) {
+                                    pText.textContent = period.toUpperCase();
                                 }
 
                                 var mMatch = period.match(/\b(Januari|January|Jan|Februari|February|Feb|Maret|March|Mar|April|Apr|Mei|May|Juni|June|Jun|Juli|July|Jul|Agustus|August|Agu|Aug|September|Sep|Oktober|October|Okt|Oct|November|Nov|Nop|Desember|December|Des|Dec)\b/i);
                                 var yMatch = period.match(/\b(20\d{2})\b/);
                                 var month = mMatch ? mMatch[1] : '';
-                                var yr = yMatch ? yMatch[1] : '';
+                                var yr = yMatch ? yMatch[1] : (new Date().getFullYear().toString());
+
+                                var cacheKeyDash = 'storage_data_' + period;
+                                var cacheKeyYearly = 'yearly_in_out_' + yr;
+
+                                // Instant cache check: render in 0ms!
+                                if (window.WMSDataCache) {
+                                    var cachedDash = window.WMSDataCache.get(cacheKeyDash);
+                                    if (cachedDash && (cachedDash.summary || (cachedDash.data && cachedDash.data.length > 0))) {
+                                        var headers = (cachedDash.data && cachedDash.data.length > 0) ? Object.keys(cachedDash.data[0]) : [];
+                                        window.currentDashboardData = cachedDash.data || [];
+                                        window.currentDashboardHeaders = headers;
+                                        if (window.FormulaController) {
+                                            window.FormulaController.updateDashboardCards(cachedDash.data || [], headers, null, cachedDash.summary);
+                                        }
+                                    }
+                                    var cachedYearly = window.WMSDataCache.get(cacheKeyYearly);
+                                    if (cachedYearly && cachedYearly.status === 'success' && cachedYearly.data) {
+                                        var mLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                                        if (window.perangkatInChart && window.perangkatInChart.data) {
+                                            try {
+                                                window.perangkatInChart.data.labels = mLabels;
+                                                window.perangkatInChart.data.datasets[0].data = cachedYearly.data.in;
+                                                window.perangkatInChart._recordsPerIndex = cachedYearly.data.in_details || [];
+                                                window.perangkatInChart._chartTitle = "Perangkat IN";
+                                                window.perangkatInChart.update(0);
+                                                if (window.FormulaController) window.FormulaController.makeChartClickable(window.perangkatInChart, "Perangkat IN");
+                                            } catch (e) {}
+                                        }
+                                        if (window.perangkatOutChart && window.perangkatOutChart.data) {
+                                            try {
+                                                window.perangkatOutChart.data.labels = mLabels;
+                                                window.perangkatOutChart.data.datasets[0].data = cachedYearly.data.out;
+                                                window.perangkatOutChart._recordsPerIndex = cachedYearly.data.out_details || [];
+                                                window.perangkatOutChart._chartTitle = "Perangkat OUT";
+                                                window.perangkatOutChart.update(0);
+                                                if (window.FormulaController) window.FormulaController.makeChartClickable(window.perangkatOutChart, "Perangkat OUT");
+                                            } catch (e) {}
+                                        }
+                                    }
+                                }
 
                                 var controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
-                                var timeoutTimer = controller ? setTimeout(function () { controller.abort(); }, 60000) : null;
+                                var timeoutTimer = controller ? setTimeout(function () { controller.abort(); }, 45000) : null;
 
                                 var fetchDashboard = fetch('api/get_data.php?periode=' + encodeURIComponent(period), { signal: controller ? controller.signal : undefined })
                                     .then(function (response) {
@@ -443,16 +429,28 @@ if (!defined('SPA_MODE')) {
                                     })
                                     : Promise.resolve(null);
 
+                                // Rack utilisasi fetched in parallel with the other requests
+                                if (window.FormulaController && window.FormulaController.loadRackUtilisasi && month && yr) {
+                                    window.FormulaController.loadRackUtilisasi(month, yr);
+                                }
+
                                 // Execute all requests in parallel for maximum speed
                                 Promise.all([fetchDashboard, fetchYearly])
                                     .then(function (results) {
+                                        if (myToken !== _reqToken) return; // stale response, newer period requested
                                         var result = results[0];
                                         var resData = results[1];
 
-                                        // 1. Synchronously update dashboard cards & main charts (Bar, Horizontal, Aging)
+                                        if (result && window.WMSDataCache) {
+                                            window.WMSDataCache.set(cacheKeyDash, result);
+                                        }
+                                        if (resData && window.WMSDataCache) {
+                                            window.WMSDataCache.set(cacheKeyYearly, resData);
+                                        }
+
+                                        // 1. Synchronously update dashboard cards & main charts
                                         if (result && result.status === 'success' && (result.summary || (result.data && result.data.length > 0))) {
                                             var rowCount = result.summary ? result.summary.total_qty : (result.data ? result.data.length : 0);
-                                            console.log("Loaded data from database:", rowCount, "rows for", period);
                                             var headers = (result.data && result.data.length > 0) ? Object.keys(result.data[0]) : [];
                                             window.currentDashboardData = result.data || [];
                                             window.currentDashboardHeaders = headers;
@@ -465,12 +463,9 @@ if (!defined('SPA_MODE')) {
                                             }
                                         }
 
-                                        // 2. Load Rack Utilisasi (Kapasitas per rak, Utilisasi Space, Free Space)
-                                        if (window.FormulaController && window.FormulaController.loadRackUtilisasi && month && yr) {
-                                            window.FormulaController.loadRackUtilisasi(month, yr);
-                                        }
+                                        // 2. Rack Utilisasi already requested in parallel above
 
-                                        // 2. Synchronously update Yearly IN & OUT charts at the exact same moment
+                                        // 3. Synchronously update Yearly IN & OUT charts
                                         if (resData && resData.status === 'success' && resData.data) {
                                             var mLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
                                             if (window.perangkatInChart && window.perangkatInChart.data) {
@@ -500,26 +495,21 @@ if (!defined('SPA_MODE')) {
                                                 } catch (e) { console.warn('perangkatOutChart error:', e); }
                                             }
                                         }
-
-                                        if (typeof Swal !== 'undefined') Swal.close();
                                     })
                                     .catch(function (error) {
                                         console.error('Error fetching data:', error);
-                                        if (typeof Swal !== 'undefined') {
-                                            var msg = (error.name === 'AbortError') ? 'Waktu koneksi melebihi batas (Timeout 45 detik).' : ('Gagal memuat data: ' + (error.message || 'Silakan coba lagi.'));
-                                            Swal.fire('Error', msg, 'error');
-                                        }
                                     })
                                     .finally(function () {
                                         if (timeoutTimer) clearTimeout(timeoutTimer);
                                     });
                             }
 
-                            // ── Initial load ──
-                            loadPeriods();
-
                             // Expose globally so excel-upload.js can trigger after upload
-                            window.loadPeriods = loadPeriods;
+                            window.loadPeriods = function (selectPeriod) {
+                                _loadedPeriod = null;
+                                if (window.WMSDataCache) { window.WMSDataCache.clear('storage_data_'); window.WMSDataCache.clear('yearly_in_out_'); }
+                                loadPeriods(selectPeriod);
+                            };
 
                             // ── Delete Data Logic ──
                             var btnConfirmDelete = document.getElementById('btn-confirm-delete');
@@ -595,7 +585,7 @@ if (!defined('SPA_MODE')) {
                                                 }
                                             }
                                             // Refresh period selects
-                                            loadPeriods();
+                                            window.loadPeriods();
                                         } else {
                                             if (typeof Swal !== 'undefined') {
                                                 Swal.fire('Error', 'Error deleting data: ' + result.message, 'error');
@@ -613,12 +603,19 @@ if (!defined('SPA_MODE')) {
                                         }
                                     });
                             }
+
+                            // Initialize periods and active month on load
+                            var eagerPeriod = window.WMSPeriodManager ? window.WMSPeriodManager.getActivePeriod() : null;
+                            if (eagerPeriod) {
+                                loadDataForPeriod(eagerPeriod);
+                            }
+                            loadPeriods();
                         });
                     </script>
 
 <!-- Rack Detail Modal -->
 <div class="modal fade" id="rackDetailModal" tabindex="-1" role="dialog" aria-labelledby="rackDetailModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl" role="document">
+    <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header py-2 px-3">
                 <h6 class="modal-title font-weight-bold text-primary" id="rackDetailModalLabel">

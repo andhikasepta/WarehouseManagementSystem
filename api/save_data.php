@@ -242,6 +242,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     ]);
                 }
                 $pdo->commit();
+
+                require_once __DIR__ . '/../backend/cache_helper.php';
+                clearWmsBackendCache();
                 
                 // Get all periods for response
                 $periodStmt = $pdo->query("SELECT DISTINCT periode_group FROM assets WHERE periode_group IS NOT NULL");

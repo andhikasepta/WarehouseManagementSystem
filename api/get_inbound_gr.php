@@ -110,13 +110,12 @@ try {
     $whereConditions = [];
     $params = [];
 
-    // Global search
+    // Global search — search across ALL columns
     if (!empty($searchValue)) {
         $searchTerm = '%' . $searchValue . '%';
-        $searchFields = ['no_reg', 'sn', 'pn', 'product_name', 'pr_no', 'po_no', 'do_no', 'gr_no', 'nama_project', 'vendor_name', 'periode_group'];
         $clauses = [];
-        foreach ($searchFields as $f) {
-            $clauses[] = "{$q}{$f}{$q} $likeOp ?";
+        foreach ($columns as $f) {
+            $clauses[] = "{$q}{$f}{$q}::text $likeOp ?";
             $params[] = $searchTerm;
         }
         $whereConditions[] = '(' . implode(' OR ', $clauses) . ')';
@@ -129,10 +128,10 @@ try {
                 $colName = $columns[$colIdx];
                 $colSearchVal = $colData['search']['value'];
                 if (preg_match('/^\^(.*)\$$/', $colSearchVal, $m)) {
-                    $whereConditions[] = "{$q}{$colName}{$q} = ?";
+                    $whereConditions[] = "{$q}{$colName}{$q}::text = ?";
                     $params[] = $m[1];
                 } else {
-                    $whereConditions[] = "{$q}{$colName}{$q} $likeOp ?";
+                    $whereConditions[] = "{$q}{$colName}{$q}::text $likeOp ?";
                     $params[] = '%' . $colSearchVal . '%';
                 }
             }

@@ -167,9 +167,9 @@ function initOutboundTable() {
             { data: 'periode_group', defaultContent: '-' }
         ],
         order: [[0, 'desc']],
-        pageLength: 25,
+        pageLength: 10,
         lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
-        dom: "<'row'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6'f>>" +
+        dom: "<'row'<'col-sm-12'l>>" +
             "<'row'<'col-sm-12'tr>>" +
             "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
         language: {
@@ -254,7 +254,7 @@ function initForwarderTable() {
         scrollX: true,
         order: [],
         ordering: false,
-        pageLength: 25,
+        pageLength: 10,
         lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
         ajax: {
             url: 'api/get_outbound_forwarder.php',
@@ -304,9 +304,29 @@ function initForwarderTable() {
             { data: 'approval_status', defaultContent: '-', className: 'text-center' },
             { data: 'approval_approver', defaultContent: '-' },
             { data: 'approval_date', defaultContent: '-', className: 'text-center' },
-            { data: 'periode_group', defaultContent: '-', className: 'text-center' }
+            { data: 'periode_group', defaultContent: '-', className: 'text-center' },
+            {
+                data: 'created_at',
+                defaultContent: '-',
+                className: 'text-center',
+                render: function (data) {
+                    if (!data) return '-';
+                    return '<span class="text-nowrap">' + data + '</span>';
+                }
+            },
+            { data: 'created_by', defaultContent: '-', className: 'text-center' },
+            {
+                data: 'updated_at',
+                defaultContent: '-',
+                className: 'text-center',
+                render: function (data) {
+                    if (!data) return '-';
+                    return '<span class="text-nowrap">' + data + '</span>';
+                }
+            },
+            { data: 'updated_by', defaultContent: '-', className: 'text-center' }
         ],
-        dom: "<'row'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6'f>>" +
+        dom: "<'row'<'col-sm-12'l>>" +
             "<'row'<'col-sm-12'tr>>" +
             "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
         language: {
@@ -585,7 +605,11 @@ function initInboundTable() {
             }
         ],
         order: [[0, 'desc']],
-        pageLength: 25,
+        pageLength: 10,
+        lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
+        dom: "<'row'<'col-sm-12'l>>" +
+            "<'row'<'col-sm-12'tr>>" +
+            "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
         language: {
             search: "Search:",
             searchPlaceholder: "Search...",
@@ -786,9 +810,12 @@ function initInboundGrTable() {
             { data: 'pic_registration', defaultContent: '-' },
             { data: 'periode_group', defaultContent: '-' }
         ],
-        pageLength: 25,
+        pageLength: 10,
         lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
         order: [[0, 'desc']],
+        dom: "<'row'<'col-sm-12'l>>" +
+            "<'row'<'col-sm-12'tr>>" +
+            "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
         language: {
             processing: '<div class="spinner-border spinner-border-sm text-primary" role="status"></div> Memuat data...',
             search: "Search:",
@@ -926,7 +953,8 @@ function initAssetTable() {
             }
         ],
         order: [[0, 'asc']],
-        pageLength: 25,
+        pageLength: 10,
+        lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
         language: {
             search: "Search:",
             searchPlaceholder: "Search..."
@@ -986,6 +1014,8 @@ function initRackTable() {
         processing: true,
         deferRender: true,
         scrollX: true,
+        pageLength: 10,
+        lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
         ajax: {
             url: 'api/get_rack_data.php',
             data: function (d) {
@@ -1484,8 +1514,6 @@ $(document).ready(function () {
             $batchProgress.hide();
             if ($progressFill.length) $progressFill.css('width', '0%');
             if ($progressText.length) $progressText.text('0 / 0 baris');
-            if ($progressPercent.length) $progressPercent.text('0%');
-
             setUploadStepState(prefix + '-step-read', 'idle');
             setUploadStepState(prefix + '-step-parse', 'idle');
             setUploadStepState(prefix + '-step-upload', 'idle');
@@ -1655,6 +1683,12 @@ $(document).ready(function () {
                         alert('Silakan pilih Bulan, Batch, dan Tahun Periode terlebih dahulu.');
                     }
                     return;
+                }
+            } else if (config.periodType === 'auto' || config.periodType === 'optional') {
+                if (config.periodSelectors) {
+                    monthVal = config.periodSelectors.month ? $(config.periodSelectors.month).val() : '';
+                    batchVal = config.periodSelectors.batch ? $(config.periodSelectors.batch).val() : '';
+                    yearVal = config.periodSelectors.year ? $(config.periodSelectors.year).val() : '';
                 }
             } else if (config.periodType === 'year') {
                 yearVal = $(config.periodSelectors.year).val();
@@ -2283,12 +2317,8 @@ $(document).ready(function () {
         dialogId: '#uploadExcelModalInboundDialog',
         dropZoneId: 'inbound-upload-drop-zone',
         fileInputId: 'excel-file-inbound-input',
-        periodType: 'full',
-        periodSelectors: {
-            month: '#uploadInboundMonthSelect',
-            batch: '#uploadInboundBatchSelect',
-            year: '#uploadInboundYearSelect'
-        },
+        periodType: 'auto',
+        periodSelectors: null,
         parseRows: function (workbook, sheetName) {
             var worksheet = workbook.Sheets[sheetName];
             if (!worksheet) return [];
@@ -2296,10 +2326,12 @@ $(document).ready(function () {
         },
         processUpload: function (ctx) {
             var rows = ctx.rows;
-            var monthVal = ctx.month;
-            var batchVal = ctx.batch;
-            var yearVal = ctx.year;
-            var periodGroup = monthVal + ' ' + yearVal + '-Batch' + batchVal;
+            var monthVal = ctx.month || '';
+            var batchVal = ctx.batch || '';
+            var yearVal = ctx.year || '';
+            var clearAll = false;
+            var isAutoGroup = (!monthVal || !yearVal);
+            var periodGroup = (!isAutoGroup) ? (monthVal + ' ' + yearVal + '-Batch' + (batchVal || '1')) : '';
             var csrfToken = (window.WMS_CSRF_TOKEN) || ($('meta[name="csrf-token"]').attr('content')) || '';
             var totalRows = rows.length;
             var BATCH_SIZE = 1500;
@@ -2313,7 +2345,9 @@ $(document).ready(function () {
                     month: monthVal,
                     year: yearVal,
                     batch: batchVal,
-                    periode_group: periodGroup
+                    periode_group: periodGroup,
+                    clear_all: clearAll,
+                    auto_group: isAutoGroup
                 })
             }, 60000)
                 .then(function (initRes) {
@@ -2330,9 +2364,10 @@ $(document).ready(function () {
                     }, 60000);
                 })
                 .then(function () {
+                    var periodSummary = isAutoGroup ? 'Otomatis dari PO Target Delivery' : periodGroup;
                     return {
                         success: true,
-                        message: 'Berhasil mengimport ' + totalRows.toLocaleString('id-ID') + ' data inbound (' + periodGroup + ').'
+                        message: 'Berhasil mengimport ' + totalRows.toLocaleString('id-ID') + ' data inbound PR to PO (' + periodSummary + ').'
                     };
                 });
 
@@ -2353,6 +2388,7 @@ $(document).ready(function () {
                         year: yearVal,
                         batch: batchVal,
                         periode_group: periodGroup,
+                        auto_group: isAutoGroup,
                         data: batchRows
                     })
                 }, 120000)
@@ -2667,7 +2703,7 @@ $(document).ready(function () {
     // ═══════════════════════════════════════════════════
 
     // PR Forwarder Excel Template Generator
-    $('#btn-template-forwarder').on('click', function () {
+    $('#btn-template-forwarder').off('click').on('click', function () {
         if (typeof XLSX === 'undefined') return;
         var wb = XLSX.utils.book_new();
         var wsData = [
@@ -2679,7 +2715,8 @@ $(document).ready(function () {
                 'PROCUREMENT', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '',
                 'DOC', 'NOTE',
                 'DELIVERY', '', '', '', '', '', '',
-                'APPROVAL', '', ''
+                'APPROVAL', '', '',
+                'LOG', '', '', ''
             ],
             // Row 2 (Header Level 2)
             [
@@ -2689,7 +2726,8 @@ $(document).ready(function () {
                 'VENDOR', '', 'KOLI', 'MATA ANGGARAN', 'SR', '', 'PR', '', 'VALUATION PRICE', 'SUGGESTION', 'PURPOSE', 'PO', '', '', '', '', '',
                 '', '',
                 'TYPE', 'VIA', 'NAMA', 'AWB', 'PICKUP', 'LEAD TIME', 'TARGET DLV',
-                'STATUS', 'APPROVER', 'DATE'
+                'STATUS', 'APPROVER', 'DATE',
+                'CREATED DATE', 'CREATED BY', 'UPDATED DATE', 'UPDATED BY'
             ],
             // Row 3 (Header Level 3)
             [
@@ -2699,7 +2737,8 @@ $(document).ready(function () {
                 'MODE', 'NAME', '', '', 'NO', 'TGL', 'NO', 'TGL', '', '', '', 'NO', 'TGL', 'PRICE', 'VENDOR', 'TARGET DLV', 'BUYER',
                 '', '',
                 '', '', '', '', '', '', '',
-                '', '', ''
+                '', '', '',
+                '', '', '', ''
             ],
             // Row 4 (Sample Row)
             [
@@ -2709,7 +2748,8 @@ $(document).ready(function () {
                 'REGULAR', 'JNE EXPRESS', '5', 'ANGGARAN-IT-2026', 'SR-99881', '2026-02-01', 'PR-88123', '2026-02-03', '15000000', 'APPROVED ROUTE', 'PROJECT EXPANSION', 'PO-77112', '2026-02-05', '14500000', 'PT GLOBAL LOGISTICS', '2026-02-15', 'JOHN DOE',
                 'DOC-COMPLETE', 'FRAGILE ELECTRONICS',
                 'AIR CARGO', 'UDARA', 'GARUDA INDONESIA', 'AWB-88392019', '2026-02-06', '3 DAYS', '2026-02-09',
-                'APPROVED', 'MANAGER LOGISTIK', '2026-02-06'
+                'APPROVED', 'MANAGER LOGISTIK', '2026-02-06',
+                '2026-10-13', 'admin', '2026-10-13', 'admin'
             ]
         ];
         var ws = XLSX.utils.aoa_to_sheet(wsData);
@@ -2723,7 +2763,8 @@ $(document).ready(function () {
             { wch: 15 }, { wch: 14 }, { wch: 16 }, { wch: 22 }, { wch: 14 }, { wch: 18 },
             { wch: 15 }, { wch: 20 },
             { wch: 14 }, { wch: 14 }, { wch: 20 }, { wch: 18 }, { wch: 14 }, { wch: 12 }, { wch: 14 },
-            { wch: 14 }, { wch: 20 }, { wch: 14 }
+            { wch: 14 }, { wch: 20 }, { wch: 14 },
+            { wch: 16 }, { wch: 16 }, { wch: 16 }, { wch: 16 }
         ];
         XLSX.utils.book_append_sheet(wb, ws, "Master PR Forwarder");
         XLSX.writeFile(wb, "Template_Import_Master_Data_PR_Forwarder.xlsx");
@@ -2736,12 +2777,8 @@ $(document).ready(function () {
         dialogId: '#uploadExcelModalForwarderDialog',
         dropZoneId: 'forwarder-upload-drop-zone',
         fileInputId: 'excel-file-forwarder-input',
-        periodType: 'full',
-        periodSelectors: {
-            month: '#uploadForwarderMonthSelect',
-            batch: '#uploadForwarderBatchSelect',
-            year: '#uploadForwarderYearSelect'
-        },
+        periodType: 'auto',
+        periodSelectors: null,
         parseRows: function (workbook, sheetName) {
             var worksheet = workbook.Sheets[sheetName];
             if (!worksheet) return [];
@@ -2769,14 +2806,15 @@ $(document).ready(function () {
                 'tujuan', 'penerima', 'procurement', 'vendor', 'mode', 'name', 'koli',
                 'mata anggaran', 'sr', 'pr', 'valuation price', 'suggestion', 'purpose',
                 'po', 'price', 'target dlv', 'buyer', 'doc', 'note', 'delivery',
-                'type', 'via', 'nama', 'awb', 'pickup', 'lead time', 'approval', 'status', 'approver', 'date'
+                'type', 'via', 'nama', 'awb', 'pickup', 'lead time', 'approval', 'status', 'approver', 'date',
+                'log', 'created date', 'created by', 'updated date', 'updated by', 'periode group'
             ];
 
             function isHeaderRow(rowArr) {
                 if (!rowArr || rowArr.length === 0) return true;
                 var matchCount = 0;
                 var totalCells = 0;
-                for (var c = 0; c < Math.min(rowArr.length, 30); c++) {
+                for (var c = 0; c < Math.min(rowArr.length, 45); c++) {
                     var cellVal = String(rowArr[c] || '').trim().toLowerCase();
                     if (cellVal !== '') {
                         totalCells++;
@@ -2792,6 +2830,26 @@ $(document).ready(function () {
             var dataStartIndex = 0;
             while (dataStartIndex < sheetAOA.length && dataStartIndex < 6 && isHeaderRow(sheetAOA[dataStartIndex])) {
                 dataStartIndex++;
+            }
+
+            // Dynamically search header rows (rows 0 through dataStartIndex) for LOG and Periode columns
+            var colIndexMap = {};
+            for (var hIdx = 0; hIdx < Math.min(sheetAOA.length, Math.max(dataStartIndex, 2)); hIdx++) {
+                var hRow = sheetAOA[hIdx] || [];
+                for (var cIdx = 0; cIdx < hRow.length; cIdx++) {
+                    var cellText = String(hRow[cIdx] || '').trim().toLowerCase().replace(/[\r\n\t_]/g, ' ');
+                    if (cellText === 'created date' || cellText === 'created_date' || cellText === 'tgl created') {
+                        colIndexMap['created_date'] = cIdx;
+                    } else if (cellText === 'created by' || cellText === 'created_by') {
+                        colIndexMap['created_by'] = cIdx;
+                    } else if (cellText === 'updated date' || cellText === 'updated_date' || cellText === 'tgl updated') {
+                        colIndexMap['updated_date'] = cIdx;
+                    } else if (cellText === 'updated by' || cellText === 'updated_by') {
+                        colIndexMap['updated_by'] = cIdx;
+                    } else if (cellText === 'periode group' || cellText === 'periode_group' || cellText === 'periode') {
+                        colIndexMap['periode_group'] = cIdx;
+                    }
+                }
             }
 
             var mappedRows = [];
@@ -2812,6 +2870,46 @@ $(document).ready(function () {
                     var cellVal = (rowArr[colIdx] !== undefined && rowArr[colIdx] !== null) ? String(rowArr[colIdx]).trim() : '';
                     rowObj[colKey] = cellVal;
                 }
+
+                // Parse LOG and PERIODE columns from detected header positions
+                if (colIndexMap['created_date'] !== undefined && rowArr[colIndexMap['created_date']] !== undefined) {
+                    rowObj['created_date'] = String(rowArr[colIndexMap['created_date']] || '').trim();
+                }
+                if (colIndexMap['created_by'] !== undefined && rowArr[colIndexMap['created_by']] !== undefined) {
+                    rowObj['created_by'] = String(rowArr[colIndexMap['created_by']] || '').trim();
+                }
+                if (colIndexMap['updated_date'] !== undefined && rowArr[colIndexMap['updated_date']] !== undefined) {
+                    rowObj['updated_date'] = String(rowArr[colIndexMap['updated_date']] || '').trim();
+                }
+                if (colIndexMap['updated_by'] !== undefined && rowArr[colIndexMap['updated_by']] !== undefined) {
+                    rowObj['updated_by'] = String(rowArr[colIndexMap['updated_by']] || '').trim();
+                }
+                if (colIndexMap['periode_group'] !== undefined && rowArr[colIndexMap['periode_group']] !== undefined) {
+                    rowObj['periode_group'] = String(rowArr[colIndexMap['periode_group']] || '').trim();
+                }
+
+                // Fallback by column position if header wasn't matched but extra columns exist
+                if (rowObj['created_date'] === undefined && rowArr.length > 40) {
+                    var val40 = String(rowArr[40] || '').trim();
+                    var val41 = String(rowArr[41] || '').trim();
+                    var val42 = String(rowArr[42] || '').trim();
+                    var val43 = String(rowArr[43] || '').trim();
+                    var val44 = String(rowArr[44] || '').trim();
+
+                    if (rowArr.length >= 45) {
+                        rowObj['periode_group'] = val40;
+                        rowObj['created_date'] = val41;
+                        rowObj['created_by'] = val42;
+                        rowObj['updated_date'] = val43;
+                        rowObj['updated_by'] = val44;
+                    } else {
+                        rowObj['created_date'] = val40;
+                        rowObj['created_by'] = val41;
+                        rowObj['updated_date'] = val42;
+                        rowObj['updated_by'] = val43;
+                    }
+                }
+
                 mappedRows.push(rowObj);
             }
 
@@ -2819,10 +2917,7 @@ $(document).ready(function () {
         },
         processUpload: function (ctx) {
             var rows = ctx.rows;
-            var fwdMonthVal = ctx.month;
-            var fwdBatchVal = ctx.batch;
-            var fwdYearVal = ctx.year;
-            var periodGroup = fwdMonthVal + ' ' + fwdYearVal + '-Batch' + fwdBatchVal;
+            var clearAll = false;
             var csrfToken = (window.WMS_CSRF_TOKEN) || ($('meta[name="csrf-token"]').attr('content')) || '';
             var totalRows = rows.length;
             var BATCH_SIZE = 1500;
@@ -2833,15 +2928,13 @@ $(document).ready(function () {
                 body: JSON.stringify({
                     action: 'init',
                     csrf_token: csrfToken,
-                    month: fwdMonthVal,
-                    year: fwdYearVal,
-                    batch: fwdBatchVal,
-                    periode_group: periodGroup
+                    clear_all: clearAll,
+                    auto_group: true
                 })
             }, 60000)
                 .then(function (initRes) {
                     if (initRes.status !== 'success') {
-                        throw new Error(initRes.message || 'Gagal inisialisasi periode PR Forwarder.');
+                        throw new Error(initRes.message || 'Gagal inisialisasi PR Forwarder.');
                     }
                     return sendForwarderBatches(0);
                 })
@@ -2855,7 +2948,7 @@ $(document).ready(function () {
                 .then(function () {
                     return {
                         success: true,
-                        message: 'Berhasil mengimpor ' + totalRows.toLocaleString('id-ID') + ' data PR Forwarder (' + periodGroup + ').'
+                        message: 'Berhasil mengimpor ' + totalRows.toLocaleString('id-ID') + ' data PR Forwarder (Periode otomatis dari LOG Created Date).'
                     };
                 });
 
@@ -2872,10 +2965,8 @@ $(document).ready(function () {
                     body: JSON.stringify({
                         action: 'append',
                         csrf_token: csrfToken,
-                        month: fwdMonthVal,
-                        year: fwdYearVal,
-                        batch: fwdBatchVal,
-                        periode_group: periodGroup,
+                        clear_all: false,
+                        auto_group: true,
                         data: batchRows
                     })
                 }, 120000)
@@ -2940,9 +3031,9 @@ $(document).ready(function () {
             ],
             order: [],
             ordering: false,
-            pageLength: 12,
-            lengthMenu: [[12, 25], [12, 25]],
-            dom: "<'row'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6'f>>" +
+            pageLength: 10,
+            lengthMenu: [[10, 12, 25], [10, 12, 25]],
+            dom: "<'row'<'col-sm-12'l>>" +
                 "<'row'<'col-sm-12'tr>>" +
                 "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
             language: {

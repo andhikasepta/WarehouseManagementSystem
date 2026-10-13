@@ -221,7 +221,7 @@ if (!defined('SPA_MODE')) {
 
                     <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog"
                         aria-labelledby="exampleModalLabel" aria-hidden="true">
-                        <div class="modal-dialog" role="document">
+                        <div class="modal-dialog modal-dialog-centered" role="document">
                             <div class="modal-content">
                                 <div class="modal-header">
                                     <h5 class="modal-title" id="exampleModalLabel">Logout</h5>
@@ -246,7 +246,7 @@ if (!defined('SPA_MODE')) {
                     <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 
                     <!-- Page level custom scripts -->
-                    <script src="frontend/js/formula-controller.js?v=<?= time() ?>"></script>
+                    <script src="frontend/js/formula-controller.js?v=<?= @filemtime((defined('ROOT_PATH') ? ROOT_PATH : dirname(__DIR__, 2) . '/') . 'frontend/js/formula-controller.js') ?>"></script>
                     <script src="frontend/js/demo/chart-bar-demo.js?v=8"></script>
                     <script src="frontend/js/demo/chart-horizontal-bar-demo.js?v=5"></script>
 
@@ -282,28 +282,48 @@ if (!defined('SPA_MODE')) {
                                         }
 
                                         var availableYears = (result.years && result.years.length > 0) ? result.years : Object.keys(yearsSet).sort();
-                                        availableYears = (availableYears || []).map(function (y) { return String(y); });
-                                        if (!availableYears || availableYears.length === 0) {
-                                            availableYears = [(new Date()).getFullYear().toString()];
-                                        }
+                                        availableYears = (window.WMSPeriodManager)
+                                            ? window.WMSPeriodManager.ensureCurrentYear(availableYears)
+                                            : availableYears;
+
                                         var availableSites = (result.sites && result.sites.length > 0)
                                             ? result.sites
                                             : ['HUB TEKNO', 'HUB JAKARTA', 'OUTLET BANDUNG', 'OUTLET SURABAYA'];
 
-                                        populateSelect('period-site-select', availableSites, '-- Pilih HUB/Outlet Warehouse --');
-                                        populateSelect('period-month-select', ALL_MONTHS, '-- Pilih Bulan --');
-                                        populateSelect('period-year-select', availableYears, '-- Pilih Tahun --');
-                                        populateSelect('deleteMonthSelect', ALL_MONTHS, '-- Pilih Bulan --');
-                                        populateSelect('deleteYearSelect', availableYears, '-- Pilih Tahun --');
-
-                                        if (selectPeriod) {
-                                            preselectPeriod(selectPeriod);
-                                            loadDataForPeriod(selectPeriod);
+                                        if (window.WMSPeriodManager) {
+                                            window.WMSPeriodManager.populateSelect('period-site-select', availableSites, '-- Pilih HUB/Outlet Warehouse --');
+                                            window.WMSPeriodManager.populateSelect('period-month-select', ALL_MONTHS, '-- Pilih Bulan --');
+                                            window.WMSPeriodManager.populateSelect('period-year-select', availableYears, '-- Pilih Tahun --');
+                                            window.WMSPeriodManager.populateSelect('deleteMonthSelect', ALL_MONTHS, '-- Pilih Bulan --');
+                                            window.WMSPeriodManager.populateSelect('deleteYearSelect', availableYears, '-- Pilih Tahun --');
                                         } else {
-                                            document.getElementById('selected-period-text').textContent = "PILIH PERIODE DATA";
-                                            if (window.FormulaController) {
-                                                window.FormulaController.updateDashboardCards([], []);
+                                            populateSelect('period-site-select', availableSites, '-- Pilih HUB/Outlet Warehouse --');
+                                            populateSelect('period-month-select', ALL_MONTHS, '-- Pilih Bulan --');
+                                            populateSelect('period-year-select', availableYears, '-- Pilih Tahun --');
+                                            populateSelect('deleteMonthSelect', ALL_MONTHS, '-- Pilih Bulan --');
+                                            populateSelect('deleteYearSelect', availableYears, '-- Pilih Tahun --');
+                                        }
+
+                                        var savedDetails = (window.WMSPeriodManager) ? window.WMSPeriodManager.getActivePeriodDetails() : null;
+                                        var savedSite = (savedDetails && savedDetails.site) ? savedDetails.site : '';
+
+                                        var targetPeriod = selectPeriod;
+                                        if (!targetPeriod && window.WMSPeriodManager) {
+                                            targetPeriod = window.WMSPeriodManager.getActivePeriod(result.data, availableYears);
+                                        }
+
+                                        if (targetPeriod) {
+                                            if (window.WMSPeriodManager) {
+                                                window.WMSPeriodManager.applyPeriodToNavbar(targetPeriod, savedSite);
+                                            } else {
+                                                preselectPeriod(targetPeriod);
                                             }
+                                            loadDataForPeriod(targetPeriod);
+                                        } else {
+                                            if (window.WMSPeriodManager) {
+                                                window.WMSPeriodManager.applyPeriodToNavbar(null);
+                                            }
+                                            resetStorageHubCards();
                                         }
                                     })
                                     .catch(function (err) {
@@ -311,141 +331,100 @@ if (!defined('SPA_MODE')) {
                                     });
                             }
 
-                            function populateSelect(selectId, items, placeholder) {
-                                var sel = document.getElementById(selectId);
-                                if (!sel) return;
-                                sel.replaceChildren();
-                                var defOpt = document.createElement('option');
-                                defOpt.value = '';
-                                defOpt.textContent = placeholder;
-                                sel.appendChild(defOpt);
-                                (items || []).forEach(function (item) {
-                                    var opt = document.createElement('option');
-                                    opt.value = item;
-                                    opt.textContent = String(item).toUpperCase();
-                                    sel.appendChild(opt);
-                                });
-                            }
-
-                            function preselectPeriod(period) {
-                                // Parse "Month Year-BatchN" format
-                                var match = period.match(/^(\w+)\s+(\d{4})-Batch(\d+)$/i);
-                                if (match) {
-                                    var mSel = document.getElementById('period-month-select');
-                                    var bSel = document.getElementById('period-batch-select');
-                                    var ySel = document.getElementById('period-year-select');
-                                    if (mSel) mSel.value = match[1];
-                                    if (bSel) bSel.value = match[3];
-                                    if (ySel) ySel.value = match[2];
-                                    updateLoadButton();
-                                } else {
-                                    // Legacy format "Month Year"
-                                    var parts = period.split(' ');
-                                    if (parts.length >= 2) {
-                                        var mSel = document.getElementById('period-month-select');
-                                        var ySel = document.getElementById('period-year-select');
-                                        if (mSel) mSel.value = parts[0];
-                                        if (ySel) ySel.value = parts[1];
-                                        updateLoadButton();
-                                    }
+                            function resetStorageHubCards() {
+                                var pText = document.getElementById('selected-period-text');
+                                if (pText) pText.textContent = "PILIH PERIODE DATA";
+                                var siteBadge = document.getElementById('storage-hub-selected-site');
+                                if (siteBadge) siteBadge.textContent = '';
+                                if (window.FormulaController) {
+                                    window.FormulaController.updateDashboardCards([], []);
+                                }
+                                if (window.perangkatInChart && window.perangkatInChart.data) {
+                                    window.perangkatInChart.data.datasets[0].data = [];
+                                    window.perangkatInChart.update(0);
+                                }
+                                if (window.perangkatOutChart && window.perangkatOutChart.data) {
+                                    window.perangkatOutChart.data.datasets[0].data = [];
+                                    window.perangkatOutChart.update(0);
                                 }
                             }
 
-                            function updateLoadButton() {
-                                var m = document.getElementById('period-month-select');
-                                var y = document.getElementById('period-year-select');
-                                var btn = document.getElementById('btn-load-period');
-                                if (btn) {
-                                    btn.disabled = !(m && m.value && y && y.value);
-                                }
-                            }
-
-                             var monthSel = document.getElementById('period-month-select');
-                             var batchSel = document.getElementById('period-batch-select');
-                             var yearSel = document.getElementById('period-year-select');
-                             var siteSel = document.getElementById('period-site-select');
-                             if (monthSel) monthSel.addEventListener('change', updateLoadButton);
-                             if (batchSel) batchSel.addEventListener('change', updateLoadButton);
-                             if (yearSel) yearSel.addEventListener('change', updateLoadButton);
-                             if (siteSel) {
-                                 siteSel.addEventListener('change', function () {
-                                     var siteBadge = document.getElementById('storage-hub-selected-site');
-                                     if (siteBadge) {
-                                         siteBadge.textContent = this.value ? this.value.toUpperCase() : '';
-                                     }
-                                 });
-                             }
-
-                            var btnLoad = document.getElementById('btn-load-period');
-                            if (btnLoad) {
-                                btnLoad.addEventListener('click', function () {
-                                    var m = document.getElementById('period-month-select');
-                                    var b = document.getElementById('period-batch-select');
-                                    var y = document.getElementById('period-year-select');
-                                    if (m && m.value && y && y.value) {
-                                        var period = (b && b.value) ? (m.value + ' ' + y.value + '-Batch' + b.value) : (m.value + ' ' + y.value);
-                                        loadDataForPeriod(period);
-                                        $(periodMenu).closest('.dropdown').find('.dropdown-toggle').dropdown('toggle');
+                            if (window.WMSPeriodManager) {
+                                window.WMSPeriodManager.registerPageHandler({
+                                    onLoad: function (period, site) {
+                                        loadDataForPeriod(period, true);
+                                    },
+                                    onReset: function () {
+                                        _loadedPeriod = null;
+                                        resetStorageHubCards();
                                     }
                                 });
                             }
 
-                            // ── Reset button click ──
-                            var btnReset = document.getElementById('btn-reset-period');
-                            if (btnReset) {
-                                btnReset.addEventListener('click', function () {
-                                    if (siteSel) siteSel.value = '';
-                                    if (monthSel) monthSel.value = '';
-                                    if (batchSel) batchSel.value = '';
-                                    if (yearSel) yearSel.value = '';
-                                    updateLoadButton();
-                                    document.getElementById('selected-period-text').textContent = "PILIH PERIODE DATA";
-                                    var siteBadge = document.getElementById('storage-hub-selected-site');
-                                    if (siteBadge) siteBadge.textContent = '';
+                            function applyStorageHubData(period, result, resData) {
+                                if (result && result.status === 'success' && (result.summary || (result.data && result.data.length > 0))) {
+                                    var headers = (result.data && result.data.length > 0) ? Object.keys(result.data[0]) : [];
+                                    window.currentDashboardData = result.data || [];
+                                    window.currentDashboardHeaders = headers;
                                     if (window.FormulaController) {
-                                        window.FormulaController.updateDashboardCards([], []);
+                                        window.FormulaController.updateDashboardCards(result.data || [], headers, null, result.summary);
                                     }
-                                    if (window.perangkatInChart && window.perangkatInChart.data) {
-                                        window.perangkatInChart.data.datasets[0].data = [];
-                                        window.perangkatInChart.update(0);
-                                    }
-                                    if (window.perangkatOutChart && window.perangkatOutChart.data) {
-                                        window.perangkatOutChart.data.datasets[0].data = [];
-                                        window.perangkatOutChart.update(0);
-                                    }
-                                });
-                            }
+                                    var cardUpdate = document.getElementById('card-last-update');
+                                    if (cardUpdate) cardUpdate.textContent = period.toUpperCase();
+                                } else if (result && window.FormulaController) {
+                                    window.FormulaController.updateDashboardCards([], []);
+                                }
 
-                            function loadDataForPeriod(period) {
-                                 var sSel = document.getElementById('period-site-select');
-                                 var siteVal = (sSel && sSel.value) ? sSel.value : '';
-
-                                 var siteBadge = document.getElementById('storage-hub-selected-site');
-                                 if (siteBadge) {
-                                     if (siteVal) {
-                                         siteBadge.textContent = siteVal.toUpperCase();
-                                     } else {
-                                         siteBadge.textContent = '';
-                                     }
-                                 }
-
-                                 document.getElementById('selected-period-text').textContent = (period.indexOf('-Batch') !== -1 ? period : period + ' (ALL BATCH)').toUpperCase();
-
-                                if (typeof Swal !== 'undefined') {
-                                    Swal.fire({
-                                        title: 'Data Is Processing Please Wait',
-                                        allowOutsideClick: false,
-                                        allowEscapeKey: false,
-                                        didOpen: () => {
-                                            Swal.showLoading();
-                                        }
+                                if (resData && resData.status === 'success' && resData.data) {
+                                    var mLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                                    [['perangkatInChart', 'in', 'Perangkat IN'], ['perangkatOutChart', 'out', 'Perangkat OUT']].forEach(function (cfg) {
+                                        var ch = window[cfg[0]];
+                                        if (!ch || !ch.data) return;
+                                        try {
+                                            if (!ch.$datalabels) ch.$datalabels = { _listened: true };
+                                            ch.data.labels = mLabels;
+                                            ch.data.datasets[0].data = resData.data[cfg[1]];
+                                            ch._recordsPerIndex = resData.data[cfg[1] + '_details'] || [];
+                                            ch._chartTitle = cfg[2];
+                                            ch.update(0);
+                                            if (window.FormulaController) window.FormulaController.makeChartClickable(ch, cfg[2]);
+                                        } catch (e) { console.warn(cfg[0] + ' error:', e); }
                                     });
                                 }
+                            }
+
+                            var _loadedPeriod = null;
+                            var _reqToken = 0;
+                            function loadDataForPeriod(period, force) {
+                                if (!period) return;
+                                if (!force && _loadedPeriod === period) return; // skip duplicate (eager + loadPeriods)
+                                _loadedPeriod = period;
+                                var myToken = ++_reqToken;
+
+                                var sSel = document.getElementById('period-site-select');
+                                var siteVal = (sSel && sSel.value) ? sSel.value : '';
+                                if (window.WMSPeriodManager) {
+                                    window.WMSPeriodManager.applyPeriodToNavbar(period, siteVal);
+                                }
+                                var siteBadge = document.getElementById('storage-hub-selected-site');
+                                if (siteBadge) siteBadge.textContent = siteVal ? siteVal.toUpperCase() : '';
+                                var pTextEl = document.getElementById('selected-period-text');
+                                if (pTextEl) pTextEl.textContent = period.toUpperCase();
 
                                 var mMatch = period.match(/\b(Januari|January|Jan|Februari|February|Feb|Maret|March|Mar|April|Apr|Mei|May|Juni|June|Jun|Juli|July|Jul|Agustus|August|Agu|Aug|September|Sep|Oktober|October|Okt|Oct|November|Nov|Nop|Desember|December|Des|Dec)\b/i);
                                 var yMatch = period.match(/\b(20\d{2})\b/);
                                 var month = mMatch ? mMatch[1] : '';
                                 var yr = yMatch ? yMatch[1] : '';
+
+                                var cacheKeyDash = 'storage_data_' + period;
+                                var cacheKeyYearly = 'yearly_in_out_' + yr;
+
+                                // Instant 0ms render from client cache (cards + charts in the same frame)
+                                if (window.WMSDataCache) {
+                                    var cDash = window.WMSDataCache.get(cacheKeyDash);
+                                    var cYear = yr ? window.WMSDataCache.get(cacheKeyYearly) : null;
+                                    if (cDash || cYear) applyStorageHubData(period, cDash, cYear);
+                                }
 
                                 var controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
                                 var timeoutTimer = controller ? setTimeout(function () { controller.abort(); }, 60000) : null;
@@ -463,82 +442,34 @@ if (!defined('SPA_MODE')) {
                                     })
                                     : Promise.resolve(null);
 
+                                // Rack utilisasi fetched in parallel (not after the other two)
+                                if (window.FormulaController && window.FormulaController.loadRackUtilisasi && month && yr) {
+                                    window.FormulaController.loadRackUtilisasi(month, yr);
+                                }
+
                                 Promise.all([fetchDashboard, fetchYearly])
                                     .then(function (results) {
-                                        var result = results[0];
-                                        var resData = results[1];
-
-                                        if (result && result.status === 'success' && (result.summary || (result.data && result.data.length > 0))) {
-                                            var headers = (result.data && result.data.length > 0) ? Object.keys(result.data[0]) : [];
-                                            window.currentDashboardData = result.data || [];
-                                            window.currentDashboardHeaders = headers;
-                                            if (window.FormulaController) {
-                                                window.FormulaController.updateDashboardCards(result.data || [], headers, null, result.summary);
-                                                var cardUpdate = document.getElementById('card-last-update');
-                                                if (cardUpdate) {
-                                                    cardUpdate.textContent = period.toUpperCase();
-                                                }
-                                            }
-                                        } else {
-                                            if (window.FormulaController) {
-                                                window.FormulaController.updateDashboardCards([], []);
-                                            }
-                                            if (typeof Swal !== 'undefined') {
-                                                Swal.fire('Empty', 'No data found for ' + period, 'info');
-                                            }
+                                        if (myToken !== _reqToken) return; // stale response
+                                        if (window.WMSDataCache) {
+                                            if (results[0]) window.WMSDataCache.set(cacheKeyDash, results[0]);
+                                            if (results[1]) window.WMSDataCache.set(cacheKeyYearly, results[1]);
                                         }
-
-                                        // Load Rack Utilisasi (Kapasitas per rak, Utilisasi Space, Free Space)
-                                        if (window.FormulaController && window.FormulaController.loadRackUtilisasi && month && yr) {
-                                            window.FormulaController.loadRackUtilisasi(month, yr);
-                                        }
-
-                                        if (resData && resData.status === 'success' && resData.data) {
-                                            var mLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-                                            if (window.perangkatInChart && window.perangkatInChart.data) {
-                                                try {
-                                                    if (!window.perangkatInChart.$datalabels) window.perangkatInChart.$datalabels = { _listened: true };
-                                                    window.perangkatInChart.data.labels = mLabels;
-                                                    window.perangkatInChart.data.datasets[0].data = resData.data.in;
-                                                    window.perangkatInChart._recordsPerIndex = resData.data.in_details || [];
-                                                    window.perangkatInChart._chartTitle = "Perangkat IN";
-                                                    window.perangkatInChart.update(0);
-                                                    if (window.FormulaController) {
-                                                        window.FormulaController.makeChartClickable(window.perangkatInChart, "Perangkat IN");
-                                                    }
-                                                } catch (e) { console.warn('perangkatInChart error:', e); }
-                                            }
-                                            if (window.perangkatOutChart && window.perangkatOutChart.data) {
-                                                try {
-                                                    if (!window.perangkatOutChart.$datalabels) window.perangkatOutChart.$datalabels = { _listened: true };
-                                                    window.perangkatOutChart.data.labels = mLabels;
-                                                    window.perangkatOutChart.data.datasets[0].data = resData.data.out;
-                                                    window.perangkatOutChart._recordsPerIndex = resData.data.out_details || [];
-                                                    window.perangkatOutChart._chartTitle = "Perangkat OUT";
-                                                    window.perangkatOutChart.update(0);
-                                                    if (window.FormulaController) {
-                                                        window.FormulaController.makeChartClickable(window.perangkatOutChart, "Perangkat OUT");
-                                                    }
-                                                } catch (e) { console.warn('perangkatOutChart error:', e); }
-                                            }
-                                        }
-
-                                        if (typeof Swal !== 'undefined') Swal.close();
+                                        applyStorageHubData(period, results[0], results[1]);
                                     })
                                     .catch(function (error) {
                                         console.error('Error fetching data:', error);
-                                        if (typeof Swal !== 'undefined') {
-                                            var msg = (error.name === 'AbortError') ? 'Waktu koneksi melebihi batas (Timeout 60 detik).' : ('Gagal memuat data: ' + (error.message || 'Silakan coba lagi.'));
-                                            Swal.fire('Error', msg, 'error');
-                                        }
                                     })
                                     .finally(function () {
                                         if (timeoutTimer) clearTimeout(timeoutTimer);
                                     });
                             }
 
-                            loadPeriods();
-                            window.loadPeriods = loadPeriods;
+                            window.loadPeriods = function (selectPeriod) {
+                                _loadedPeriod = null;
+                                if (window.WMSDataCache) { window.WMSDataCache.clear('storage_data_'); window.WMSDataCache.clear('yearly_in_out_'); }
+                                loadPeriods(selectPeriod);
+                            };
+
 
                             var btnConfirmDelete = document.getElementById('btn-confirm-delete');
                             if (btnConfirmDelete) {
@@ -606,20 +537,14 @@ if (!defined('SPA_MODE')) {
                                             $('#deleteDataModal').modal('hide');
 
                                             var currentPeriodText = document.getElementById('selected-period-text').textContent;
-                                            if (currentPeriodText.toLowerCase() === periodToDelete.toLowerCase()) {
-                                                if (selectPeriod) {
-                                                    preselectPeriod(selectPeriod);
-                                                    loadDataForPeriod(selectPeriod);
-                                                } else {
-                                                    document.getElementById('selected-period-text').textContent = "STORAGE MANAGEMENT";
-                                                     var siteBadge = document.getElementById('storage-hub-selected-site');
-                                                     if (siteBadge) { siteBadge.textContent = ''; }
-                                                    if (window.FormulaController) {
-                                                        window.FormulaController.updateDashboardCards([], []);
-                                                    }
+                                            if (currentPeriodText.toLowerCase().indexOf(periodToDelete.toLowerCase()) === 0) {
+                                                var siteBadge = document.getElementById('storage-hub-selected-site');
+                                                if (siteBadge) { siteBadge.textContent = ''; }
+                                                if (window.FormulaController) {
+                                                    window.FormulaController.updateDashboardCards([], []);
                                                 }
                                             }
-                                            loadPeriods();
+                                            window.loadPeriods();
                                         } else {
                                             if (typeof Swal !== 'undefined') {
                                                 Swal.fire('Error', 'Error deleting data: ' + result.message, 'error');
@@ -637,6 +562,13 @@ if (!defined('SPA_MODE')) {
                                         }
                                     });
                             }
+
+                            // Initialize periods and active month on load
+                            var eagerPeriod = window.WMSPeriodManager ? window.WMSPeriodManager.getActivePeriod() : null;
+                            if (eagerPeriod) {
+                                loadDataForPeriod(eagerPeriod);
+                            }
+                            loadPeriods();
                         });
                     </script>
 

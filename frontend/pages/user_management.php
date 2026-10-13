@@ -46,34 +46,19 @@ if (!defined('SPA_MODE')) {
                             <span class="badge badge-primary px-2 py-1">Super Admin Access</span>
                         </div>
                         <div class="card-body">
-                            <div class="table-responsive"
-                                style="max-height: 480px; overflow-y: auto; border: 1px solid #e3e6f0; border-radius: 6px;">
+                            <div class="table-responsive border rounded p-2" style="background-color: #ffffff;">
                                 <table class="table table-bordered table-striped mb-0" id="usersTable" width="100%"
                                     cellspacing="0">
-                                    <thead class="thead-light"
-                                        style="position: sticky; top: 0; z-index: 2; background-color: #f8f9fc;">
+                                    <thead class="thead-light bg-light">
                                         <tr>
-                                            <th
-                                                style="width: 40px; position: sticky; top: 0; background-color: #eaecf4; z-index: 3;">
-                                                No.</th>
-                                            <th
-                                                style="position: sticky; top: 0; background-color: #eaecf4; z-index: 3;">
-                                                Username</th>
-                                            <th style="position: sticky; top: 0; background-color: #eaecf4; z-index: 3;"
-                                                class="text-nowrap">Nama &amp; Jabatan</th>
-                                            <th
-                                                style="position: sticky; top: 0; background-color: #eaecf4; z-index: 3;">
-                                                Status Karyawan</th>
-                                            <th
-                                                style="position: sticky; top: 0; background-color: #eaecf4; z-index: 3;">
-                                                Role Sistem</th>
-                                            <th
-                                                style="position: sticky; top: 0; background-color: #eaecf4; z-index: 3;">
-                                                Hak Akses Modul</th>
-                                            <th style="position: sticky; top: 0; background-color: #eaecf4; z-index: 3;"
-                                                class="text-nowrap">Tanggal Registrasi</th>
-                                            <th style="width: 220px; position: sticky; top: 0; background-color: #eaecf4; z-index: 3;"
-                                                class="text-center text-nowrap">Aksi</th>
+                                            <th style="width: 40px;">No.</th>
+                                            <th>Username</th>
+                                            <th class="text-nowrap">Nama &amp; Jabatan</th>
+                                            <th>Status Karyawan</th>
+                                            <th>Role Sistem</th>
+                                            <th>Hak Akses Modul</th>
+                                            <th class="text-nowrap">Tanggal Registrasi</th>
+                                            <th style="width: 160px;" class="text-center text-nowrap">Aksi</th>
                                         </tr>
                                     </thead>
                                     <tbody id="users-table-body">
@@ -615,6 +600,9 @@ if (!defined('SPA_MODE')) {
                 }
 
                 function renderUsersTable(users) {
+                    if (typeof $.fn.dataTable !== 'undefined' && $.fn.dataTable.isDataTable('#usersTable')) {
+                        $('#usersTable').DataTable().destroy();
+                    }
                     var tbody = document.getElementById('users-table-body');
                     tbody.innerHTML = '';
 
@@ -720,6 +708,19 @@ if (!defined('SPA_MODE')) {
 
                         tbody.appendChild(tr);
                     });
+
+                    if (users.length > 0 && typeof $.fn.dataTable !== 'undefined') {
+                        $('#usersTable').DataTable({
+                            pageLength: 10,
+                            lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
+                            order: [[0, 'asc']],
+                            dom: "<'row'<'col-sm-12'l>><'row'<'col-sm-12'tr>><'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+                            language: {
+                                search: "Search:",
+                                searchPlaceholder: "Search anything data..."
+                            }
+                        });
+                    }
                 }
 
                 function editUser(userId) {

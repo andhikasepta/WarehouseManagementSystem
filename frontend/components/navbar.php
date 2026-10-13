@@ -1665,6 +1665,7 @@ if (isset($pdo)) {
                                 <option value="">-- Pilih Bulan --</option>
                             </select>
                         </div>
+                        <!-- Batch concept commented out for future use:
                         <div class="form-group mb-2" id="batch-select-group" <?php if ($activePage == 'kpi_monitoring') echo 'style="display:none;"'; ?>>
                             <label for="period-batch-select" class="small font-weight-bold text-gray-600 mb-1">Batch</label>
                             <select class="form-control form-control-sm" id="period-batch-select">
@@ -1673,6 +1674,7 @@ if (isset($pdo)) {
                                 <option value="2">Batch 2</option>
                             </select>
                         </div>
+                        -->
                         <div class="form-group mb-2" id="year-select-group">
                             <label for="period-year-select" class="small font-weight-bold text-gray-600 mb-1">Tahun</label>
                             <select class="form-control form-control-sm" id="period-year-select">
@@ -1784,64 +1786,8 @@ if (isset($pdo)) {
             }
         });
 
-        var startDateInput = document.getElementById('period-start-date');
-        var endDateInput = document.getElementById('period-end-date');
-        var btnLoad = document.getElementById('btn-load-period');
-        var selectedText = document.getElementById('selected-period-text');
-
-        if (startDateInput && endDateInput && btnLoad) {
-            function updateDateRangeBtn() {
-                if (startDateInput.value && endDateInput.value) {
-                    btnLoad.disabled = false;
-                } else {
-                    btnLoad.disabled = true;
-                }
-            }
-
-            startDateInput.addEventListener('change', updateDateRangeBtn);
-            endDateInput.addEventListener('change', updateDateRangeBtn);
-
-            btnLoad.addEventListener('click', function () {
-                if (startDateInput.value && endDateInput.value) {
-                    var startFormatted = formatDateIndo(startDateInput.value);
-                    var endFormatted = formatDateIndo(endDateInput.value);
-                    var displayRange = startFormatted + ' - ' + endFormatted;
-
-                    if (selectedText) {
-                        selectedText.textContent = displayRange;
-                    }
-
-                    // Close dropdown if jQuery/Bootstrap is loaded
-                    if (typeof $ !== 'undefined' && $('#periodDropdown').length) {
-                        $('#periodDropdown').dropdown('toggle');
-                    }
-
-                    // Dispatch global custom event for dateRangeChanged
-                    window.dispatchEvent(new CustomEvent('dateRangeChanged', {
-                        detail: {
-                            startDate: startDateInput.value,
-                            endDate: endDateInput.value,
-                            displayRange: displayRange
-                        }
-                    }));
-                }
-            });
-        }
-
-        var btnReset = document.getElementById('btn-reset-period');
-        if (btnReset) {
-            btnReset.addEventListener('click', function (e) {
-                e.stopPropagation();
-                if (startDateInput) startDateInput.value = '';
-                if (endDateInput) endDateInput.value = '';
-
-                var monthSel = document.getElementById('period-month-select');
-                var yearSel = document.getElementById('period-year-select');
-                if (monthSel) monthSel.value = '';
-                if (yearSel) yearSel.value = '';
-
-                if (btnLoad) btnLoad.disabled = true;
-            });
+        if (window.WMSPeriodManager) {
+            window.WMSPeriodManager.initNavbarListeners();
         }
 
         var periodMenu = document.getElementById('period-dropdown-menu');

@@ -25,9 +25,12 @@ if (!isset($pageTitle)) {
         rel="stylesheet">
     <link href="frontend/css/sb-admin-2.min.css" rel="stylesheet">
     <link href="frontend/vendor/datatables/dataTables.bootstrap4.min.css" rel="stylesheet">
-    <link href="frontend/css/excel-upload.css?v=<?= time() ?>" rel="stylesheet">
-    <link href="frontend/css/custom-datatables.css?v=<?= time() ?>" rel="stylesheet">
+    <link href="frontend/css/excel-upload.css?v=<?= @filemtime((defined('ROOT_PATH') ? ROOT_PATH : dirname(__DIR__, 2) . '/') . 'frontend/css/excel-upload.css') ?>" rel="stylesheet">
+    <link href="frontend/css/custom-datatables.css?v=<?= @filemtime((defined('ROOT_PATH') ? ROOT_PATH : dirname(__DIR__, 2) . '/') . 'frontend/css/custom-datatables.css') ?>" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 
     <!-- CSRF Token (used by AJAX requests) -->
-    <meta name="csrf-token" content="<?= htmlspecialchars(getCsrfToken()) ?>">
+    <meta name="csrf-token" content="<?= htmlspecialchars(getCsrfToken()) ?>">
+
+    <!-- Global Period Controller -->
+    <script src="frontend/js/period-controller.js?v=<?= @filemtime((defined('ROOT_PATH') ? ROOT_PATH : dirname(__DIR__, 2) . '/') . 'frontend/js/period-controller.js') ?>"></script>

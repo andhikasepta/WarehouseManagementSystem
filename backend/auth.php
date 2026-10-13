@@ -113,6 +113,23 @@ if (isset($_SESSION['user_id']) && !empty($_SESSION['user_id'])) {
     }
 }
 
+// ── Performance: concurrent read-only API requests ─────────────────
+// PHP sessions hold an exclusive lock for the whole request. Dashboard pages fire several
+// API calls in parallel; without releasing the lock they are executed one-by-one (cards
+// appear randomly). Read-only GET endpoints (api/get_*.php) never need to persist session
+// changes, so close the session for writing right away. $_SESSION remains readable.
+$__wmsScript = basename($_SERVER['SCRIPT_NAME'] ?? '');
+$__wmsMethod = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
+if (PHP_SAPI !== 'cli' && $__wmsMethod === 'GET' && strpos($__wmsScript, 'get_') === 0 && session_status() === PHP_SESSION_ACTIVE) {
+    session_write_close();
+}
+
+// ── Central backend cache invalidation for every write endpoint ─────
+if (PHP_SAPI !== 'cli' && $__wmsMethod !== 'GET' && preg_match('/^(save_|delete_|upload|import)/i', $__wmsScript)) {
+    require_once __DIR__ . '/cache_helper.php';
+    register_shutdown_function('clearWmsBackendCache');
+}
+
 /**
  * Check if a user is currently logged in.
  */

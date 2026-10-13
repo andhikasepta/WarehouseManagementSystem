@@ -1,22 +1,23 @@
 <?php
 require_once __DIR__ . '/../../backend/auth.php';
-if (!defined('SPA_MODE')) checkModuleAccess('outbound');
+if (!defined('SPA_MODE'))
+    checkModuleAccess('outbound');
 
 if (!defined('SPA_MODE')) {
     $pageTitle = 'WMS - PT. Aplikanusa Lintasarta';
     include FRONTEND_PATH . 'components/header.php';
-?>
+    ?>
 
-<body id="page-top">
-    <div id="wrapper">
-        <div id="content-wrapper" class="d-flex flex-column min-vh-100">
-            <div id="content" class="flex-grow-1">
+    <body id="page-top">
+        <div id="wrapper">
+            <div id="content-wrapper" class="d-flex flex-column min-vh-100">
+                <div id="content" class="flex-grow-1">
 
-                <?php
-                $activePage = 'outbound';
-                include FRONTEND_PATH . 'components/navbar.php';
-                ?>
-<?php } ?>
+                    <?php
+                    $activePage = 'outbound';
+                    include FRONTEND_PATH . 'components/navbar.php';
+                    ?>
+                <?php } ?>
 
                 <div class="container-fluid" style="padding-top: 100px;">
                     <!-- Page Heading just like inbound -->
@@ -90,7 +91,8 @@ if (!defined('SPA_MODE')) {
                                         <div class="col-md border-right-divider mb-3 mb-md-0 status-card-clickable py-2 px-2 rounded"
                                             data-toggle="modal" data-target="#mrStatusDetailModal"
                                             data-status="TOTAL PACKED">
-                                            <div class="h3 font-weight-bold text-info mb-1" id="card-total-packed">0</div>
+                                            <div class="h3 font-weight-bold text-info mb-1" id="card-total-packed">0
+                                            </div>
                                             <div class="text-xs font-weight-bold text-uppercase text-muted mb-2">
                                                 TOTAL PACKED</div>
                                             <div class="progress progress-sm" style="height: 6px; border-radius: 4px;">
@@ -104,7 +106,8 @@ if (!defined('SPA_MODE')) {
                                             data-toggle="modal" data-target="#mrStatusDetailModal"
                                             data-status="TOTAL SHIPPED">
                                             <div class="h3 font-weight-bold text-danger mb-1" id="card-shipped">0</div>
-                                            <div class="text-xs font-weight-bold text-uppercase text-muted mb-2">TOTAL SHIPPED
+                                            <div class="text-xs font-weight-bold text-uppercase text-muted mb-2">TOTAL
+                                                SHIPPED
                                             </div>
                                             <div class="progress progress-sm" style="height: 6px; border-radius: 4px;">
                                                 <div class="progress-bar bg-danger" role="progressbar" style="width: 0%"
@@ -120,8 +123,9 @@ if (!defined('SPA_MODE')) {
                                             <div class="text-xs font-weight-bold text-uppercase text-muted mb-2">MR OPEN
                                             </div>
                                             <div class="progress progress-sm" style="height: 6px; border-radius: 4px;">
-                                                <div class="progress-bar bg-warning" role="progressbar" style="width: 0%"
-                                                    aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                                                <div class="progress-bar bg-warning" role="progressbar"
+                                                    style="width: 0%" aria-valuenow="0" aria-valuemin="0"
+                                                    aria-valuemax="100"></div>
                                             </div>
                                         </div>
                                     </div>
@@ -134,7 +138,9 @@ if (!defined('SPA_MODE')) {
                     <div class="row" style="margin-left: -4px; margin-right: -4px;">
                         <!-- Total PO Price -->
                         <div class="col-xl-4 col-md-4 col-sm-6 mb-4" style="padding-left: 4px; padding-right: 4px;">
-                            <div class="card border-left-primary shadow h-100 py-2">
+                            <div class="card border-left-primary shadow h-100 py-2 status-card-clickable"
+                                data-status="TOTAL PO PRICE" data-toggle="modal" data-target="#mrStatusDetailModal"
+                                style="cursor: pointer;" title="Klik untuk detail Total PO Price">
                                 <div class="card-body p-3 d-flex flex-column justify-content-between">
                                     <div class="text-xs font-weight-bold text-primary text-uppercase mb-1"
                                         style="font-size: 0.72rem; line-height: 1.15;">
@@ -146,7 +152,9 @@ if (!defined('SPA_MODE')) {
                         </div>
                         <!-- Total PO -->
                         <div class="col-xl-4 col-md-4 col-sm-6 mb-4" style="padding-left: 4px; padding-right: 4px;">
-                            <div class="card border-left-info shadow h-100 py-2">
+                            <div class="card border-left-info shadow h-100 py-2 status-card-clickable"
+                                data-status="TOTAL PO" data-toggle="modal" data-target="#mrStatusDetailModal"
+                                style="cursor: pointer;" title="Klik untuk detail Total PO">
                                 <div class="card-body p-3 d-flex flex-column justify-content-between">
                                     <div class="text-xs font-weight-bold text-info text-uppercase mb-1"
                                         style="font-size: 0.72rem; line-height: 1.15;">
@@ -158,7 +166,9 @@ if (!defined('SPA_MODE')) {
                         </div>
                         <!-- Saving -->
                         <div class="col-xl-4 col-md-4 col-sm-6 mb-4" style="padding-left: 4px; padding-right: 4px;">
-                            <div class="card border-left-success shadow h-100 py-2">
+                            <div class="card border-left-success shadow h-100 py-2 status-card-clickable"
+                                data-status="SAVING" data-toggle="modal" data-target="#mrStatusDetailModal"
+                                style="cursor: pointer;" title="Klik untuk detail Saving">
                                 <div class="card-body p-3 d-flex flex-column justify-content-between">
                                     <div class="text-xs font-weight-bold text-success text-uppercase mb-1"
                                         style="font-size: 0.72rem; line-height: 1.15;">
@@ -220,55 +230,75 @@ if (!defined('SPA_MODE')) {
                                                     </h6>
                                                     <div id="list-5-kota-shipped-terbanyak">
                                                         <div class="mb-2">
-                                                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                                                <span class="small font-weight-bold text-gray-700">1. Jakarta</span>
-                                                                <span class="small font-weight-bold text-success">0 Shipped</span>
+                                                            <div
+                                                                class="d-flex justify-content-between align-items-center mb-1">
+                                                                <span class="small font-weight-bold text-gray-700">1.
+                                                                    Jakarta</span>
+                                                                <span class="small font-weight-bold text-success">0
+                                                                    Shipped</span>
                                                             </div>
-                                                            <div class="progress progress-sm" style="height: 5px; border-radius: 4px;">
+                                                            <div class="progress progress-sm"
+                                                                style="height: 5px; border-radius: 4px;">
                                                                 <div class="progress-bar bg-success" role="progressbar"
                                                                     style="width: 0%" aria-valuenow="0"
                                                                     aria-valuemin="0" aria-valuemax="100"></div>
                                                             </div>
                                                         </div>
                                                         <div class="mb-2">
-                                                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                                                <span class="small font-weight-bold text-gray-700">2. Surabaya</span>
-                                                                <span class="small font-weight-bold text-success">0 Shipped</span>
+                                                            <div
+                                                                class="d-flex justify-content-between align-items-center mb-1">
+                                                                <span class="small font-weight-bold text-gray-700">2.
+                                                                    Surabaya</span>
+                                                                <span class="small font-weight-bold text-success">0
+                                                                    Shipped</span>
                                                             </div>
-                                                            <div class="progress progress-sm" style="height: 5px; border-radius: 4px;">
+                                                            <div class="progress progress-sm"
+                                                                style="height: 5px; border-radius: 4px;">
                                                                 <div class="progress-bar bg-success" role="progressbar"
                                                                     style="width: 0%" aria-valuenow="0"
                                                                     aria-valuemin="0" aria-valuemax="100"></div>
                                                             </div>
                                                         </div>
                                                         <div class="mb-2">
-                                                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                                                <span class="small font-weight-bold text-gray-700">3. Medan</span>
-                                                                <span class="small font-weight-bold text-success">0 Shipped</span>
+                                                            <div
+                                                                class="d-flex justify-content-between align-items-center mb-1">
+                                                                <span class="small font-weight-bold text-gray-700">3.
+                                                                    Medan</span>
+                                                                <span class="small font-weight-bold text-success">0
+                                                                    Shipped</span>
                                                             </div>
-                                                            <div class="progress progress-sm" style="height: 5px; border-radius: 4px;">
+                                                            <div class="progress progress-sm"
+                                                                style="height: 5px; border-radius: 4px;">
                                                                 <div class="progress-bar bg-success" role="progressbar"
                                                                     style="width: 0%" aria-valuenow="0"
                                                                     aria-valuemin="0" aria-valuemax="100"></div>
                                                             </div>
                                                         </div>
                                                         <div class="mb-2">
-                                                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                                                <span class="small font-weight-bold text-gray-700">4. Bandung</span>
-                                                                <span class="small font-weight-bold text-success">0 Shipped</span>
+                                                            <div
+                                                                class="d-flex justify-content-between align-items-center mb-1">
+                                                                <span class="small font-weight-bold text-gray-700">4.
+                                                                    Bandung</span>
+                                                                <span class="small font-weight-bold text-success">0
+                                                                    Shipped</span>
                                                             </div>
-                                                            <div class="progress progress-sm" style="height: 5px; border-radius: 4px;">
+                                                            <div class="progress progress-sm"
+                                                                style="height: 5px; border-radius: 4px;">
                                                                 <div class="progress-bar bg-success" role="progressbar"
                                                                     style="width: 0%" aria-valuenow="0"
                                                                     aria-valuemin="0" aria-valuemax="100"></div>
                                                             </div>
                                                         </div>
                                                         <div class="mb-0">
-                                                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                                                <span class="small font-weight-bold text-gray-700">5. Semarang</span>
-                                                                <span class="small font-weight-bold text-success">0 Shipped</span>
+                                                            <div
+                                                                class="d-flex justify-content-between align-items-center mb-1">
+                                                                <span class="small font-weight-bold text-gray-700">5.
+                                                                    Semarang</span>
+                                                                <span class="small font-weight-bold text-success">0
+                                                                    Shipped</span>
                                                             </div>
-                                                            <div class="progress progress-sm" style="height: 5px; border-radius: 4px;">
+                                                            <div class="progress progress-sm"
+                                                                style="height: 5px; border-radius: 4px;">
                                                                 <div class="progress-bar bg-success" role="progressbar"
                                                                     style="width: 0%" aria-valuenow="0"
                                                                     aria-valuemin="0" aria-valuemax="100"></div>
@@ -287,55 +317,75 @@ if (!defined('SPA_MODE')) {
                                                     </h6>
                                                     <div id="list-5-kota-po-value">
                                                         <div class="mb-2">
-                                                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                                                <span class="small font-weight-bold text-gray-700">1. Jakarta</span>
-                                                                <span class="small font-weight-bold text-info">Rp 0</span>
+                                                            <div
+                                                                class="d-flex justify-content-between align-items-center mb-1">
+                                                                <span class="small font-weight-bold text-gray-700">1.
+                                                                    Jakarta</span>
+                                                                <span class="small font-weight-bold text-info">Rp
+                                                                    0</span>
                                                             </div>
-                                                            <div class="progress progress-sm" style="height: 5px; border-radius: 4px;">
+                                                            <div class="progress progress-sm"
+                                                                style="height: 5px; border-radius: 4px;">
                                                                 <div class="progress-bar bg-info" role="progressbar"
                                                                     style="width: 0%" aria-valuenow="0"
                                                                     aria-valuemin="0" aria-valuemax="100"></div>
                                                             </div>
                                                         </div>
                                                         <div class="mb-2">
-                                                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                                                <span class="small font-weight-bold text-gray-700">2. Surabaya</span>
-                                                                <span class="small font-weight-bold text-info">Rp 0</span>
+                                                            <div
+                                                                class="d-flex justify-content-between align-items-center mb-1">
+                                                                <span class="small font-weight-bold text-gray-700">2.
+                                                                    Surabaya</span>
+                                                                <span class="small font-weight-bold text-info">Rp
+                                                                    0</span>
                                                             </div>
-                                                            <div class="progress progress-sm" style="height: 5px; border-radius: 4px;">
+                                                            <div class="progress progress-sm"
+                                                                style="height: 5px; border-radius: 4px;">
                                                                 <div class="progress-bar bg-info" role="progressbar"
                                                                     style="width: 0%" aria-valuenow="0"
                                                                     aria-valuemin="0" aria-valuemax="100"></div>
                                                             </div>
                                                         </div>
                                                         <div class="mb-2">
-                                                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                                                <span class="small font-weight-bold text-gray-700">3. Medan</span>
-                                                                <span class="small font-weight-bold text-info">Rp 0</span>
+                                                            <div
+                                                                class="d-flex justify-content-between align-items-center mb-1">
+                                                                <span class="small font-weight-bold text-gray-700">3.
+                                                                    Medan</span>
+                                                                <span class="small font-weight-bold text-info">Rp
+                                                                    0</span>
                                                             </div>
-                                                            <div class="progress progress-sm" style="height: 5px; border-radius: 4px;">
+                                                            <div class="progress progress-sm"
+                                                                style="height: 5px; border-radius: 4px;">
                                                                 <div class="progress-bar bg-info" role="progressbar"
                                                                     style="width: 0%" aria-valuenow="0"
                                                                     aria-valuemin="0" aria-valuemax="100"></div>
                                                             </div>
                                                         </div>
                                                         <div class="mb-2">
-                                                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                                                <span class="small font-weight-bold text-gray-700">4. Bandung</span>
-                                                                <span class="small font-weight-bold text-info">Rp 0</span>
+                                                            <div
+                                                                class="d-flex justify-content-between align-items-center mb-1">
+                                                                <span class="small font-weight-bold text-gray-700">4.
+                                                                    Bandung</span>
+                                                                <span class="small font-weight-bold text-info">Rp
+                                                                    0</span>
                                                             </div>
-                                                            <div class="progress progress-sm" style="height: 5px; border-radius: 4px;">
+                                                            <div class="progress progress-sm"
+                                                                style="height: 5px; border-radius: 4px;">
                                                                 <div class="progress-bar bg-info" role="progressbar"
                                                                     style="width: 0%" aria-valuenow="0"
                                                                     aria-valuemin="0" aria-valuemax="100"></div>
                                                             </div>
                                                         </div>
                                                         <div class="mb-0">
-                                                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                                                <span class="small font-weight-bold text-gray-700">5. Semarang</span>
-                                                                <span class="small font-weight-bold text-info">Rp 0</span>
+                                                            <div
+                                                                class="d-flex justify-content-between align-items-center mb-1">
+                                                                <span class="small font-weight-bold text-gray-700">5.
+                                                                    Semarang</span>
+                                                                <span class="small font-weight-bold text-info">Rp
+                                                                    0</span>
                                                             </div>
-                                                            <div class="progress progress-sm" style="height: 5px; border-radius: 4px;">
+                                                            <div class="progress progress-sm"
+                                                                style="height: 5px; border-radius: 4px;">
                                                                 <div class="progress-bar bg-info" role="progressbar"
                                                                     style="width: 0%" aria-valuenow="0"
                                                                     aria-valuemin="0" aria-valuemax="100"></div>
@@ -358,9 +408,12 @@ if (!defined('SPA_MODE')) {
                                                     <div id="list-10-site-mr-open"
                                                         class="d-flex flex-column justify-content-between flex-grow-1">
                                                         <?php for ($i = 1; $i <= 10; $i++): ?>
-                                                            <div class="d-flex flex-column justify-content-center flex-grow-1 mb-2">
-                                                                <div class="d-flex justify-content-between align-items-center mb-1">
-                                                                    <span class="small font-weight-bold text-gray-700"><?php echo $i; ?>.
+                                                            <div
+                                                                class="d-flex flex-column justify-content-center flex-grow-1 mb-2">
+                                                                <div
+                                                                    class="d-flex justify-content-between align-items-center mb-1">
+                                                                    <span
+                                                                        class="small font-weight-bold text-gray-700"><?php echo $i; ?>.
                                                                         Site <?php echo chr(64 + $i); ?></span>
                                                                     <span class="small font-weight-bold text-warning">0
                                                                         MR</span>
@@ -444,7 +497,6 @@ if (!defined('SPA_MODE')) {
                                                 </div>
                                             </div>
                                         </div>
-
                                         <!-- Card 4: Delivery per Moda (Value) -->
                                         <div class="col-xl-4 col-lg-4 mb-4 mb-lg-0">
                                             <div class="card border shadow-sm h-100" style="border-radius: 8px;">
@@ -646,18 +698,22 @@ if (!defined('SPA_MODE')) {
                             </div>
 
                             <!-- Filter Controls Container (Clean & Neat Filter Bar) -->
-                            <div class="card mb-3 border shadow-sm" style="border-radius: 10px; background-color: #f8f9fc; border-color: #e3e6f0 !important;">
+                            <div class="card mb-3 border shadow-sm"
+                                style="border-radius: 10px; background-color: #f8f9fc; border-color: #e3e6f0 !important;">
                                 <div class="card-body py-2 px-3">
-                                    <div class="d-flex flex-wrap align-items-center w-100" id="modalDynamicFilterRow" style="gap: 8px;">
+                                    <div class="d-flex flex-wrap align-items-center w-100" id="modalDynamicFilterRow"
+                                        style="gap: 8px;">
                                         <!-- Dynamic Dropdowns, Search Input, and Reset Button injected dynamically via JS -->
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="table-responsive border rounded shadow-sm" style="border-color: #eaecf4 !important; background: #ffffff; max-height: 500px; overflow-y: auto;">
-                                <table class="table table-hover table-striped text-left mb-0 text-nowrap" id="tableMrStatusDetail"
-                                    style="font-size: 0.85rem; width: 100%;">
-                                    <thead class="thead-light text-gray-800 font-weight-bold" id="tableMrStatusDetailHead"
+                            <div class="table-responsive border rounded shadow-sm"
+                                style="border-color: #eaecf4 !important; background: #ffffff; max-height: 500px; overflow-y: auto;">
+                                <table class="table table-hover table-striped text-left mb-0 text-nowrap"
+                                    id="tableMrStatusDetail" style="font-size: 0.85rem; width: 100%;">
+                                    <thead class="thead-light text-gray-800 font-weight-bold"
+                                        id="tableMrStatusDetailHead"
                                         style="border-bottom: 2px solid #e3e6f0; position: sticky; top: 0; z-index: 1; background-color: #f8f9fc;">
                                         <!-- Rendered dynamically by JS -->
                                     </thead>
@@ -676,13 +732,15 @@ if (!defined('SPA_MODE')) {
                 </div>
             </div>
 
-<?php if (!defined('SPA_MODE')) { include FRONTEND_PATH . 'components/footer.php'; } ?>
+            <?php if (!defined('SPA_MODE')) {
+                include FRONTEND_PATH . 'components/footer.php';
+            } ?>
 
             <!-- Page level plugins & Custom Chart script -->
             <?php if (!defined('SPA_MODE')): ?>
-            <script src="frontend/vendor/chart.js/Chart.min.js"></script>
+                <script src="frontend/vendor/chart.js/Chart.min.js"></script>
             <?php endif; ?>
-            <script src="frontend/js/demo/chart-outbound-demo.js?v=<?php echo time(); ?>"></script>
+            <script src="frontend/js/demo/chart-outbound-demo.js?v=<?= @filemtime((defined('ROOT_PATH') ? ROOT_PATH : dirname(__DIR__, 2) . '/') . 'frontend/js/demo/chart-outbound-demo.js') ?>"></script>
 
             <script>
                 $(document).ready(function () {
@@ -703,6 +761,18 @@ if (!defined('SPA_MODE')) {
                         'MR OPEN': {
                             headers: ['NO MR', 'User', 'Tujuan', 'Status MR', 'NO DN', 'Status DN', 'Pickup Type', 'Delivery Target'],
                             keys: ['no_mr', 'user', 'tujuan', 'status_mr', 'no_dn', 'status_dn', 'pickup_type', 'delivery_target']
+                        },
+                        'SAVING': {
+                            headers: ['No. DN', 'No. PO', 'No. SR', 'Vendor / Forwarder', 'Tujuan', 'Via', 'Valuation Price', 'PO Price', 'Saving'],
+                            keys: ['no_dn', 'po_no', 'sr_no', 'po_vendor', 'tujuan_site', 'delivery_via', 'val_price_formatted', 'po_price_formatted', 'saving_formatted']
+                        },
+                        'TOTAL PO PRICE': {
+                            headers: ['No. DN', 'No. PO', 'No. SR', 'Vendor / Forwarder', 'Tujuan', 'Via', 'PO Price'],
+                            keys: ['no_dn', 'po_no', 'sr_no', 'po_vendor', 'tujuan_site', 'delivery_via', 'po_price_formatted']
+                        },
+                        'TOTAL PO': {
+                            headers: ['No. DN', 'No. PO', 'No. SR', 'Vendor / Forwarder', 'Tujuan', 'Via', 'PO Price'],
+                            keys: ['no_dn', 'po_no', 'sr_no', 'po_vendor', 'tujuan_site', 'delivery_via', 'po_price_formatted']
                         }
                     };
 
@@ -729,6 +799,21 @@ if (!defined('SPA_MODE')) {
                             { key: 'tujuan', label: 'Tujuan' },
                             { key: 'status_mr', label: 'Status MR' },
                             { key: 'status_dn', label: 'Status DN' }
+                        ],
+                        'SAVING': [
+                            { key: 'po_vendor', label: 'Vendor' },
+                            { key: 'tujuan_site', label: 'Tujuan' },
+                            { key: 'delivery_via', label: 'Via' }
+                        ],
+                        'TOTAL PO PRICE': [
+                            { key: 'po_vendor', label: 'Vendor' },
+                            { key: 'tujuan_site', label: 'Tujuan' },
+                            { key: 'delivery_via', label: 'Via' }
+                        ],
+                        'TOTAL PO': [
+                            { key: 'po_vendor', label: 'Vendor' },
+                            { key: 'tujuan_site', label: 'Tujuan' },
+                            { key: 'delivery_via', label: 'Via' }
                         ]
                     };
 
@@ -746,19 +831,55 @@ if (!defined('SPA_MODE')) {
                             var k = currentConfig.keys[idx];
                             var iconHtml = '<i class="fas fa-sort text-muted ml-1.5" style="font-size: 0.72rem; opacity: 0.4;"></i>';
                             if (currentSort.key === k) {
-                                iconHtml = currentSort.dir === 'asc' 
-                                    ? '<i class="fas fa-sort-up text-primary ml-1.5" style="font-size: 0.82rem;"></i>' 
+                                iconHtml = currentSort.dir === 'asc'
+                                    ? '<i class="fas fa-sort-up text-primary ml-1.5" style="font-size: 0.82rem;"></i>'
                                     : '<i class="fas fa-sort-down text-primary ml-1.5" style="font-size: 0.82rem;"></i>';
                             }
                             headHtml += '<th class="py-2.5 px-3 border-top-0 text-left text-nowrap sortable-modal-header" data-key="' + k + '" style="cursor: pointer; user-select: none;" title="Klik untuk mengurutkan (Asc/Desc)">';
                             headHtml += '<div class="d-inline-flex align-items-center justify-content-between w-100">' +
-                                        '<span>' + h + '</span>' +
-                                        '<span class="sort-icon-box">' + iconHtml + '</span>' +
-                                        '</div>';
+                                '<span>' + h + '</span>' +
+                                '<span class="sort-icon-box">' + iconHtml + '</span>' +
+                                '</div>';
+                            headHtml += '</th>';
+                        });
+                        headHtml += '</tr>';
+
+                        // Secondary filter row: compact dropdown under each column
+                        headHtml += '<tr class="dt-column-filter-row bg-light">';
+                        currentConfig.headers.forEach(function (h, idx) {
+                            var k = currentConfig.keys[idx];
+                            headHtml += '<th class="p-1 border-top-0 align-middle">';
+                            headHtml += '<select class="form-control form-control-xs dt-column-select-filter outbound-modal-col-filter" data-key="' + k + '" style="font-size: 0.72rem; height: 25px; padding: 2px 4px; border-radius: 4px; min-width: 70px;" title="Filter ' + h + '">';
+                            headHtml += '<option value="">All</option>';
+
+                            var uniqueVals = {};
+                            if (currentModalRows && currentModalRows.length > 0) {
+                                currentModalRows.forEach(function (r) {
+                                    var val = (r[k] !== undefined && r[k] !== null) ? String(r[k]).trim() : '';
+                                    if (val !== '' && val !== '-') uniqueVals[val] = true;
+                                });
+                            }
+                            var sorted = Object.keys(uniqueVals).sort(function (a, b) {
+                                return a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
+                            });
+                            sorted.forEach(function (v) {
+                                var display = v.length > 25 ? v.substring(0, 22) + '...' : v;
+                                headHtml += '<option value="' + $('<div>').text(v).html() + '">' + $('<div>').text(display).html() + '</option>';
+                            });
+
+                            headHtml += '</select>';
                             headHtml += '</th>';
                         });
                         headHtml += '</tr>';
                         thead.html(headHtml);
+
+                        // Attach change handler to secondary dropdowns
+                        thead.find('.outbound-modal-col-filter').off('change.modalCol').on('change.modalCol', function (e) {
+                            e.stopPropagation();
+                            applyModalFilters();
+                        }).on('click mousedown', function (e) {
+                            e.stopPropagation();
+                        });
                     }
 
                     // Render rows in table and update count badge
@@ -842,7 +963,7 @@ if (!defined('SPA_MODE')) {
                                     return currentSort.dir === 'asc' ? numA - numB : numB - numA;
                                 }
 
-                                return currentSort.dir === 'asc' 
+                                return currentSort.dir === 'asc'
                                     ? valA.localeCompare(valB, undefined, { numeric: true, sensitivity: 'base' })
                                     : valB.localeCompare(valA, undefined, { numeric: true, sensitivity: 'base' });
                             });
@@ -864,7 +985,7 @@ if (!defined('SPA_MODE')) {
                         filterDefs.forEach(function (f) {
                             var key = f.key;
                             var label = f.label;
-                            
+
                             // Extract unique values
                             var uniqueVals = [];
                             (rawData || []).forEach(function (r) {
@@ -933,15 +1054,31 @@ if (!defined('SPA_MODE')) {
                         currentConfig = cfg;
                         currentStatusName = statusName;
                         currentSort = { key: null, dir: 'asc' };
-                        currentModalRows = [];
 
                         renderTableHeader();
 
                         var tbody = $('#tableMrStatusDetailBody');
                         var colCount = cfg.headers.length;
-                        tbody.html('<tr><td colspan="' + colCount + '" class="py-5 text-center text-muted bg-white"><i class="fas fa-spinner fa-spin fa-2x text-primary mb-2 d-block"></i>Memuat data detail status...</td></tr>');
-                        $('#modalDynamicFilterRow').empty();
-                        $('#outbound-modal-count-display').text('Memuat...');
+                        var modalCacheKey = 'outbound_modal_' + statusName + '_' + (currentPeriod || 'all');
+                        var hasCachedData = false;
+
+                        // Instant cache check for modal rows
+                        if (window.WMSDataCache && window.WMSDataCache.has(modalCacheKey)) {
+                            var cachedRows = window.WMSDataCache.get(modalCacheKey);
+                            if (cachedRows && cachedRows.length > 0) {
+                                hasCachedData = true;
+                                currentModalRows = cachedRows;
+                                updateModalFilters(statusName, cachedRows);
+                                renderModalRows(cachedRows);
+                            }
+                        }
+
+                        if (!hasCachedData) {
+                            currentModalRows = [];
+                            tbody.html('<tr><td colspan="' + colCount + '" class="py-5 text-center text-muted bg-white"><i class="fas fa-spinner fa-spin fa-2x text-primary mb-2 d-block"></i>Memuat data detail status...</td></tr>');
+                            $('#modalDynamicFilterRow').empty();
+                            $('#outbound-modal-count-display').text('Memuat...');
+                        }
 
                         // Fetch live rows from API with period
                         $.ajax({
@@ -951,16 +1088,21 @@ if (!defined('SPA_MODE')) {
                             dataType: 'json',
                             success: function (res) {
                                 if (res.status === 'success' && res.data && res.data.length > 0) {
+                                    if (window.WMSDataCache) window.WMSDataCache.set(modalCacheKey, res.data);
                                     currentModalRows = res.data;
                                     updateModalFilters(statusName, res.data);
                                     renderModalRows(res.data);
                                 } else {
+                                    if (window.WMSDataCache) window.WMSDataCache.set(modalCacheKey, []);
                                     updateModalFilters(statusName, []);
                                     tbody.html('<tr><td colspan="' + colCount + '" class="py-5 text-center text-muted bg-white"><i class="fas fa-folder-open fa-2x mb-2 d-block text-gray-300"></i>Belum ada data tersedia untuk status ini.</td></tr>');
+                                    $('#outbound-modal-count-display').text('0');
                                 }
                             },
                             error: function () {
-                                tbody.html('<tr><td colspan="' + colCount + '" class="py-4 text-center text-danger bg-white"><i class="fas fa-exclamation-circle fa-2x mb-2 d-block"></i>Gagal memuat data dari server.</td></tr>');
+                                if (!hasCachedData) {
+                                    tbody.html('<tr><td colspan="' + colCount + '" class="py-4 text-center text-danger bg-white"><i class="fas fa-exclamation-circle fa-2x mb-2 d-block"></i>Gagal memuat data dari server.</td></tr>');
+                                }
                             }
                         });
                     }
@@ -1015,21 +1157,53 @@ if (!defined('SPA_MODE')) {
                                     });
                                 }
                                 var availableYears = (result.years && result.years.length > 0) ? result.years : Object.keys(yearsSet).sort();
-                                if (!availableYears || availableYears.length === 0) {
-                                    availableYears = [(new Date()).getFullYear().toString()];
+                                availableYears = (window.WMSPeriodManager)
+                                    ? window.WMSPeriodManager.ensureCurrentYear(availableYears)
+                                    : availableYears;
+
+                                if (window.WMSPeriodManager) {
+                                    window.WMSPeriodManager.populateSelect('period-month-select', ALL_MONTHS, '-- Pilih Bulan --');
+                                    window.WMSPeriodManager.populateSelect('period-year-select', availableYears, '-- Pilih Tahun --');
+                                } else {
+                                    populateSelect('period-month-select', ALL_MONTHS, '-- Pilih Bulan --');
+                                    populateSelect('period-year-select', availableYears, '-- Pilih Tahun --');
                                 }
-                                populateSelect('period-month-select', ALL_MONTHS, '-- Pilih Bulan --');
-                                populateSelect('period-year-select', availableYears, '-- Pilih Tahun --');
 
-                                var pText = document.getElementById('selected-period-text');
-                                if (pText) pText.textContent = "PILIH PERIODE DATA";
+                                var targetPeriod = (window.WMSPeriodManager)
+                                    ? window.WMSPeriodManager.getActivePeriod(result.data, availableYears)
+                                    : null;
 
-                                currentPeriod = '';
-                                resetOutboundCards();
+                                if (targetPeriod) {
+                                    currentPeriod = targetPeriod;
+                                    if (window.WMSPeriodManager) {
+                                        window.WMSPeriodManager.applyPeriodToNavbar(targetPeriod);
+                                    }
+                                    loadStatusCardCounts(targetPeriod);
+                                } else {
+                                    currentPeriod = '';
+                                    if (window.WMSPeriodManager) {
+                                        window.WMSPeriodManager.applyPeriodToNavbar(null);
+                                    }
+                                    resetOutboundCards();
+                                }
                             })
                             .catch(function (err) {
                                 console.error('Error fetching periods:', err);
                             });
+                    }
+
+                    if (window.WMSPeriodManager) {
+                        window.WMSPeriodManager.registerPageHandler({
+                            onLoad: function (period) {
+                                currentPeriod = period;
+                                loadStatusCardCounts(period, true);
+                            },
+                            onReset: function () {
+                                currentPeriod = '';
+                                _loadedPeriod = null;
+                                resetOutboundCards();
+                            }
+                        });
                     }
 
                     function resetOutboundCards() {
@@ -1102,51 +1276,97 @@ if (!defined('SPA_MODE')) {
                         container.html(html);
                     }
 
-                    var btnLoad = document.getElementById('btn-load-period');
-                    if (btnLoad) {
-                        btnLoad.addEventListener('click', function () {
-                            var m = document.getElementById('period-month-select');
-                            var b = document.getElementById('period-batch-select');
-                            var y = document.getElementById('period-year-select');
-                            if (m && m.value && y && y.value) {
-                                if (b && b.value) {
-                                    currentPeriod = m.value + ' ' + y.value + '-Batch' + b.value;
-                                } else {
-                                    currentPeriod = m.value + ' ' + y.value;
-                                }
-                                var pText = document.getElementById('selected-period-text');
-                                if (pText) {
-                                    pText.textContent = (b && b.value) 
-                                        ? currentPeriod.toUpperCase() 
-                                        : (currentPeriod + ' (ALL BATCH)').toUpperCase();
-                                }
-                                loadStatusCardCounts(currentPeriod);
-                                if (window.jQuery) {
-                                    $('#periodDropdown').dropdown('toggle');
-                                }
-                            }
-                        });
-                    }
+                    function applyOutboundCounts(c) {
+                        if (!c) return;
+                        var total = c.total_mr || 0;
 
-                    var btnReset = document.getElementById('btn-reset-period');
-                    if (btnReset) {
-                        btnReset.addEventListener('click', function () {
-                            if (monthSel) monthSel.value = '';
-                            if (batchSel) batchSel.value = '';
-                            if (yearSel) yearSel.value = '';
-                            updateLoadButton();
-                            currentPeriod = '';
-                            var pText = document.getElementById('selected-period-text');
-                            if (pText) pText.textContent = "PILIH PERIODE DATA";
-                            resetOutboundCards();
-                        });
+                        $('#card-total-mr').text(total);
+                        $('#card-total-po').text(c.total_po || 0);
+                        $('#card-total-packed').text(c.total_packed || 0);
+                        $('#card-shipped').text(c.total_shipped || 0);
+                        $('#card-mr-open').text(c.mr_open || c.total_mr_open || 0);
+
+                        // Update progress bars
+                        if (total > 0) {
+                            $('#card-total-mr').closest('.status-card-clickable').find('.progress-bar').css('width', '100%');
+                            $('#card-total-packed').closest('.status-card-clickable').find('.progress-bar').css('width', Math.min(100, Math.round((c.total_packed / total) * 100)) + '%');
+                            $('#card-shipped').closest('.status-card-clickable').find('.progress-bar').css('width', Math.min(100, Math.round((c.total_shipped / total) * 100)) + '%');
+                            $('#card-mr-open').closest('.status-card-clickable').find('.progress-bar').css('width', Math.min(100, Math.round(((c.mr_open || c.total_mr_open || 0) / total) * 100)) + '%');
+                        } else {
+                            $('.progress-bar').css('width', '0%');
+                        }
+
+                        // Update segment numbers if present
+                        if (c.segments) {
+                            var s = c.segments;
+                            $('#qty-internal-delivery').text((s.internal_delivery || 0) + ' DN');
+                            $('#qty-internal-pickup').text((s.internal_pickup || 0) + ' DN');
+                            $('#qty-internal-handcarry').text((s.internal_handcarry || 0) + ' DN');
+                            var intTotal = (s.internal_delivery || 0) + (s.internal_pickup || 0) + (s.internal_handcarry || 0);
+                            $('#internal-segment-total-qty').text(intTotal);
+                            $('#tab-internal-qty').text(intTotal);
+
+                            $('#qty-external-mover').text((s.external_mover || 0) + ' DN');
+                            $('#external-segment-total-qty').text(s.external_mover || 0);
+                            $('#tab-external-qty').text(s.external_mover || 0);
+                            $('#shipped-total-qty').text(c.total_shipped || 0);
+                        }
+
+                        // Update Site MR Open
+                        if (c.top_sites_mr_open) {
+                            render10SiteMrOpen(c.top_sites_mr_open);
+                        } else {
+                            render10SiteMrOpen([]);
+                        }
+
+                        // Update Total PO Price & Saving
+                        $('#card-total-po-price').text(c.total_po_price_formatted || ('Rp ' + Number(c.total_po_price || 0).toLocaleString('id-ID')));
+                        $('#card-saving').text(c.saving_formatted || ('Rp ' + Number(c.saving || 0).toLocaleString('id-ID')));
+
+                        // Update Most Cost Delivery
+                        if (c.most_cost_delivery_via && c.most_cost_delivery_via !== '-') {
+                            var costFormatted = Number(c.most_cost_delivery_value || 0).toLocaleString('id-ID');
+                            $('#card-most-cost-delivery').html(c.most_cost_delivery_via + ' <small class="text-muted font-weight-normal">(Rp ' + costFormatted + ')</small>');
+                        } else {
+                            $('#card-most-cost-delivery').text('-');
+                        }
+
+                        // Update Most Moda Delivery (strictly from VIA column)
+                        if (c.most_moda_delivery && c.most_moda_delivery !== '-') {
+                            var countFormatted = Number(c.most_moda_count || 0).toLocaleString('id-ID');
+                            $('#card-most-moda-delivery').html(c.most_moda_delivery + ' <small class="text-muted font-weight-normal">(' + countFormatted + ')</small>');
+                        } else {
+                            $('#card-most-moda-delivery').text('-');
+                        }
+
+                        // Update 2026 Monthly Charts
+                        if (c.monthly_charts) {
+                            if (typeof window.initOrUpdateOutboundCharts === 'function') {
+                                window.initOrUpdateOutboundCharts(c.monthly_charts);
+                            } else if (typeof window.updateOutboundCharts === 'function') {
+                                window.updateOutboundCharts(c.monthly_charts);
+                            }
+                        }
                     }
 
                     // Function to refresh top summary cards from database
-                    function loadStatusCardCounts(period) {
+                    var _loadedPeriod = null;
+                    var _reqToken = 0;
+                    function loadStatusCardCounts(period, force) {
                         if (!period) {
+                            _loadedPeriod = null;
                             resetOutboundCards();
                             return;
+                        }
+                        // Skip duplicate loads for the same period (eager render + loadPeriods)
+                        if (!force && _loadedPeriod === period) return;
+                        _loadedPeriod = period;
+                        var myToken = ++_reqToken;
+
+                        // Instant cache check: render in 0ms!
+                        var cacheKey = 'outbound_counts_' + period;
+                        if (window.WMSDataCache && window.WMSDataCache.has(cacheKey)) {
+                            applyOutboundCounts(window.WMSDataCache.get(cacheKey));
                         }
 
                         $.ajax({
@@ -1155,77 +1375,10 @@ if (!defined('SPA_MODE')) {
                             data: { action: 'counts', periode: period },
                             dataType: 'json',
                             success: function (res) {
+                                if (myToken !== _reqToken) return; // stale response
                                 if (res.status === 'success' && res.counts) {
-                                    var c = res.counts;
-                                    var total = c.total_mr || 0;
-
-                                    $('#card-total-mr').text(total);
-                                    $('#card-total-po').text(c.total_po || 0);
-                                    $('#card-total-packed').text(c.total_packed || 0);
-                                    $('#card-shipped').text(c.total_shipped || 0);
-                                    $('#card-mr-open').text(c.mr_open || c.total_mr_open || 0);
-
-                                    // Update progress bars
-                                    if (total > 0) {
-                                        $('#card-total-mr').closest('.status-card-clickable').find('.progress-bar').css('width', '100%');
-                                        $('#card-total-packed').closest('.status-card-clickable').find('.progress-bar').css('width', Math.min(100, Math.round((c.total_packed / total) * 100)) + '%');
-                                        $('#card-shipped').closest('.status-card-clickable').find('.progress-bar').css('width', Math.min(100, Math.round((c.total_shipped / total) * 100)) + '%');
-                                        $('#card-mr-open').closest('.status-card-clickable').find('.progress-bar').css('width', Math.min(100, Math.round(((c.mr_open || c.total_mr_open || 0) / total) * 100)) + '%');
-                                    } else {
-                                        $('.progress-bar').css('width', '0%');
-                                    }
-
-                                    // Update segment numbers if present
-                                    if (c.segments) {
-                                        var s = c.segments;
-                                        $('#qty-internal-delivery').text((s.internal_delivery || 0) + ' DN');
-                                        $('#qty-internal-pickup').text((s.internal_pickup || 0) + ' DN');
-                                        $('#qty-internal-handcarry').text((s.internal_handcarry || 0) + ' DN');
-                                        var intTotal = (s.internal_delivery || 0) + (s.internal_pickup || 0) + (s.internal_handcarry || 0);
-                                        $('#internal-segment-total-qty').text(intTotal);
-                                        $('#tab-internal-qty').text(intTotal);
-
-                                        $('#qty-external-mover').text((s.external_mover || 0) + ' DN');
-                                        $('#external-segment-total-qty').text(s.external_mover || 0);
-                                        $('#tab-external-qty').text(s.external_mover || 0);
-                                        $('#shipped-total-qty').text(c.total_shipped || 0);
-                                    }
-
-                                    // Update Site MR Open
-                                    if (c.top_sites_mr_open) {
-                                        render10SiteMrOpen(c.top_sites_mr_open);
-                                    } else {
-                                        render10SiteMrOpen([]);
-                                    }
-
-                                    // Update Total PO Price & Saving
-                                    $('#card-total-po-price').text(c.total_po_price_formatted || ('Rp ' + Number(c.total_po_price || 0).toLocaleString('id-ID')));
-                                    $('#card-saving').text(c.saving_formatted || ('Rp ' + Number(c.saving || 0).toLocaleString('id-ID')));
-
-                                    // Update Most Cost Delivery
-                                    if (c.most_cost_delivery_via && c.most_cost_delivery_via !== '-') {
-                                        var costFormatted = Number(c.most_cost_delivery_value || 0).toLocaleString('id-ID');
-                                        $('#card-most-cost-delivery').html(c.most_cost_delivery_via + ' <small class="text-muted font-weight-normal">(Rp ' + costFormatted + ')</small>');
-                                    } else {
-                                        $('#card-most-cost-delivery').text('-');
-                                    }
-
-                                    // Update Most Moda Delivery
-                                    if (c.most_moda_delivery && c.most_moda_delivery !== '-') {
-                                        var countFormatted = Number(c.most_moda_count || 0).toLocaleString('id-ID');
-                                        $('#card-most-moda-delivery').html(c.most_moda_delivery + ' <small class="text-muted font-weight-normal">(' + countFormatted + ')</small>');
-                                    } else {
-                                        $('#card-most-moda-delivery').text('-');
-                                    }
-
-                                    // Update 2026 Monthly Charts
-                                    if (c.monthly_charts) {
-                                        if (typeof window.initOrUpdateOutboundCharts === 'function') {
-                                            window.initOrUpdateOutboundCharts(c.monthly_charts);
-                                        } else if (typeof window.updateOutboundCharts === 'function') {
-                                            window.updateOutboundCharts(c.monthly_charts);
-                                        }
-                                    }
+                                    if (window.WMSDataCache) window.WMSDataCache.set(cacheKey, res.counts);
+                                    applyOutboundCounts(res.counts);
                                 }
                             }
                         });
@@ -1254,8 +1407,16 @@ if (!defined('SPA_MODE')) {
                     if (typeof window.initOrUpdateOutboundCharts === 'function') {
                         window.initOrUpdateOutboundCharts();
                     }
+                    var eagerPeriod = window.WMSPeriodManager ? window.WMSPeriodManager.getActivePeriod() : null;
+                    if (eagerPeriod) {
+                        currentPeriod = eagerPeriod;
+                        window.WMSPeriodManager.applyPeriodToNavbar(eagerPeriod);
+                        // One request returns cards + monthly charts together -> rendered in the same frame
+                        loadStatusCardCounts(eagerPeriod);
+                    } else {
+                        loadInitial2026Charts();
+                    }
                     loadPeriods();
-                    loadInitial2026Charts();
 
                     // Tab button click handlers for Carousel slider
                     $('#btn-tab-internal').on('click', function () {
@@ -1297,9 +1458,9 @@ if (!defined('SPA_MODE')) {
                     });
                 });
             </script>
-<?php if (!defined('SPA_MODE')): ?>
+            <?php if (!defined('SPA_MODE')): ?>
 
-</body>
+    </body>
 
-</html>
+    </html>
 <?php endif; ?>

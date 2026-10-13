@@ -2,7 +2,7 @@
 Chart.defaults.global.defaultFontFamily = 'Nunito', '-apple-system,system-ui,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif';
 Chart.defaults.global.defaultFontColor = '#858796';
 
-document.addEventListener("DOMContentLoaded", function () {
+function initDashboardOverviewCharts() {
   window.inventorySummaryRealValues = [0, 0, 0, 0];
 
   function getStorageDynamicStepNames() {
@@ -24,38 +24,91 @@ document.addEventListener("DOMContentLoaded", function () {
     if (legend2) legend2.textContent = 'Total NBV';
   }
 
-  // 1. Initialize Inventory Summary Pie/Doughnut Chart (Storage Tekno)
+  // 1. Initialize Inventory Summary Bar Chart (Storage Tekno)
   var ctxInvPie = document.getElementById("dashInventorySummaryPieChart");
   if (ctxInvPie) {
+    if (window.dashInventorySummaryPieChart && typeof window.dashInventorySummaryPieChart.destroy === 'function') {
+      try { window.dashInventorySummaryPieChart.destroy(); } catch (e) {}
+    }
+    var initQty = window.inventoryTotalAssetVal || 0;
+    var initNbv = window.inventoryTotalNbvVal || 0;
+
     window.dashInventorySummaryPieChart = new Chart(ctxInvPie, {
-      type: 'doughnut',
+      type: 'bar',
       data: {
         labels: ['Total Perangkat', 'Total NBV'],
-        datasets: [{
-          data: [1, 1],
-          backgroundColor: ['#4e73df', '#1cc88a'],
-          hoverBackgroundColor: ['#2e59d9', '#17a673'],
-          hoverBorderColor: "#ffffff",
-          hoverBorderWidth: 3,
-          borderWidth: 2
-        }]
+        datasets: [
+          {
+            label: 'Total Perangkat',
+            data: [initQty, 0],
+            backgroundColor: '#4e73df',
+            hoverBackgroundColor: '#2e59d9',
+            borderColor: '#4e73df',
+            borderWidth: 1,
+            maxBarThickness: 38,
+            yAxisID: 'y-axis-qty'
+          },
+          {
+            label: 'Total NBV',
+            data: [0, initNbv],
+            backgroundColor: '#1cc88a',
+            hoverBackgroundColor: '#17a673',
+            borderColor: '#1cc88a',
+            borderWidth: 1,
+            maxBarThickness: 38,
+            yAxisID: 'y-axis-nbv'
+          }
+        ]
       },
       options: {
         maintainAspectRatio: false,
-        cutoutPercentage: 65,
-        layout: {
-          padding: {
-            top: 6,
-            bottom: 6,
-            left: 6,
-            right: 6
-          }
-        },
+        responsive: true,
         legend: {
           display: false
         },
+        scales: {
+          xAxes: [{
+            stacked: true,
+            gridLines: {
+              display: false,
+              drawBorder: false
+            },
+            ticks: {
+              fontSize: 9,
+              fontColor: '#4b5563',
+              fontStyle: 'bold'
+            }
+          }],
+          yAxes: [
+            {
+              id: 'y-axis-qty',
+              stacked: true,
+              position: 'left',
+              display: false,
+              ticks: {
+                beginAtZero: true
+              }
+            },
+            {
+              id: 'y-axis-nbv',
+              stacked: true,
+              position: 'right',
+              display: false,
+              ticks: {
+                beginAtZero: true
+              }
+            }
+          ]
+        },
+        layout: {
+          padding: {
+            top: 4,
+            bottom: 2,
+            left: 4,
+            right: 4
+          }
+        },
         tooltips: {
-          position: 'outsideArc',
           backgroundColor: "rgba(15, 23, 42, 0.94)",
           bodyFontColor: "#ffffff",
           bodyFontSize: 9,
@@ -64,17 +117,17 @@ document.addEventListener("DOMContentLoaded", function () {
           borderWidth: 1,
           xPadding: 7,
           yPadding: 5,
-          displayColors: true,
-          boxWidth: 7,
-          boxHeight: 7,
           caretPadding: 6,
-          caretSize: 5,
           cornerRadius: 6,
           callbacks: {
+            title: function (tooltipItems) {
+              if (!tooltipItems || !tooltipItems.length) return '';
+              return tooltipItems[0].xLabel;
+            },
             label: function (tooltipItem, data) {
               var totalQty = window.inventoryTotalAssetVal || 0;
               var totalNbv = window.inventoryTotalNbvVal || 0;
-              if (tooltipItem.index === 0) {
+              if (tooltipItem.xLabel === 'Total Perangkat' || tooltipItem.datasetIndex === 0) {
                 return 'Total Perangkat: ' + totalQty.toLocaleString('id-ID') + ' Unit';
               } else {
                 return 'Total NBV: Rp ' + totalNbv.toLocaleString('id-ID');
@@ -85,15 +138,30 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     });
 
-    // Link hover on outside legend items to chart slices
+    // Link click on chart bars to Storage Summary Modal
+    ctxInvPie.onclick = function (evt) {
+      if (!window.dashInventorySummaryPieChart) return;
+      var activePoints = window.dashInventorySummaryPieChart.getElementsAtEvent(evt);
+      if (activePoints && activePoints.length > 0) {
+        var clickedIdx = activePoints[0]._index;
+        if (typeof window.openStorageSummaryModal === 'function') {
+          window.openStorageSummaryModal(clickedIdx);
+        }
+      }
+    };
+
+    // Link hover on outside legend items to chart bars
     [1, 2].forEach(function (idx) {
       var legendItem = document.getElementById('storage-legend-item-' + idx);
       if (legendItem) {
         legendItem.addEventListener('mouseenter', function () {
-          if (window.dashInventorySummaryPieChart && window.dashInventorySummaryPieChart.getDatasetMeta(0).data[idx - 1]) {
-            window.dashInventorySummaryPieChart.tooltip._active = [window.dashInventorySummaryPieChart.getDatasetMeta(0).data[idx - 1]];
-            window.dashInventorySummaryPieChart.tooltip.update(true);
-            window.dashInventorySummaryPieChart.draw();
+          if (window.dashInventorySummaryPieChart) {
+            var meta = window.dashInventorySummaryPieChart.getDatasetMeta(idx - 1);
+            if (meta && meta.data && meta.data[idx - 1]) {
+              window.dashInventorySummaryPieChart.tooltip._active = [meta.data[idx - 1]];
+              window.dashInventorySummaryPieChart.tooltip.update(true);
+              window.dashInventorySummaryPieChart.draw();
+            }
           }
         });
         legendItem.addEventListener('mouseleave', function () {
@@ -141,6 +209,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
   var ctxStorageHubPie = document.getElementById("dashStorageHubPieChart");
   if (ctxStorageHubPie) {
+    if (window.dashStorageHubPieChart && typeof window.dashStorageHubPieChart.destroy === 'function') {
+      try { window.dashStorageHubPieChart.destroy(); } catch (e) {}
+    }
     window.dashStorageHubPieChart = new Chart(ctxStorageHubPie, {
       type: 'doughnut',
       data: {
@@ -223,6 +294,9 @@ document.addEventListener("DOMContentLoaded", function () {
   // 1b. Initialize Inbound Flow Pie/Doughnut Chart (Placed under steps)
   var ctxInboundFlowPie = document.getElementById("dashInboundFlowPieChart");
   if (ctxInboundFlowPie) {
+    if (window.dashInboundFlowPieChart && typeof window.dashInboundFlowPieChart.destroy === 'function') {
+      try { window.dashInboundFlowPieChart.destroy(); } catch (e) {}
+    }
     window.dashInboundFlowPieChart = new Chart(ctxInboundFlowPie, {
       type: 'doughnut',
       data: {
@@ -320,140 +394,19 @@ document.addEventListener("DOMContentLoaded", function () {
         }
       });
     }
+
+    // Link click on chart slices to Inbound Summary Modal (Ontime = 1, Terlambat = 2)
+    ctxInboundFlowPie.onclick = function (evt) {
+      if (!window.dashInboundFlowPieChart) return;
+      var activePoints = window.dashInboundFlowPieChart.getElementsAtEvent(evt);
+      if (activePoints && activePoints.length > 0) {
+        var clickedIdx = activePoints[0]._index;
+        if (typeof window.openInboundSummaryModal === 'function') {
+          window.openInboundSummaryModal(clickedIdx === 0 ? 1 : 2);
+        }
+      }
+    };
   }
-
-  // Helper function to update Inventory Summary Pie Chart values (Storage Tekno)
-  window.updateInventorySummaryPieChart = function (totalQty, totalNbv) {
-    if (Array.isArray(totalQty)) {
-      totalQty = totalQty.reduce(function (a, b) { return a + b; }, 0);
-    }
-    if (typeof totalQty === 'number') window.inventoryTotalAssetVal = totalQty;
-    if (typeof totalNbv === 'number') window.inventoryTotalNbvVal = totalNbv;
-
-    var qtyVal = (window.inventoryTotalAssetVal || 0);
-    var nbvVal = (window.inventoryTotalNbvVal || 0);
-
-    var totalEl = document.getElementById('inventory-pie-total-val');
-    if (totalEl) totalEl.textContent = qtyVal.toLocaleString('id-ID') + ' Unit';
-
-    var leg1 = document.getElementById('inv-legend-1');
-    if (leg1) leg1.textContent = qtyVal.toLocaleString('id-ID') + ' Unit';
-
-    var leg2 = document.getElementById('inv-legend-2');
-    if (leg2) leg2.textContent = 'Rp ' + nbvVal.toLocaleString('id-ID');
-
-    if (window.dashInventorySummaryPieChart && window.dashInventorySummaryPieChart.data) {
-      window.dashInventorySummaryPieChart.data.labels = ['Total Perangkat', 'Total NBV'];
-      window.dashInventorySummaryPieChart.data.datasets[0].data = [1, 1];
-      window.dashInventorySummaryPieChart.update();
-    }
-  };
-
-  // Helper function to update Storage HUB & Outlet Warehouse Pie Chart values
-  window.updateStorageHubPieChart = function (newValues) {
-    if (!newValues || !Array.isArray(newValues)) return;
-    window.storageHubRealValues = newValues;
-    var sum = newValues.reduce(function (a, b) { return a + b; }, 0);
-    var totalEl = document.getElementById('hub-inventory-pie-total-val');
-    if (totalEl) totalEl.textContent = sum;
-    if (window.dashStorageHubPieChart && window.dashStorageHubPieChart.data) {
-      syncStorageHubFlowLabels();
-      if (sum === 0) {
-        window.dashStorageHubPieChart.data.datasets[0].data = [1, 1, 1, 1];
-      } else {
-        window.dashStorageHubPieChart.data.datasets[0].data = newValues;
-      }
-      window.dashStorageHubPieChart.update();
-    }
-  };
-
-  // Helper function to update Inbound Flow Pie Chart values
-  window.updateInboundFlowPieChart = function (newValues) {
-    var ontime = 0;
-    var terlambat = 0;
-    var totalPo = 0;
-
-    if (Array.isArray(newValues)) {
-      if (newValues.length === 2) {
-        ontime = parseInt(newValues[0]) || 0;
-        terlambat = parseInt(newValues[1]) || 0;
-        totalPo = ontime + terlambat;
-      } else if (newValues.length >= 3) {
-        totalPo = parseInt(newValues[0]) || 0;
-        ontime = parseInt(newValues[1]) || 0;
-        terlambat = parseInt(newValues[2]) || 0;
-        if (totalPo === 0 && (ontime > 0 || terlambat > 0)) {
-          totalPo = ontime + terlambat;
-        }
-      }
-    }
-
-    window.inboundOntimeVal = ontime;
-    window.inboundTerlambatVal = terlambat;
-    window.inboundTotalPoVal = totalPo;
-    window.inboundFlowRealValues = [ontime, terlambat];
-
-    var ontimePct = totalPo > 0 ? Math.round((ontime / totalPo) * 100) : 0;
-    var terlambatPct = totalPo > 0 ? Math.round((terlambat / totalPo) * 100) : 0;
-
-    // Update center elements
-    var totalEl = document.getElementById('inbound-pie-total-val');
-    if (totalEl) totalEl.textContent = totalPo + ' PO';
-
-    var pctEl = document.getElementById('inbound-pie-pct-val');
-    if (pctEl) pctEl.textContent = '100%';
-
-    // Update top flow steps if elements exist
-    var flowPoEl = document.getElementById('flow-po-count');
-    if (flowPoEl && newValues && newValues.length > 0) flowPoEl.textContent = totalPo + ' PO';
-    var flowOntimeEl = document.getElementById('flow-po-proses-delivery');
-    if (flowOntimeEl && newValues && newValues.length > 1) flowOntimeEl.textContent = ontime + ' PO';
-    var flowTerlambatEl = document.getElementById('flow-po-terlambat-delivery');
-    if (flowTerlambatEl && newValues && newValues.length > 2) flowTerlambatEl.textContent = terlambat + ' PO';
-
-    // Update legend badges
-    var totalBadge = document.getElementById('legend-po-total-badge');
-    if (totalBadge) totalBadge.textContent = totalPo + ' (100%)';
-
-    var ontimeBadge = document.getElementById('legend-po-ontime-badge');
-    if (ontimeBadge) ontimeBadge.textContent = ontime + ' (' + ontimePct + '%)';
-
-    var terlambatBadge = document.getElementById('legend-po-terlambat-badge');
-    if (terlambatBadge) terlambatBadge.textContent = terlambat + ' (' + terlambatPct + '%)';
-
-    if (window.dashInboundFlowPieChart && window.dashInboundFlowPieChart.data) {
-      if (ontime === 0 && terlambat === 0) {
-        window.dashInboundFlowPieChart.data.datasets[0].data = [1, 1];
-      } else {
-        window.dashInboundFlowPieChart.data.datasets[0].data = [ontime, terlambat];
-      }
-      window.dashInboundFlowPieChart.update();
-    }
-  };
-
-  // Backward compatibility alias
-  window.updateInboundFlowBarChart = window.updateInboundFlowPieChart;
-
-  // Clickable Filter Handler for Inbound Flow Steps & Right-side Filter Labels
-  window.toggleInboundFlowSegment = function (index) {
-    if (window.dashInboundFlowPieChart) {
-      var meta = window.dashInboundFlowPieChart.getDatasetMeta(0);
-      if (meta && meta.data && meta.data[index]) {
-        meta.data[index].hidden = !meta.data[index].hidden;
-        window.dashInboundFlowPieChart.update();
-        var legendItem = document.getElementById('inbound-flow-legend-' + (index + 1));
-        if (legendItem) {
-          if (meta.data[index].hidden) {
-            legendItem.style.opacity = '0.35';
-            legendItem.style.textDecoration = 'line-through';
-          } else {
-            legendItem.style.opacity = '1';
-            legendItem.style.textDecoration = 'none';
-          }
-        }
-      }
-    }
-  };
 
   // 2. Dynamic progress bar color coding (red 0-49%, yellow 50-75%, green 75-100%)
   function getProgressColor(percent) {
@@ -481,6 +434,9 @@ document.addEventListener("DOMContentLoaded", function () {
   // 3. Receiving Trend Line Chart (Perangkat IN & Perangkat OUT per month from Storage Tekno)
   var ctxReceivingTrend = document.getElementById("dashReceivingTrendLineChart");
   if (ctxReceivingTrend) {
+    if (window.dashReceivingTrendLineChart && typeof window.dashReceivingTrendLineChart.destroy === 'function') {
+      try { window.dashReceivingTrendLineChart.destroy(); } catch (e) {}
+    }
     window.dashReceivingTrendLineChart = new Chart(ctxReceivingTrend, {
       type: 'line',
       data: {
@@ -561,41 +517,14 @@ document.addEventListener("DOMContentLoaded", function () {
           callbacks: {
             label: function(tooltipItem, data) {
               var dsLabel = data.datasets[tooltipItem.datasetIndex].label || 'Value';
-              return dsLabel + ': ' + tooltipItem.yLabel + ' Unit';
+              var numVal = Number(tooltipItem.yLabel) || 0;
+              return dsLabel + ': ' + numVal.toLocaleString('id-ID') + ' Unit';
             }
           }
         }
       }
     });
   }
-
-  // Helper function to update Receiving Trend Line Chart (Storage Tekno)
-  window.updateDashReceivingTrendChart = function (inData, outData, inDetails, outDetails, yearText) {
-    if (window.dashReceivingTrendLineChart && window.dashReceivingTrendLineChart.data) {
-      window.dashReceivingTrendLineChart.data.datasets[0].data = inData || [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-      window.dashReceivingTrendLineChart.data.datasets[1].data = outData || [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-      window.dashReceivingTrendLineChart._inDetails = inDetails || [];
-      window.dashReceivingTrendLineChart._outDetails = outDetails || [];
-      
-      // Update _recordsPerIndex for modal detail click if needed
-      var mLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-      window.dashReceivingTrendLineChart._recordsPerIndex = mLabels.map(function(m, idx) {
-        var inRecs = (inDetails && inDetails[idx]) ? inDetails[idx] : [];
-        var outRecs = (outDetails && outDetails[idx]) ? outDetails[idx] : [];
-        return inRecs.concat(outRecs);
-      });
-
-      window.dashReceivingTrendLineChart.update();
-
-      if (window.FormulaController) {
-        window.FormulaController.makeChartClickable(window.dashReceivingTrendLineChart, "Perangkat IN & OUT (Storage Tekno)");
-      }
-    }
-    var badgeEl = document.getElementById('trends-title-period');
-    if (badgeEl && yearText) {
-      badgeEl.textContent = 'Storage Tekno (' + yearText + ')';
-    }
-  };
 
   // 4. KPI Best Practice status badge helper
   function getKpiStatus(percent) {
@@ -615,7 +544,6 @@ document.addEventListener("DOMContentLoaded", function () {
     statusEl.textContent = status.label;
     statusEl.style.backgroundColor = status.bg;
     statusEl.style.color = status.color;
-    // Color the percentage text to match
     pctEl.style.color = status.bg;
   }
 
@@ -625,14 +553,13 @@ document.addEventListener("DOMContentLoaded", function () {
   applyKpiStatus('kpi-otd-pct', 'kpi-otd-status');
   applyKpiStatus('kpi-safety-pct', 'kpi-safety-status');
 
-  // 5. Storage Utilization bar color (matches Inbound progress bar gradient style)
+  // 5. Storage Utilization bar color
   function applyStorageUtilColor() {
     var rateEl = document.getElementById('storage-util-rate');
     var bar = document.getElementById('storage-util-bar');
     if (!rateEl || !bar) return;
     var pct = parseFloat(rateEl.textContent) || 0;
     bar.style.width = pct + '%';
-    // Use the same dynamic color logic as other progress bars
     if (pct < 50) {
       bar.style.background = 'linear-gradient(90deg, #e74a3b 0%, #be2617 100%)';
     } else if (pct < 75) {
@@ -644,5 +571,204 @@ document.addEventListener("DOMContentLoaded", function () {
   applyStorageUtilColor();
 
   syncStorageFlowLabels();
-});
+
+  // Apply any pending data
+  if (window.inventoryTotalAssetVal !== undefined || window.inventoryTotalNbvVal !== undefined) {
+    window.updateInventorySummaryPieChart(window.inventoryTotalAssetVal || 0, window.inventoryTotalNbvVal || 0);
+  }
+  if (window.inboundFlowRealValues && (window.inboundFlowRealValues[0] > 0 || window.inboundFlowRealValues[1] > 0 || window.inboundTotalPoVal > 0)) {
+    window.updateInboundFlowPieChart([window.inboundTotalPoVal || 0, window.inboundOntimeVal || 0, window.inboundTerlambatVal || 0]);
+  }
+  if (window._pendingTrendData) {
+    var p = window._pendingTrendData;
+    window.updateDashReceivingTrendChart(p.inData, p.outData, p.inDetails, p.outDetails, p.yearText);
+  }
+}
+
+// Global update handlers (defined at script level so always accessible)
+window.updateInventorySummaryPieChart = function (totalQty, totalNbv) {
+  if (Array.isArray(totalQty)) {
+    totalQty = totalQty.reduce(function (a, b) { return a + b; }, 0);
+  }
+  if (typeof totalQty === 'number') window.inventoryTotalAssetVal = totalQty;
+  if (typeof totalNbv === 'number') window.inventoryTotalNbvVal = totalNbv;
+
+  var qtyVal = (window.inventoryTotalAssetVal || 0);
+  var nbvVal = (window.inventoryTotalNbvVal || 0);
+
+  var totalEl = document.getElementById('inventory-pie-total-val');
+  if (totalEl) totalEl.textContent = qtyVal.toLocaleString('id-ID') + ' Unit';
+
+  var leg1 = document.getElementById('inv-legend-1');
+  if (leg1) leg1.textContent = qtyVal.toLocaleString('id-ID') + ' Unit';
+
+  var leg2 = document.getElementById('inv-legend-2');
+  if (leg2) leg2.textContent = 'Rp ' + nbvVal.toLocaleString('id-ID');
+
+  if (!window.dashInventorySummaryPieChart && document.getElementById("dashInventorySummaryPieChart")) {
+    initDashboardOverviewCharts();
+  }
+
+  if (window.dashInventorySummaryPieChart && window.dashInventorySummaryPieChart.data && window.dashInventorySummaryPieChart.data.datasets.length >= 2) {
+    window.dashInventorySummaryPieChart.data.labels = ['Total Perangkat', 'Total NBV'];
+    window.dashInventorySummaryPieChart.data.datasets[0].data = [qtyVal, 0];
+    window.dashInventorySummaryPieChart.data.datasets[1].data = [0, nbvVal];
+    window.dashInventorySummaryPieChart.update();
+  }
+};
+
+window.updateStorageHubPieChart = function (newValues) {
+  if (!newValues || !Array.isArray(newValues)) return;
+  window.storageHubRealValues = newValues;
+  var sum = newValues.reduce(function (a, b) { return a + b; }, 0);
+  var totalEl = document.getElementById('hub-inventory-pie-total-val');
+  if (totalEl) totalEl.textContent = sum;
+  if (window.dashStorageHubPieChart && window.dashStorageHubPieChart.data) {
+    if (sum === 0) {
+      window.dashStorageHubPieChart.data.datasets[0].data = [1, 1, 1, 1];
+    } else {
+      window.dashStorageHubPieChart.data.datasets[0].data = newValues;
+    }
+    window.dashStorageHubPieChart.update();
+  }
+};
+
+window.updateInboundFlowPieChart = function (newValues) {
+  var ontime = 0;
+  var terlambat = 0;
+  var totalPo = 0;
+
+  if (Array.isArray(newValues)) {
+    if (newValues.length === 2) {
+      ontime = parseInt(newValues[0]) || 0;
+      terlambat = parseInt(newValues[1]) || 0;
+      totalPo = ontime + terlambat;
+    } else if (newValues.length >= 3) {
+      totalPo = parseInt(newValues[0]) || 0;
+      ontime = parseInt(newValues[1]) || 0;
+      terlambat = parseInt(newValues[2]) || 0;
+      if (totalPo === 0 && (ontime > 0 || terlambat > 0)) {
+        totalPo = ontime + terlambat;
+      }
+    }
+  }
+
+  window.inboundOntimeVal = ontime;
+  window.inboundTerlambatVal = terlambat;
+  window.inboundTotalPoVal = totalPo;
+  window.inboundFlowRealValues = [ontime, terlambat];
+
+  var ontimePct = totalPo > 0 ? Math.round((ontime / totalPo) * 100) : 0;
+  var terlambatPct = totalPo > 0 ? Math.round((terlambat / totalPo) * 100) : 0;
+
+  // Update center elements
+  var totalEl = document.getElementById('inbound-pie-total-val');
+  if (totalEl) totalEl.textContent = totalPo.toLocaleString('id-ID') + ' PO';
+
+  var pctEl = document.getElementById('inbound-pie-pct-val');
+  if (pctEl) pctEl.textContent = '100%';
+
+  // Update top flow steps if elements exist
+  var flowPoEl = document.getElementById('flow-po-count');
+  if (flowPoEl && newValues && newValues.length > 0) flowPoEl.textContent = totalPo.toLocaleString('id-ID') + ' PO';
+  var flowOntimeEl = document.getElementById('flow-po-proses-delivery');
+  if (flowOntimeEl && newValues && newValues.length > 1) flowOntimeEl.textContent = ontime.toLocaleString('id-ID') + ' PO';
+  var flowTerlambatEl = document.getElementById('flow-po-terlambat-delivery');
+  if (flowTerlambatEl && newValues && newValues.length > 2) flowTerlambatEl.textContent = terlambat.toLocaleString('id-ID') + ' PO';
+
+  // Update legend badges
+  var totalBadge = document.getElementById('legend-po-total-badge');
+  if (totalBadge) totalBadge.textContent = totalPo.toLocaleString('id-ID') + ' (100%)';
+
+  var ontimeBadge = document.getElementById('legend-po-ontime-badge');
+  if (ontimeBadge) ontimeBadge.textContent = ontime.toLocaleString('id-ID') + ' (' + ontimePct + '%)';
+
+  var terlambatBadge = document.getElementById('legend-po-terlambat-badge');
+  if (terlambatBadge) terlambatBadge.textContent = terlambat.toLocaleString('id-ID') + ' (' + terlambatPct + '%)';
+
+  if (!window.dashInboundFlowPieChart && document.getElementById("dashInboundFlowPieChart")) {
+    initDashboardOverviewCharts();
+  }
+
+  if (window.dashInboundFlowPieChart && window.dashInboundFlowPieChart.data) {
+    if (ontime === 0 && terlambat === 0) {
+      window.dashInboundFlowPieChart.data.datasets[0].data = [1, 1];
+    } else {
+      window.dashInboundFlowPieChart.data.datasets[0].data = [ontime, terlambat];
+    }
+    window.dashInboundFlowPieChart.update();
+  }
+};
+
+window.updateInboundFlowBarChart = window.updateInboundFlowPieChart;
+
+window.toggleInboundFlowSegment = function (index) {
+  if (window.dashInboundFlowPieChart) {
+    var meta = window.dashInboundFlowPieChart.getDatasetMeta(0);
+    if (meta && meta.data && meta.data[index]) {
+      meta.data[index].hidden = !meta.data[index].hidden;
+      window.dashInboundFlowPieChart.update();
+      var legendItem = document.getElementById('inbound-flow-legend-' + (index + 1));
+      if (legendItem) {
+        if (meta.data[index].hidden) {
+          legendItem.style.opacity = '0.35';
+          legendItem.style.textDecoration = 'line-through';
+        } else {
+          legendItem.style.opacity = '1';
+          legendItem.style.textDecoration = 'none';
+        }
+      }
+    }
+  }
+};
+
+window.updateDashReceivingTrendChart = function (inData, outData, inDetails, outDetails, yearText) {
+  window._pendingTrendData = {
+    inData: inData,
+    outData: outData,
+    inDetails: inDetails,
+    outDetails: outDetails,
+    yearText: yearText
+  };
+
+  if (!window.dashReceivingTrendLineChart && document.getElementById("dashReceivingTrendLineChart")) {
+    initDashboardOverviewCharts();
+  }
+
+  if (window.dashReceivingTrendLineChart && window.dashReceivingTrendLineChart.data) {
+    var dIn = (inData && inData.length === 12) ? inData : [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+    var dOut = (outData && outData.length === 12) ? outData : [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+
+    window.dashReceivingTrendLineChart.data.datasets[0].data = dIn;
+    window.dashReceivingTrendLineChart.data.datasets[1].data = dOut;
+    window.dashReceivingTrendLineChart._inDetails = inDetails || [];
+    window.dashReceivingTrendLineChart._outDetails = outDetails || [];
+
+    var mLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    window.dashReceivingTrendLineChart._recordsPerIndex = mLabels.map(function(m, idx) {
+      var inRecs = (inDetails && inDetails[idx]) ? inDetails[idx] : [];
+      var outRecs = (outDetails && outDetails[idx]) ? outDetails[idx] : [];
+      return inRecs.concat(outRecs);
+    });
+
+    window.dashReceivingTrendLineChart.update();
+
+    if (window.FormulaController) {
+      window.FormulaController.makeChartClickable(window.dashReceivingTrendLineChart, "Perangkat IN & OUT (Storage Tekno)");
+    }
+  }
+  var badgeEl = document.getElementById('trends-title-period');
+  if (badgeEl && yearText) {
+    badgeEl.textContent = 'Storage Tekno (' + yearText + ')';
+  }
+};
+
+window.initDashboardOverviewCharts = initDashboardOverviewCharts;
+
+// SPA-compatible auto-run
+if (document.readyState === 'loading') {
+  document.addEventListener("DOMContentLoaded", initDashboardOverviewCharts);
+} else {
+  initDashboardOverviewCharts();
+}
 

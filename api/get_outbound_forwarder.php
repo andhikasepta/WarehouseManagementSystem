@@ -52,6 +52,33 @@ try {
     $likeOp = ($driver === 'pgsql') ? 'ILIKE' : 'LIKE';
     $q = ($driver === 'pgsql') ? '"' : '`';
 
+    // Ensure log columns exist on outbound_forwarder
+    try {
+        if ($driver === 'pgsql') {
+            $checkStmt = $pdo->prepare("SELECT column_name FROM information_schema.columns WHERE table_name = 'outbound_forwarder' AND column_name = 'created_by'");
+            $checkStmt->execute();
+            if (!$checkStmt->fetch()) {
+                $pdo->exec("ALTER TABLE outbound_forwarder ADD COLUMN created_by TEXT");
+            }
+            $checkStmt = $pdo->prepare("SELECT column_name FROM information_schema.columns WHERE table_name = 'outbound_forwarder' AND column_name = 'updated_by'");
+            $checkStmt->execute();
+            if (!$checkStmt->fetch()) {
+                $pdo->exec("ALTER TABLE outbound_forwarder ADD COLUMN updated_by TEXT");
+            }
+        } else {
+            $checkStmt = $pdo->prepare("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'outbound_forwarder' AND COLUMN_NAME = 'created_by'");
+            $checkStmt->execute();
+            if (!$checkStmt->fetch()) {
+                $pdo->exec("ALTER TABLE outbound_forwarder ADD COLUMN created_by TEXT NULL");
+            }
+            $checkStmt = $pdo->prepare("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'outbound_forwarder' AND COLUMN_NAME = 'updated_by'");
+            $checkStmt->execute();
+            if (!$checkStmt->fetch()) {
+                $pdo->exec("ALTER TABLE outbound_forwarder ADD COLUMN updated_by TEXT NULL");
+            }
+        }
+    } catch (Exception $e) {}
+
     // ─── DataTables Server-Side Parameters ───
     $start       = isset($_REQUEST['start']) ? max(0, intval($_REQUEST['start'])) : 0;
     $length      = isset($_REQUEST['length']) ? intval($_REQUEST['length']) : 25;
@@ -103,7 +130,11 @@ try {
         'approval_status',       // 37
         'approval_approver',     // 38
         'approval_date',         // 39
-        'periode_group'          // 40
+        'periode_group',         // 40
+        'created_at',            // 41 (created date)
+        'created_by',            // 42
+        'updated_at',            // 43 (updated date)
+        'updated_by'             // 44
     ];
 
     $orderColumn = (isset($columns[$orderColIdx])) ? $columns[$orderColIdx] : 'id';
@@ -119,8 +150,15 @@ try {
     $params = [];
 
     if ($filterPeriode !== '') {
-        $whereClauses[] = "periode_group = ?";
-        $params[] = $filterPeriode;
+        $cleanPeriode = trim(preg_replace('/\s*\((?:ALL\s+)?BATCH(?:\s+ALL)?\)\s*$/i', '', $filterPeriode));
+        if (preg_match('/-Batch\d+$/i', $cleanPeriode)) {
+            $whereClauses[] = "periode_group = ?";
+            $params[] = $cleanPeriode;
+        } else {
+            $whereClauses[] = "(periode_group = ? OR periode_group $likeOp ?)";
+            $params[] = $cleanPeriode;
+            $params[] = $cleanPeriode . '%';
+        }
     }
 
     if ($filterDnStatus !== '') {
@@ -145,19 +183,29 @@ try {
 
     if ($searchValue !== '') {
         $searchWildcard = '%' . $searchValue . '%';
-        $searchableCols = [
-            'no_dn', 'dn_status', 'asal_pengirim', 'asal_site',
-            'tujuan_penerima', 'tujuan_site', 'proc_vendor_name',
-            'sr_no', 'pr_no', 'po_no', 'po_vendor', 'delivery_awb',
-            'delivery_nama', 'approval_status', 'approval_approver', 'periode_group'
-        ];
-
         $searchSqlParts = [];
-        foreach ($searchableCols as $c) {
-            $searchSqlParts[] = "$c $likeOp ?";
+        foreach ($columns as $c) {
+            $searchSqlParts[] = "{$q}{$c}{$q}::text $likeOp ?";
             $params[] = $searchWildcard;
         }
         $whereClauses[] = "(" . implode(" OR ", $searchSqlParts) . ")";
+    }
+
+    // Per-column search
+    if (isset($_REQUEST['columns']) && is_array($_REQUEST['columns'])) {
+        foreach ($_REQUEST['columns'] as $colIdx => $colData) {
+            if (!empty($colData['search']['value']) && isset($columns[$colIdx])) {
+                $colName = $columns[$colIdx];
+                $colSearchVal = $colData['search']['value'];
+                if (preg_match('/^\^(.*)\$$/', $colSearchVal, $m)) {
+                    $whereClauses[] = "{$q}{$colName}{$q}::text = ?";
+                    $params[] = $m[1];
+                } else {
+                    $whereClauses[] = "{$q}{$colName}{$q}::text $likeOp ?";
+                    $params[] = '%' . $colSearchVal . '%';
+                }
+            }
+        }
     }
 
     $whereSql = "";

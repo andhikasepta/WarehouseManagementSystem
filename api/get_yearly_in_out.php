@@ -20,6 +20,19 @@ try {
         echo json_encode(['status' => 'error', 'message' => 'Invalid year provided']);
         exit;
     }
+
+    $includeDetails = (isset($_GET['include_details']) && $_GET['include_details'] === '1') ? '1' : '0';
+    $cacheDir = __DIR__ . '/../backend/cache';
+    if (!is_dir($cacheDir)) {
+        @mkdir($cacheDir, 0777, true);
+    }
+    $cacheFile = $cacheDir . "/yearly_{$year}_{$includeDetails}.json";
+    $forceRefresh = isset($_GET['refresh']) && $_GET['refresh'] === '1';
+
+    if (!$forceRefresh && file_exists($cacheFile) && (time() - filemtime($cacheFile) < 3600)) {
+        echo file_get_contents($cacheFile);
+        exit;
+    }
     
     // We need to fetch IN/OUT for each month of the year
     $months = [
@@ -227,10 +240,14 @@ try {
         $results['out_details'][$i] = $outDetails;
     }
     
-    echo json_encode([
+    $outputPayload = json_encode([
         'status' => 'success',
         'data' => $results
     ]);
+    if (isset($cacheFile)) {
+        @file_put_contents($cacheFile, $outputPayload);
+    }
+    echo $outputPayload;
 
 } catch(PDOException $e) {
     error_log("Database error in get_yearly_in_out: " . $e->getMessage());

@@ -217,9 +217,10 @@ include FRONTEND_PATH . 'components/header.php';
                 if (noPeriodPages.indexOf(initialPage) !== -1) {
                     $('#nav-item-period-selector, #periodDropdown').closest('.nav-item').hide();
                 } else if (initialPage === 'kpi_monitoring') {
-                    $('#month-select-group, #period-month-select').closest('.form-group').hide();
-                    $('#batch-select-group, #period-batch-select').closest('.form-group').hide();
+                    $('#month-select-group').hide();
+                    $('#batch-select-group').hide();
                     $('#site-select-group').hide();
+                    $('#year-select-group').show();
                 }
 
                 this.loadPage(initialPage, false);
@@ -265,6 +266,8 @@ include FRONTEND_PATH . 'components/header.php';
                 });
             },
 
+            pageHtmlCache: {},
+
             loadPage: function(pageName, pushState) {
                 if (this.isLoading) return;
                 this.isLoading = true;
@@ -272,10 +275,75 @@ include FRONTEND_PATH . 'components/header.php';
                 var self = this;
                 var $content = $('#spa-content');
 
-                // Show loading spinner
-                $content.html(this.loadingHtml);
+                var renderPage = function(html) {
+                    self.cleanup();
+                    self.currentPage = pageName;
+                    self.updateActiveNav(pageName);
 
-                // Cleanup before loading new page
+                    // Save current page state
+                    sessionStorage.setItem('wms_spa_active_page', pageName);
+
+                    // Configure navbar period dropdown BEFORE injecting content so inline page scripts see correct UI state
+                    var noPeriodPages = ['master_data', 'master_data_detail', 'site_location', 'user_management', 'announcements', 'repository_management', 'wms_select'];
+                    if (noPeriodPages.indexOf(pageName) !== -1) {
+                        $('#nav-item-period-selector, #periodDropdown').closest('.nav-item').hide();
+                    } else {
+                        $('#nav-item-period-selector, #periodDropdown').closest('.nav-item').show();
+                        // KPI Monitoring shows only Tahun in period dropdown
+                        if (pageName === 'kpi_monitoring') {
+                            $('#month-select-group').hide();
+                            $('#batch-select-group').hide();
+                            $('#site-select-group').hide();
+                            $('#year-select-group').show();
+                            if (window.WMSPeriodManager) {
+                                var kpiYr = window.WMSPeriodManager.getKpiYear();
+                                var pText = document.getElementById('selected-period-text');
+                                if (pText && kpiYr) pText.textContent = kpiYr;
+                                var ySel = document.getElementById('period-year-select');
+                                if (ySel && kpiYr) ySel.value = kpiYr;
+                                window.WMSPeriodManager.updateLoadButtonState();
+                            }
+                        } else {
+                            $('#month-select-group').show();
+                            $('#batch-select-group').show();
+                            $('#year-select-group').show();
+                            if (pageName === 'storage_hub') {
+                                $('#site-select-group').show();
+                            } else {
+                                $('#site-select-group').hide();
+                            }
+                            if (window.WMSPeriodManager) {
+                                var activeP = window.WMSPeriodManager.getActivePeriod();
+                                if (activeP) {
+                                    window.WMSPeriodManager.applyPeriodToNavbar(activeP);
+                                }
+                            }
+                        }
+                    }
+
+                    // Insert content — jQuery .html() executes inline scripts synchronously
+                    $content.html(html);
+
+                    // Keep browser address bar strictly clean as / (NO # in URL)
+                    if (pushState) {
+                        window.history.pushState({ page: pageName }, '', window.location.pathname);
+                    } else {
+                        window.history.replaceState({ page: pageName }, '', window.location.pathname);
+                    }
+
+                    // Scroll to top
+                    window.scrollTo(0, 0);
+                    self.isLoading = false;
+                };
+
+                // Instant 0ms transition if page HTML is cached
+                if (self.pageHtmlCache[pageName]) {
+                    renderPage(self.pageHtmlCache[pageName]);
+                    return;
+                }
+
+                // Initial network fetch: show loading spinner
+                $content.html(this.loadingHtml);
                 this.cleanup();
 
                 $.ajax({
@@ -284,45 +352,11 @@ include FRONTEND_PATH . 'components/header.php';
                     data: { page: pageName },
                     dataType: 'html',
                     success: function(html) {
-                        // Insert content — jQuery .html() executes inline scripts
-                        $content.html(html);
-                        self.currentPage = pageName;
-                        self.updateActiveNav(pageName);
-
-                        // Save current page state
-                        sessionStorage.setItem('wms_spa_active_page', pageName);
-
-                        // Toggle navbar period dropdown visibility based on active page
-                        var noPeriodPages = ['master_data', 'master_data_detail', 'site_location', 'user_management', 'announcements', 'repository_management', 'wms_select'];
-                        if (noPeriodPages.indexOf(pageName) !== -1) {
-                            $('#nav-item-period-selector, #periodDropdown').closest('.nav-item').hide();
-                        } else {
-                            $('#nav-item-period-selector, #periodDropdown').closest('.nav-item').show();
-                            // KPI Monitoring shows only Tahun in period dropdown
-                            if (pageName === 'kpi_monitoring') {
-                                $('#month-select-group, #period-month-select').closest('.form-group').hide();
-                                $('#batch-select-group, #period-batch-select').closest('.form-group').hide();
-                                $('#site-select-group').hide();
-                            } else {
-                                $('#month-select-group, #period-month-select').closest('.form-group').show();
-                                if (pageName !== 'storage_hub') {
-                                    $('#site-select-group').hide();
-                                }
-                                $('#batch-select-group, #period-batch-select').closest('.form-group').show();
-                            }
-                        }
-
-                        // Keep browser address bar strictly clean as / (NO # in URL)
-                        if (pushState) {
-                            window.history.pushState({ page: pageName }, '', window.location.pathname);
-                        } else {
-                            window.history.replaceState({ page: pageName }, '', window.location.pathname);
-                        }
-
-                        // Scroll to top
-                        window.scrollTo(0, 0);
+                        self.pageHtmlCache[pageName] = html;
+                        renderPage(html);
                     },
                     error: function(xhr) {
+                        self.isLoading = false;
                         if (xhr.status === 401) {
                             // Session expired — reload to show login
                             window.location.reload();
@@ -342,9 +376,6 @@ include FRONTEND_PATH . 'components/header.php';
                                 '</div></div>'
                             );
                         }
-                    },
-                    complete: function() {
-                        self.isLoading = false;
                     }
                 });
             },

@@ -46,7 +46,7 @@ function ensureOutboundMasterTableExists($pdo)
         pickup_type TEXT,
         via TEXT,
         lt TEXT,
-        delivery_target TEXT,
+        delivery_target DATE,
         dn_status TEXT,
         last_log TEXT,
         periode_group TEXT,
@@ -55,6 +55,38 @@ function ensureOutboundMasterTableExists($pdo)
         $updatedAtCol
     )";
     $pdo->exec($sql);
+}
+
+function parseDateVal($val)
+{
+    if (!$val)
+        return null;
+    $str = trim((string) $val);
+    if (empty($str) || $str === '-' || strtolower($str) === 'null')
+        return null;
+
+    // Check if numeric (Excel serial date number, including float decimals)
+    if (is_numeric($str) && (float) $str > 25000 && (float) $str < 80000) {
+        $days = (int) floor((float) $str);
+        $unixTimestamp = ($days - 25569) * 86400;
+        return date('Y-m-d', $unixTimestamp);
+    }
+
+    // Handle DD/MM/YYYY or DD-MM-YYYY formats
+    if (preg_match('/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/', $str, $m)) {
+        return sprintf('%04d-%02d-%02d', $m[3], $m[2], $m[1]);
+    }
+
+    // Handle YYYY-MM-DD
+    if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $str)) {
+        return $str;
+    }
+
+    $timestamp = strtotime($str);
+    if ($timestamp !== false) {
+        return date('Y-m-d', $timestamp);
+    }
+    return null;
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -141,7 +173,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             $pickupType = isset($row['pickup_type']) ? trim((string) $row['pickup_type']) : '';
                             $via = isset($row['via']) ? trim((string) $row['via']) : '';
                             $lt = isset($row['lt']) ? trim((string) $row['lt']) : '';
-                            $deliveryTarget = isset($row['delivery_target']) ? trim((string) $row['delivery_target']) : '';
+                            $deliveryTarget = parseDateVal($row['delivery_target'] ?? null);
                             $dnStatus = isset($row['dn_status']) ? trim((string) $row['dn_status']) : '';
                             $lastLog = isset($row['last_log']) ? trim((string) $row['last_log']) : '';
 
@@ -175,7 +207,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             $params[] = $deliveryTarget;
                             $params[] = $dnStatus;
                             $params[] = $lastLog;
-                            $params[] = $periodeGroup;
+                            
+                            $rowPeriodeGroup = $periodeGroup;
+                            if ($deliveryTarget) {
+                                $ltDays = 0;
+                                if (!empty($lt) && preg_match('/\d+/', (string)$lt, $ltMatch)) {
+                                    $ltDays = intval($ltMatch[0]);
+                                }
+                                $effTimestamp = strtotime("$deliveryTarget -{$ltDays} days");
+                                $effMonth = date('F', $effTimestamp);
+                                $effYear = date('Y', $effTimestamp);
+                                $batchNum = 1;
+                                if (!empty($batch) && is_numeric($batch)) {
+                                    $batchNum = intval($batch);
+                                } elseif (!empty($periodeGroup) && preg_match('/-Batch(\d+)/i', $periodeGroup, $bm)) {
+                                    $batchNum = intval($bm[1]);
+                                }
+                                $rowPeriodeGroup = "$effMonth $effYear-Batch$batchNum";
+                            }
+                            $params[] = $rowPeriodeGroup;
                             $params[] = $rawJson;
                             $insertedCount++;
                         }
@@ -198,6 +248,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $pdo->commit();
                 }
 
+                require_once __DIR__ . '/../backend/cache_helper.php';
+                clearWmsBackendCache();
+
                 echo json_encode([
                     'status' => 'success',
                     'message' => "Berhasil menyimpan $insertedCount baris data Outbound Master.",
@@ -205,6 +258,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ]);
                 exit;
             } elseif ($action === 'finalize') {
+                require_once __DIR__ . '/../backend/cache_helper.php';
+                clearWmsBackendCache();
                 echo json_encode(['status' => 'success', 'message' => 'Outbound master batch finalized']);
                 exit;
             } else {

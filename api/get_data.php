@@ -16,6 +16,7 @@ session_write_close();
 try {
     $driver = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
     $q = ($driver === 'pgsql') ? '"' : '`';
+    $likeOp = ($driver === 'pgsql') ? 'ILIKE' : 'LIKE';
 
     $periodeGroup = $_GET['periode'] ?? null;
     $siteFilter   = $_GET['site'] ?? null;
@@ -24,11 +25,13 @@ try {
     if (!$periodeGroup) {
         $latestStmt = $pdo->query("SELECT periode_group FROM assets WHERE periode_group != 'Unknown Period' ORDER BY periode DESC LIMIT 1");
         $periodeGroup = $latestStmt->fetchColumn();
+    } else {
+        $periodeGroup = trim(preg_replace('/\s*\((?:ALL\s+)?BATCH(?:\s+ALL)?\)\s*$/i', '', $periodeGroup));
     }
     
     if ($periodeGroup) {
         $isBatchSpecific = (bool)preg_match('/-Batch\d+$/i', $periodeGroup);
-        $currWhere = $isBatchSpecific ? "periode_group = ?" : "(periode_group = ? OR periode_group LIKE ?)";
+        $currWhere = $isBatchSpecific ? "periode_group = ?" : "(periode_group = ? OR periode_group $likeOp ?)";
         $currPeriodParams = $isBatchSpecific ? [$periodeGroup] : [$periodeGroup, $periodeGroup . '%'];
 
         if ($siteFilter) {
@@ -159,9 +162,11 @@ try {
         $prevPGroup = ($currentIndex !== false && $currentIndex > 0) ? $allPeriods[$currentIndex - 1] : null;
 
         // Get current period's actual 'periode' value (for OUT assets)
-        $stmtP = $pdo->prepare("SELECT periode FROM assets WHERE (periode_group = ? OR periode_group LIKE ?) LIMIT 1");
+        $stmtP = $pdo->prepare("SELECT periode FROM assets WHERE (periode_group = ? OR periode_group $likeOp ?) LIMIT 1");
         $stmtP->execute([$periodeGroup, $periodeGroup . '%']);
         $currentPeriode = $stmtP->fetchColumn();
+
+        $currWhereC = preg_replace('/\b(periode_group|so_location)\b/', 'c.$1', $currWhere);
 
         if ($prevPGroup) {
             $sqlCurr = "SELECT c.spec_code, c.spec_name, c.reg_no, c.asset_planner_organization,
@@ -170,17 +175,21 @@ try {
                                CASE WHEN p.reg_no IS NULL THEN 'IN' ELSE '-' END AS status
                         FROM assets c
                         LEFT JOIN assets p ON p.reg_no = c.reg_no AND p.periode_group = ?
-                        WHERE $currWhere";
+                        WHERE $currWhereC";
             $paramsCurr = array_merge([$prevPGroup], $currPeriodParams);
 
+            $outSiteWhere = $siteFilter ? " AND p.so_location = ?" : "";
             $sqlOut = "SELECT p.spec_code, p.spec_name, p.reg_no, p.asset_planner_organization,
                               p.nbv, p.so_result, p.so_location, p.{$q}range{$q}, p.sub_location,
                               p.category, ? AS periode, ? AS periode_group,
                               'OUT' AS status
                        FROM assets p
-                       LEFT JOIN assets c ON c.reg_no = p.reg_no AND ($currWhere)
-                       WHERE p.periode_group = ? AND c.reg_no IS NULL";
+                       LEFT JOIN assets c ON c.reg_no = p.reg_no AND ($currWhereC)
+                       WHERE p.periode_group = ?$outSiteWhere AND c.reg_no IS NULL";
             $paramsOut = array_merge([$currentPeriode, $periodeGroup], $currPeriodParams, [$prevPGroup]);
+            if ($siteFilter) {
+                $paramsOut[] = $siteFilter;
+            }
 
             $sql = "($sqlCurr) UNION ALL ($sqlOut)";
             $params = array_merge($paramsCurr, $paramsOut);

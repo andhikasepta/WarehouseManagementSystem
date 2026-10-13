@@ -409,8 +409,9 @@ if (!defined('SPA_MODE')) {
                                 { data: 'longitude', defaultContent: '' }
                             ],
                             order: [[0, 'asc']],
-                            pageLength: 25,
-                            dom: "<'row'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6'f>>" +
+                            pageLength: 10,
+                            lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
+                            dom: "<'row'<'col-sm-12'l>>" +
                                 "<'row'<'col-sm-12'tr>>" +
                                 "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
                             language: {

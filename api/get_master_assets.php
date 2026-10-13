@@ -156,20 +156,20 @@ try {
         $whereConditions[] = "sub_location = ?";
         $filterParams[] = $subLocFilter;
     }
+    $colNames = ['spec_code', 'spec_name', 'reg_no', 'asset_planner_organization', 'nbv',
+                 'so_result', 'so_location', "{$q}range{$q}", 'sub_location', 'category', 'periode_group', 'status'];
+
     if (!empty($searchValue)) {
         $searchTerm = '%' . $searchValue . '%';
-        $whereConditions[] = "(spec_code LIKE ? OR spec_name LIKE ? OR reg_no LIKE ? OR asset_planner_organization LIKE ? OR so_location LIKE ? OR periode_group LIKE ?)";
-        $filterParams[] = $searchTerm;
-        $filterParams[] = $searchTerm;
-        $filterParams[] = $searchTerm;
-        $filterParams[] = $searchTerm;
-        $filterParams[] = $searchTerm;
-        $filterParams[] = $searchTerm;
+        $clauses = [];
+        foreach ($colNames as $c) {
+            $clauses[] = "{$c}::text $likeOp ?";
+            $filterParams[] = $searchTerm;
+        }
+        $whereConditions[] = '(' . implode(' OR ', $clauses) . ')';
     }
 
     // Per-column search from DataTables (excluding period column 10 which is already scoped)
-    $colNames = ['spec_code', 'spec_name', 'reg_no', 'asset_planner_organization', 'nbv',
-                 'so_result', 'so_location', "{$q}range{$q}", 'sub_location', 'category', 'periode_group', 'status'];
     if (isset($_REQUEST['columns']) && is_array($_REQUEST['columns'])) {
         foreach ($_REQUEST['columns'] as $colIdx => $colData) {
             if ($colIdx === 10) continue; // Periode handled at query scoping level
@@ -177,10 +177,10 @@ try {
                 $colName = $colNames[$colIdx];
                 $colSearchVal = $colData['search']['value'];
                 if (preg_match('/^\^(.*)\$$/', $colSearchVal, $m)) {
-                    $whereConditions[] = "$colName = ?";
+                    $whereConditions[] = "{$colName}::text = ?";
                     $filterParams[] = $m[1];
                 } else {
-                    $whereConditions[] = "$colName LIKE ?";
+                    $whereConditions[] = "{$colName}::text $likeOp ?";
                     $filterParams[] = '%' . $colSearchVal . '%';
                 }
             }

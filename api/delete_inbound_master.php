@@ -51,10 +51,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!empty($periode)) {
             $stmt = $pdo->prepare("DELETE FROM inbound_master WHERE periode_group = ?");
             $stmt->execute([$periode]);
+            if (file_exists(__DIR__ . '/../backend/cache_helper.php')) {
+                require_once __DIR__ . '/../backend/cache_helper.php';
+                clearWmsBackendCache();
+            }
             echo json_encode(['status' => 'success', 'message' => "Data Inbound periode $periode berhasil dihapus"]);
             exit;
         } elseif ($action === 'truncate_all' || empty($periode)) {
             $pdo->exec("TRUNCATE TABLE inbound_master");
+            if (file_exists(__DIR__ . '/../backend/cache_helper.php')) {
+                require_once __DIR__ . '/../backend/cache_helper.php';
+                clearWmsBackendCache();
+            }
             echo json_encode(['status' => 'success', 'message' => 'Semua data Inbound berhasil dihapus']);
             exit;
         } else {

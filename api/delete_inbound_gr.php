@@ -34,6 +34,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             $stmt = $pdo->prepare("DELETE FROM inbound_gr WHERE id = ?");
             $stmt->execute([$id]);
+            require_once __DIR__ . '/../backend/cache_helper.php';
+            clearWmsBackendCache();
             echo json_encode(['status' => 'success', 'message' => 'Data GR berhasil dihapus']);
             exit;
         }
@@ -50,10 +52,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!empty($periode)) {
             $stmt = $pdo->prepare("DELETE FROM inbound_gr WHERE periode_group = ?");
             $stmt->execute([$periode]);
+            require_once __DIR__ . '/../backend/cache_helper.php';
+            clearWmsBackendCache();
             echo json_encode(['status' => 'success', 'message' => "Data GR periode $periode berhasil dihapus"]);
             exit;
         } elseif ($action === 'truncate_all' || empty($periode)) {
             $pdo->exec("TRUNCATE TABLE inbound_gr");
+            require_once __DIR__ . '/../backend/cache_helper.php';
+            clearWmsBackendCache();
             echo json_encode(['status' => 'success', 'message' => 'Semua Data GR berhasil dihapus']);
             exit;
         } else {

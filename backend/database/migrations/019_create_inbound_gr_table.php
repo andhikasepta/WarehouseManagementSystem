@@ -16,13 +16,13 @@ return function ($pdo) {
         product_name TEXT,
         price TEXT,
         pr_no TEXT,
-        pr_date TEXT,
+        pr_date DATE,
         po_no TEXT,
-        po_date TEXT,
+        po_date DATE,
         do_no TEXT,
-        do_date TEXT,
+        do_date DATE,
         gr_no TEXT,
-        gr_date TEXT,
+        gr_date DATE,
         po_value TEXT,
         nama_project TEXT,
         term_of_payment TEXT,
@@ -40,10 +40,10 @@ return function ($pdo) {
         capex_opex TEXT,
         loi_no TEXT,
         is_sent_to_artis_code TEXT,
-        artis_date TEXT,
+        artis_date DATE,
         artis_message TEXT,
         is_sent_to_iips_code TEXT,
-        iips_date TEXT,
+        iips_date DATE,
         iips_message TEXT,
         pic_submit_gr TEXT,
         pic_registration TEXT,
@@ -69,12 +69,16 @@ return function ($pdo) {
         $createIndex("CREATE INDEX idx_inbound_gr_gr_no ON inbound_gr(gr_no(191))");
         $createIndex("CREATE INDEX idx_inbound_gr_vendor_name ON inbound_gr(vendor_name(191))");
         $createIndex("CREATE INDEX idx_inbound_gr_nama_project ON inbound_gr(nama_project(191))");
+        $createIndex("CREATE INDEX idx_inbound_gr_pr_no ON inbound_gr(pr_no(191))");
+        $createIndex("CREATE INDEX idx_inbound_gr_no_reg ON inbound_gr(no_reg(191))");
     } else {
         $createIndex("CREATE INDEX IF NOT EXISTS idx_inbound_gr_periode_group ON inbound_gr(periode_group)");
         $createIndex("CREATE INDEX IF NOT EXISTS idx_inbound_gr_po_no ON inbound_gr(po_no)");
         $createIndex("CREATE INDEX IF NOT EXISTS idx_inbound_gr_gr_no ON inbound_gr(gr_no)");
         $createIndex("CREATE INDEX IF NOT EXISTS idx_inbound_gr_vendor_name ON inbound_gr(vendor_name)");
         $createIndex("CREATE INDEX IF NOT EXISTS idx_inbound_gr_nama_project ON inbound_gr(nama_project)");
+        $createIndex("CREATE INDEX IF NOT EXISTS idx_inbound_gr_pr_no ON inbound_gr(pr_no)");
+        $createIndex("CREATE INDEX IF NOT EXISTS idx_inbound_gr_no_reg ON inbound_gr(no_reg)");
     }
 
     echo "Created table 'inbound_gr'.\n";

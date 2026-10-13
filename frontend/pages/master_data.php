@@ -81,7 +81,8 @@ if (!defined('SPA_MODE')) {
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 
 <!-- Excel Upload & Process Checklist CSS -->
-<link href="frontend/css/excel-upload.css?v=<?= time() ?>" rel="stylesheet">
+<link href="frontend/css/excel-upload.css?v=<?= @filemtime((defined('ROOT_PATH') ? ROOT_PATH : dirname(__DIR__, 2) . '/') . 'frontend/css/excel-upload.css') ?>" rel="stylesheet">
+<link href="frontend/css/custom-datatables.css?v=<?= @filemtime((defined('ROOT_PATH') ? ROOT_PATH : dirname(__DIR__, 2) . '/') . 'frontend/css/custom-datatables.css') ?>" rel="stylesheet">
 <style>
     /* Basic Select2 Bootstrap 4 overrides */
     .select2-container .select2-selection--single {
@@ -994,6 +995,7 @@ if (!defined('SPA_MODE')) {
                                                                 </th>
                                                                 <th rowspan="3" class="text-center align-middle">PERIODE
                                                                     GROUP</th>
+                                                                <th colspan="4" class="text-center align-middle">LOG</th>
                                                             </tr>
                                                             <!-- Row 2: Sub Headers -->
                                                             <tr>
@@ -1034,6 +1036,11 @@ if (!defined('SPA_MODE')) {
                                                                 <th rowspan="2" class="text-center align-middle">APPROVER
                                                                 </th>
                                                                 <th rowspan="2" class="text-center align-middle">DATE</th>
+                                                                <!-- Under LOG -->
+                                                                <th rowspan="2" class="text-center align-middle">CREATED DATE</th>
+                                                                <th rowspan="2" class="text-center align-middle">CREATED BY</th>
+                                                                <th rowspan="2" class="text-center align-middle">UPDATED DATE</th>
+                                                                <th rowspan="2" class="text-center align-middle">UPDATED BY</th>
                                                             </tr>
                                                             <!-- Row 3: Sub-Sub Headers (Leaf Columns) -->
                                                             <tr>
@@ -1706,55 +1713,6 @@ if (!defined('SPA_MODE')) {
                             <div class="row">
                                 <!-- Left Column: Periode, Dropzone & Process Steps -->
                                 <div class="col-12" id="inbound-col-left">
-                                    <!-- Periode Group Selectors (Month, Batch & Year) -->
-                                    <div class="form-row mb-2">
-                                        <div class="col-4">
-                                            <label for="uploadInboundMonthSelect"
-                                                class="small font-weight-bold text-gray-700 mb-1">Bulan Periode <span
-                                                    class="text-danger">*</span></label>
-                                            <select class="form-control form-control-sm" id="uploadInboundMonthSelect">
-                                                <option value="">-- Pilih Bulan --</option>
-                                                <option value="January">January</option>
-                                                <option value="February">February</option>
-                                                <option value="March">March</option>
-                                                <option value="April">April</option>
-                                                <option value="May">May</option>
-                                                <option value="June">June</option>
-                                                <option value="July">July</option>
-                                                <option value="August">August</option>
-                                                <option value="September">September</option>
-                                                <option value="October">October</option>
-                                                <option value="November">November</option>
-                                                <option value="December">December</option>
-                                            </select>
-                                        </div>
-                                        <div class="col-4">
-                                            <label for="uploadInboundBatchSelect"
-                                                class="small font-weight-bold text-gray-700 mb-1">Batch <span
-                                                    class="text-danger">*</span></label>
-                                            <select class="form-control form-control-sm" id="uploadInboundBatchSelect">
-                                                <option value="">-- Pilih Batch --</option>
-                                                <option value="1">Batch 1</option>
-                                                <option value="2">Batch 2</option>
-                                            </select>
-                                        </div>
-                                        <div class="col-4">
-                                            <label for="uploadInboundYearSelect"
-                                                class="small font-weight-bold text-gray-700 mb-1">Tahun Periode <span
-                                                    class="text-danger">*</span></label>
-                                            <select class="form-control form-control-sm" id="uploadInboundYearSelect">
-                                                <option value="">-- Pilih Tahun --</option>
-                                                <?php
-                                                $curY = (int) date('Y');
-                                                for ($y = 2024; $y <= $curY + 5; $y++): ?>
-                                                    <option value="<?php echo $y; ?>" <?php echo ($y === $curY) ? 'selected' : ''; ?>>
-                                                        <?php echo $y; ?>
-                                                    </option>
-                                                <?php endfor; ?>
-                                            </select>
-                                        </div>
-                                    </div>
-
                                     <!-- Period Availability Status Indicator -->
                                     <div id="inbound-period-status" class="mb-3" style="display: none;"></div>
 
@@ -2289,56 +2247,8 @@ if (!defined('SPA_MODE')) {
                             <div class="row">
                                 <!-- Left Column: Periode, Dropzone & Process Steps -->
                                 <div class="col-12" id="forwarder-col-left">
-                                    <!-- Periode Group Selectors (Month, Batch & Year) -->
-                                    <div class="form-row mb-2">
-                                        <div class="col-4">
-                                            <label for="uploadForwarderMonthSelect"
-                                                class="small font-weight-bold text-gray-700 mb-1">Bulan Periode <span
-                                                    class="text-danger">*</span></label>
-                                            <select class="form-control form-control-sm"
-                                                id="uploadForwarderMonthSelect">
-                                                <option value="">-- Pilih Bulan --</option>
-                                                <option value="January">January</option>
-                                                <option value="February">February</option>
-                                                <option value="March">March</option>
-                                                <option value="April">April</option>
-                                                <option value="May">May</option>
-                                                <option value="June">June</option>
-                                                <option value="July">July</option>
-                                                <option value="August">August</option>
-                                                <option value="September">September</option>
-                                                <option value="October">October</option>
-                                                <option value="November">November</option>
-                                                <option value="December">December</option>
-                                            </select>
-                                        </div>
-                                        <div class="col-4">
-                                            <label for="uploadForwarderBatchSelect"
-                                                class="small font-weight-bold text-gray-700 mb-1">Batch <span
-                                                    class="text-danger">*</span></label>
-                                            <select class="form-control form-control-sm"
-                                                id="uploadForwarderBatchSelect">
-                                                <option value="">-- Pilih Batch --</option>
-                                                <option value="1">Batch 1</option>
-                                                <option value="2">Batch 2</option>
-                                            </select>
-                                        </div>
-                                        <div class="col-4">
-                                            <label for="uploadForwarderYearSelect"
-                                                class="small font-weight-bold text-gray-700 mb-1">Tahun Periode <span
-                                                    class="text-danger">*</span></label>
-                                            <select class="form-control form-control-sm" id="uploadForwarderYearSelect">
-                                                <option value="">-- Pilih Tahun --</option>
-                                                <?php
-                                                $curY = (int) date('Y');
-                                                for ($y = 2024; $y <= $curY + 5; $y++): ?>
-                                                    <option value="<?php echo $y; ?>" <?php echo ($y === $curY) ? 'selected' : ''; ?>>
-                                                        <?php echo $y; ?>
-                                                    </option>
-                                                <?php endfor; ?>
-                                            </select>
-                                        </div>
-                                    </div>
+                                    <!-- Period Availability Status Indicator -->
+                                    <div id="forwarder-period-status" class="mb-3" style="display: none;"></div>
 
                                     <div class="upload-drop-zone" id="forwarder-upload-drop-zone">
                                         <input type="file" id="excel-file-forwarder-input" accept=".xlsx,.xls,.csv"
@@ -2669,58 +2579,14 @@ if (!defined('SPA_MODE')) {
                                 <div class="text-center text-gray-600 mb-4">
                                     <h3 class="text-danger font-weight-bold mb-3"><i
                                             class="fas fa-exclamation-triangle mr-2"></i>Peringatan</h3>
-                                    <p class="mb-0" style="font-size: 1.1rem;">Data yang Anda pilih akan dihapus
-                                        permanen</p>
-                                </div>
-                                <div class="form-group mb-3">
-                                    <label for="deleteForwarderMonthSelect"
-                                        class="small font-weight-bold text-gray-600">Bulan</label>
-                                    <select class="form-control form-control-sm" id="deleteForwarderMonthSelect">
-                                        <option value="">-- Pilih Bulan (Kosongkan untuk Hapus Semua) --
-                                        </option>
-                                        <option value="January">January</option>
-                                        <option value="February">February</option>
-                                        <option value="March">March</option>
-                                        <option value="April">April</option>
-                                        <option value="May">May</option>
-                                        <option value="June">June</option>
-                                        <option value="July">July</option>
-                                        <option value="August">August</option>
-                                        <option value="September">September</option>
-                                        <option value="October">October</option>
-                                        <option value="November">November</option>
-                                        <option value="December">December</option>
-                                    </select>
-                                </div>
-                                <div class="form-group mb-3">
-                                    <label for="deleteForwarderBatchSelect"
-                                        class="small font-weight-bold text-gray-600">Batch</label>
-                                    <select class="form-control form-control-sm" id="deleteForwarderBatchSelect">
-                                        <option value="">-- Pilih Batch --</option>
-                                        <option value="1">Batch 1</option>
-                                        <option value="2">Batch 2</option>
-                                    </select>
-                                </div>
-                                <div class="form-group mb-4">
-                                    <label for="deleteForwarderYearSelect"
-                                        class="small font-weight-bold text-gray-600">Tahun</label>
-                                    <select class="form-control form-control-sm" id="deleteForwarderYearSelect">
-                                        <option value="">-- Pilih Tahun --</option>
-                                        <?php
-                                        $curY = (int) date('Y');
-                                        for ($y = 2024; $y <= $curY + 5; $y++): ?>
-                                            <option value="<?php echo $y; ?>" <?php echo ($y === $curY) ? 'selected' : ''; ?>>
-                                                <?php echo $y; ?>
-                                            </option>
-                                        <?php endfor; ?>
-                                    </select>
+                                    <p class="mb-0" style="font-size: 1.1rem;">Semua Data Master PR Forwarder akan dihapus permanen dari sistem.</p>
                                 </div>
                                 <div class="d-flex justify-content-end mt-4">
                                     <button class="btn btn-light px-4 mr-2" type="button" data-dismiss="modal"
                                         style="border-radius: 6px; font-weight: 600;">Batal</button>
                                     <button class="btn btn-danger px-4" type="button" id="btn-confirm-delete-forwarder"
                                         style="border-radius: 6px; font-weight: 600; box-shadow: 0 4px 10px rgba(231,74,59,0.3);">
-                                        <i class="fas fa-trash mr-1"></i> Hapus Data PR Forwarder
+                                        <i class="fas fa-trash mr-1"></i> Hapus Semua Data PR Forwarder
                                     </button>
                                 </div>
                             </div>
@@ -2954,8 +2820,8 @@ if (!defined('SPA_MODE')) {
             <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
             <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
             <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-            <script src="frontend/js/formula-controller.js?v=<?= time() ?>"></script>
-            <script src="frontend/js/master-data.js?v=<?= time() ?>"></script>
+            <script src="frontend/js/formula-controller.js?v=<?= @filemtime((defined('ROOT_PATH') ? ROOT_PATH : dirname(__DIR__, 2) . '/') . 'frontend/js/formula-controller.js') ?>"></script>
+            <script src="frontend/js/master-data.js?v=<?= @filemtime((defined('ROOT_PATH') ? ROOT_PATH : dirname(__DIR__, 2) . '/') . 'frontend/js/master-data.js') ?>"></script>
 
             <script>
                 $(document).ready(function () {
@@ -3375,40 +3241,32 @@ if (!defined('SPA_MODE')) {
                     });
                 }
 
-                // 4. Confirm Delete PR Forwarder Data
+                // 4. Confirm Delete PR Forwarder Data (Delete All Data)
                 var btnConfirmDeleteForwarder = document.getElementById('btn-confirm-delete-forwarder');
                 if (btnConfirmDeleteForwarder) {
                     btnConfirmDeleteForwarder.addEventListener('click', function () {
-                        var m = document.getElementById('deleteForwarderMonthSelect') ? document.getElementById('deleteForwarderMonthSelect').value : '';
-                        var b = document.getElementById('deleteForwarderBatchSelect') ? document.getElementById('deleteForwarderBatchSelect').value : '';
-                        var y = document.getElementById('deleteForwarderYearSelect') ? document.getElementById('deleteForwarderYearSelect').value : '';
-                        var period = (m && y) ? (m + ' ' + y + (b ? '-Batch' + b : '')) : null;
-
-                        var isTruncate = (!m && !y && !b);
-                        var msg = isTruncate
-                            ? "Ingin menghapus SEMUA Data Master PR Forwarder dari database?"
-                            : (period ? "Ingin menghapus data PR Forwarder untuk periode " + period.toUpperCase() + "?" : "Ingin menghapus data PR Forwarder untuk periode yang dipilih?");
-
                         var executeForwarderDelete = function () {
                             showProcessingModal();
+                            var csrfToken = (window.WMS_CSRF_TOKEN) || ($('meta[name="csrf-token"]').attr('content')) || '';
                             fetch('api/delete_outbound_forwarder.php', {
                                 method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRF-TOKEN': csrfToken
+                                },
                                 body: JSON.stringify({
-                                    action: isTruncate ? 'truncate_all' : 'delete_period',
-                                    periode: period,
-                                    month: m,
-                                    year: y,
-                                    batch: b
+                                    action: 'truncate_all',
+                                    clear_all: true,
+                                    csrf_token: csrfToken
                                 })
                             })
                                 .then(r => r.json())
                                 .then(res => {
                                     if (res.status === 'success') {
                                         if (typeof Swal !== 'undefined') {
-                                            Swal.fire('Berhasil!', res.message || 'Data PR Forwarder berhasil dihapus.', 'success');
+                                            Swal.fire('Berhasil!', res.message || 'Semua data PR Forwarder berhasil dihapus.', 'success');
                                         } else {
-                                            alert(res.message || 'Data PR Forwarder berhasil dihapus.');
+                                            alert(res.message || 'Semua data PR Forwarder berhasil dihapus.');
                                         }
                                         $('#deleteDataModalForwarder').modal('hide');
                                         if (typeof forwarderTable !== 'undefined' && forwarderTable) {
@@ -3437,19 +3295,19 @@ if (!defined('SPA_MODE')) {
                         if (typeof Swal !== 'undefined') {
                             Swal.fire({
                                 title: 'Apakah Anda YAKIN?',
-                                text: msg,
+                                text: 'Ingin menghapus SEMUA Data Master PR Forwarder dari database?',
                                 icon: 'warning',
                                 showCancelButton: true,
                                 confirmButtonColor: '#e74a3b',
                                 cancelButtonColor: '#858796',
-                                confirmButtonText: 'Ya, Hapus!'
+                                confirmButtonText: 'Ya, Hapus Semua!'
                             }).then((result) => {
                                 if (result.isConfirmed) {
                                     executeForwarderDelete();
                                 }
                             });
                         } else {
-                            if (confirm("Apakah Anda YAKIN " + msg)) {
+                            if (confirm("Apakah Anda YAKIN ingin menghapus SEMUA Data Master PR Forwarder?")) {
                                 executeForwarderDelete();
                             }
                         }

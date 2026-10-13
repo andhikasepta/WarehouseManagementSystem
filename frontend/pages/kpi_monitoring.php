@@ -46,18 +46,6 @@ if (!defined('SPA_MODE')) {
                         font-weight: 600 !important;
                     }
 
-                    /* Sub-badge indicators on cards (Kumulatif / s.d. Bulan) */
-                    #card-sub-stock-opname,
-                    #card-sub-slow-moving {
-                        display: inline-flex !important;
-                        align-items: center !important;
-                        justify-content: center !important;
-                        vertical-align: middle !important;
-                        line-height: 1 !important;
-                        padding: 0.25rem 0.5rem !important;
-                        font-size: 0.68rem !important;
-                    }
-
                     /* Perfect Vertical Centering for Alerts */
                     .alert {
                         display: flex !important;
@@ -84,16 +72,6 @@ if (!defined('SPA_MODE')) {
                         background-color: #fff3cd !important;
                         color: #664d03 !important;
                         font-weight: 700 !important;
-                    }
-
-                    /* On KPI Monitoring, PILIH PERIODE DATA dropdown displays ONLY Tahun */
-                    #month-select-group,
-                    #batch-select-group,
-                    #site-select-group,
-                    #period-dropdown-menu .form-group:has(#period-month-select),
-                    #period-dropdown-menu .form-group:has(#period-batch-select),
-                    #period-dropdown-menu .form-group:has(#period-site-select) {
-                        display: none !important;
                     }
                 </style>
 
@@ -141,12 +119,8 @@ if (!defined('SPA_MODE')) {
                                     <div class="text-xs font-weight-bold text-success text-uppercase mb-1"
                                         style="font-size: 0.72rem; line-height: 1.15;">
                                         MR CLOSING SLA (KUMULATIF)</div>
-                                    <div class="d-flex align-items-center justify-content-between mt-auto">
-                                        <div class="h4 mb-0 font-weight-bold text-gray-800"
-                                            style="line-height: 1.1;" id="card-val-stock-opname">0.0%</div>
-                                        <span class="badge badge-light border text-muted font-weight-normal text-xs"
-                                            id="card-sub-stock-opname" style="font-size: 0.68rem;">Kumulatif</span>
-                                    </div>
+                                    <div class="h4 mb-0 font-weight-bold text-gray-800 mt-auto"
+                                        style="line-height: 1.1;" id="card-val-stock-opname">0.0%</div>
                                 </div>
                             </div>
                         </div>
@@ -187,12 +161,8 @@ if (!defined('SPA_MODE')) {
                                     <div class="text-xs font-weight-bold text-warning text-uppercase mb-1"
                                         style="font-size: 0.72rem; line-height: 1.15;">
                                         SLOW MOVING SLA (KUMULATIF)</div>
-                                    <div class="d-flex align-items-center justify-content-between mt-auto">
-                                        <div class="h4 mb-0 font-weight-bold text-gray-800"
-                                            style="line-height: 1.1;" id="card-val-slow-moving">0.0%</div>
-                                        <span class="badge badge-light border text-muted font-weight-normal text-xs"
-                                            id="card-sub-slow-moving" style="font-size: 0.68rem;">Kumulatif</span>
-                                    </div>
+                                    <div class="h4 mb-0 font-weight-bold text-gray-800 mt-auto"
+                                        style="line-height: 1.1;" id="card-val-slow-moving">0.0%</div>
                                 </div>
                             </div>
                         </div>
@@ -554,42 +524,18 @@ if (!defined('SPA_MODE')) {
                     // Initialize Page & Period Selector from Navbar
                     $(function () {
                         // On KPI Monitoring, PILIH PERIODE DATA dropdown displays ONLY Tahun
-                        $('#month-select-group, #period-month-select').closest('.form-group').hide();
-                        $('#batch-select-group, #period-batch-select').closest('.form-group').hide();
-                        $('#site-select-group, #period-site-select').closest('.form-group').hide();
+                        $('#month-select-group, #batch-select-group, #site-select-group').hide();
+                        $('#year-select-group').show();
 
-                        var periodMenu = document.getElementById('period-dropdown-menu');
-                        if (periodMenu) {
-                            periodMenu.addEventListener('click', function (e) {
-                                e.stopPropagation();
-                            });
-                        }
+                        // NOTE: Load / Reset / select-change listeners on the shared navbar are bound ONCE
+                        // by WMSPeriodManager (period-controller.js) and routed to registerPageHandler below.
+                        // Do not bind them here again, or they leak into other modules after SPA navigation.
 
-                        var yearSel = document.getElementById('period-year-select');
-                        if (yearSel) yearSel.addEventListener('change', updateLoadButton);
-
-                        var btnLoad = document.getElementById('btn-load-period');
-                        if (btnLoad) {
-                            btnLoad.addEventListener('click', function () {
-                                var y = document.getElementById('period-year-select');
-                                if (y && y.value) {
-                                    loadDataForPeriod(y.value);
-                                    if (periodMenu && typeof $ !== 'undefined') {
-                                        $(periodMenu).closest('.dropdown').find('.dropdown-toggle').dropdown('toggle');
-                                    }
-                                }
-                            });
-                        }
-
-                        var btnReset = document.getElementById('btn-reset-period');
-                        if (btnReset) {
-                            btnReset.addEventListener('click', function () {
-                                if (yearSel) yearSel.value = '';
-                                updateLoadButton();
-                                resetKpiState();
-                                var periodText = document.getElementById('selected-period-text');
-                                if (periodText) periodText.textContent = 'PILIH PERIODE DATA';
-                            });
+                        var eagerYr = window.WMSPeriodManager ? window.WMSPeriodManager.getKpiYear() : null;
+                        if (eagerYr) {
+                            var ySelEager = document.getElementById('period-year-select');
+                            if (ySelEager) ySelEager.value = eagerYr;
+                            loadDataForPeriod(eagerYr);
                         }
 
                         loadPeriods();
@@ -628,20 +574,40 @@ if (!defined('SPA_MODE')) {
                                 var availableYears = (result.kpi_years && result.kpi_years.length > 0)
                                     ? result.kpi_years
                                     : ((result.years && result.years.length > 0) ? result.years : []);
-                                availableYears = (availableYears || []).map(function (y) { return String(y); });
+                                availableYears = (window.WMSPeriodManager)
+                                    ? window.WMSPeriodManager.ensureCurrentYear(availableYears)
+                                    : availableYears;
 
-                                populateSelect('period-year-select', availableYears, '-- Pilih Tahun --');
+                                if (window.WMSPeriodManager) {
+                                    window.WMSPeriodManager.populateSelect('period-year-select', availableYears, '-- Pilih Tahun --');
+                                } else {
+                                    populateSelect('period-year-select', availableYears, '-- Pilih Tahun --');
+                                }
 
-                                if (selectPeriod) {
-                                    var yMatch = selectPeriod.toString().match(/(\d{4})/);
-                                    if (yMatch) {
-                                        var ySel = document.getElementById('period-year-select');
-                                        if (ySel) ySel.value = yMatch[1];
-                                        updateLoadButton();
-                                        loadDataForPeriod(yMatch[1]);
+                                var targetYear = selectPeriod;
+                                if (!targetYear && window.WMSPeriodManager) {
+                                    targetYear = window.WMSPeriodManager.getKpiYear(availableYears);
+                                } else if (!targetYear) {
+                                    targetYear = (availableYears && availableYears[availableYears.length - 1]) || (new Date()).getFullYear().toString();
+                                }
+
+                                if (targetYear) {
+                                    var yMatch = targetYear.toString().match(/(\d{4})/);
+                                    targetYear = yMatch ? yMatch[1] : targetYear.toString();
+                                }
+
+                                if (targetYear) {
+                                    var ySel = document.getElementById('period-year-select');
+                                    if (ySel) ySel.value = targetYear;
+                                    var pText = document.getElementById('selected-period-text');
+                                    if (pText) pText.textContent = targetYear;
+                                    if (window.WMSPeriodManager) {
+                                        window.WMSPeriodManager.setKpiYear(targetYear);
+                                        window.WMSPeriodManager.updateLoadButtonState();
                                     } else {
-                                        loadDataForPeriod(selectPeriod);
+                                        updateLoadButton();
                                     }
+                                    loadDataForPeriod(targetYear);
                                 } else {
                                     var periodText = document.getElementById('selected-period-text');
                                     if (periodText) periodText.textContent = "PILIH PERIODE DATA";
@@ -651,6 +617,27 @@ if (!defined('SPA_MODE')) {
                             .catch(function (err) {
                                 console.error('Error fetching periods:', err);
                             });
+                    }
+
+                    if (window.WMSPeriodManager) {
+                        window.WMSPeriodManager.registerPageHandler({
+                            onLoad: function (period) {
+                                var yMatch = (period || '').toString().match(/(\d{4})/);
+                                var yr = yMatch ? yMatch[1] : period;
+                                var pText = document.getElementById('selected-period-text');
+                                if (pText) pText.textContent = yr;
+                                if (window.WMSPeriodManager) {
+                                    window.WMSPeriodManager.setKpiYear(yr);
+                                }
+                                loadDataForPeriod(yr, true);
+                            },
+                            onReset: function () {
+                                var periodText = document.getElementById('selected-period-text');
+                                if (periodText) periodText.textContent = 'PILIH TAHUN';
+                                _loadedYear = null;
+                                resetKpiState();
+                            }
+                        });
                     }
 
                     // Default baseline trends
@@ -704,17 +691,38 @@ if (!defined('SPA_MODE')) {
                     }
 
                     // Fetch & render KPI Data for a selected period (Annual / Year)
-                    function loadDataForPeriod(period) {
+                    var _loadedYear = null;
+                    var _kpiReqToken = 0;
+                    function loadDataForPeriod(period, force) {
                         var rawYear = (period || '').toString().replace(/^TAHUN\s+/i, '').trim();
                         var periodText = document.getElementById('selected-period-text');
-                        if (periodText) periodText.textContent = rawYear ? ('TAHUN ' + rawYear) : 'PILIH PERIODE DATA';
+                        if (periodText) periodText.textContent = rawYear ? ('TAHUN ' + rawYear) : 'PILIH TAHUN';
+                        if (!rawYear) return;
+                        // Skip duplicate loads (eager + loadPeriods) for the same year
+                        if (!force && _loadedYear === rawYear) return;
+                        _loadedYear = rawYear;
+                        var myToken = ++_kpiReqToken;
+
+                        var cacheKey = 'kpi_data_' + rawYear;
+                        if (window.WMSDataCache) {
+                            var cached = window.WMSDataCache.get(cacheKey);
+                            if (cached && cached.status === 'success') {
+                                kpiDataCache = cached;
+                                var cCards = cached.cards || (cached.data ? cached.data.cards : null);
+                                var cTrends = cached.monthly_trends || (cached.data ? cached.data.monthly_trends : null);
+                                if (cCards) renderKpiCards(cCards);
+                                if (cTrends) renderAllKpiCharts(cTrends);
+                            }
+                        }
 
                         var apiUrl = 'api/get_kpi_data.php?year=' + encodeURIComponent(rawYear);
 
                         fetch(apiUrl)
                             .then(function (res) { return res.json(); })
                             .then(function (res) {
+                                if (myToken !== _kpiReqToken) return; // stale response
                                 if (res.status === 'success') {
+                                    if (window.WMSDataCache) window.WMSDataCache.set(cacheKey, res);
                                     kpiDataCache = res;
                                     var cards = res.cards || (res.data ? res.data.cards : null);
                                     var trends = res.monthly_trends || (res.data ? res.data.monthly_trends : null);
@@ -752,30 +760,10 @@ if (!defined('SPA_MODE')) {
                         setCardVal('card-val-registration', cards.registration_sla);
                         var mrCardItem = cards.mr_closing || cards.stock_opname;
                         setCardVal('card-val-stock-opname', mrCardItem);
-                        var mrSub = document.getElementById('card-sub-stock-opname');
-                        if (mrSub) {
-                            if (mrCardItem && mrCardItem.latest_month) {
-                                mrSub.textContent = 's.d. ' + mrCardItem.latest_month;
-                                mrSub.className = 'badge badge-success text-white font-weight-normal text-xs';
-                            } else {
-                                mrSub.textContent = 'Kumulatif';
-                                mrSub.className = 'badge badge-light border text-muted font-weight-normal text-xs';
-                            }
-                        }
                         setCardVal('card-val-so-hub', cards.stock_opname_hub);
                         setCardVal('card-val-so-outlet', cards.stock_opname_outlet);
                         var slowCardItem = cards.slow_moving;
                         setCardVal('card-val-slow-moving', slowCardItem);
-                        var slowSub = document.getElementById('card-sub-slow-moving');
-                        if (slowSub) {
-                            if (slowCardItem && slowCardItem.latest_month) {
-                                slowSub.textContent = 's.d. ' + slowCardItem.latest_month;
-                                slowSub.className = 'badge badge-warning text-white font-weight-normal text-xs';
-                            } else {
-                                slowSub.textContent = 'Kumulatif';
-                                slowSub.className = 'badge badge-light border text-muted font-weight-normal text-xs';
-                            }
-                        }
                         setCardVal('card-val-capacity', cards.capacity);
                         setCardVal('card-val-delivery-eff', cards.delivery_effectiveness);
                         setCardVal('card-val-delivery-idr', cards.delivery_efficiency);

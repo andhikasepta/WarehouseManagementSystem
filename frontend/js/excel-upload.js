@@ -908,8 +908,11 @@
                             try { window.FormulaController.updateDashboardCards(window.currentDashboardData, window.currentDashboardHeaders); } catch (e) { }
                         }
                     } else {
+                        var newPeriod = (res.periods && res.periods.length > 0) ? res.periods[0] : null;
+                        if (window.WMSPeriodManager && newPeriod) {
+                            window.WMSPeriodManager.setActivePeriod(newPeriod);
+                        }
                         if (window.loadPeriods) {
-                            var newPeriod = (res.periods && res.periods.length > 0) ? res.periods[0] : null;
                             window.loadPeriods(newPeriod);
                         } else if (window.FormulaController) {
                             try { window.FormulaController.updateDashboardCards(localSheetData, currentHeaders); } catch (e) { }

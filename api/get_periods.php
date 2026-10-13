@@ -60,6 +60,21 @@ if (!function_exists('sortPeriodeGroups')) {
 }
 
 try {
+    $includeAll = !empty($_GET['all']) || !empty($_GET['include_reference']);
+    $needSites = !empty($_GET['sites']);
+    $cacheDir = __DIR__ . '/../backend/cache';
+    if (!is_dir($cacheDir)) {
+        @mkdir($cacheDir, 0777, true);
+    }
+    $cacheKey = 'periods_' . ($includeAll ? 'all_' : '') . ($needSites ? 'sites' : 'nosites');
+    $cacheFile = $cacheDir . "/{$cacheKey}.json";
+    $forceRefresh = isset($_GET['refresh']) && $_GET['refresh'] === '1';
+
+    if (!$forceRefresh && file_exists($cacheFile) && (time() - filemtime($cacheFile) < 3600)) {
+        echo file_get_contents($cacheFile);
+        exit;
+    }
+
     $periodTables = ['assets', 'inbound_master', 'inbound_gr', 'outbound_master', 'outbound_forwarder'];
     $periodQueries = [];
     foreach ($periodTables as $t) {
@@ -92,13 +107,15 @@ try {
         }));
     }
 
-    // Query distinct sites from so_location or sub_location
+    // Query distinct sites from so_location or sub_location only if explicitly requested
     $sites = [];
-    try {
-        $stmtSites = $pdo->query("SELECT DISTINCT so_location FROM assets WHERE so_location IS NOT NULL AND so_location != '' ORDER BY so_location ASC");
-        $sites = $stmtSites->fetchAll(PDO::FETCH_COLUMN);
-    } catch (Exception $e) {
-        $sites = [];
+    if ($needSites) {
+        try {
+            $stmtSites = $pdo->query("SELECT DISTINCT so_location FROM assets WHERE so_location IS NOT NULL AND so_location != '' ORDER BY so_location ASC");
+            $sites = $stmtSites->fetchAll(PDO::FETCH_COLUMN);
+        } catch (Exception $e) {
+            $sites = [];
+        }
     }
 
     // Extract unique years from the period data
@@ -133,23 +150,27 @@ try {
 
     $type = strtolower($_GET['type'] ?? '');
     if ($type === 'kpi') {
-        echo json_encode([
+        $out = json_encode([
             'status' => 'success', 
             'data' => [],
             'sites' => [],
             'years' => $kpiYears,
             'kpi_years' => $kpiYears
         ]);
+        if (isset($cacheFile)) @file_put_contents($cacheFile, $out);
+        echo $out;
         exit;
     }
 
-    echo json_encode([
+    $out = json_encode([
         'status' => 'success', 
         'data' => $results,
         'sites' => $sites,
         'years' => $years,
         'kpi_years' => $kpiYears
     ]);
+    if (isset($cacheFile)) @file_put_contents($cacheFile, $out);
+    echo $out;
 } catch(PDOException $e) {
     error_log('get_periods.php error: ' . $e->getMessage());
     echo json_encode(['status' => 'error', 'message' => 'Terjadi kesalahan saat mengambil data periode.']);

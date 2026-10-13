@@ -48,6 +48,9 @@ try {
     $action = isset($_GET['action']) ? trim($_GET['action']) : 'detail';
     $status = isset($_GET['status']) ? strtoupper(trim($_GET['status'])) : 'TOTAL PO INBOUND';
     $periode = isset($_GET['periode']) ? trim($_GET['periode']) : (isset($_GET['periode_group']) ? trim($_GET['periode_group']) : '');
+    $periode = trim(preg_replace('/\s*\((?:ALL\s+)?BATCH(?:\s+ALL)?\)\s*$/i', '', $periode));
+
+    $likeOp = ($driver === 'pgsql') ? 'ILIKE' : 'LIKE';
 
     // Normalize status names
     $statusMap = [
@@ -57,9 +60,7 @@ try {
         'ONTIME' => 'PO ONTIME DELIVERY',
         'TOTAL PO TERLAMBAT' => 'PO TERLAMBAT DELIVERY',
         'TERLAMBAT' => 'PO TERLAMBAT DELIVERY',
-        'TOTAL PENERIMAAN (GR)' => 'PO SUDAH GR',
-        'TOTAL GR' => 'PO SUDAH GR',
-        'TOTAL REGISTRASI' => 'PO SUDAH REGISTRASI'
+        'TOTAL PENERIMAAN (GR)' => 'TOTAL GR',
     ];
     if (isset($statusMap[$status])) {
         $status = $statusMap[$status];
@@ -69,51 +70,128 @@ try {
     $periodWhere = "1=1";
     $periodParams = [];
     if (!empty($periode) && $periode !== 'PILIH PERIODE DATA' && $periode !== '-') {
-        $periodWhere = "(periode_group = ? OR periode_group LIKE ?)";
+        $periodWhere = "(inbound_master.periode_group = ? OR inbound_master.periode_group $likeOp ?)";
         $periodParams = [$periode, $periode . '%'];
     }
 
+    // Match condition for PO SUDAH GR:
+    // Cross-table lookup: PO No exists in inbound_gr with a valid GR No
+    $grMatchSql = "EXISTS (
+        SELECT 1 FROM inbound_gr g 
+        WHERE (
+            (TRIM(g.po_no) = TRIM(inbound_master.po_nomor) AND TRIM(g.pr_no) = TRIM(inbound_master.pr_nomor))
+            OR (TRIM(g.po_no) = TRIM(inbound_master.po_nomor) AND (TRIM(COALESCE(inbound_master.pr_nomor, '')) = '' OR TRIM(COALESCE(g.pr_no, '')) = ''))
+            OR (TRIM(g.pr_no) = TRIM(inbound_master.pr_nomor) AND TRIM(COALESCE(inbound_master.pr_nomor, '')) != '')
+        )
+        AND g.gr_no IS NOT NULL 
+        AND TRIM(g.gr_no) != '' 
+        AND TRIM(g.gr_no) != '-'
+    )";
+
+    // Match condition for PO SUDAH REGISTRASI:
+    // Cross-table lookup: PO No exists in inbound_gr with a valid Registration No (no_reg)
+    $regMatchSql = "EXISTS (
+        SELECT 1 FROM inbound_gr g 
+        WHERE (
+            (TRIM(g.po_no) = TRIM(inbound_master.po_nomor) AND TRIM(g.pr_no) = TRIM(inbound_master.pr_nomor))
+            OR (TRIM(g.po_no) = TRIM(inbound_master.po_nomor) AND (TRIM(COALESCE(inbound_master.pr_nomor, '')) = '' OR TRIM(COALESCE(g.pr_no, '')) = ''))
+            OR (TRIM(g.pr_no) = TRIM(inbound_master.pr_nomor) AND TRIM(COALESCE(inbound_master.pr_nomor, '')) != '')
+        )
+        AND g.no_reg IS NOT NULL 
+        AND TRIM(g.no_reg) != '' 
+        AND TRIM(g.no_reg) != '-'
+    )";
+
     if ($action === 'counts') {
-        // If period is specified, use it; otherwise compute across all rows in inbound_master
-        // 1. Total PO Inbound (distinct PO numbers)
-        $stmtPo = $pdo->prepare("SELECT COUNT(DISTINCT po_nomor) FROM inbound_master WHERE $periodWhere AND po_nomor IS NOT NULL AND TRIM(po_nomor) != ''");
+        // 1. Total PO Inbound: Count PO NO non-duplicate yang ada di kedua tabel (inbound_master & inbound_gr)
+        $stmtPo = $pdo->prepare("SELECT COUNT(DISTINCT inbound_master.po_nomor) 
+            FROM inbound_master 
+            INNER JOIN inbound_gr g ON TRIM(inbound_master.po_nomor) = TRIM(g.po_no)
+            WHERE $periodWhere 
+              AND inbound_master.po_nomor IS NOT NULL 
+              AND TRIM(inbound_master.po_nomor) != ''");
         $stmtPo->execute($periodParams);
         $totalPoInbound = (int) $stmtPo->fetchColumn();
 
-        // 2. Ontime Delivery: target delivery >= tgl generate or target delivery is null
-        $stmtOntime = $pdo->prepare("SELECT COUNT(DISTINCT po_nomor) FROM inbound_master WHERE $periodWhere AND po_nomor IS NOT NULL AND TRIM(po_nomor) != '' AND (po_target_delivery >= po_tgl_generate OR po_target_delivery IS NULL)");
-        $stmtOntime->execute($periodParams);
-        $poOntime = (int) $stmtOntime->fetchColumn();
+        // 2 & 3. PO Ontime and Terlambat Delivery:
+        // Lookup same PO NO on both PR to PO (inbound_master) and DATA GR (inbound_gr).
+        // If PO target delivery on PR to PO table < GR Date on DATA GR table counted as PO Ontime, else is PO Terlambat.
+        // PO NO not duplicated.
+        $stmtOntimeLate = $pdo->prepare("
+            SELECT 
+                COUNT(CASE WHEN target_delivery IS NOT NULL AND gr_date IS NOT NULL AND target_delivery < gr_date THEN 1 END) as ontime_cnt,
+                COUNT(CASE WHEN target_delivery IS NULL OR gr_date IS NULL OR target_delivery >= gr_date THEN 1 END) as late_cnt
+            FROM (
+                SELECT 
+                    inbound_master.po_nomor,
+                    MAX(inbound_master.po_target_delivery) as target_delivery,
+                    MIN(g.gr_date) as gr_date
+                FROM inbound_master
+                INNER JOIN inbound_gr g ON TRIM(inbound_master.po_nomor) = TRIM(g.po_no)
+                WHERE $periodWhere 
+                  AND inbound_master.po_nomor IS NOT NULL AND TRIM(inbound_master.po_nomor) != ''
+                GROUP BY inbound_master.po_nomor
+            ) sub
+        ");
+        $stmtOntimeLate->execute($periodParams);
+        $rowOL = $stmtOntimeLate->fetch(PDO::FETCH_ASSOC) ?: [];
+        $poOntime = (int)($rowOL['ontime_cnt'] ?? 0);
+        $poTerlambat = (int)($rowOL['late_cnt'] ?? 0);
 
-        // 3. Terlambat Delivery: target delivery < tgl generate
-        $stmtLate = $pdo->prepare("SELECT COUNT(DISTINCT po_nomor) FROM inbound_master WHERE $periodWhere AND po_nomor IS NOT NULL AND TRIM(po_nomor) != '' AND (po_target_delivery < po_tgl_generate)");
-        $stmtLate->execute($periodParams);
-        $poTerlambat = (int) $stmtLate->fetchColumn();
-
-        // 4. Sudah GR: po_qty_item > 0
-        $stmtGr = $pdo->prepare("SELECT COUNT(DISTINCT po_nomor) FROM inbound_master WHERE $periodWhere AND po_nomor IS NOT NULL AND TRIM(po_nomor) != '' AND po_qty_item > 0");
+        // 4. PO Sudah GR: Lookup ke PO No di master Data GR kalau No PO itu udah ada No GRnya
+        $stmtGr = $pdo->prepare("SELECT COUNT(DISTINCT inbound_master.po_nomor) 
+            FROM inbound_master 
+            WHERE $periodWhere 
+              AND inbound_master.po_nomor IS NOT NULL 
+              AND TRIM(inbound_master.po_nomor) != '' 
+              AND $grMatchSql");
         $stmtGr->execute($periodParams);
         $poSudahGr = (int) $stmtGr->fetchColumn();
 
-        // 5. Sudah Registrasi: po_qty_item > 0
-        $stmtReg = $pdo->prepare("SELECT COUNT(DISTINCT po_nomor) FROM inbound_master WHERE $periodWhere AND po_nomor IS NOT NULL AND TRIM(po_nomor) != '' AND po_qty_item > 0");
+        // 5. PO Sudah Registrasi: Lookup ke PO No di master Data GR kalau No PO itu udah ada No Registnya
+        $stmtReg = $pdo->prepare("SELECT COUNT(DISTINCT inbound_master.po_nomor) 
+            FROM inbound_master 
+            WHERE $periodWhere 
+              AND inbound_master.po_nomor IS NOT NULL 
+              AND TRIM(inbound_master.po_nomor) != '' 
+              AND $regMatchSql");
         $stmtReg->execute($periodParams);
         $poSudahReg = (int) $stmtReg->fetchColumn();
 
-        // 6. GR Non PO: records without standard PO number
-        $stmtNonPo = $pdo->prepare("SELECT COUNT(*) FROM inbound_master WHERE $periodWhere AND (po_nomor IS NULL OR TRIM(po_nomor) = '')");
+        // 6. GR Non PO: records without standard PO number in inbound_master
+        $stmtNonPo = $pdo->prepare("SELECT COUNT(*) 
+            FROM inbound_master 
+            WHERE $periodWhere 
+              AND (inbound_master.po_nomor IS NULL OR TRIM(inbound_master.po_nomor) = '')");
         $stmtNonPo->execute($periodParams);
         $grNonPo = (int) $stmtNonPo->fetchColumn();
 
-        $totalGr = $poSudahGr + $grNonPo;
-        $totalRegistrasi = $poSudahReg;
+        // 7. Total GR : Count of GR NO setelah PO NO compare ada di kedua table (inbound_master dan inbound_gr)
+        $stmtTotalGr = $pdo->prepare("SELECT COUNT(DISTINCT g.gr_no) 
+            FROM inbound_gr g 
+            INNER JOIN inbound_master ON TRIM(g.po_no) = TRIM(inbound_master.po_nomor)
+            WHERE $periodWhere 
+              AND inbound_master.po_nomor IS NOT NULL AND TRIM(inbound_master.po_nomor) != ''
+              AND g.gr_no IS NOT NULL AND TRIM(g.gr_no) != '' AND TRIM(g.gr_no) != '-'");
+        $stmtTotalGr->execute($periodParams);
+        $totalGr = (int) $stmtTotalGr->fetchColumn();
+
+        // 8. Total Registrasi : Count of No Registrasi setelah PO NO compare ada di kedua table (inbound_master dan inbound_gr)
+        $stmtTotalReg = $pdo->prepare("SELECT COUNT(DISTINCT g.no_reg) 
+            FROM inbound_gr g 
+            INNER JOIN inbound_master ON TRIM(g.po_no) = TRIM(inbound_master.po_nomor)
+            WHERE $periodWhere 
+              AND inbound_master.po_nomor IS NOT NULL AND TRIM(inbound_master.po_nomor) != ''
+              AND g.no_reg IS NOT NULL AND TRIM(g.no_reg) != '' AND TRIM(g.no_reg) != '-'");
+        $stmtTotalReg->execute($periodParams);
+        $totalRegistrasi = (int) $stmtTotalReg->fetchColumn();
 
         // Department breakdown for Bar Chart
-        $stmtDept = $pdo->prepare("SELECT COALESCE(NULLIF(TRIM(pr_nama_bagian), ''), 'OTHER') as dept_name, 
-            COUNT(DISTINCT CASE WHEN po_qty_item > 0 THEN po_nomor END) as sudah_gr,
-            COUNT(DISTINCT CASE WHEN po_qty_item <= 0 OR po_qty_item IS NULL THEN po_nomor END) as belum_gr
+        $stmtDept = $pdo->prepare("SELECT COALESCE(NULLIF(TRIM(inbound_master.pr_nama_bagian), ''), 'OTHER') as dept_name, 
+            COUNT(DISTINCT CASE WHEN $grMatchSql THEN inbound_master.po_nomor END) as sudah_gr,
+            COUNT(DISTINCT CASE WHEN NOT ($grMatchSql) THEN inbound_master.po_nomor END) as belum_gr
             FROM inbound_master 
-            WHERE $periodWhere AND po_nomor IS NOT NULL AND TRIM(po_nomor) != ''
+            WHERE $periodWhere AND inbound_master.po_nomor IS NOT NULL AND TRIM(inbound_master.po_nomor) != ''
             GROUP BY dept_name
             ORDER BY sudah_gr DESC
             LIMIT 10");
@@ -134,11 +212,21 @@ try {
         $terlambatMonthly = array_fill(0, 12, 0);
 
         $stmtTrend = $pdo->prepare("SELECT 
-            " . ($driver === 'pgsql' ? "EXTRACT(MONTH FROM po_tgl_generate)" : "MONTH(po_tgl_generate)") . " as mth,
-            COUNT(DISTINCT CASE WHEN po_target_delivery >= po_tgl_generate OR po_target_delivery IS NULL THEN po_nomor END) as ontime_cnt,
-            COUNT(DISTINCT CASE WHEN po_target_delivery < po_tgl_generate THEN po_nomor END) as late_cnt
-            FROM inbound_master
-            WHERE $periodWhere AND po_tgl_generate IS NOT NULL
+            " . ($driver === 'pgsql' ? "EXTRACT(MONTH FROM gr_date)" : "MONTH(gr_date)") . " as mth,
+            COUNT(CASE WHEN target_delivery IS NOT NULL AND gr_date IS NOT NULL AND target_delivery < gr_date THEN 1 END) as ontime_cnt,
+            COUNT(CASE WHEN target_delivery IS NULL OR gr_date IS NULL OR target_delivery >= gr_date THEN 1 END) as late_cnt
+            FROM (
+                SELECT 
+                    inbound_master.po_nomor,
+                    MAX(inbound_master.po_target_delivery) as target_delivery,
+                    MIN(g.gr_date) as gr_date
+                FROM inbound_master
+                INNER JOIN inbound_gr g ON TRIM(inbound_master.po_nomor) = TRIM(g.po_no)
+                WHERE $periodWhere 
+                  AND inbound_master.po_nomor IS NOT NULL AND TRIM(inbound_master.po_nomor) != ''
+                  AND g.gr_date IS NOT NULL
+                GROUP BY inbound_master.po_nomor
+            ) sub
             GROUP BY mth
         ");
         $stmtTrend->execute($periodParams);
@@ -177,42 +265,179 @@ try {
     }
 
     // Detail Action: fetch rows for the selected status
+    if ($status === 'TOTAL GR') {
+        $stmt = $pdo->prepare("SELECT 
+            g.gr_no,
+            MAX(g.po_no) as no_po,
+            MAX(COALESCE(NULLIF(TRIM(inbound_master.po_deskripsi), ''), NULLIF(TRIM(inbound_master.po_nama_item), ''), g.product_name)) as deskripsi_po,
+            MAX(inbound_master.pr_pic_teknis_nama) as pic_asset_planner,
+            MAX(COALESCE(NULLIF(TRIM(inbound_master.pr_nama_bagian), ''), inbound_master.pr_nama_divisi)) as department,
+            MAX(COALESCE(NULLIF(TRIM(g.pic_submit_gr), ''), g.vendor_name, inbound_master.po_vendor)) as pic_gr,
+            MAX(COALESCE(NULLIF(TRIM(g.qty), ''), '1')) as qty,
+            MAX(COALESCE(NULLIF(TRIM(g.uom), ''), 'Unit')) as uom,
+            MAX(COALESCE(g.gr_date, inbound_master.po_target_delivery)) as target_delivery
+        FROM inbound_gr g
+        INNER JOIN inbound_master ON TRIM(inbound_master.po_nomor) = TRIM(g.po_no)
+        WHERE $periodWhere
+          AND inbound_master.po_nomor IS NOT NULL AND TRIM(inbound_master.po_nomor) != ''
+          AND g.gr_no IS NOT NULL AND TRIM(g.gr_no) != '' AND TRIM(g.gr_no) != '-'
+        GROUP BY g.gr_no
+        ORDER BY g.gr_no DESC
+        LIMIT 500");
+        $stmt->execute($periodParams);
+        $rawRows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $formattedRows = [];
+        foreach ($rawRows as $r) {
+            $desc = !empty($r['deskripsi_po']) ? $r['deskripsi_po'] : '-';
+            $pic = !empty($r['pic_asset_planner']) ? $r['pic_asset_planner'] : '-';
+            $dept = !empty($r['department']) ? $r['department'] : '-';
+            $qtyDisp = !empty($r['qty']) ? ($r['qty'] . ' ' . ($r['uom'] ?? 'Unit')) : '-';
+            $formattedRows[] = [
+                'no_gr'              => $r['gr_no'] ?: '-',
+                'no_po'              => $r['no_po'] ?: '-',
+                'deskripsi_po'       => $desc,
+                'pic_asset_planner'  => $pic,
+                'department'         => $dept,
+                'pic_gr'             => !empty($r['pic_gr']) ? $r['pic_gr'] : '-',
+                'qty'                => $qtyDisp,
+                'target_delivery'    => $r['target_delivery'] ?: '-'
+            ];
+        }
+
+        echo json_encode([
+            'status' => 'success',
+            'requested_status' => $status,
+            'count' => count($formattedRows),
+            'data' => $formattedRows
+        ]);
+        exit;
+    }
+
+    if ($status === 'TOTAL REGISTRASI') {
+        $stmt = $pdo->prepare("SELECT 
+            g.no_reg,
+            g.po_no as no_po,
+            COALESCE(NULLIF(TRIM(inbound_master.po_deskripsi), ''), NULLIF(TRIM(inbound_master.po_nama_item), ''), g.product_name) as deskripsi_po,
+            inbound_master.pr_pic_teknis_nama as pic_asset_planner,
+            COALESCE(NULLIF(TRIM(inbound_master.pr_nama_bagian), ''), inbound_master.pr_nama_divisi) as department,
+            COALESCE(NULLIF(TRIM(g.pic_registration), ''), g.pic_submit_gr, g.vendor_name, inbound_master.po_vendor) as pic_registrasi,
+            COALESCE(NULLIF(TRIM(g.qty), ''), '1') as qty,
+            COALESCE(NULLIF(TRIM(g.uom), ''), 'Unit') as uom,
+            COALESCE(g.artis_date, g.iips_date, g.gr_date, inbound_master.po_target_delivery) as target_delivery
+        FROM inbound_gr g
+        INNER JOIN inbound_master ON TRIM(inbound_master.po_nomor) = TRIM(g.po_no)
+        WHERE $periodWhere
+          AND inbound_master.po_nomor IS NOT NULL AND TRIM(inbound_master.po_nomor) != ''
+          AND g.no_reg IS NOT NULL AND TRIM(g.no_reg) != '' AND TRIM(g.no_reg) != '-'
+        ORDER BY g.id DESC
+        LIMIT 500");
+        $stmt->execute($periodParams);
+        $rawRows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $formattedRows = [];
+        foreach ($rawRows as $r) {
+            $desc = !empty($r['deskripsi_po']) ? $r['deskripsi_po'] : '-';
+            $pic = !empty($r['pic_asset_planner']) ? $r['pic_asset_planner'] : '-';
+            $dept = !empty($r['department']) ? $r['department'] : '-';
+            $qtyDisp = !empty($r['qty']) ? ($r['qty'] . ' ' . ($r['uom'] ?? 'Unit')) : '-';
+            $formattedRows[] = [
+                'no_reg'             => $r['no_reg'] ?: '-',
+                'no_po'              => $r['no_po'] ?: '-',
+                'deskripsi_po'       => $desc,
+                'pic_asset_planner'  => $pic,
+                'department'         => $dept,
+                'pic_registrasi'     => !empty($r['pic_registrasi']) ? $r['pic_registrasi'] : '-',
+                'qty'                => $qtyDisp,
+                'target_delivery'    => $r['target_delivery'] ?: '-'
+            ];
+        }
+
+        echo json_encode([
+            'status' => 'success',
+            'requested_status' => $status,
+            'count' => count($formattedRows),
+            'data' => $formattedRows
+        ]);
+        exit;
+    }
+
     $where = $periodWhere;
     $params = $periodParams;
 
     if ($status === 'PO ONTIME DELIVERY') {
-        $where .= " AND (po_nomor IS NOT NULL AND TRIM(po_nomor) != '') AND (po_target_delivery >= po_tgl_generate OR po_target_delivery IS NULL)";
+        $where .= " AND (inbound_master.po_nomor IS NOT NULL AND TRIM(inbound_master.po_nomor) != '') AND inbound_master.po_nomor IN (
+            SELECT m2.po_nomor
+            FROM inbound_master m2
+            INNER JOIN inbound_gr g2 ON TRIM(m2.po_nomor) = TRIM(g2.po_no)
+            WHERE $periodWhere AND m2.po_nomor IS NOT NULL AND TRIM(m2.po_nomor) != ''
+            GROUP BY m2.po_nomor
+            HAVING MAX(m2.po_target_delivery) IS NOT NULL AND MIN(g2.gr_date) IS NOT NULL AND MAX(m2.po_target_delivery) < MIN(g2.gr_date)
+        )";
+        $params = array_merge($params, $periodParams);
     } elseif ($status === 'PO TERLAMBAT DELIVERY') {
-        $where .= " AND (po_nomor IS NOT NULL AND TRIM(po_nomor) != '') AND (po_target_delivery < po_tgl_generate)";
-    } elseif ($status === 'PO SUDAH GR' || $status === 'TOTAL GR') {
-        $where .= " AND (po_nomor IS NOT NULL AND TRIM(po_nomor) != '') AND po_qty_item > 0";
-    } elseif ($status === 'PO SUDAH REGISTRASI' || $status === 'TOTAL REGISTRASI') {
-        $where .= " AND (po_nomor IS NOT NULL AND TRIM(po_nomor) != '') AND po_qty_item > 0";
+        $where .= " AND (inbound_master.po_nomor IS NOT NULL AND TRIM(inbound_master.po_nomor) != '') AND inbound_master.po_nomor IN (
+            SELECT m2.po_nomor
+            FROM inbound_master m2
+            INNER JOIN inbound_gr g2 ON TRIM(m2.po_nomor) = TRIM(g2.po_no)
+            WHERE $periodWhere AND m2.po_nomor IS NOT NULL AND TRIM(m2.po_nomor) != ''
+            GROUP BY m2.po_nomor
+            HAVING MAX(m2.po_target_delivery) IS NULL OR MIN(g2.gr_date) IS NULL OR MAX(m2.po_target_delivery) >= MIN(g2.gr_date)
+        )";
+        $params = array_merge($params, $periodParams);
+    } elseif ($status === 'PO SUDAH GR') {
+        $where .= " AND (inbound_master.po_nomor IS NOT NULL AND TRIM(inbound_master.po_nomor) != '') AND $grMatchSql";
+    } elseif ($status === 'PO SUDAH REGISTRASI') {
+        $where .= " AND (inbound_master.po_nomor IS NOT NULL AND TRIM(inbound_master.po_nomor) != '') AND $regMatchSql";
     } elseif ($status === 'GR NON PO') {
-        $where .= " AND (po_nomor IS NULL OR TRIM(po_nomor) = '')";
+        $where .= " AND (inbound_master.po_nomor IS NULL OR TRIM(inbound_master.po_nomor) = '')";
     } else {
-        // TOTAL PO INBOUND
-        $where .= " AND (po_nomor IS NOT NULL AND TRIM(po_nomor) != '')";
+        // TOTAL PO INBOUND: Match PO NO di inbound_master dan inbound_gr
+        $where .= " AND (inbound_master.po_nomor IS NOT NULL AND TRIM(inbound_master.po_nomor) != '') AND EXISTS (
+            SELECT 1 FROM inbound_gr g_match WHERE TRIM(g_match.po_no) = TRIM(inbound_master.po_nomor)
+        )";
     }
 
     $isGroupedPo = ($status !== 'GR NON PO');
 
     if ($isGroupedPo) {
+        $isGrStatus = ($status === 'PO SUDAH GR');
+        $isRegStatus = ($status === 'PO SUDAH REGISTRASI');
+        $isOntimeOrLate = ($status === 'PO ONTIME DELIVERY' || $status === 'PO TERLAMBAT DELIVERY');
+        $joinGr = ($isGrStatus || $isRegStatus) ? "LEFT JOIN inbound_gr g ON (
+            (TRIM(g.po_no) = TRIM(inbound_master.po_nomor) AND TRIM(g.pr_no) = TRIM(inbound_master.pr_nomor))
+            OR (TRIM(g.po_no) = TRIM(inbound_master.po_nomor) AND (TRIM(COALESCE(inbound_master.pr_nomor, '')) = '' OR TRIM(COALESCE(g.pr_no, '')) = ''))
+            OR (TRIM(g.pr_no) = TRIM(inbound_master.pr_nomor) AND TRIM(COALESCE(inbound_master.pr_nomor, '')) != '')
+        ) AND " . ($isGrStatus ? "(g.gr_no IS NOT NULL AND TRIM(g.gr_no) != '' AND TRIM(g.gr_no) != '-')" : "(g.no_reg IS NOT NULL AND TRIM(g.no_reg) != '' AND TRIM(g.no_reg) != '-')") : ($isOntimeOrLate ? "LEFT JOIN inbound_gr g ON TRIM(g.po_no) = TRIM(inbound_master.po_nomor)" : "");
+
+        $selectGrCols = "";
+        if ($isGrStatus) {
+            $selectGrCols = ", MAX(g.gr_no) as gr_no, MAX(g.pic_submit_gr) as pic_submit_gr, MAX(g.vendor_name) as gr_vendor, NULL as no_reg, NULL as pic_registration, NULL as gr_date";
+        } elseif ($isRegStatus) {
+            $selectGrCols = ", NULL as gr_no, NULL as pic_submit_gr, NULL as gr_vendor, MAX(g.no_reg) as no_reg, MAX(g.pic_registration) as pic_registration, NULL as gr_date";
+        } elseif ($isOntimeOrLate) {
+            $selectGrCols = ", MAX(g.gr_no) as gr_no, NULL as pic_submit_gr, NULL as gr_vendor, NULL as no_reg, NULL as pic_registration, MIN(g.gr_date) as gr_date";
+        } else {
+            $selectGrCols = ", NULL as gr_no, NULL as pic_submit_gr, NULL as gr_vendor, NULL as no_reg, NULL as pic_registration, NULL as gr_date";
+        }
+
         $stmt = $pdo->prepare("SELECT 
-            po_nomor,
-            MAX(COALESCE(NULLIF(TRIM(po_deskripsi), ''), po_nama_item)) as po_deskripsi,
-            MAX(pr_pic_teknis_nama) as pr_pic_teknis_nama,
-            MAX(COALESCE(NULLIF(TRIM(pr_nama_bagian), ''), pr_nama_divisi)) as pr_nama_bagian,
-            MAX(po_vendor) as po_vendor,
-            SUM(COALESCE(po_qty_item, 0)) as po_qty_item,
-            MAX(po_uom_item) as po_uom_item,
-            MAX(po_tgl_generate) as po_tgl_generate,
-            MAX(po_target_delivery) as po_target_delivery,
-            MAX(periode_group) as periode_group
+            inbound_master.po_nomor,
+            MAX(COALESCE(NULLIF(TRIM(inbound_master.po_deskripsi), ''), inbound_master.po_nama_item)) as po_deskripsi,
+            MAX(inbound_master.pr_pic_teknis_nama) as pr_pic_teknis_nama,
+            MAX(COALESCE(NULLIF(TRIM(inbound_master.pr_nama_bagian), ''), inbound_master.pr_nama_divisi)) as pr_nama_bagian,
+            MAX(inbound_master.po_vendor) as po_vendor,
+            SUM(COALESCE(inbound_master.po_qty_item, 0)) as po_qty_item,
+            MAX(inbound_master.po_uom_item) as po_uom_item,
+            MAX(inbound_master.po_tgl_generate) as po_tgl_generate,
+            MAX(inbound_master.po_target_delivery) as po_target_delivery,
+            MAX(inbound_master.periode_group) as periode_group
+            $selectGrCols
         FROM inbound_master 
+        $joinGr
         WHERE $where 
-        GROUP BY po_nomor 
-        ORDER BY MAX(id) DESC 
+        GROUP BY inbound_master.po_nomor 
+        ORDER BY MAX(inbound_master.id) DESC 
         LIMIT 500");
         $stmt->execute($params);
         $rawRows = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -241,30 +466,43 @@ try {
                 'vendor'              => $vendor,
                 'qty'                 => $qtyStr
             ];
-        } elseif ($status === 'PO SUDAH GR' || $status === 'TOTAL GR') {
+        } elseif ($status === 'PO SUDAH GR') {
             $formattedRows[] = [
                 'no_po'              => $r['po_nomor'] ?: '-',
+                'no_gr'              => !empty($r['gr_no']) ? $r['gr_no'] : '-',
                 'deskripsi_po'       => $desc,
                 'pic_asset_planner'  => $pic,
                 'department'         => $dept,
-                'pic_gr'             => $vendor,
+                'pic_gr'             => !empty($r['pic_submit_gr']) ? $r['pic_submit_gr'] : (!empty($r['gr_vendor']) ? $r['gr_vendor'] : $vendor),
                 'qty'                => $qtyStr,
                 'tgl_generate'       => $r['po_tgl_generate'] ?: '-',
                 'target_delivery'    => $r['po_target_delivery'] ?: '-'
             ];
-        } elseif ($status === 'PO SUDAH REGISTRASI' || $status === 'TOTAL REGISTRASI') {
+        } elseif ($status === 'PO SUDAH REGISTRASI') {
+            $formattedRows[] = [
+                'no_po'              => $r['po_nomor'] ?: '-',
+                'no_reg'             => !empty($r['no_reg']) ? $r['no_reg'] : '-',
+                'deskripsi_po'       => $desc,
+                'pic_asset_planner'  => $pic,
+                'department'         => $dept,
+                'pic_registrasi'     => !empty($r['pic_registration']) ? $r['pic_registration'] : $pic,
+                'qty'                => $qtyStr,
+                'tgl_generate'       => $r['po_tgl_generate'] ?: '-',
+                'target_delivery'    => $r['po_target_delivery'] ?: '-'
+            ];
+        } elseif ($status === 'PO ONTIME DELIVERY' || $status === 'PO TERLAMBAT DELIVERY') {
             $formattedRows[] = [
                 'no_po'              => $r['po_nomor'] ?: '-',
                 'deskripsi_po'       => $desc,
                 'pic_asset_planner'  => $pic,
                 'department'         => $dept,
-                'pic_registrasi'     => $pic,
+                'vendor'             => $vendor,
                 'qty'                => $qtyStr,
-                'tgl_generate'       => $r['po_tgl_generate'] ?: '-',
-                'target_delivery'    => $r['po_target_delivery'] ?: '-'
+                'target_delivery'    => $r['po_target_delivery'] ?: '-',
+                'gr_date'            => !empty($r['gr_date']) ? $r['gr_date'] : '-'
             ];
         } else {
-            // TOTAL PO INBOUND, PO ONTIME DELIVERY, PO TERLAMBAT DELIVERY
+            // TOTAL PO INBOUND
             $formattedRows[] = [
                 'no_po'              => $r['po_nomor'] ?: '-',
                 'deskripsi_po'       => $desc,

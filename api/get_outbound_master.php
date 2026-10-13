@@ -49,7 +49,7 @@ try {
         pickup_type TEXT,
         via TEXT,
         lt TEXT,
-        delivery_target TEXT,
+        delivery_target DATE,
         dn_status TEXT,
         last_log TEXT,
         periode_group TEXT,
@@ -110,6 +110,9 @@ try {
     $periodeFilter   = $_REQUEST['periode'] ?? $_REQUEST['periode_group'] ?? null;
 
     // ─── Build WHERE clause ───
+    $q = ($driver === 'pgsql') ? '"' : '`';
+    $likeOp = ($driver === 'pgsql') ? 'ILIKE' : 'LIKE';
+
     $whereConditions = [];
     $params = [];
 
@@ -126,8 +129,15 @@ try {
         $params[] = $dnStatusFilter;
     }
     if (!empty($periodeFilter)) {
-        $whereConditions[] = "periode_group = ?";
-        $params[] = $periodeFilter;
+        $cleanPeriode = trim(preg_replace('/\s*\((?:ALL\s+)?BATCH(?:\s+ALL)?\)\s*$/i', '', $periodeFilter));
+        if (preg_match('/-Batch\d+$/i', $cleanPeriode)) {
+            $whereConditions[] = "periode_group = ?";
+            $params[] = $cleanPeriode;
+        } else {
+            $whereConditions[] = "(periode_group = ? OR periode_group $likeOp ?)";
+            $params[] = $cleanPeriode;
+            $params[] = $cleanPeriode . '%';
+        }
     }
     if (!empty($mrNoFilter)) {
         $whereConditions[] = "(mr_no LIKE ? OR pck_no LIKE ? OR dn_no LIKE ? OR pr_no LIKE ? OR po_no LIKE ?)";
@@ -139,19 +149,31 @@ try {
         $params[] = $mrTerm;
     }
 
-    // DataTables global search
+    // DataTables global search — search across ALL columns
     if (!empty($searchValue)) {
         $searchTerm = '%' . $searchValue . '%';
-        $whereConditions[] = "(
-            mr_no LIKE ? OR mr_desc LIKE ? OR mr_status LIKE ? OR
-            pck_no LIKE ? OR pck_detail LIKE ? OR pck_status LIKE ? OR
-            awb LIKE ? OR dn_no LIKE ? OR pr_no LIKE ? OR po_no LIKE ? OR
-            origin_from LIKE ? OR site_origin LIKE ? OR
-            destination_to LIKE ? OR site_destination LIKE ? OR
-            pickup_type LIKE ? OR via LIKE ? OR dn_status LIKE ? OR last_log LIKE ? OR periode_group LIKE ?
-        )";
-        for ($i = 0; $i < 19; $i++) {
+        $clauses = [];
+        foreach ($columns as $c) {
+            $clauses[] = "{$q}{$c}{$q}::text $likeOp ?";
             $params[] = $searchTerm;
+        }
+        $whereConditions[] = '(' . implode(' OR ', $clauses) . ')';
+    }
+
+    // Per-column search from DataTables
+    if (isset($_REQUEST['columns']) && is_array($_REQUEST['columns'])) {
+        foreach ($_REQUEST['columns'] as $colIdx => $colData) {
+            if (!empty($colData['search']['value']) && isset($columns[$colIdx])) {
+                $colName = $columns[$colIdx];
+                $colSearchVal = $colData['search']['value'];
+                if (preg_match('/^\^(.*)\$$/', $colSearchVal, $m)) {
+                    $whereConditions[] = "{$q}{$colName}{$q}::text = ?";
+                    $params[] = $m[1];
+                } else {
+                    $whereConditions[] = "{$q}{$colName}{$q}::text $likeOp ?";
+                    $params[] = '%' . $colSearchVal . '%';
+                }
+            }
         }
     }
 

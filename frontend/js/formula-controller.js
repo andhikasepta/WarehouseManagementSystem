@@ -381,11 +381,12 @@
                 pageLength: 10,
                 lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Semua"]],
                 paging: true,
-                searching: true,
+                searching: false,
                 ordering: true,
                 info: true,
                 autoWidth: false,
                 deferRender: true,
+                dom: "<'row'<'col-sm-12'l>><'row'<'col-sm-12'tr>><'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
                 language: {
                     lengthMenu: "Tampilkan _MENU_ entries",
                     search: "Search:",
@@ -1432,13 +1433,14 @@
                                 }
                             }
                         ],
-                        pageLength: 25,
+                        pageLength: 10,
                         lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, 'Semua']],
                         paging: true,
-                        searching: true,
+                        searching: false,
                         ordering: true,
                         info: true,
                         autoWidth: false,
+                        dom: "<'row'<'col-sm-12'l>><'row'<'col-sm-12'tr>><'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
                         language: {
                             lengthMenu: 'Tampilkan _MENU_ entries',
                             search: 'Search:',

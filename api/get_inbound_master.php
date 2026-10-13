@@ -67,12 +67,24 @@ try {
     $kategoriFilter = $_REQUEST['kategori'] ?? null;
 
     // ─── Build WHERE clause ───
+    $driver = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+    $q = ($driver === 'pgsql') ? '"' : '`';
+    $likeOp = ($driver === 'pgsql') ? 'ILIKE' : 'LIKE';
+    $castText = ($driver === 'pgsql') ? '::text' : '';
+
     $whereConditions = [];
     $params = [];
 
     if (!empty($periodeFilter)) {
-        $whereConditions[] = "periode_group = ?";
-        $params[] = $periodeFilter;
+        $cleanPeriode = trim(preg_replace('/\s*\((?:ALL\s+)?BATCH(?:\s+ALL)?\)\s*$/i', '', $periodeFilter));
+        if (preg_match('/-Batch\d+$/i', $cleanPeriode)) {
+            $whereConditions[] = "periode_group = ?";
+            $params[] = $cleanPeriode;
+        } else {
+            $whereConditions[] = "(periode_group = ? OR periode_group $likeOp ?)";
+            $params[] = $cleanPeriode;
+            $params[] = $cleanPeriode . '%';
+        }
     }
     if (!empty($bagianFilter)) {
         $whereConditions[] = "pr_nama_bagian = ?";
@@ -87,15 +99,15 @@ try {
         $params[] = $kategoriFilter;
     }
 
-    // DataTables global search (searches across key columns)
+    // DataTables global search (searches across ALL columns)
     if (!empty($searchValue)) {
         $searchTerm = '%' . $searchValue . '%';
-        $whereConditions[] = "(po_nomor LIKE ? OR pr_nomor LIKE ? OR po_nama_item LIKE ? OR project_id LIKE ? OR periode_group LIKE ?)";
-        $params[] = $searchTerm;
-        $params[] = $searchTerm;
-        $params[] = $searchTerm;
-        $params[] = $searchTerm;
-        $params[] = $searchTerm;
+        $clauses = [];
+        foreach ($columns as $c) {
+            $clauses[] = "{$q}{$c}{$q}{$castText} $likeOp ?";
+            $params[] = $searchTerm;
+        }
+        $whereConditions[] = '(' . implode(' OR ', $clauses) . ')';
     }
 
     // Per-column search from DataTables
@@ -106,10 +118,10 @@ try {
                 $colSearchVal = $colData['search']['value'];
                 // Check if it looks like a regex exact match (^...$)
                 if (preg_match('/^\^(.*)\$$/', $colSearchVal, $m)) {
-                    $whereConditions[] = "$colName = ?";
+                    $whereConditions[] = "{$q}{$colName}{$q}{$castText} = ?";
                     $params[] = $m[1];
                 } else {
-                    $whereConditions[] = "$colName LIKE ?";
+                    $whereConditions[] = "{$q}{$colName}{$q}{$castText} $likeOp ?";
                     $params[] = '%' . $colSearchVal . '%';
                 }
             }

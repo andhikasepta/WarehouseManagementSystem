@@ -29,7 +29,7 @@ return function ($pdo) {
         pickup_type TEXT,
         via TEXT,
         lt TEXT,
-        delivery_target TEXT,
+        delivery_target DATE,
         dn_status TEXT,
         last_log TEXT,
         periode_group TEXT,

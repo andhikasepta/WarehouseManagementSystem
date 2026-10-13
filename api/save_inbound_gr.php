@@ -33,13 +33,13 @@ function ensureInboundGrTableExists($pdo)
         product_name TEXT,
         price TEXT,
         pr_no TEXT,
-        pr_date TEXT,
+        pr_date DATE,
         po_no TEXT,
-        po_date TEXT,
+        po_date DATE,
         do_no TEXT,
-        do_date TEXT,
+        do_date DATE,
         gr_no TEXT,
-        gr_date TEXT,
+        gr_date DATE,
         po_value TEXT,
         nama_project TEXT,
         term_of_payment TEXT,
@@ -57,10 +57,10 @@ function ensureInboundGrTableExists($pdo)
         capex_opex TEXT,
         loi_no TEXT,
         is_sent_to_artis_code TEXT,
-        artis_date TEXT,
+        artis_date DATE,
         artis_message TEXT,
         is_sent_to_iips_code TEXT,
-        iips_date TEXT,
+        iips_date DATE,
         iips_message TEXT,
         pic_submit_gr TEXT,
         pic_registration TEXT,
@@ -70,6 +70,37 @@ function ensureInboundGrTableExists($pdo)
         $updatedAtCol
     )";
     $pdo->exec($sql);
+}
+
+function parseDateVal($val)
+{
+    if (!$val)
+        return null;
+    $str = trim((string) $val);
+    if (empty($str) || $str === '-' || strtolower($str) === 'null')
+        return null;
+
+    // Check if numeric (Excel serial date number)
+    if (is_numeric($str) && (float) $str > 25000 && (float) $str < 80000) {
+        $unixTimestamp = ((float) $str - 25569) * 86400;
+        return date('Y-m-d', $unixTimestamp);
+    }
+
+    // Handle DD/MM/YYYY or DD-MM-YYYY formats
+    if (preg_match('/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/', $str, $m)) {
+        return sprintf('%04d-%02d-%02d', $m[3], $m[2], $m[1]);
+    }
+
+    // Handle YYYY-MM-DD
+    if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $str)) {
+        return $str;
+    }
+
+    $timestamp = strtotime($str);
+    if ($timestamp !== false) {
+        return date('Y-m-d', $timestamp);
+    }
+    return null;
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -170,13 +201,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             $params[] = $getVal(['product_name', 'productname', 'nama_produk']);
                             $params[] = $getVal(['price', 'harga']);
                             $params[] = $getVal(['pr_no', 'prno', 'pr_nomor', 'nomor_pr']);
-                            $params[] = $getVal(['pr_date', 'prdate', 'tanggal_pr', 'tgl_pr']);
+                            $params[] = parseDateVal($getVal(['pr_date', 'prdate', 'tanggal_pr', 'tgl_pr']));
                             $params[] = $getVal(['po_no', 'pono', 'po_nomor', 'nomor_po']);
-                            $params[] = $getVal(['po_date', 'podate', 'tanggal_po', 'tgl_po']);
+                            $params[] = parseDateVal($getVal(['po_date', 'podate', 'tanggal_po', 'tgl_po']));
                             $params[] = $getVal(['do_no', 'dono', 'do_nomor', 'nomor_do', 'dn_no']);
-                            $params[] = $getVal(['do_date', 'dodate', 'tanggal_do', 'tgl_do', 'dn_date']);
+                            $params[] = parseDateVal($getVal(['do_date', 'dodate', 'tanggal_do', 'tgl_do', 'dn_date']));
                             $params[] = $getVal(['gr_no', 'grno', 'gr_nomor', 'nomor_gr']);
-                            $params[] = $getVal(['gr_date', 'grdate', 'tanggal_gr', 'tgl_gr']);
+                            $params[] = parseDateVal($getVal(['gr_date', 'grdate', 'tanggal_gr', 'tgl_gr']));
                             $params[] = $getVal(['po_value', 'povalue', 'nilai_po']);
                             $params[] = $getVal(['nama_project', 'namaproject', 'project_name']);
                             $params[] = $getVal(['term_of_payment', 'termofpayment', 'top']);
@@ -194,10 +225,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             $params[] = $getVal(['capex_opex', 'capexopex']);
                             $params[] = $getVal(['loi_no', 'loino', 'nomor_loi']);
                             $params[] = $getVal(['is_sent_to_artis_code', 'IsSentToARTISCode', 'issenttoartiscode']);
-                            $params[] = $getVal(['artis_date', 'ARTIS_Date', 'artisdate']);
+                            $params[] = parseDateVal($getVal(['artis_date', 'ARTIS_Date', 'artisdate']));
                             $params[] = $getVal(['artis_message', 'ARTIS_Message', 'artismessage']);
                             $params[] = $getVal(['is_sent_to_iips_code', 'IsSentToIIPSCode', 'issenttoiipscode']);
-                            $params[] = $getVal(['iips_date', 'IIPS_Date', 'iipsdate']);
+                            $params[] = parseDateVal($getVal(['iips_date', 'IIPS_Date', 'iipsdate']));
                             $params[] = $getVal(['iips_message', 'IIPS_Message', 'iipsmessage']);
                             $params[] = $getVal(['pic_submit_gr', 'PIC Submit GR', 'picsubmitgr']);
                             $params[] = $getVal(['pic_registration', 'PIC Registration', 'picregistration']);
@@ -228,6 +259,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $pdo->commit();
                 }
 
+                require_once __DIR__ . '/../backend/cache_helper.php';
+                clearWmsBackendCache();
+
                 echo json_encode([
                     'status' => 'success',
                     'message' => "Successfully imported $insertedCount rows into Data GR.",
@@ -235,6 +269,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ]);
                 exit;
             } elseif ($action === 'finalize') {
+                require_once __DIR__ . '/../backend/cache_helper.php';
+                clearWmsBackendCache();
                 echo json_encode(['status' => 'success', 'message' => 'Data GR upload finalized successfully.']);
                 exit;
             }

@@ -34,9 +34,24 @@ try {
     $searchValue = isset($_REQUEST['search']['value']) ? trim($_REQUEST['search']['value']) : '';
     $year = isset($_REQUEST['year']) ? trim($_REQUEST['year']) : '';
 
+    $driver = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+    $likeOp = ($driver === 'pgsql') ? 'ILIKE' : 'LIKE';
+
     // Build WHERE clause
     $where = [];
     $params = [];
+
+    $kpiColumns = [
+        'bulan', 'receiving_target', 'receiving_achievement',
+        'registration_target', 'registration_achievement',
+        'stock_opname_target', 'stock_opname_achievement',
+        'so_hub_target', 'so_hub_achievement',
+        'so_outlet_target', 'so_outlet_achievement',
+        'slow_moving_target', 'slow_moving_achievement',
+        'capacity_target', 'capacity_achievement',
+        'efisiensi_delivery_target', 'efisiensi_delivery_achievement',
+        'periode_tahun'
+    ];
 
     if (!empty($year) && preg_match('/^\d{4}$/', $year)) {
         $where[] = "periode_tahun = ?";
@@ -44,8 +59,30 @@ try {
     }
 
     if (!empty($searchValue)) {
-        $where[] = "(bulan LIKE ?)";
-        $params[] = "%$searchValue%";
+        $searchWildcard = '%' . $searchValue . '%';
+        $clauses = [];
+        foreach ($kpiColumns as $c) {
+            $clauses[] = "{$c}::text $likeOp ?";
+            $params[] = $searchWildcard;
+        }
+        $where[] = "(" . implode(" OR ", $clauses) . ")";
+    }
+
+    // Per-column search
+    if (isset($_REQUEST['columns']) && is_array($_REQUEST['columns'])) {
+        foreach ($_REQUEST['columns'] as $colIdx => $colData) {
+            if (!empty($colData['search']['value']) && isset($kpiColumns[$colIdx])) {
+                $colName = $kpiColumns[$colIdx];
+                $colSearchVal = $colData['search']['value'];
+                if (preg_match('/^\^(.*)\$$/', $colSearchVal, $m)) {
+                    $where[] = "{$colName}::text = ?";
+                    $params[] = $m[1];
+                } else {
+                    $where[] = "{$colName}::text $likeOp ?";
+                    $params[] = '%' . $colSearchVal . '%';
+                }
+            }
+        }
     }
 
     $whereClause = !empty($where) ? "WHERE " . implode(" AND ", $where) : "";

@@ -79,20 +79,42 @@ try {
     $recordsTotal = (int)$stmtTotal->fetchColumn();
 
     // Build WHERE clause for search
-    $whereClause = '';
+    $whereConditions = [];
     $params = [];
+
+    // Global search across ALL columns
     if (!empty($searchValue)) {
         $searchCols = [];
+        $searchTerm = '%' . $searchValue . '%';
         foreach ($columns as $col) {
             if ($driver === 'pgsql') {
                 $searchCols[] = "CAST($col AS TEXT) ILIKE ?";
             } else {
                 $searchCols[] = "$col LIKE ?";
             }
-            $params[] = '%' . $searchValue . '%';
+            $params[] = $searchTerm;
         }
-        $whereClause = 'WHERE (' . implode(' OR ', $searchCols) . ')';
+        $whereConditions[] = '(' . implode(' OR ', $searchCols) . ')';
     }
+
+    // Per-column search from DataTables dropdown filters
+    if (isset($_REQUEST['columns']) && is_array($_REQUEST['columns'])) {
+        foreach ($_REQUEST['columns'] as $colIdx => $colData) {
+            if (!empty($colData['search']['value']) && isset($columns[$colIdx])) {
+                $colName = $columns[$colIdx];
+                $colSearchVal = $colData['search']['value'];
+                if (preg_match('/^\^(.*)\$$/', $colSearchVal, $m)) {
+                    $whereConditions[] = ($driver === 'pgsql') ? "CAST($colName AS TEXT) = ?" : "$colName = ?";
+                    $params[] = $m[1];
+                } else {
+                    $whereConditions[] = ($driver === 'pgsql') ? "CAST($colName AS TEXT) ILIKE ?" : "$colName LIKE ?";
+                    $params[] = '%' . $colSearchVal . '%';
+                }
+            }
+        }
+    }
+
+    $whereClause = !empty($whereConditions) ? 'WHERE ' . implode(' AND ', $whereConditions) : '';
 
     // Filtered count
     $sqlFiltered = "SELECT COUNT(*) FROM site_location $whereClause";
